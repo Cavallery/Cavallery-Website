@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Love Tester</title>
+    <style>
+      .love-tester {
+        font-family: "Garamond", serif;
+      }
+      .love-tester body {
+        margin: 0;
+        background: #fdfaf8;
+      }
+      .love-tester header {
+        background: #e4e1d6;
+        padding: 20px 0;
+        text-align: center;
+        color: #c70039;
+        font-size: 32px;
+        font-weight: bold;
+      }
+      .love-tester .container {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .love-tester canvas {
+        display: block;
+        margin: 0 auto 20px auto;
+      }
+      .love-tester .result {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ff007f;
+        margin: 20px 0;
+        text-shadow: 0 0 8px hotpink;
+        text-align: center; /* ⬅️ Tambahan ini */
+      }
+
+      .love-tester .inputs {
+        margin-top: 30px;
+      }
+      .love-tester input {
+        padding: 12px;
+        margin: 10px;
+        width: 220px;
+        border: 2px solid #b52680;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+      .love-tester button {
+        padding: 12px 30px;
+        font-size: 16px;
+        background: #ff0055;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 10px 5px 0 5px;
+      }
+      .love-tester button:hover {
+        background: #651e36;
+      }
+      .love-tester .gif-container {
+        margin-top: 20px;
+        text-align: center;
+      }
+      .love-tester .gif-container img {
+        width: 220px;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        display: none;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="love-tester">
+      <div class="container">
+        <canvas id="speedometer" width="300" height="160"></canvas>
+        <div id="resultText" class="result">Isi dulu dong!</div>
+        <div class="gif-container">
+          <img id="resultGif" src="" alt="" />
+        </div>
+        <div class="inputs">
+          <input type="text" id="name1" placeholder="Namamu" />
+          <input type="text" id="name2" value="Catherina Vallencia" readonly />
+          <br />
+          <button onclick="checkLove()">Cek Cintanya</button>
+          <button onclick="resetLove()">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentValue = 0;
+
+      function drawSpeedometer(value) {
+        const canvas = document.getElementById("speedometer");
+        const ctx = canvas.getContext("2d");
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height;
+        const radius = 120;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i <= 100; i += 10) {
+          let angle = Math.PI * (i / 100);
+          let x = centerX + radius * Math.cos(angle - Math.PI);
+          let y = centerY + radius * Math.sin(angle - Math.PI);
+
+          ctx.fillStyle = i <= value ? `hsl(${i * 1.2}, 100%, 60%)` : "#eee";
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, 2 * Math.PI);
+          ctx.fill();
+
+          if (i % 20 === 0) {
+            ctx.fillStyle = "#ff007f";
+            ctx.font = "12px Arial";
+            ctx.fillText(i + "%", x - 10, y - 10);
+          }
+        }
+
+        let angle = Math.PI * (value / 100);
+        let needleX = centerX + (radius - 15) * Math.cos(angle - Math.PI);
+        let needleY = centerY + (radius - 15) * Math.sin(angle - Math.PI);
+
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(needleX, needleY);
+        ctx.stroke();
+
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      function animateNeedle(target) {
+        const speed = 1;
+        function step() {
+          if (currentValue < target) {
+            currentValue += speed;
+            if (currentValue > target) currentValue = target;
+            drawSpeedometer(currentValue);
+            requestAnimationFrame(step);
+          } else if (currentValue > target) {
+            currentValue -= speed;
+            if (currentValue < target) currentValue = target;
+            drawSpeedometer(currentValue);
+            requestAnimationFrame(step);
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      function checkLove() {
+        const name1 = document.getElementById("name1").value.trim();
+        const name2 = document.getElementById("name2").value.trim();
+        const resultText = document.getElementById("resultText");
+        const resultGif = document.getElementById("resultGif");
+
+        if (!name1 || !name2) {
+          resultText.innerText = "Isi dulu dong!";
+          resultGif.style.display = "none";
+          animateNeedle(0);
+          return;
+        }
+
+        const specialNames = [
+          "teguh",
+          "dior",
+          "rizqi",
+          "tie livia",
+          "vigo",
+          "thoriq",
+          "naresss",
+          "rayyan",
+          "raze",
+          "restu",
+          "rai",
+          "parrel",
+          "mincav",
+          "cavallery",
+          "nadya",
+          "leviii13",
+          "lan",
+          "icaa",
+          "fadly",
+          "ekall",
+          "bagus",
+          "aqil",
+          "abiy",
+          "abay",
+          "muhammad edu agritama",
+          "edu agritama",
+          "edu",
+          "aditya",
+          "adit",
+          "Erine",
+          "erine",
+          "catherina",
+          "Catherina Vallencia",
+          "catherina vallencia",
+          "lana",
+          "oline",
+          "aditya pratama putra",
+          "nachia",
+          "aralie",
+          "fritzy",
+          "regie",
+          "ribka",
+          "trisha",
+          "lily",
+          "nayla",
+        ];
+
+        let name1Lower = name1.toLowerCase();
+        let value = specialNames.includes(name1Lower)
+          ? 100
+          : Math.floor(Math.random() * 100) + 1;
+
+        resultText.innerText = `Erine sayang kamu sebesar ${value}%`;
+        animateNeedle(value);
+
+        let gifUrl = "";
+        if (value <= 49) {
+          gifUrl =
+            "https://cavallery.id/wp-content/uploads/2025/07/erine-50.gif";
+        } else if (value <= 70) {
+          gifUrl =
+            "https://cavallery.id/wp-content/uploads/2025/07/erine-20.gif";
+        } else {
+          gifUrl =
+            "https://cavallery.id/wp-content/uploads/2025/07/erine-100.gif";
+        }
+
+        resultGif.src = gifUrl;
+        resultGif.style.display = "block";
+      }
+
+      function resetLove() {
+        document.getElementById("name1").value = "";
+        document.getElementById("resultText").innerText = "Isi dulu dong!";
+        document.getElementById("resultGif").style.display = "none";
+        animateNeedle(0);
+      }
+
+      drawSpeedometer(currentValue);
+    </script>
+  </body>
+</html>

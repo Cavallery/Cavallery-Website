@@ -1,0 +1,146 @@
+.section {
+  padding: 120px 24px;
+  background: var(--bg);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.wrapper {
+  display: flex;
+  background: var(--surface-2);
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+}
+
+.videoSide {
+  flex: 1.2;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  min-height: 500px;
+}
+
+.videoFrame {
+  width: 100%;
+  height: 100%;
+  border: 8px solid var(--primary);
+  border-radius: 20px;
+  box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardSide {
+  flex: 1;
+  padding: 60px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+}
+
+.profileCard {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  margin-bottom: 8px;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.divider {
+  width: 60px;
+  height: 3px;
+  background: var(--primary);
+  margin: 0 auto;
+}
+
+.bioList {
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bioItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.bioItem i {
+  width: 24px;
+  color: var(--gold);
+  font-size: 1.25rem;
+}
+
+.quote {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.checkmate {
+  color: var(--gold);
+}
+
+.btnErine {
+  display: inline-block;
+  padding: 14px 32px;
+  border: 2px solid var(--primary);
+  border-radius: 50px;
+  color: var(--primary);
+  font-weight: 700;
+  transition: all 0.3s;
+  width: fit-content;
+  margin: 12px auto 0;
+}
+
+.btnErine:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-4px);
+}
+
+@media (max-width: 1024px) {
+  .wrapper {
+    flex-direction: column;
+  }
+  .videoSide {
+    min-height: auto;
+    aspect-ratio: 16/9;
+  }
+  .cardSide {
+    padding: 60px 24px;
+  }
+}

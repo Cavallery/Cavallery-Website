@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peta Sebaran Domisili Cavallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; padding: 0; background: transparent; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+  #cavallery-root {
+    --primary: #372e27;
+    --accent: #d6c9b6;
+    --card-bg: transparent;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .card {
+    background: transparent;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(55, 46, 39, 0.08);
+  }
+
+  h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--primary);
+  }
+
+  .subtitle { font-size: 14px; color: #888; margin: 0; }
+
+  .stat-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 44px;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+  }
+
+  .stat-label { font-size: 12px; color: #999; display: block; text-align: right; margin-top: 4px; }
+
+  /* MAP SECTION */
+  .map-wrap {
+    width: 100%;
+    margin-bottom: 40px;
+    position: relative;
+    background: linear-gradient(135deg, #f2ece4 0%, #e6ded5 100%);
+    border-radius: 24px;
+    padding: 20px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(55,46,39,0.05);
+    border: 1px solid rgba(55,46,39,0.08);
+  }
+
+  svg#map {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+  }
+
+  .province {
+    fill: #d6c9b6;
+    stroke: #f2ece4;
+    stroke-width: 0.5;
+    transition: all 0.3s ease;
+    cursor: default;
+  }
+
+  .province.has-data {
+    cursor: pointer;
+  }
+
+  .province.active {
+    stroke: var(--primary);
+    stroke-width: 1.5;
+    filter: brightness(0.9);
+  }
+
+  /* TOOLTIP */
+  #tooltip {
+    position: fixed;
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .legend-title { font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase; }
+
+  .legend-items { display: flex; gap: 15px; align-items: center; }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+
+  .legend-dot { width: 14px; height: 14px; border-radius: 3px; }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    border-top: 1px dashed #d6c9b6;
+    padding-top: 36px;
+  }
+
+  .box {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 24px;
+    border: 2px solid rgba(55,46,39,0.08);
+    border-left-width: 6px;
+    transition: all 0.3s cubic-bezier(0.165,0.84,0.44,1);
+    cursor: pointer;
+  }
+
+  .box:hover, .box.active {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(55,46,39,0.1);
+    border-color: var(--primary);
+    background: #fff;
+  }
+
+  .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .box-name { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 700; color: var(--primary); }
+  .box-count { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 900; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    background: rgba(55,46,39,0.05);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+  }
+
+  .map-loading {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  @media (max-width: 680px) {
+    #cavallery-root { padding: 20px 10px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .stat-label { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div id="cavallery-root">
+  <div class="card">
+    <div class="header">
+      <div>
+        <h2>Peta Sebaran Domisili</h2>
+        <p class="subtitle">Visualisasi Anggota Cavallery per Wilayah</p>
+      </div>
+      <div>
+        <div class="stat-val" id="total-count">0</div>
+        <span class="stat-label">Total Anggota</span>
+      </div>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map-loading" class="map-loading">Mengunduh Data Geografis...</div>
+      <svg id="map" viewBox="0 0 800 350"></svg>
+    </div>
+
+    <div class="legend">
+      <span class="legend-title">Indikator:</span>
+      <div class="legend-items" id="legend-items">
+        <div class="legend-item"><div class="legend-dot" style="background:#372e27"></div> Tinggi</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#7a6455"></div> Sedang</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#d0c4b4"></div> Rendah</div>
+      </div>
+    </div>
+
+    <div class="grid" id="grid-root"></div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+(function() {
+  const rawData = {
+    "Jakarta": 92, "Bekasi": 64, "Tangerang": 58, "Bogor": 52, "Depok": 28,
+    "Bandung": 26, "Surabaya": 24, "Semarang": 20, "Yogyakarta": 18, "Malang": 17,
+    "Lampung": 12, "Medan": 11, "Padang": 9, "Balikpapan": 8, "Samarinda": 10,
+    "Pekalongan": 7, "Banyumas": 6, "Kediri": 7, "Jember": 5, "Sidoarjo": 7,
+    "Magelang": 5, "Kebumen": 5, "Kudus": 5, "Palembang": 5, "Makassar": 5,
+    "Bengkulu": 6, "Denpasar": 2, "Banjar": 2, "Ponorogo": 3, "Nganjuk": 2,
+    "Batam": 2, "Solo": 3, "Purwakarta": 2, "Pontianak": 2, "Pemalang": 3,
+    "Pasuruan": 2, "Tasikmalaya": 2, "Sragen": 2, "Binjai": 2, "Jambi": 2,
+    "Indramayu": 2, "Tegal": 3, "Purworejo": 2, "Cilegon": 2, "Sukabumi": 3,
+    "Blitar": 2, "Boyolali": 2, "Karawang": 3, "Mojokerto": 2, "Pangkal Pinang": 2,
+    "Palu": 2, "Kuningan": 3, "Manado": 3, "Probolinggo": 2, "Tuban": 2,
+    "Kendari": 2, "Wonosobo": 2, "Garut": 2, "Majalengka": 2, "Lumajang": 2,
+    "Serang": 2, "Pandeglang": 2
+  };
+
+  const regions = {
+    "Jabodetabek": {
+      cities: ["Jakarta", "Bekasi", "Tangerang", "Bogor", "Depok"],
+      provinces: ["DKI JAKARTA", "BANTEN"]
+    },
+    "Jawa Barat": {
+      cities: ["Bandung", "Cilegon", "Serang", "Karawang", "Sukabumi", "Purwakarta", "Tasikmalaya", "Indramayu", "Kuningan", "Garut", "Majalengka", "Pandeglang"],
+      provinces: ["JAWA BARAT"]
+    },
+    "Jawa Tengah & DIY": {
+      cities: ["Semarang", "Yogyakarta", "Pekalongan", "Banyumas", "Magelang", "Kebumen", "Kudus", "Solo", "Pemalang", "Sragen", "Purworejo", "Boyolali", "Wonosobo", "Tegal"],
+      provinces: ["JAWA TENGAH", "DAERAH ISTIMEWA YOGYAKARTA"]
+    },
+    "Jawa Timur": {
+      cities: ["Surabaya", "Malang", "Kediri", "Jember", "Sidoarjo", "Pasuruan", "Blitar", "Mojokerto", "Probolinggo", "Tuban", "Lumajang", "Ponorogo", "Nganjuk"],
+      provinces: ["JAWA TIMUR"]
+    },
+    "Sumatera": {
+      cities: ["Lampung", "Medan", "Padang", "Palembang", "Bengkulu", "Batam", "Binjai", "Jambi", "Pangkal Pinang"],
+      provinces: ["DI. ACEH", "SUMATERA UTARA", "SUMATERA BARAT", "RIAU", "JAMBI", "BENGKULU", "SUMATERA SELATAN", "LAMPUNG", "BANGKA BELITUNG", "KEPULAUAN RIAU"]
+    },
+    "Kalimantan": {
+      cities: ["Balikpapan", "Samarinda", "Pontianak", "Banjar"],
+      provinces: ["KALIMANTAN BARAT", "KALIMANTAN TENGAH", "KALIMANTAN SELATAN", "KALIMANTAN TIMUR", "KALIMANTAN UTARA"]
+    },
+    "Sulawesi": {
+      cities: ["Makassar", "Palu", "Manado", "Kendari"],
+      provinces: ["GORONTALO", "SULAWESI UTARA", "SULAWESI TENGAH", "SULAWESI BARAT", "SULAWESI SELATAN", "SULAWESI TENGGARA"]
+    },
+    "Bali & Nusa Tenggara": {
+      cities: ["Denpasar"],
+      provinces: ["BALI", "NUSA TENGGARA BARAT", "NUSA TENGGARA TIMUR"]
+    }
+  };
+
+  const palette = ["#372e27", "#4a3d33", "#5e4e3e", "#7a6455", "#9c8471", "#b8a897", "#d0c4b4", "#e3dcd4"];
+  const tooltip = document.getElementById('tooltip');
+  const provinceToRegion = {};
+  
+  Object.keys(regions).forEach(region => {
+    regions[region].provinces.forEach(prov => { provinceToRegion[prov] = region; });
+  });
+
+  function activateRegion(region, active) {
+    if (!region) return;
+    d3.selectAll('.province').filter(d => provinceToRegion[d.properties.Propinsi] === region)
+      .classed('active', active);
+    const boxId = `box-${region.replace(/\s|&/g, '')}`;
+    const box = document.getElementById(boxId);
+    if (box) box.classList.toggle('active', active);
+  }
+
+  function init() {
+    const sums = {};
+    Object.keys(regions).forEach(r => {
+      sums[r] = regions[r].cities.reduce((s, c) => s + (rawData[c] || 0), 0);
+    });
+
+    const total = Object.values(sums).reduce((a, b) => a + b, 0);
+    document.getElementById('total-count').textContent = total;
+
+    const sortedRegions = Object.keys(regions).sort((a, b) => sums[b] - sums[a]);
+    const grid = document.getElementById('grid-root');
+
+    sortedRegions.forEach((region, rank) => {
+      if (sums[region] === 0) return;
+      const color = palette[Math.min(rank, palette.length - 1)];
+      const box = document.createElement('div');
+      box.className = 'box';
+      box.id = `box-${region.replace(/\s|&/g, '')}`;
+      box.style.borderLeftColor = color;
+      box.innerHTML = `
+        <div class="box-header">
+          <div class="box-name">${region}</div>
+          <div class="box-count" style="color:${color}">${sums[region]}</div>
+        </div>
+        <div class="tags">${regions[region].cities.filter(c => rawData[c] > 0).map(c => `<div class="tag">${c} <b>${rawData[c]}</b></div>`).join('')}</div>
+      `;
+      box.onmouseenter = () => activateRegion(region, true);
+      box.onmouseleave = () => activateRegion(region, false);
+      grid.appendChild(box);
+    });
+
+    // D3 Map Logic
+    const svg = d3.select("#map");
+    const projection = d3.geoMercator().center([118, -2.5]).scale(850).translate([400, 175]);
+    const path = d3.geoPath().projection(projection);
+
+    d3.json("https://raw.githubusercontent.com/ans-4175/peta-indonesia-geojson/master/indonesia-prov.geojson").then(geo => {
+      document.getElementById('map-loading').style.display = 'none';
+      
+      svg.selectAll("path")
+        .data(geo.features)
+        .enter().append("path")
+        .attr("class", "province")
+        .attr("d", path)
+        .attr("fill", d => {
+          const r = provinceToRegion[d.properties.Propinsi];
+          return r ? palette[Math.min(sortedRegions.indexOf(r), palette.length - 1)] : "#e3dcd4";
+        })
+        .classed("has-data", d => sums[provinceToRegion[d.properties.Propinsi]] > 0)
+        .on("mouseenter", (e, d) => {
+          const r = provinceToRegion[d.properties.Propinsi];
+          if(r) {
+            activateRegion(r, true);
+            tooltip.style.opacity = 1;
+            tooltip.innerHTML = `<b>${r}</b>: ${sums[r]} Anggota`;
+          }
+        })
+        .on("mousemove", e => {
+          tooltip.style.left = (e.clientX + 15) + "px";
+          tooltip.style.top = (e.clientY - 35) + "px";
+        })
+        .on("mouseleave", (e, d) => {
+          activateRegion(provinceToRegion[d.properties.Propinsi], false);
+          tooltip.style.opacity = 0;
+        });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>

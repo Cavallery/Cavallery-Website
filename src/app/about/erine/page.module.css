@@ -1,0 +1,213 @@
+.page {
+  min-height: 100vh;
+  padding-top: var(--nav-h);
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  padding: 80px 24px 100px;
+  overflow: hidden;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top center, rgba(212,175,55,0.12) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.heroTitle {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin: 24px 0 20px;
+}
+
+.heroSub {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* CONTENT */
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+}
+
+.bioGrid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 56px;
+  align-items: start;
+}
+
+.bioText {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.bioText p {
+  font-size: .95rem;
+  color: var(--fg-muted);
+  line-height: 1.85;
+  font-weight: 300;
+}
+
+.sectionH {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.socials {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.socialBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg-muted);
+  font-size: .85rem;
+  font-weight: 600;
+  transition: color .2s, border-color .2s, background .2s, transform .2s;
+}
+
+.socialBtn:hover {
+  color: var(--gold);
+  border-color: var(--border-gold);
+  background: var(--gold-dim);
+  transform: translateY(-3px);
+}
+
+.socialBtn i { font-size: 1.1rem; }
+
+/* PROFILE CARD */
+.profileCard {
+  padding: 32px 28px;
+  text-align: center;
+  position: sticky;
+  top: calc(var(--nav-h) + 24px);
+}
+
+.profileImgWrap {
+  margin-bottom: 20px;
+}
+
+.profileImgPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  border: 3px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  color: var(--gold);
+  margin: 0 auto;
+}
+
+.profileName {
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+
+.profileFull {
+  font-size: .8rem;
+  color: var(--fg-muted);
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+
+.profileBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 24px;
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+}
+
+.fact i {
+  font-size: 1.2rem;
+  color: var(--gold);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.factLabel {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 2px;
+}
+
+.factValue {
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+@media (max-width: 900px) {
+  .bioGrid {
+    grid-template-columns: 1fr;
+  }
+  .profileCard {
+    position: static;
+    order: -1;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,4 @@
+.page {
+  padding-top: 0; /* Hero is full-screen */
+  overflow-x: hidden;
+}

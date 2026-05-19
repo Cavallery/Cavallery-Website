@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Game Erine</title>
+    <style>
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 10px;
+      }
+      .card {
+        background: #d6c9b6;
+        font-family: "Garamond", serif;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        font-size: 20px;
+      }
+      .card p {
+        font-size: 18px;
+        margin-top: 10px;
+      }
+      .card input {
+        padding: 8px;
+        font-size: 14px;
+        width: 80%;
+        max-width: 260px;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      .card button {
+        margin-top: 12px;
+        padding: 12px 20px;
+        font-size: 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .card button:hover {
+        background: #0063d1;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        background: #372e27;
+        color: white;
+      }
+      #game {
+        width: 95%;
+        height: 400px;
+        margin: 20px auto;
+        border: 2px solid #333;
+        position: relative;
+        overflow: hidden;
+        background-image: url("https://cavallery.id/wp-content/uploads/2025/06/bekasi.png");
+        background-size: cover;
+        background-position: center 80%;
+        background-repeat: no-repeat;
+        border-radius: 10px;
+      }
+      .dino {
+        width: 70px;
+        height: 90px;
+        position: absolute;
+        bottom: 0;
+        left: 50px;
+      }
+      .dino img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .bibir {
+        width: 60px;
+        height: 60px;
+        position: absolute;
+        bottom: 0;
+        left: 100%;
+      }
+      .bibir img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .score {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        font-size: 20px;
+        color: white;
+        text-shadow: 0 0 4px black;
+        z-index: 20;
+      }
+      .game-over {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 24px;
+        text-align: center;
+        padding-top: 60px;
+        z-index: 10;
+      }
+      .game-over button {
+        margin-top: 20px;
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        background: #00c853;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .volume-control {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 4px 8px;
+        border-radius: 6px;
+        z-index: 20;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Selamat Datang di Game Bibir Erine Yang Telah Dicuri 💋</h2>
+        <p>Masukkan nama kamu untuk mulai bermain:</p>
+        <input id="playerName" type="text" placeholder="Contoh: Catherina Vallencia" />
+        <br />
+        <button onclick="validateAndStart()">Mulai Game</button>
+      </div>
+
+      <div id="game">
+        <div class="dino" id="dino">
+          <img id="dinoSprite" src="https://cavallery.id/wp-content/uploads/2025/06/erine_7.png" />
+        </div>
+        <div class="bibir" id="bibir">
+          <img src="https://cavallery.id/wp-content/uploads/2025/06/bibir-1-e1749708789418.png" />
+        </div>
+        <div class="game-over" id="gameOverScreen">
+          <div>
+            Game Over!<br />Bibir Erine Dicuri!<br />
+            Final Score: <span id="finalScore">0</span>
+          </div>
+          <button onclick="resetGame()">Main Lagi</button>
+        </div>
+        <audio id="bgm" src="https://cavallery.id/wp-content/uploads/2025/06/ezyZip1.mp3" loop></audio>
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="volume-control">
+          🔊
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🏆 Leaderboard Top 10</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>Skor</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const dino = document.getElementById("dino");
+      const dinoSprite = document.getElementById("dinoSprite");
+      const bibir = document.getElementById("bibir");
+      const scoreDisplay = document.getElementById("score");
+      const finalScoreDisplay = document.getElementById("finalScore");
+      const gameOverScreen = document.getElementById("gameOverScreen");
+      const bgm = document.getElementById("bgm");
+      const volumeSlider = document.getElementById("volumeSlider");
+
+      let isJumping = false, score = 0, gameOver = false;
+      let bibirSpeed = 5, bibirX = 0;
+      let scoreInterval, collisionCheck, animationFrameId, runInterval;
+      let playerName = "";
+
+      const runFrames = [
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_1.png",
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_2.png",
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_3.png",
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_4.png"
+      ];
+      const jumpFrames = [
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_5.png",
+        "https://cavallery.id/wp-content/uploads/2025/06/erine_6.png"
+      ];
+      const idleFrame = "https://cavallery.id/wp-content/uploads/2025/06/erine_7.png";
+
+      function animateRun() {
+        clearInterval(runInterval);
+        let i = 0;
+        runInterval = setInterval(() => {
+          if (!isJumping && !gameOver) {
+            dinoSprite.src = runFrames[i];
+            i = (i + 1) % runFrames.length;
+          }
+        }, 80);
+      }
+
+      // modifikasi fungsi jump untuk dino agar melompat secara responsif
+      function jump() {
+        if (isJumping || gameOver) return;
+        isJumping = true;
+        clearInterval(runInterval);
+
+        let jumpIdx = 0;
+        dinoSprite.src = jumpFrames[jumpIdx];
+
+        dino.style.transition = "bottom 0.35s linear, transform 0.35s linear";
+        dino.style.bottom = "260px";
+        dino.style.transform = "translateX(30px)";
+
+        setTimeout(() => {
+          jumpIdx = 1;
+          dinoSprite.src = jumpFrames[jumpIdx];
+
+          dino.style.transition = "bottom 0.4s linear, transform 0.4s linear";
+          dino.style.bottom = "0";
+          dino.style.transform = "translateX(0px)";
+
+          setTimeout(() => {
+            isJumping = false;
+            dino.style.transition = "";
+            animateRun();
+          }, 400);
+        }, 350);
+      }
+
+      function moveBibir() {
+        if (gameOver) return;
+        bibirX -= bibirSpeed;
+        if (bibirX < -60) bibirX = document.getElementById("game").offsetWidth;
+        bibir.style.left = bibirX + "px";
+        animationFrameId = requestAnimationFrame(moveBibir);
+      }
+
+      function validateAndStart() {
+        const nameInput = document.getElementById("playerName").value.trim();
+        if (!nameInput) {
+          alert("Masukkan nama dulu sebelum bermain.");
+          return;
+        }
+        playerName = nameInput;
+        startGame();
+      }
+
+      function startGame() {
+        gameOver = false;
+        score = 0;
+
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        bibirSpeed = isMobile ? 2.5 : 5;
+
+        scoreDisplay.innerText = score;
+        finalScoreDisplay.innerText = 0;
+        gameOverScreen.style.display = "none";
+        bgm.volume = volumeSlider.value;
+        bgm.play().catch(() => {});
+        bibirX = document.getElementById("game").offsetWidth;
+        dinoSprite.src = idleFrame;
+        animateRun();
+        moveBibir();
+
+        scoreInterval = setInterval(() => {
+          if (!gameOver) {
+            score++;
+            scoreDisplay.innerText = score;
+            if (score % 100 === 0 && bibirSpeed < 12) bibirSpeed += 0.5;
+          }
+        }, 100);
+
+        collisionCheck = setInterval(() => {
+          const dinoBottom = parseInt(getComputedStyle(dino).getPropertyValue("bottom"));
+          const bibirLeft = parseInt(getComputedStyle(bibir).getPropertyValue("left"));
+          if (bibirLeft > 50 && bibirLeft < 110 && dinoBottom <= 60) {
+            endGame();
+          }
+        }, 10);
+      }
+
+      function endGame() {
+        gameOver = true;
+        cancelAnimationFrame(animationFrameId);
+        clearInterval(scoreInterval);
+        clearInterval(collisionCheck);
+        clearInterval(runInterval);
+        dinoSprite.src = idleFrame;
+        finalScoreDisplay.innerText = score;
+        gameOverScreen.style.display = "block";
+        saveToLeaderboard(playerName, score);
+        renderLeaderboard();
+      }
+
+      function resetGame() {
+        startGame();
+      }
+
+      function saveToLeaderboard(name, score) {
+        const data = JSON.parse(localStorage.getItem("erine_leaderboard")) || [];
+        data.push({ name, score });
+        data.sort((a, b) => b.score - a.score);
+        localStorage.setItem("erine_leaderboard", JSON.stringify(data.slice(0, 10)));
+      }
+
+      function renderLeaderboard() {
+        const data = JSON.parse(localStorage.getItem("erine_leaderboard")) || [];
+        const tbody = document.getElementById("leaderboard");
+        tbody.innerHTML = "";
+        data.forEach((entry, i) => {
+          const row = `<tr><td>${i + 1}</td><td>${entry.name}</td><td>${entry.score}</td></tr>`;
+          tbody.innerHTML += row;
+        });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+          e.preventDefault();
+          jump();
+        }
+      });
+
+      document.getElementById("game").addEventListener("click", jump);
+      document.getElementById("game").addEventListener("touchstart", jump);
+      document.addEventListener("click", () => {
+        if (bgm.paused) bgm.play().catch(() => {});
+      });
+      volumeSlider.addEventListener("input", () => {
+        bgm.volume = volumeSlider.value;
+      });
+
+      renderLeaderboard();
+    </script>
+  </body>
+</html>

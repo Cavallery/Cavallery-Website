@@ -1,0 +1,126 @@
+.section {
+  padding: 120px 24px;
+  background: var(--bg-dim);
+  border-top: 1px solid var(--border);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.subtitle {
+  margin-top: 16px;
+  color: var(--fg-dim);
+  font-size: 1.1rem;
+}
+
+.formWrapper {
+  animation: fadeUp 1s ease both;
+}
+
+.formCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.identityToggle {
+  display: flex;
+  gap: 12px;
+  background: var(--bg);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.toggleLabel {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: 0.3s;
+  color: var(--fg-dim);
+}
+
+.toggleLabel.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary);
+}
+
+.field input, .field select, .field textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 8px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-glow);
+}
+
+.statusMessage {
+  text-align: center;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #16a34a;
+}
+
+.statusMessage i {
+  font-size: 4rem;
+}
+
+.statusMessage p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  max-width: 300px;
+}
+
+.error {
+  color: #ef4444;
+  text-align: center;
+  font-weight: 600;
+}

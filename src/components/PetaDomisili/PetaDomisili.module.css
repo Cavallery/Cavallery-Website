@@ -1,0 +1,225 @@
+.container {
+  width: 100%;
+  margin: 40px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 28px;
+  padding: 48px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 1100px;
+  transition: all 0.3s ease;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 36px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerTitle h2 {
+  font-family: var(--serif);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: var(--fg);
+  line-height: 1.2;
+}
+
+.headerTitle p {
+  font-size: 14px;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.stat {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.statVal {
+  font-family: var(--serif);
+  font-size: clamp(32px, 5vw, 46px);
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  display: block;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--fg-dim);
+  display: block;
+  margin-top: 4px;
+}
+
+/* MAP WRAPPER */
+.mapWrap {
+  width: 100%;
+  margin-bottom: 36px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  border: 1px solid var(--border);
+}
+
+.mapLoading {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.svgMap {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
+
+.province {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 0.6;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.provinceHasData {
+  cursor: pointer;
+  fill: var(--surface-3, #d6c9b6);
+}
+
+/* Dark mode fallback adjustment for default filled states */
+@media (prefers-color-scheme: dark) {
+  .provinceHasData {
+    fill: #5a4f45;
+  }
+}
+
+.provinceActive {
+  stroke: var(--gold) !important;
+  stroke-width: 1.5 !important;
+  filter: brightness(1.1);
+}
+
+/* TOOLTIP */
+.tooltip {
+  position: fixed;
+  background: var(--fg);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -100%);
+  margin-top: -10px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  border-top: 1px dashed var(--border);
+  padding-top: 32px;
+}
+
+.box {
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 20px;
+  border: 2px solid var(--border);
+  border-left-width: 6px;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  cursor: pointer;
+}
+
+.box:hover,
+.boxActive {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  background: var(--surface);
+}
+
+.boxHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.boxName {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  flex: 1;
+}
+
+.boxCount {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: var(--surface-2);
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .card {
+    padding: 24px;
+    border-radius: 20px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .stat {
+    text-align: left;
+  }
+  .mapWrap {
+    padding: 12px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

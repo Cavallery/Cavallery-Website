@@ -1,0 +1,251 @@
+.page {
+  min-height: 100vh;
+  padding-top: var(--nav-h);
+}
+
+.hero {
+  position: relative;
+  padding: 80px 24px 100px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top center, rgba(212,175,55,0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  margin: 24px 0 20px;
+}
+
+.heroSub {
+  font-size: 1rem;
+  color: var(--fg-muted);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.sectionH {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+/* MISSION */
+.missionWrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.missionText {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.missionText p {
+  font-size: .95rem;
+  color: var(--fg-muted);
+  line-height: 1.85;
+  font-weight: 300;
+}
+
+.values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.valueCard {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: 16px;
+}
+
+.valueIcon {
+  font-size: 1.8rem;
+  color: var(--gold);
+}
+
+.valueTitle {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.valueDesc {
+  font-size: .8rem;
+  color: var(--fg-muted);
+  line-height: 1.65;
+  font-weight: 300;
+}
+
+/* TIMELINE */
+.timelineSection {
+  max-width: 700px;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 24px;
+  border-left: 2px solid var(--border);
+  margin-top: 8px;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 60px 20px 1fr;
+  align-items: start;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.timelineYear {
+  font-family: var(--serif);
+  font-size: .85rem;
+  font-weight: 800;
+  color: var(--gold);
+  text-align: right;
+  padding-top: 2px;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+  margin-top: 4px;
+  flex-shrink: 0;
+  position: relative;
+  left: -37px;
+}
+
+.timelineEvent {
+  font-size: .9rem;
+  color: var(--fg-muted);
+  line-height: 1.7;
+  font-weight: 400;
+  padding-left: 0;
+}
+
+/* TEAM */
+.teamSection {}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 8px;
+}
+
+.teamCard {
+  padding: 32px 28px;
+  text-align: center;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.teamAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  border: 2px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.teamDept {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.teamName {
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.teamRole {
+  font-size: .82rem;
+  color: var(--fg-muted);
+  font-weight: 400;
+}
+
+.teamHandle {
+  font-size: .78rem;
+  color: var(--fg-dim);
+  font-style: italic;
+}
+
+@media (max-width: 900px) {
+  .missionWrap { grid-template-columns: 1fr; }
+  .values { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .timelineItem { grid-template-columns: 48px 16px 1fr; gap: 10px; }
+}
+
+/* DOMISILI MAP SECTION */
+.domisiliSection {
+  width: 100%;
+}
+
+.domisiliIframe {
+  width: 100%;
+  height: 980px;
+  border: none;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+@media (max-width: 768px) {
+  .domisiliIframe {
+    height: 1350px;
+  }
+}
