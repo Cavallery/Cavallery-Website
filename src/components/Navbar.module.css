@@ -197,8 +197,8 @@
   top: var(--nav-h);
   left: 0;
   right: 0;
-  background: var(--fg); /* Sapphire in light mode */
-  border-bottom: 1px solid var(--border-gold);
+  background: var(--surface-2); /* Harmonious surface background */
+  border-bottom: 1.5px solid var(--border-gold);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -206,14 +206,14 @@
   max-height: calc(100vh - var(--nav-h));
   overflow-y: auto;
   animation: mobileFadeIn .3s ease;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .mobileMenu .mobileLink {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--fg);
 }
 
-.mobileMenu .mobileLink:hover {
+.mobileMenu .mobileLink:hover, .mobileMenu .mobileLink.active {
   background: rgba(212, 175, 55, 0.1);
   color: var(--gold);
 }
@@ -240,11 +240,6 @@
   font-weight: 700;
   color: var(--fg-muted);
   transition: all .2s;
-}
-
-.mobileLink:hover, .mobileLink.active {
-  color: var(--primary);
-  background: var(--accent);
 }
 
 @media (max-width: 1100px) {
