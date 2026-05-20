@@ -42,12 +42,7 @@ export default function RootLayout({
       </head>
       <body>
         <div className="chessboard-bg" />
-        <div className="knight-watermark">
-          <i className="bx bxs-chess" />
-        </div>
-        <div className="board-watermark">
-          <i className="bx bx-grid-alt" />
-        </div>
+        <div className="knight-watermark" />
         <SplashScreen />
         <Navbar />
         <main>{children}</main>

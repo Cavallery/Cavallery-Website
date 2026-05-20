@@ -15,7 +15,6 @@ export default function AboutErineSection() {
     "/images/erine1.jpg",
     "/images/erine2.jpg",
     "/images/erine3.jpg",
-    "/images/erine1.jpg"
   ];
 
   const stats = [

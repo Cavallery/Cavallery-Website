@@ -81,15 +81,16 @@ export const regionMap: RegionMap = {
 };
 
 export const PALETTE: readonly string[] = [
-  "#2c2318",
-  "#3d3028",
-  "#55402f",
-  "#70543a",
-  "#8e7051",
-  "#b09070",
-  "#cdb899",
-  "#ddd0be",
-  "#ece7df",
+export const PALETTE: readonly string[] = [
+  "var(--map-c1)",
+  "var(--map-c2)",
+  "var(--map-c3)",
+  "var(--map-c4)",
+  "var(--map-c5)",
+  "var(--map-c6)",
+  "var(--map-c7)",
+  "var(--map-c8)",
+  "var(--map-c9)",
 ] as const;
 
 export const LEGEND_ITEMS = [

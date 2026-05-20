@@ -6,7 +6,6 @@ export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
   const [desktopError, setDesktopError] = useState(false);
-  const [mobileError, setMobileError] = useState(false);
 
   useEffect(() => {
     let mainTimer: NodeJS.Timeout;
