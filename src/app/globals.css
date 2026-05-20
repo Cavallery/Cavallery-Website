@@ -81,29 +81,47 @@ body {
 
 .knight-watermark {
   position: fixed;
-  bottom: -20px;
-  left: 20px;
-  font-size: 25rem;
-  color: var(--gold);
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: -1;
-  transform: rotate(15deg);
-  filter: blur(1px);
-}
-
-.board-watermark {
-  position: fixed;
-  top: 50%;
-  right: -20px;
+  bottom: -40px;
+  left: -20px;
   font-size: 28rem;
   color: var(--gold);
   opacity: 0.12;
   pointer-events: none;
   z-index: -1;
-  transform: translateY(-50%) rotate(-10deg);
-  filter: blur(2px);
+  transform: rotate(10deg);
+  line-height: 1;
+  user-select: none;
 }
+
+.knight-watermark::before {
+  content: "♞";
+  display: block;
+  font-family: serif;
+}
+
+.knight-watermark i { display: none; }
+
+.board-watermark {
+  position: fixed;
+  top: 50%;
+  right: -30px;
+  font-size: 26rem;
+  color: var(--gold);
+  opacity: 0.10;
+  pointer-events: none;
+  z-index: -1;
+  transform: translateY(-50%) rotate(-8deg);
+  line-height: 1;
+  user-select: none;
+}
+
+.board-watermark::before {
+  content: "♟";
+  display: block;
+  font-family: serif;
+}
+
+.board-watermark i { display: none; }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--serif);
