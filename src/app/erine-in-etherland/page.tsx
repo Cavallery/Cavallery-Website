@@ -4,13 +4,13 @@ import Link from "next/link";
 import styles from "./page.module.css";
 
 const scenes = [
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/prolog-scene.mp4", title: "Prolog", desc: "Awal dari perjalanan Erine di dunia Etherland." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/scene-1.mp4", title: "Scene 1", desc: "Erine menemukan portal menuju Etherland." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/scene-2.mp4", title: "Scene 2", desc: "Petualangan pertama di tanah asing." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/scene-3.mp4", title: "Scene 3", desc: "Bertemu dengan penduduk Etherland." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/scene-4.mp4", title: "Scene 4", desc: "Tantangan yang harus dihadapi." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/scene-5.mp4", title: "Scene 5", desc: "Menuju puncak petualangan." },
-  { src: "https://cavallery.id/wp-content/uploads/2025/08/Penutup.mp4", title: "Penutup", desc: "Akhir dari perjalanan Erine di Etherland." },
+  { src: "/assets/prolog-scene.mp4", title: "Prolog", desc: "Awal dari perjalanan Erine di dunia Etherland." },
+  { src: "/assets/scene-1.mp4", title: "Scene 1", desc: "Erine menemukan portal menuju Etherland." },
+  { src: "/assets/scene-2.mp4", title: "Scene 2", desc: "Petualangan pertama di tanah asing." },
+  { src: "/assets/scene-3.mp4", title: "Scene 3", desc: "Bertemu dengan penduduk Etherland." },
+  { src: "/assets/scene-4.mp4", title: "Scene 4", desc: "Tantangan yang harus dihadapi." },
+  { src: "/assets/scene-5.mp4", title: "Scene 5", desc: "Menuju puncak petualangan." },
+  { src: "/assets/penutup.mp4", title: "Penutup", desc: "Akhir dari perjalanan Erine di Etherland." },
 ];
 
 const contributors = [
@@ -52,26 +52,16 @@ export default function ErineInEtherlandPage() {
       <div className={styles.hero}>
         {!heroVideoError ? (
           <video
-            src="https://cavallery.id/wp-content/uploads/2025/08/prolog-scene.mp4"
+            src="/assets/Video Tron Ratplaz Erine.mp4"
             autoPlay muted loop playsInline
-            className={styles.heroBgVideo}
+            className={styles.heroVideo}
             onError={() => setHeroVideoError(true)}
           />
         ) : (
           <div className={styles.heroBgFallback} />
         )}
-        <div className={styles.heroOverlay} />
-        <div className={styles.heroContent}>
-          <div className="badge"><i className="bx bx-movie-play" /> Proyek Eksklusif</div>
-          <h1 className={styles.heroTitle}>
-            <span className="textGold">Erine</span> in Etherland
-          </h1>
-          <p className={styles.heroSub}>
-            Sebuah karya sinematik eksklusif dari Cavallery — mengisahkan perjalanan Erine
-            dalam dunia fantasi penuh keajaiban bernama Etherland.
-          </p>
-        </div>
       </div>
+
 
       {/* Scene Player */}
       <section className={styles.playerSection}>
@@ -168,10 +158,10 @@ export default function ErineInEtherlandPage() {
         <div className={styles.plaqueGrid}>
           {contributors[page].map((c) => (
             <div key={c.handle} className={styles.plaque}>
-              <span className={styles.plaqueStar}>✦</span>
-              <span className={styles.plaqueStar}>✦</span>
-              <span className={styles.plaqueStar}>✦</span>
-              <span className={styles.plaqueStar}>✦</span>
+              <span className={styles.plaqueStar}><i className="bx bxs-star" /></span>
+              <span className={styles.plaqueStar}><i className="bx bxs-star" /></span>
+              <span className={styles.plaqueStar}><i className="bx bxs-star" /></span>
+              <span className={styles.plaqueStar}><i className="bx bxs-star" /></span>
               <div className={styles.plaqueName}>{c.name}</div>
               <div className={styles.plaqueHandle}>{c.handle}</div>
             </div>
@@ -203,6 +193,69 @@ export default function ErineInEtherlandPage() {
           >
             <i className="bx bx-chevron-right" />
           </button>
+        </div>
+      </section>
+
+      {/* #CathErine17 Project */}
+      <section className={styles.catSection}>
+        <div className={styles.catContainer}>
+          <div className={styles.catCastleSkyline} />
+
+          <div className={styles.catNailedDecoration} />
+          <h2 className={styles.catTitle}>#CatErine17th</h2>
+
+          <p className={styles.catDescription}>
+            Hashtag tersebut merupakan gabungan dari dua kata, yaitu <strong>&quot;Cat&quot;</strong> dan <strong>&quot;Erine&quot;</strong>. Kucing merupakan hewan favorit Erine, yang dikenal sebagai binatang lucu, menggemaskan, namun sesekali dapat menunjukkan sifat pemarah &mdash; karakteristik yang selaras dengan kepribadian <strong>@CErine_JKT48</strong>.
+          </p>
+
+          <div className={styles.catImageCenter}>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/06/1.jpeg" alt="CatErine17th" />
+            </div>
+          </div>
+        </div>
+
+        {/* Offline Project */}
+        <div className={styles.catContainer} style={{ marginTop: 60 }}>
+          <div className={styles.catCastleSkyline} />
+          <div className={styles.catNailedDecoration} />
+          <h2 className={styles.catTitle}>Offline Project</h2>
+
+          <div className={styles.catVideotronInfo}>
+            Dalam rangka perayaan STS @CErine_JKT48 di Theater hari ini, kami telah menyiapkan Display Project di depan Theater yang dapat kalian kunjungi. Selain itu, bagi kalian yang menyaksikan show &quot;Aitakatta&quot; pada pertunjukan hari ini, akan tersedia freebies khusus yang sudah diletakkan di bangku penonton.
+          </div>
+
+          <div className={styles.catImagesGrid}>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/10/CATERINE17.jpg" alt="Princess CatErine Poster" />
+            </div>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/10/CATERINE171.jpg" alt="Videotron CatErine17th" />
+            </div>
+          </div>
+        </div>
+
+        {/* Birthday Gallery */}
+        <div className={styles.catContainer} style={{ marginTop: 60 }}>
+          <div className={styles.catCastleSkyline} />
+          <div className={styles.catNailedDecoration} />
+          <h2 className={styles.catTitle}>Erine Birthday Gallery</h2>
+
+          <p className={styles.catDescription}>
+            Selamat ulang tahun, <strong>Erine</strong>! Semoga hari ini penuh tawa, doa baik, dan momen manis.
+          </p>
+
+          <div className={styles.catImagesGrid}>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/10/sts-2024-2.jpg" alt="Princess CatErine 1" />
+            </div>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/10/sts2024.jpg" alt="Princess CatErine 2" />
+            </div>
+            <div className={styles.catImageFrame}>
+              <img src="https://cavallery.id/wp-content/uploads/2025/10/erine-sts-3.jpg" alt="Princess CatErine 3" />
+            </div>
+          </div>
         </div>
       </section>
     </div>

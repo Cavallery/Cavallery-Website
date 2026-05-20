@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 interface NewsItem {
@@ -12,6 +13,18 @@ interface NewsItem {
   description?: string;
 }
 
+const STATIC_NEWS: NewsItem[] = [
+  {
+    id: "cavallery-statement-2026",
+    title: "Pernyataan Resmi Cavallery",
+    label: "Resmi",
+    date: "2026-05-19T00:00:00",
+    link_url: "/news/cavallery-statement",
+    image_url: "/images/cava-logo.jpg",
+    description: "Cavallery menyadari bahwa dalam beberapa hari terakhir telah beredar sejumlah unggahan bernada ancaman dan pembahasan yang mengarah pada ancaman secara langsung terhadap Erine.",
+  },
+];
+
 export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,12 +36,13 @@ export default function NewsPage() {
       .then((d) => {
         if (d.success) {
           const items = Array.isArray(d.data) ? d.data : [];
-          setNews(items);
+          setNews([...STATIC_NEWS, ...items]);
         } else {
           setError(d.message || "Gagal memuat berita");
+          setNews(STATIC_NEWS);
         }
       })
-      .catch((e) => setError(String(e)))
+      .catch((e) => { setError(String(e)); setNews(STATIC_NEWS); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,37 +73,54 @@ export default function NewsPage() {
           </div>
         ) : (
           <div className={styles.grid}>
-            {news.map((item, idx) => (
-              <a
-                key={item.id || idx}
-                href={item.link_url}
-                target="_blank"
-                rel="noreferrer"
-                className={`glassCard ${styles.card}`}
-              >
-                <div className={styles.imgWrap}>
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.title} loading="lazy" />
-                  ) : (
-                    <div className={styles.noImg}><i className="bx bx-image" /></div>
-                  )}
-                  <div className={styles.labelBadge}>{item.label || "Terkini"}</div>
-                </div>
-                <div className={styles.cardBody}>
-                  <div className={styles.date}>
-                    <i className="bx bx-calendar" />
-                    {new Date(item.date).toLocaleDateString("id-ID", {
-                      day: "numeric", month: "long", year: "numeric",
-                    })}
+            {news.map((item, idx) => {
+              const isInternal = item.link_url?.startsWith("/");
+              const cardContent = (
+                <>
+                  <div className={styles.imgWrap}>
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.title} loading="lazy" />
+                    ) : (
+                      <div className={styles.noImg}><i className="bx bx-image" /></div>
+                    )}
+                    <div className={styles.labelBadge}>{item.label || "Terkini"}</div>
                   </div>
-                  <h2 className={styles.cardTitle}>{item.title}</h2>
-                  {item.description && <p className={styles.cardDesc}>{item.description}</p>}
-                  <div className={styles.readMore}>
-                    Baca Selengkapnya <i className="bx bx-right-arrow-alt" />
+                  <div className={styles.cardBody}>
+                    <div className={styles.date}>
+                      <i className="bx bx-calendar" />
+                      {new Date(item.date).toLocaleDateString("id-ID", {
+                        day: "numeric", month: "long", year: "numeric",
+                      })}
+                    </div>
+                    <h2 className={styles.cardTitle}>{item.title}</h2>
+                    {item.description && <p className={styles.cardDesc}>{item.description}</p>}
+                    <div className={styles.readMore}>
+                      Baca Selengkapnya <i className="bx bx-right-arrow-alt" />
+                    </div>
                   </div>
-                </div>
-              </a>
-            ))}
+                </>
+              );
+
+              return isInternal ? (
+                <Link
+                  key={item.id || idx}
+                  href={item.link_url}
+                  className={`glassCard ${styles.card}`}
+                >
+                  {cardContent}
+                </Link>
+              ) : (
+                <a
+                  key={item.id || idx}
+                  href={item.link_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`glassCard ${styles.card}`}
+                >
+                  {cardContent}
+                </a>
+              );
+            })}
           </div>
         )}
       </div>

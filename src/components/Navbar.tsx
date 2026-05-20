@@ -20,14 +20,15 @@ const navLinks = [
   {
     label: "Project",
     children: [
+      { href: "/caterine17th", label: "#CatErine17th" },
       { href: "/erine-in-etherland", label: "Erine in Etherland" },
       { href: "/journal", label: "MemoRine (Journal)" },
-      { href: "/games", label: "GameRine" },
     ],
   },
   {
     label: "Corner",
     children: [
+      { href: "/games", label: "GameRine" },
       { href: "/news", label: "News & Updates" },
       { href: "/#tickets", label: "Ticketing" },
     ],

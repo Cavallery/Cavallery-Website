@@ -66,7 +66,7 @@ export default function CalendarSection() {
           
           const lives: Show[] = json.data.map((stream: any, idx: number) => ({
             id: `live-${idx}`,
-            title: `🔴 LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
+            title: `LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
             date: todayStr,
             startTime: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
             members: [{ name: stream.member_name || "Catherina Vallencia (Erine)" }],
@@ -162,7 +162,7 @@ export default function CalendarSection() {
                 className={`${styles.eventBadge} ${hasErine ? styles.eventErine : ""}`}
                 title={show.title}
               >
-                {hasErine ? "⭐ " : ""}{show.title}
+                {hasErine ? <><i className="bx bxs-flame" style={{ fontSize: ".7rem" }} />{" "}</> : ""}{show.title}
               </div>
             );
           })}
@@ -240,7 +240,7 @@ export default function CalendarSection() {
                                 key={mi}
                                 className={`${styles.memberTag} ${match ? styles.memberErine : ""}`}
                               >
-                                {match ? "⭐ " : ""}{m.name}
+                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}{m.name}
                               </span>
                             );
                           })}

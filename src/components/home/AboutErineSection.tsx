@@ -44,6 +44,22 @@ export default function AboutErineSection() {
       setCounts({ shows: 98, setlists: 7, units: 15 });
     }, 500);
 
+    // Embed scripts
+    const twScript = document.createElement("script");
+    twScript.src = "https://platform.twitter.com/widgets.js";
+    twScript.async = true;
+    document.body.appendChild(twScript);
+
+    const tkScript = document.createElement("script");
+    tkScript.src = "https://www.tiktok.com/embed.js";
+    tkScript.async = true;
+    document.body.appendChild(tkScript);
+
+    const thScript = document.createElement("script");
+    thScript.src = "https://platform.threads.net/en_US/embed.js";
+    thScript.async = true;
+    document.body.appendChild(thScript);
+
     return () => {
       clearInterval(slideTimer);
       clearTimeout(counterTimer);
@@ -235,9 +251,9 @@ export default function AboutErineSection() {
         <div className={styles.galleryGrid}>
           {/* Kabesha Grid */}
           {[
-            { img: "https://cavallery.id/wp-content/uploads/2026/01/Catherina_Vallencia_JKT48_2023-1.webp", year: "2023", title: "First Kabesha", desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
-            { img: "https://cavallery.id/wp-content/uploads/2026/01/Catherina_Vallencia_JKT48_2026.webp", year: "2026", title: "Regular Member", desc: "Dipromosikan menjadi Member reguler JKT48." },
-            { img: "https://cavallery.id/wp-content/uploads/2026/04/erine-passion.webp", year: "2026", title: "Team Passion", desc: "Dipromosikan menjadi Member Passion JKT48." }
+            { img: "/images/trainee.jpg", year: "2023", title: "First Kabesha", desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
+            { img: "/images/regular.webp", year: "2026", title: "Regular Member", desc: "Dipromosikan menjadi Member reguler JKT48." },
+            { img: "/images/erine-passion.webp", year: "2026", title: "Team Passion", desc: "Dipromosikan menjadi Member Passion JKT48." }
           ].map((item) => (
             <div key={`${item.year}-${item.title}`} className={styles.frameCard} onClick={() => openModal(item.img, item.year, item.desc)}>
               <div className={styles.imageContainer}><img src={item.img} alt={item.year} /></div>
@@ -257,8 +273,8 @@ export default function AboutErineSection() {
               <iframe src="https://www.youtube.com/embed/XbAqE7iBJAw" title="SSK" allowFullScreen />
             </div>
             <div className={styles.electionGrid}>
-              <div className={styles.electionItem} onClick={() => openModal("https://cavallery.id/wp-content/uploads/2026/01/Catherina_Vallencia_JKT48_7th_Senbatsu_Election_1.webp", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}>
-                <div className={styles.electionImg}><img src="https://cavallery.id/wp-content/uploads/2026/01/Catherina_Vallencia_JKT48_7th_Senbatsu_Election_1.webp" alt="Poster" /></div>
+              <div className={styles.electionItem} onClick={() => openModal("/images/chapter.jpg", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}>
+                <div className={styles.electionImg}><img src="/images/chapter.jpg" alt="Poster" /></div>
                 <div className={styles.captionBox}>Poster Erine's Sousenkyo</div>
               </div>
               <div className={styles.electionItem} onClick={() => openModal("https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}>
@@ -305,6 +321,39 @@ export default function AboutErineSection() {
               </ul>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* 5. Social Media Embeds */}
+      <div className={styles.embedsSection}>
+        <div className={styles.nailedFrame} />
+        <h3 className={styles.erineTitle}>Latest Updates</h3>
+        <div className={styles.embedsGrid}>
+          {/* X (Twitter) */}
+          <div className={styles.embedCard}>
+            <blockquote className="twitter-tweet" data-theme="dark">
+              <a href="https://twitter.com/CErine_JKT48/status/2056685755616104632"></a>
+            </blockquote>
+          </div>
+          
+          {/* TikTok */}
+          <div className={styles.embedCard}>
+            <blockquote className="tiktok-embed" cite="https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280" data-video-id="7640445924992470280" style={{maxWidth: "100%", minWidth: 325}}>
+              <section><a href="https://www.tiktok.com/@jkt48.erine_">@jkt48.erine_</a></section>
+            </blockquote>
+          </div>
+
+          {/* Instagram */}
+          <div className={styles.embedCard}>
+            <iframe src="https://www.instagram.com/p/DXt1vRJEpuf/embed" width="100%" height="480" frameBorder="0" scrolling="no"></iframe>
+          </div>
+
+          {/* Threads */}
+          <div className={styles.embedCard}>
+             <blockquote className="twitter-tweet" data-theme="dark">
+                <a href="https://www.threads.com/@jkt48.erine/post/DXt1wb4EjK2">View on Threads</a>
+             </blockquote>
+          </div>
         </div>
       </div>
 

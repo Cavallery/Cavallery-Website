@@ -2,29 +2,24 @@
 
 /* HERO */
 .hero {
-  position: relative; height: 90dvh; min-height: 500px;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
+  position: relative;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 24px;
 }
-.heroBgVideo {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; z-index: 0;
+.heroVideo {
+  width: 100%;
+  border-radius: 24px;
+  display: block;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px var(--gold-glow);
 }
-.heroOverlay {
-  position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to bottom, rgba(5,5,10,0.4) 0%, rgba(5,5,10,0.6) 50%, rgba(5,5,10,0.95) 100%);
+.heroBgFallback {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #09090b 0%, #1e1b15 100%);
 }
-.heroContent {
-  position: relative; z-index: 2; text-align: center;
-  padding: 0 24px; max-width: 700px;
-  animation: fadeUp .9s ease both;
-}
-.heroTitle {
-  font-family: var(--serif);
-  font-size: clamp(2.8rem, 8vw, 5.5rem);
-  font-weight: 900; margin: 24px 0 20px; line-height: 1;
-}
-.heroSub { font-size: 1rem; color: var(--fg-muted); line-height: 1.8; font-weight: 300; }
 
 /* SCENE PLAYER */
 .playerSection {
@@ -210,12 +205,7 @@
   .plaqueGrid { grid-template-columns: 1fr; }
 }
 
-.heroBgFallback {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #09090b 0%, #1e1b15 100%);
-  z-index: 0;
-}
+
 
 .errorPlayer {
   width: 100%;
@@ -242,4 +232,180 @@
   filter: blur(50px);
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* #CATHERINE17 PROJECT */
+.catSection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px 100px;
+}
+
+.catContainer {
+  background-color: #faf7f5;
+  padding: 60px 30px 100px 30px;
+  border: 2px solid #d6c9b6;
+  outline: 6px double #e1ddd2;
+  outline-offset: -20px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  text-align: center;
+  font-family: 'EB Garamond', serif;
+  color: #372e27;
+}
+
+.catCastleSkyline {
+  position: absolute;
+  bottom: 0; left: 0; width: 100%; height: 100px;
+  background:
+    linear-gradient(to bottom, transparent 20%, #e1ddd2 100%),
+    repeating-linear-gradient(90deg, transparent 0, transparent 40px, #d6c9b6 40px, #d6c9b6 60px, transparent 60px, transparent 100px),
+    linear-gradient(to top, #d6c9b6 0%, transparent 60%);
+  background-size: 100% 100%, 200px 60px, 100% 100%;
+  background-repeat: no-repeat, repeat-x, no-repeat;
+  background-position: bottom center;
+  opacity: 0.3; z-index: 0; pointer-events: none;
+}
+
+.catNailedDecoration {
+  position: relative;
+  width: 40%; max-width: 250px; height: 5px;
+  background: linear-gradient(to bottom, #d6c9b6 0%, #372e27 50%, #d6c9b6 100%);
+  margin: 0 auto 25px auto;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+.catNailedDecoration::before,
+.catNailedDecoration::after {
+  content: '';
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #e1ddd2, #372e27);
+  border: 2px solid #d6c9b6;
+  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.4), 1px 1px 3px rgba(0,0,0,0.3);
+}
+.catNailedDecoration::before { left: -7px; }
+.catNailedDecoration::after { right: -7px; }
+
+.catTitle {
+  font-family: 'EB Garamond', serif;
+  font-size: 2.5rem; font-weight: 800; letter-spacing: 1px;
+  position: relative; display: inline-block; z-index: 2;
+  margin: 0 0 30px 0;
+  background-color: #372e27; color: #e1ddd2;
+  padding: 16px 35px;
+  box-shadow: 3px 4px 6px rgba(0,0,0,0.3);
+  transform: rotate(-1deg);
+  border: 1px solid #2a221d;
+}
+.catTitle::before {
+  display: block; content: '';
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 15px;
+  background-color: rgba(255,255,255,0.3);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.catDescription {
+  font-size: 1.2rem; line-height: 1.8;
+  color: #372e27; max-width: 900px;
+  margin: 0 auto 50px auto; padding: 0 20px;
+  position: relative; z-index: 2; font-style: italic;
+}
+.catDescription strong {
+  font-weight: 700; font-style: normal; color: #DB9662;
+}
+
+.catVideotronInfo {
+  font-size: 1.15rem; line-height: 1.8;
+  color: #372e27; max-width: 900px;
+  margin: 0 auto 40px auto; padding: 20px 30px;
+  position: relative; z-index: 2;
+  background: rgba(255,255,255,0.75);
+  border: 2px solid rgba(159,121,46,0.35);
+  border-radius: 18px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+  text-align: left;
+}
+
+.catImageCenter {
+  display: flex; justify-content: center;
+  position: relative; z-index: 2;
+  max-width: 700px; margin: 0 auto;
+}
+
+.catImagesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+  position: relative; z-index: 2;
+  margin: 0 auto; max-width: 1000px; padding: 0 20px;
+}
+.catImagesGrid .catImageFrame:nth-child(3) {
+  grid-column: 1 / -1;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.catImageFrame {
+  width: 100%;
+  background: #ffffff; padding: 12px;
+  border: 1px solid #372e27;
+  box-shadow: 5px 5px 0px #e1ddd2, 10px 10px 0px #d6c9b6;
+  border-radius: 4px; position: relative;
+  margin-top: 40px;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.catImageFrame::before {
+  content: ''; position: absolute;
+  top: -38px; left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 50px; height: 50px;
+  border-left: 2px solid #372e27;
+  border-top: 2px solid #372e27;
+  z-index: -1;
+}
+.catImageFrame::after {
+  content: ''; position: absolute;
+  top: -45px; left: 50%; transform: translateX(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #e1ddd2, #372e27);
+  border: 2px solid #d6c9b6;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+  z-index: 0;
+}
+.catImageFrame:hover {
+  transform: translate(-3px, -3px) rotate(1deg);
+  box-shadow: 8px 8px 0px #e1ddd2, 15px 15px 0px #d6c9b6;
+}
+.catImageFrame img {
+  width: 100%; height: auto; display: block;
+  border: 2px solid #d6c9b6; border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .catContainer { padding: 45px 15px 75px 15px; }
+  .catTitle { font-size: 1.8rem; padding: 12px 25px; margin-bottom: 25px; }
+  .catNailedDecoration { width: 50%; max-width: 180px; margin-bottom: 22px; }
+  .catDescription { font-size: 1.05rem; line-height: 1.7; padding: 0 15px; margin-bottom: 35px; }
+  .catVideotronInfo { font-size: 1rem; padding: 18px 20px; margin-bottom: 35px; }
+  .catImagesGrid { grid-template-columns: 1fr; gap: 35px; padding: 0 15px; }
+  .catImagesGrid .catImageFrame:nth-child(3) { grid-column: auto; max-width: 100%; margin: 0; }
+  .catImageFrame { margin-top: 45px; }
+  .catImageFrame::before { width: 45px; height: 45px; top: -32px; }
+  .catImageFrame::after { width: 13px; height: 13px; top: -38px; }
+}
+@media (max-width: 480px) {
+  .catContainer { padding: 40px 12px 65px 12px; }
+  .catTitle { font-size: 1.5rem; padding: 10px 20px; margin-bottom: 20px; }
+  .catDescription { font-size: 0.95rem; line-height: 1.6; padding: 0 10px; margin-bottom: 30px; }
+  .catVideotronInfo { font-size: 0.9rem; padding: 16px 18px; margin-bottom: 30px; }
+  .catImagesGrid { gap: 30px; padding: 0 10px; }
+  .catImageFrame { padding: 10px; }
+  .catImageFrame::before { width: 42px; height: 42px; top: -30px; }
+  .catImageFrame::after { width: 12px; height: 12px; top: -36px; }
 }

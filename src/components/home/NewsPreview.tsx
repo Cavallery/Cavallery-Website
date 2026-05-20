@@ -12,6 +12,17 @@ interface NewsItem {
   image_url?: string;
 }
 
+const STATIC_NEWS: NewsItem[] = [
+  {
+    id: "cavallery-statement-2026",
+    title: "Pernyataan Resmi Cavallery",
+    label: "Resmi",
+    date: "2026-05-19T00:00:00",
+    link_url: "/news/cavallery-statement",
+    image_url: "/images/cava-logo.jpg",
+  },
+];
+
 export default function NewsPreview() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,9 +32,9 @@ export default function NewsPreview() {
       .then((r) => r.json())
       .then((d) => {
         const items = d?.data || d?.news || [];
-        setNews(items.slice(0, 4));
+        setNews([...STATIC_NEWS, ...items.slice(0, 3)]);
       })
-      .catch(() => setNews([]))
+      .catch(() => setNews(STATIC_NEWS))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,31 +64,48 @@ export default function NewsPreview() {
         </div>
       ) : (
         <div className={styles.grid}>
-          {news.map((item, idx) => (
-            <a
-              key={item.id || idx}
-              href={item.link_url}
-              target="_blank"
-              rel="noreferrer"
-              className={`glassCard ${styles.card}`}
-            >
-              {item.image_url && (
-                <div className={styles.img}>
-                  <img src={item.image_url} alt={item.title} loading="lazy" />
+          {news.map((item, idx) => {
+            const isInternal = item.link_url?.startsWith("/");
+            const cardInner = (
+              <>
+                {item.image_url && (
+                  <div className={styles.img}>
+                    <img src={item.image_url} alt={item.title} loading="lazy" />
+                  </div>
+                )}
+                <div className={styles.body}>
+                  <span className={styles.label}>{item.label || "Terkini"}</span>
+                  <h3 className={styles.cardTitle}>{item.title}</h3>
+                  <span className={styles.date}>
+                    <i className="bx bx-calendar" />
+                    {new Date(item.date).toLocaleDateString("id-ID", {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </span>
                 </div>
-              )}
-              <div className={styles.body}>
-                <span className={styles.label}>{item.label || "Terkini"}</span>
-                <h3 className={styles.cardTitle}>{item.title}</h3>
-                <span className={styles.date}>
-                  <i className="bx bx-calendar" />
-                  {new Date(item.date).toLocaleDateString("id-ID", {
-                    day: "numeric", month: "long", year: "numeric",
-                  })}
-                </span>
-              </div>
-            </a>
-          ))}
+              </>
+            );
+
+            return isInternal ? (
+              <Link
+                key={item.id || idx}
+                href={item.link_url}
+                className={`glassCard ${styles.card}`}
+              >
+                {cardInner}
+              </Link>
+            ) : (
+              <a
+                key={item.id || idx}
+                href={item.link_url}
+                target="_blank"
+                rel="noreferrer"
+                className={`glassCard ${styles.card}`}
+              >
+                {cardInner}
+              </a>
+            );
+          })}
         </div>
       )}
 

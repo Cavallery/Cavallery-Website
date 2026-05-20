@@ -62,17 +62,7 @@ export default function SplashScreen() {
           onError={() => setDesktopError(true)}
         />
       )}
-      {/* Fallback text logo */}
-      <div className={styles.fallback}>
-        <div className={styles.logoInfo}>
-          <div className={styles.logoImageWrapper}>
-            <img src="/images/cava-logo.jpg" alt="Cavallery Logo" className={styles.logoImage} />
-            <div className={styles.logoGlow} />
-          </div>
-          <div className={styles.logoText}>Cavallery.id</div>
-          <div className={styles.logoSub}>Fanbase of Catherina Vallencia</div>
-        </div>
-      </div>
+      {/* Fallback text logo removed as requested */}
 
       {/* Skip button */}
       <button

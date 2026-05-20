@@ -1,7 +1,7 @@
 import styles from "./page.module.css";
 import HeroSection from "@/components/home/HeroSection";
 import BlueRoseCountdown from "@/components/home/BlueRoseCountdown";
-import VideoSection from "@/components/home/VideoSection";
+
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
@@ -18,7 +18,7 @@ export default function HomePage() {
     <div className={styles.page}>
       <HeroSection />
       <BlueRoseCountdown />
-      <VideoSection />
+
       <CalendarSection />
       <TicketingSection />
       <NewsPreview />

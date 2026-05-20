@@ -1,5 +1,5 @@
 .footer {
-  background: var(--surface);
+  background: #eaddcb; /* Darker sand/cream color for light mode */
   border-top: 1px solid var(--border);
   padding: 100px 0 60px;
   position: relative;
@@ -79,8 +79,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 48px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
 }
 
 .title {
@@ -151,7 +151,7 @@
 
 @media (max-width: 1000px) {
   .top { grid-template-columns: 1fr; gap: 80px; }
-  .grid { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
   .container { padding: 0 24px; }
 }
 

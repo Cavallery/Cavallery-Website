@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:wght@300..800&display=swap');
 
 :root {
-  /* Premium "Chocolate & Gold" Light Theme */
-  --bg: #fdfbf7; /* Warm Cream */
-  --bg-checker: #f3f0e8;
+  /* Premium "Chocolate & Gold" Light Theme - Eye Friendly */
+  --bg: #f4efe6; /* Softer Sand/Cream */
+  --bg-checker: #ebe4d5;
   --fg: #372e27; /* Deep Chocolate */
   --fg-muted: #574d44;
   --fg-dim: #8c7e73;
   
   --primary: #b45309; /* Amber Gold */
-  --secondary: #ffffff;
-  --accent: #f5f2e8;
+  --secondary: #fbf9f5;
+  --accent: #ebe4d5;
   --gold: #b45309; 
   --gold-dim: rgba(180, 83, 9, 0.1);
   --gold-glow: rgba(180, 83, 9, 0.15);
   
-  --surface: #ffffff;
-  --surface-2: #faf7f5;
+  --surface: #ebe4d5; /* Off-white / Cream instead of pure white */
+  --surface-2: #e3d9c3;
   --border: rgba(55, 46, 39, 0.1);
   --border-gold: rgba(180, 83, 9, 0.3);
   

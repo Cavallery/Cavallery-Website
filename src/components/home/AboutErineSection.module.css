@@ -740,3 +740,34 @@
   .modalDetails { padding: 25px; }
   .electionGrid { grid-template-columns: 1fr; }
 }
+
+/* 5. EMBEDS */
+.embedsSection {
+  background: var(--bg-card);
+  padding: 80px 20px;
+  border-top: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  position: relative;
+  text-align: center;
+}
+
+.embedsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.embedCard {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
