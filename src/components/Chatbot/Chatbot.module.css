@@ -190,6 +190,16 @@
 }
 
 @media (max-width: 480px) {
+  .chatContainer {
+    bottom: 16px !important;
+    right: 16px !important;
+  }
+
+  .trigger {
+    width: 52px;
+    height: 52px;
+  }
+
   .chatBox {
     width: calc(100vw - 32px);
     height: 450px;
