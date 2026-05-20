@@ -18,7 +18,29 @@ export async function GET() {
     }
     
     const data = await res.json();
-    return NextResponse.json({ success: true, data: data.data || data });
+    const rawStreams = data.data || data || [];
+
+    // Filter streams to focus only on Erine JKT48 (Catherina Vallencia)
+    const erineStreams = Array.isArray(rawStreams)
+      ? rawStreams.filter((stream: any) => {
+          const name = (
+            stream.member_name ||
+            stream.name ||
+            stream.username ||
+            stream.room_name ||
+            ""
+          ).toLowerCase();
+          return (
+            name.includes("erine") ||
+            name.includes("catherina") ||
+            name.includes("catherine") ||
+            name.includes("valencia") ||
+            name.includes("vallencia")
+          );
+        })
+      : [];
+
+    return NextResponse.json({ success: true, data: erineStreams });
   } catch (error) {
     console.error("Live API Error:", error);
     return NextResponse.json({ success: false, data: [] }, { status: 500 });

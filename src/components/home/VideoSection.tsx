@@ -37,6 +37,7 @@ const videos = [
 
 export default function VideoSection() {
   const [active, setActive] = useState(0);
+  const [videoErrors, setVideoErrors] = useState<Record<number, boolean>>({});
 
   return (
     <section className={styles.section}>
@@ -52,14 +53,37 @@ export default function VideoSection() {
       <div className={styles.grid}>
         {/* Main player */}
         <div className={styles.player}>
-          <video
-            key={videos[active].src}
-            src={videos[active].src}
-            controls
-            autoPlay
-            playsInline
-            className={styles.video}
-          />
+          {!videoErrors[active] ? (
+            <video
+              key={videos[active].src}
+              src={videos[active].src}
+              controls
+              autoPlay
+              playsInline
+              className={styles.video}
+              onError={() => setVideoErrors(prev => ({ ...prev, [active]: true }))}
+            />
+          ) : (
+            <div style={{
+              width: "100%",
+              height: "100%",
+              minHeight: "360px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "16px",
+              background: "linear-gradient(135deg, #100f0d 0%, #1e1b15 100%)",
+              borderRadius: "20px",
+              border: "1px solid var(--border)",
+              textAlign: "center",
+              padding: "24px"
+            }}>
+              <i className="bx bx-play-circle" style={{ fontSize: "4.5rem", color: "var(--gold)", filter: "drop-shadow(0 0 15px var(--gold))" }} />
+              <h3 style={{ fontFamily: "var(--serif)", fontSize: "1.4rem", color: "var(--gold)", fontWeight: 700 }}>Video Offline</h3>
+              <p style={{ color: "var(--fg-muted)", fontSize: "0.9rem", maxWidth: "400px" }}>Mohon maaf, video preview dari cavallery.id sedang tidak dapat dimuat saat ini.</p>
+            </div>
+          )}
           <div className={styles.playerInfo}>
             <span className="badge" style={{ fontSize: ".7rem" }}>
               {videos[active].tag}

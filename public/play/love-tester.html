@@ -34,7 +34,7 @@
         color: #ff007f;
         margin: 20px 0;
         text-shadow: 0 0 8px hotpink;
-        text-align: center; /* ⬅️ Tambahan ini */
+        text-align: center;
       }
 
       .love-tester .inputs {
@@ -171,51 +171,13 @@
         }
 
         const specialNames = [
-          "teguh",
-          "dior",
-          "rizqi",
-          "tie livia",
-          "vigo",
-          "thoriq",
-          "naresss",
-          "rayyan",
-          "raze",
-          "restu",
-          "rai",
-          "parrel",
-          "mincav",
-          "cavallery",
-          "nadya",
-          "leviii13",
-          "lan",
-          "icaa",
-          "fadly",
-          "ekall",
-          "bagus",
-          "aqil",
-          "abiy",
-          "abay",
-          "muhammad edu agritama",
-          "edu agritama",
-          "edu",
-          "aditya",
-          "adit",
-          "Erine",
-          "erine",
-          "catherina",
-          "Catherina Vallencia",
-          "catherina vallencia",
-          "lana",
-          "oline",
-          "aditya pratama putra",
-          "nachia",
-          "aralie",
-          "fritzy",
-          "regie",
-          "ribka",
-          "trisha",
-          "lily",
-          "nayla",
+          "teguh", "dior", "rizqi", "tie livia", "vigo", "thoriq", "naresss",
+          "rayyan", "raze", "restu", "rai", "parrel", "mincav", "cavallery",
+          "nadya", "leviii13", "lan", "icaa", "fadly", "ekall", "bagus",
+          "aqil", "abiy", "abay", "muhammad edu agritama", "edu agritama",
+          "edu", "aditya", "adit", "erine", "catherina", "catherina vallencia",
+          "lana", "oline", "aditya pratama putra", "nachia", "aralie", "fritzy",
+          "regie", "ribka", "trisha", "lily", "nayla"
         ];
 
         let name1Lower = name1.toLowerCase();
@@ -228,14 +190,11 @@
 
         let gifUrl = "";
         if (value <= 49) {
-          gifUrl =
-            "https://cavallery.id/wp-content/uploads/2025/07/erine-50.gif";
+          gifUrl = "./assets/love-tester-github_erine_50.gif";
         } else if (value <= 70) {
-          gifUrl =
-            "https://cavallery.id/wp-content/uploads/2025/07/erine-20.gif";
+          gifUrl = "./assets/love-tester-github_erine_20.gif";
         } else {
-          gifUrl =
-            "https://cavallery.id/wp-content/uploads/2025/07/erine-100.gif";
+          gifUrl = "https://cavallery.id/wp-content/uploads/2025/07/erine-100.gif";
         }
 
         resultGif.src = gifUrl;

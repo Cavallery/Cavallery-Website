@@ -29,7 +29,7 @@ export default function Footer() {
               <ul className={styles.links}>
                 <li><Link href="/about/erine">About Erine</Link></li>
                 <li><Link href="/about/cavallery">About Cavallery</Link></li>
-                <li><Link href="/projects">Our Projects</Link></li>
+                <li><Link href="/erine-in-etherland">Erine in Etherland</Link></li>
               </ul>
             </div>
             <div className={styles.col}>

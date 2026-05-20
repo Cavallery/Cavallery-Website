@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import styles from "./page.module.css";
+import GamesVideoTeaser from "@/components/games/GamesVideoTeaser";
 
 export const metadata: Metadata = {
   title: "GameRine — Mini Games Cavallery",
@@ -69,17 +70,7 @@ export default function GamesPage() {
       </div>
 
       {/* Game video teaser */}
-      <div className={styles.videoWrap}>
-        <video
-          src="https://cavallery.id/wp-content/uploads/2025/06/erine-game-.mp4"
-          autoPlay muted loop playsInline
-          className={styles.video}
-        />
-        <div className={styles.videoOverlay}>
-          <span className={styles.videoBadge}><i className="bx bxs-joystick" /> Erine Gaming Live</span>
-          <h2 className={styles.videoTitle}>Erine pernah main semua game ini! 🎮</h2>
-        </div>
-      </div>
+      <GamesVideoTeaser />
 
       {/* Games Grid */}
       <div className={styles.grid}>

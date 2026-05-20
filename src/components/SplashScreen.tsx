@@ -5,6 +5,8 @@ import styles from "./SplashScreen.module.css";
 export default function SplashScreen() {
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
+  const [desktopError, setDesktopError] = useState(false);
+  const [mobileError, setMobileError] = useState(false);
 
   useEffect(() => {
     // Only show once per session
@@ -27,26 +29,34 @@ export default function SplashScreen() {
   return (
     <div className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}>
       {/* Desktop: keying logo video */}
-      <video
-        className={`${styles.video} ${styles.desktop}`}
-        src="https://cavallery.id/wp-content/uploads/2025/12/keying-logo-center.mp4"
-        autoPlay
-        muted
-        playsInline
-        onError={(e) => { (e.target as HTMLVideoElement).style.display = "none"; }}
-      />
+      {!desktopError && (
+        <video
+          className={`${styles.video} ${styles.desktop}`}
+          src="/assets/keying-logo-center.mp4"
+          autoPlay
+          muted
+          playsInline
+          onError={() => setDesktopError(true)}
+        />
+      )}
       {/* Mobile: portrait video */}
-      <video
-        className={`${styles.video} ${styles.mobile}`}
-        src="https://cavallery.id/wp-content/uploads/2025/12/logo-center-portrait.mp4"
-        autoPlay
-        muted
-        playsInline
-        onError={(e) => { (e.target as HTMLVideoElement).style.display = "none"; }}
-      />
+      {!mobileError && (
+        <video
+          className={`${styles.video} ${styles.mobile}`}
+          src="https://cavallery.id/wp-content/uploads/2025/12/logo-center-portrait.mp4"
+          autoPlay
+          muted
+          playsInline
+          onError={() => setMobileError(true)}
+        />
+      )}
       {/* Fallback text logo */}
       <div className={styles.fallback}>
         <div className={styles.logoInfo}>
+          <div className={styles.logoImageWrapper}>
+            <img src="/images/cava-logo.jpg" alt="Cavallery Logo" className={styles.logoImage} />
+            <div className={styles.logoGlow} />
+          </div>
           <div className={styles.logoText}>Cavallery.id</div>
           <div className={styles.logoSub}>Fanbase of Catherina Vallencia</div>
         </div>

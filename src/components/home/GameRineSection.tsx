@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import styles from "./GameRineSection.module.css";
 
 const games = [
@@ -38,6 +39,8 @@ const games = [
 ];
 
 export default function GameRineSection() {
+  const [videoError, setVideoError] = useState(false);
+
   return (
     <section className={styles.section}>
       {/* BG accent */}
@@ -59,14 +62,24 @@ export default function GameRineSection() {
 
         {/* Featured game video */}
         <div className={styles.featured}>
-          <video
-            src="https://cavallery.id/wp-content/uploads/2025/06/erine-game-.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            className={styles.featVideo}
-          />
+          {!videoError ? (
+            <video
+              src="https://cavallery.id/wp-content/uploads/2025/06/erine-game-.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className={styles.featVideo}
+              onError={() => setVideoError(true)}
+            />
+          ) : (
+            <div className={styles.fallbackTeaser}>
+              <div className={styles.fallbackGlow} />
+              <i className="bx bxs-joystick-alt" style={{ fontSize: "4.5rem", color: "var(--gold)", marginBottom: "8px", textShadow: "0 0 20px var(--gold-glow)", filter: "drop-shadow(0 0 15px var(--gold))" }} />
+              <h3 style={{ fontFamily: "var(--serif)", fontSize: "1.6rem", color: "var(--gold)", fontWeight: 900 }}>#GameRine Arena</h3>
+              <p style={{ color: "var(--fg-muted)", fontSize: "0.95rem", fontWeight: 300 }}>Yuk tunjukkan ketangkasanmu dan mainkan game seru ini!</p>
+            </div>
+          )}
           <div className={styles.featOverlay}>
             <span className={styles.featBadge}>
               <i className="bx bx-play-circle" /> Erine Gaming

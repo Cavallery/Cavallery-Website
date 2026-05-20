@@ -61,7 +61,7 @@
   flex: 1;
   width: 100%;
   position: relative;
-  background-color: #000;
+  background-color: var(--bg);
 }
 
 .iframe {

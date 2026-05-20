@@ -6,12 +6,12 @@ import Link from "next/link";
 const gameData: Record<string, { title: string; url: string; description: string }> = {
   "grasshopper-collector": {
     title: "Grasshopper Collector",
-    url: "https://adityaptm.github.io/Mini-Games-Grasshopper-Collector/",
+    url: "/play/grasshopper-collector.html",
     description: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis!",
   },
   "zombie-escape": {
     title: "Zombie Escape",
-    url: "/play/erine-in-etherland.html",
+    url: "/play/zombie-escape.html",
     description: "Lari dari para zombie dan selamatkan diri!",
   },
   "jumping-adventure": {

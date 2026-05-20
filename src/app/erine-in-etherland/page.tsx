@@ -43,16 +43,23 @@ const contributors = [
 export default function ErineInEtherlandPage() {
   const [activeScene, setActiveScene] = useState(0);
   const [page, setPage] = useState(0);
+  const [heroVideoError, setHeroVideoError] = useState(false);
+  const [sceneErrors, setSceneErrors] = useState<Record<number, boolean>>({});
 
   return (
     <div className={styles.page}>
       {/* Hero */}
       <div className={styles.hero}>
-        <video
-          src="https://cavallery.id/wp-content/uploads/2025/08/prolog-scene.mp4"
-          autoPlay muted loop playsInline
-          className={styles.heroBgVideo}
-        />
+        {!heroVideoError ? (
+          <video
+            src="https://cavallery.id/wp-content/uploads/2025/08/prolog-scene.mp4"
+            autoPlay muted loop playsInline
+            className={styles.heroBgVideo}
+            onError={() => setHeroVideoError(true)}
+          />
+        ) : (
+          <div className={styles.heroBgFallback} />
+        )}
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <div className="badge"><i className="bx bx-movie-play" /> Proyek Eksklusif</div>
@@ -77,12 +84,22 @@ export default function ErineInEtherlandPage() {
         <div className={styles.playerGrid}>
           {/* Main Video */}
           <div className={styles.mainPlayer}>
-            <video
-              key={scenes[activeScene].src}
-              src={scenes[activeScene].src}
-              controls autoPlay playsInline
-              className={styles.mainVideo}
-            />
+            {!sceneErrors[activeScene] ? (
+              <video
+                key={scenes[activeScene].src}
+                src={scenes[activeScene].src}
+                controls autoPlay playsInline
+                className={styles.mainVideo}
+                onError={() => setSceneErrors(prev => ({ ...prev, [activeScene]: true }))}
+              />
+            ) : (
+              <div className={styles.errorPlayer}>
+                <div className={styles.errorPlayerGlow} />
+                <i className="bx bx-film" style={{ fontSize: "4.5rem", color: "var(--gold)", filter: "drop-shadow(0 0 15px var(--gold))", marginBottom: "8px" }} />
+                <h3 style={{ fontFamily: "var(--serif)", fontSize: "1.5rem", color: "var(--gold)", fontWeight: 900 }}>Scene preview offline</h3>
+                <p style={{ color: "var(--fg-muted)", fontSize: "0.9rem", maxWidth: "450px" }}>Preview video dari cavallery.id sedang tidak tersedia. Nikmati petualangannya dengan memainkan game interaktif di bawah!</p>
+              </div>
+            )}
             <div className={styles.sceneInfo}>
               <h3 className={styles.sceneTitle}>{scenes[activeScene].title}</h3>
               <p className={styles.sceneDesc}>{scenes[activeScene].desc}</p>

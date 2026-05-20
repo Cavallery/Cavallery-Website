@@ -25,17 +25,11 @@ const navLinks = [
       { href: "/schedule#videocall", label: "Video Call" },
     ],
   },
-  { href: "https://shop.cavallery.id", label: "Merchandise" },
-  {
-    label: "Projects",
-    children: [
-      { href: "/projects", label: "Our Projects" },
-      { href: "/erine-in-etherland", label: "Erine in Etherland" },
-    ],
-  },
+  { href: "/merchandise", label: "Merchandise" },
   {
     label: "Corner",
     children: [
+      { href: "/erine-in-etherland", label: "Erine in Etherland" },
       { href: "/journal", label: "MemoRine (Journal)" },
       { href: "/games", label: "GameRine" },
       { href: "/news", label: "News & Updates" },

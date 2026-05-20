@@ -22,8 +22,6 @@
         margin: auto;
         overflow: hidden;
         background-color: #222;
-        overscroll-behavior: none;
-        touch-action: none;
       }
       canvas {
         position: absolute;
@@ -189,7 +187,7 @@
     <div id="gameContainer">
       <img
         id="bgPetir"
-        src="https://cavallery.id/wp-content/uploads/2025/08/langit-e1755426353317.png"
+        src="./assets/zombie-escape_langit.png"
         alt="Background"
       />
       <canvas id="game" width="1200" height="550"></canvas>
@@ -197,19 +195,19 @@
       <div class="controls">
         <button class="btn control-btn" data-key="ArrowLeft">
           <img
-            src="https://cavallery.id/wp-content/uploads/2025/08/left.png"
+            src="./assets/zombie-escape_left.png"
             alt="Left"
           />
         </button>
         <button class="btn control-btn" data-key="ArrowUp">
           <img
-            src="https://cavallery.id/wp-content/uploads/2025/08/up.png"
+            src="./assets/zombie-escape_up.png"
             alt="Up"
           />
         </button>
         <button class="btn control-btn" data-key="ArrowRight">
           <img
-            src="https://cavallery.id/wp-content/uploads/2025/08/right.png"
+            src="./assets/zombie-escape_right.png"
             alt="Right"
           />
         </button>
@@ -221,14 +219,14 @@
       <footer id="footer">
         Cavallery.id | Erine in Etherland<br />
         <span style="font-size: 10px; color: #ffffff"
-          >Developer by Cavallery Operation Team</span
+          >Cavallery Operation Team</span
         >
       </footer>
 
       <div class="game-over" id="gameOverScreen">
         <img
           id="gameOverImage"
-          src="https://cavallery.id/wp-content/uploads/2025/07/erine-50.gif"
+          src="./assets/love-tester-github_erine_50.gif"
           alt="Game Over"
         />
         <h1
@@ -288,12 +286,13 @@
       </audio>
       <audio id="gameover" preload="auto">
         <source
-          src="https://cavallery.id/wp-content/uploads/2025/08/gagal.mp3"
+          src="./assets/zombie-escape_gagal.mp3"
+          type="audio/mpeg"
         />
       </audio>
       <audio id="victory" preload="auto">
         <source
-          src="https://cavallery.id/wp-content/uploads/2025/08/menang.mp3"
+          src="./assets/zombie-escape_menang.mp3"
           type="audio/mpeg"
         />
       </audio>
@@ -311,7 +310,7 @@
       </audio>
       <audio id="backsound" preload="auto" loop>
         <source
-          src="https://cavallery.id/wp-content/uploads/2025/08/backsound.mp3"
+          src="./assets/zombie-escape_backsound.mp3"
           type="audio/mpeg"
         />
       </audio>
@@ -389,32 +388,32 @@
 
       // --- Sprites ---
       const runFrames = [
-        "https://cavallery.id/wp-content/uploads/2025/08/erine1.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine2.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine3.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine4.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine5.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine6.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/erine7.png",
+        "./assets/zombie-escape_erine1.png",
+        "./assets/zombie-escape_erine2.png",
+        "./assets/zombie-escape_erine3.png",
+        "./assets/zombie-escape_erine4.png",
+        "./assets/zombie-escape_erine5.png",
+        "./assets/zombie-escape_erine6.png",
+        "./assets/zombie-escape_erine7.png",
       ];
       const jumpFrames = [
-        "https://cavallery.id/wp-content/uploads/2025/08/erine8.png",
+        "./assets/zombie-escape_erine8.png",
       ];
       const idleFrame =
-        "https://cavallery.id/wp-content/uploads/2025/08/erine9.png";
+        "./assets/zombie-escape_erine9.png";
       const dizzyFrame =
-        "https://cavallery.id/wp-content/uploads/2025/08/erine10.png";
+        "./assets/zombie-escape_erine10.png";
       const gameOverGif =
-        "https://cavallery.id/wp-content/uploads/2025/07/erine-50.gif";
+        "./assets/love-tester-github_erine_50.gif";
       const winImage =
-        "https://cavallery.id/wp-content/uploads/2025/07/erine-20.gif";
+        "./assets/love-tester-github_erine_20.gif";
       const cavalleryImage =
-        "https://cavallery.id/wp-content/uploads/2025/07/cavallery.png";
+        "./assets/zombie-escape_cavallery.png";
       const zombieFrames = [
-        "https://cavallery.id/wp-content/uploads/2025/08/jombierine1.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/jombierine2.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/jombierine3.png",
-        "https://cavallery.id/wp-content/uploads/2025/08/jombierine4.png",
+        "./assets/zombie-escape_jombierine1.png",
+        "./assets/zombie-escape_jombierine2.png",
+        "./assets/zombie-escape_jombierine3.png",
+        "./assets/zombie-escape_jombierine4.png",
       ];
 
       // --- Load semua sprite ---
@@ -425,7 +424,7 @@
         idleFrame,
         winImage,
         cavalleryImage,
-        "https://cavallery.id/wp-content/uploads/2025/08/castle.png",
+        "./assets/zombie-escape_castle.png",
         dizzyFrame,
         ...zombieFrames,
       ];
@@ -498,7 +497,7 @@
         if (win) {
           gameOverTitle.innerText = "Kemenangan!";
           gameOverReason.innerText =
-            "Selamat! Ratu Erine sudah sampai di Istana Cavallery!";
+            "Selamat! Ratu Erine sudah sampai di istana Cavallery!";
           gameOverImage.src = winImage;
           victorySound.currentTime = 0;
           victorySound.play().catch(() => {});
@@ -510,39 +509,6 @@
           gameoverSound.play().catch(() => {});
         }
       }
-      // --- Mobile Controls ---
-document.querySelectorAll(".control-btn").forEach((btn) => {
-  const key = btn.dataset.key;
-
-  // tekan
-  btn.addEventListener(
-    "touchstart",
-    (e) => {
-      e.preventDefault();
-      keys[key] = true;
-    },
-    { passive: false }
-  );
-
-  // lepas
-  btn.addEventListener(
-    "touchend",
-    (e) => {
-      e.preventDefault();
-      keys[key] = false;
-    },
-    { passive: false }
-  );
-
-  // cadangan (jika sentuhan keluar tombol)
-  btn.addEventListener(
-    "touchcancel",
-    () => {
-      keys[key] = false;
-    }
-  );
-});
-
 
       // --- Start Game ---
       function startGame() {
@@ -701,7 +667,7 @@ document.querySelectorAll(".control-btn").forEach((btn) => {
         // Castle
         ctx.drawImage(
           spriteImages[
-            "https://cavallery.id/wp-content/uploads/2025/08/castle.png"
+            "./assets/zombie-escape_castle.png"
           ],
           castle.x,
           castle.y,
@@ -751,35 +717,19 @@ document.querySelectorAll(".control-btn").forEach((btn) => {
       }
 
       // --- Controls ---
-      const blockedKeys = [
-        "ArrowUp",
-        "ArrowDown",
-        "ArrowLeft",
-        "ArrowRight",
-        " ",
-      ];
-
-      document.addEventListener(
-        "keydown",
-        (e) => {
-          if (blockedKeys.includes(e.key)) {
-            e.preventDefault(); // ⛔ STOP SCROLL
-          }
-          keys[e.key] = true;
-        },
-        { passive: false }
-      );
-
-      document.addEventListener(
-        "keyup",
-        (e) => {
-          if (blockedKeys.includes(e.key)) {
-            e.preventDefault();
-          }
-          keys[e.key] = false;
-        },
-        { passive: false }
-      );
+      document.addEventListener("keydown", (e) => (keys[e.key] = true));
+      document.addEventListener("keyup", (e) => (keys[e.key] = false));
+      document.querySelectorAll(".control-btn").forEach((btn) => {
+        const key = btn.dataset.key;
+        btn.addEventListener(
+          "touchstart",
+          (e) => (e.preventDefault(), (keys[key] = true))
+        );
+        btn.addEventListener(
+          "touchend",
+          (e) => (e.preventDefault(), (keys[key] = false))
+        );
+      });
 
       startBtn.addEventListener("click", () => {
         startGame();

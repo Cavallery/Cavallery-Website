@@ -1,0 +1,248 @@
+.page {
+  min-height: 100vh;
+  padding-top: var(--nav-h);
+  background-color: var(--bg);
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  text-align: center;
+  padding: 80px 24px 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  margin: 16px 0;
+  line-height: 1.1;
+  color: var(--fg);
+}
+
+.heroSub {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+  line-height: 1.7;
+}
+
+.showcase {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto 100px;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* LEFT: IMAGE SHOWCASE */
+.imageCard {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border-gold, var(--border));
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.imageCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 60px rgba(212, 175, 55, 0.15);
+}
+
+.bundleImg {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.badgeSoldOut {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 8px 20px;
+  border-radius: 100px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* RIGHT: PRODUCT INFO */
+.infoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 20px 0;
+}
+
+.tagline {
+  color: var(--gold);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  margin: 0;
+  color: var(--fg);
+  line-height: 1.1;
+}
+
+.priceSection {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.price {
+  font-family: var(--serif);
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.originalPrice {
+  font-size: 1.2rem;
+  color: var(--fg-dim);
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+/* INCLUDES GRID */
+.includesSection h3 {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--fg);
+}
+
+.includesList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.includeItem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.includeItem:hover {
+  border-color: var(--gold);
+  background: var(--surface-2);
+}
+
+.includeTitle {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.includeDesc {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+/* ACTIONS */
+.actionBtn {
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: 18px;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: none;
+  cursor: not-allowed;
+  background: var(--surface-3, #d6c9b6);
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .actionBtn {
+    background: #2c2318;
+    color: #8e7051;
+  }
+}
+
+.soldOutOverlay {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 18px;
+  color: #f87171;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.soldOutOverlay i {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .showcase {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    margin-bottom: 60px;
+  }
+  .hero {
+    padding: 60px 24px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .includesList {
+    grid-template-columns: 1fr;
+  }
+}
