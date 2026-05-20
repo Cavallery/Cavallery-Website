@@ -43,6 +43,7 @@ export default function RootLayout({
       <body>
         <div className="chessboard-bg" />
         <div className="knight-watermark" />
+        <div className="board-watermark" />
         <SplashScreen />
         <Navbar />
         <main>{children}</main>

@@ -29,24 +29,6 @@ const initialGalleryItems: GalleryItem[] = [
     title: "Erine JKT48 Promotional Banner",
     date: "2024",
   },
-  {
-    id: 4,
-    src: "/images/hesitate-bundle.jpg",
-    title: "Hesitate Merchandise Showcase",
-    date: "Maret 2024",
-  },
-  {
-    id: 5,
-    src: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800",
-    title: "Momen Panggung JKT48 Generasi 12",
-    date: "2024",
-  },
-  {
-    id: 6,
-    src: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=800",
-    title: "Theater Concert Vibe",
-    date: "2024",
-  },
 ];
 
 export default function GalleryPage() {
@@ -62,7 +44,7 @@ export default function GalleryPage() {
           Erine <span className="textGold">Gallery</span>
         </h1>
         <p className={styles.heroSub}>
-          Kumpulan momen terindah Catherina Vallencia Kurniawan (Erine) JKT48 di atas panggung dan di luar panggung bersama Cavallery.
+          Kumpulan foto terindah catherina vallencia.
         </p>
       </div>
 

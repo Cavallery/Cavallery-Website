@@ -188,7 +188,7 @@ export default function AboutErineSection() {
           <div className={styles.ewHt}>
             <p className={styles.ewHtTitle}># Official Hashtags</p>
             <ul>
-              <li><span className={styles.lbl2}>Setiap Hari Jumat</span><a href="https://cavallery.id/diesvenerine/" target="_blank">#DiesVenErine</a></li>
+              <li><span className={styles.lbl2}>Setiap Hari Jumat</span><a href="https://cavallery.id/diesvenerine/" target="_blank" className={styles.tag}>#DiesVenErine</a></li>
               <li><span className={styles.lbl2}>Setiap Jurnal</span><span className={styles.tag}>#MemoRine</span></li>
               <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
               <li><span className={styles.lbl2}>Sebelum Berbuka</span><span className={styles.tag}>#Ngabuburine</span></li>

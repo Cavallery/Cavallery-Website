@@ -119,6 +119,26 @@ body {
   font-family: serif;
 }
 
+.board-watermark {
+  position: fixed;
+  top: 50%;
+  right: -30px;
+  font-size: 26rem;
+  color: var(--gold);
+  opacity: 0.10;
+  pointer-events: none;
+  z-index: -1;
+  transform: translateY(-50%) rotate(-8deg);
+  line-height: 1;
+  user-select: none;
+}
+
+.board-watermark::before {
+  content: "♟";
+  display: block;
+  font-family: serif;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--serif);
   font-weight: 800;

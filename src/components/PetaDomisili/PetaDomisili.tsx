@@ -183,10 +183,9 @@ export default function PetaDomisili() {
 
   // Set up D3 Projection
   const pathGenerator = useMemo(() => {
-    const projection = d3.geoMercator()
-      .center([118, -2.5])
-      .scale(950)
-      .translate([400, 180]);
+    const projection = d3.geoIdentity()
+      .reflectY(true)
+      .fitSize([800, 360], geoDataRaw as any);
     return d3.geoPath().projection(projection);
   }, []);
 

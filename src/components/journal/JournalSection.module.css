@@ -5,7 +5,7 @@
   --paper-brown: #fcf4e8;
 
   font-family: 'EB Garamond', serif;
-  background: var(--bg-wall);
+  background-color: transparent;
   background-image: radial-gradient(var(--border) 1px, transparent 1px);
   background-size: 20px 20px;
   padding: 70px 0;
