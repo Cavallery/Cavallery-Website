@@ -81,7 +81,6 @@ export const regionMap: RegionMap = {
 };
 
 export const PALETTE: readonly string[] = [
-export const PALETTE: readonly string[] = [
   "var(--map-c1)",
   "var(--map-c2)",
   "var(--map-c3)",
