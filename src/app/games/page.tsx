@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const games = [
   {
-    title: "Grasshopper Collector",
+    title: "Game Belalang Yang Membangkang",
     desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
@@ -19,7 +19,7 @@ const games = [
       "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
   },
   {
-    title: "Zombie Escape",
+    title: "Game Erine In Etherland",
     desc: "Lari dari para zombie dan selamatkan diri! Bisakah kamu bertahan hidup?",
     href: "/games/zombie-escape",
     icon: "bx-run",

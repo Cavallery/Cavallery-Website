@@ -51,9 +51,9 @@ export default function Footer() {
             <div className={styles.col}>
               <h4 className={styles.title}>Corner</h4>
               <ul className={styles.links}>
-                <li><Link href="/games/jumping-adventure">Jumping Adventure</Link></li>
-                <li><Link href="/games/zombie-escape">Zombie Escape</Link></li>
-                <li><Link href="/games/grasshopper-collector">Grasshopper Collector</Link></li>
+                <li><Link href="/games/jumping-adventure">Game Bibir Yang Telah Dicuri</Link></li>
+                <li><Link href="/games/zombie-escape">Game Erine In Etherland</Link></li>
+                <li><Link href="/games/grasshopper-collector">Game Belalang Yang Membangkang</Link></li>
                 <li><Link href="/games/love-erine-meter">Love Erine Meter</Link></li>
               </ul>
             </div>

@@ -735,10 +735,27 @@
 .modalDesc { font-size: 1.25rem; line-height: 1.6; color: #555; }
 
 @media (max-width: 900px) {
-  .profileContainer, .modalContent { flex-direction: column; }
+  .profileContainer, .modalContent, .ewSplit { flex-direction: column; }
   .leftCol { border-right: none; border-bottom: 2px solid var(--border-color); }
   .modalDetails { padding: 25px; }
   .electionGrid { grid-template-columns: 1fr; }
+  .ewBio, .ewHt { width: 100%; box-sizing: border-box; }
+}
+
+@media (max-width: 600px) {
+  .wikiName { font-size: 2rem; }
+  .bioTable td { padding: 10px 15px; font-size: 0.9rem; }
+  .labelCell { width: 40%; }
+  .jikoBar { flex-direction: column; padding: 15px; gap: 10px; }
+  .statsBoard { padding: 20px; }
+  .statsGrid { flex-direction: column; gap: 20px; padding: 15px; }
+  .mainPhotoFrame { min-height: 300px; }
+  .headerSection { padding: 20px; }
+  .ewIntro, .ewFf, .ewHt, .ewBio { padding: 15px; }
+  .ewSplit { gap: 20px; }
+  .socialIcons { flex-wrap: wrap; justify-content: center; }
+  .socialTitle { text-align: center; }
+  .socialSection { padding: 20px; }
 }
 
 /* 5. EMBEDS */

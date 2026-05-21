@@ -5,6 +5,7 @@ import BlueRoseCountdown from "@/components/home/BlueRoseCountdown";
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
+import SectionDivider from "@/components/SectionDivider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -17,10 +18,13 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
+      <SectionDivider />
       <BlueRoseCountdown />
-
+      <SectionDivider />
       <CalendarSection />
+      <SectionDivider />
       <TicketingSection />
+      <SectionDivider />
       <NewsPreview />
     </div>
   );

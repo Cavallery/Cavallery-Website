@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import styles from "./page.module.css";
 import PetaDomisili from "@/components/PetaDomisili/PetaDomisili";
+import SectionDivider from "@/components/SectionDivider";
 
 export const metadata: Metadata = {
   title: "About Cavallery",
@@ -79,6 +80,8 @@ export default function AboutCavalleryPage() {
           </div>
         </div>
 
+        <SectionDivider />
+
         {/* Sebaran Domisili */}
         <div className={styles.domisiliSection}>
           <div className="badge" style={{ marginBottom: 16 }}>
@@ -88,6 +91,8 @@ export default function AboutCavalleryPage() {
           <div className="divider" style={{ marginBottom: 32 }} />
           <PetaDomisili />
         </div>
+
+        <SectionDivider />
 
         {/* Canva Presentation */}
         <div className={styles.domisiliSection}>

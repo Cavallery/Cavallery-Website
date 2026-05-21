@@ -132,7 +132,7 @@ export default function Chatbot() {
 
       <button className={styles.trigger} onClick={() => setIsOpen((prev) => !prev)}>
         <img
-          src="http://localhost:3001/images/cava-logo.jpg"
+          src="/images/cava-logo.jpg"
           alt="Cava Logo"
           className={styles.triggerImg}
         />

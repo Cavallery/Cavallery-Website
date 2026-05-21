@@ -196,68 +196,7 @@ export default function ErineInEtherlandPage() {
         </div>
       </section>
 
-      {/* #CathErine17 Project */}
-      <section className={styles.catSection}>
-        <div className={styles.catContainer}>
-          <div className={styles.catCastleSkyline} />
 
-          <div className={styles.catNailedDecoration} />
-          <h2 className={styles.catTitle}>#CatErine17th</h2>
-
-          <p className={styles.catDescription}>
-            Hashtag tersebut merupakan gabungan dari dua kata, yaitu <strong>&quot;Cat&quot;</strong> dan <strong>&quot;Erine&quot;</strong>. Kucing merupakan hewan favorit Erine, yang dikenal sebagai binatang lucu, menggemaskan, namun sesekali dapat menunjukkan sifat pemarah &mdash; karakteristik yang selaras dengan kepribadian <strong>@CErine_JKT48</strong>.
-          </p>
-
-          <div className={styles.catImageCenter}>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/06/1.jpeg" alt="CatErine17th" />
-            </div>
-          </div>
-        </div>
-
-        {/* Offline Project */}
-        <div className={styles.catContainer} style={{ marginTop: 60 }}>
-          <div className={styles.catCastleSkyline} />
-          <div className={styles.catNailedDecoration} />
-          <h2 className={styles.catTitle}>Offline Project</h2>
-
-          <div className={styles.catVideotronInfo}>
-            Dalam rangka perayaan STS @CErine_JKT48 di Theater hari ini, kami telah menyiapkan Display Project di depan Theater yang dapat kalian kunjungi. Selain itu, bagi kalian yang menyaksikan show &quot;Aitakatta&quot; pada pertunjukan hari ini, akan tersedia freebies khusus yang sudah diletakkan di bangku penonton.
-          </div>
-
-          <div className={styles.catImagesGrid}>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/10/CATERINE17.jpg" alt="Princess CatErine Poster" />
-            </div>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/10/CATERINE171.jpg" alt="Videotron CatErine17th" />
-            </div>
-          </div>
-        </div>
-
-        {/* Birthday Gallery */}
-        <div className={styles.catContainer} style={{ marginTop: 60 }}>
-          <div className={styles.catCastleSkyline} />
-          <div className={styles.catNailedDecoration} />
-          <h2 className={styles.catTitle}>Erine Birthday Gallery</h2>
-
-          <p className={styles.catDescription}>
-            Selamat ulang tahun, <strong>Erine</strong>! Semoga hari ini penuh tawa, doa baik, dan momen manis.
-          </p>
-
-          <div className={styles.catImagesGrid}>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/10/sts-2024-2.jpg" alt="Princess CatErine 1" />
-            </div>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/10/sts2024.jpg" alt="Princess CatErine 2" />
-            </div>
-            <div className={styles.catImageFrame}>
-              <img src="https://cavallery.id/wp-content/uploads/2025/10/erine-sts-3.jpg" alt="Princess CatErine 3" />
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

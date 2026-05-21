@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./page.module.css";
+import SectionDivider from "@/components/SectionDivider";
 
 export const metadata = {
   title: "#CatErine17th Project | Cavallery",
@@ -18,6 +19,8 @@ export default function CatErine17Page() {
         </div>
       </section>
 
+      <SectionDivider />
+
       {/* Intro Section */}
       <section className={styles.introSection}>
         <div className={styles.container}>
@@ -29,6 +32,8 @@ export default function CatErine17Page() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* Offline Project */}
       <section className={styles.projectSection}>
@@ -66,6 +71,8 @@ export default function CatErine17Page() {
           </div>
         </div>
       </section>
+
+      <SectionDivider />
 
       {/* Closing */}
       <section className={styles.closingSection}>
