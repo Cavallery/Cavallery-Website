@@ -5,7 +5,7 @@ import styles from "./GameRineSection.module.css";
 
 const games = [
   {
-    title: "Grasshopper Collector",
+    title: "Game Belalang Yang Membangkang",
     desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
@@ -13,7 +13,7 @@ const games = [
     color: "#4ade80",
   },
   {
-    title: "Zombie Escape",
+    title: "Game Erine In Etherland",
     desc: "Lari dari para zombie dan selamatkan diri! Bisakah kamu bertahan hidup?",
     href: "/games/zombie-escape",
     icon: "bx-run",
