@@ -5,12 +5,12 @@ import styles from "./page.module.css";
 
 const scenes = [
   { src: "/assets/prolog-scene.mp4", title: "Prolog", desc: "Awal dari perjalanan Erine di dunia Etherland." },
-  { src: "/assets/scene-1.mp4", title: "Scene 1", desc: "Erine menemukan portal menuju Etherland." },
-  { src: "/assets/scene-2.mp4", title: "Scene 2", desc: "Petualangan pertama di tanah asing." },
-  { src: "/assets/scene-3.mp4", title: "Scene 3", desc: "Bertemu dengan penduduk Etherland." },
-  { src: "/assets/scene-4.mp4", title: "Scene 4", desc: "Tantangan yang harus dihadapi." },
-  { src: "/assets/scene-5.mp4", title: "Scene 5", desc: "Menuju puncak petualangan." },
-  { src: "/assets/penutup.mp4", title: "Penutup", desc: "Akhir dari perjalanan Erine di Etherland." },
+  { src: "https://cava.jkt48connect.com/scene-1.mp4", title: "Scene 1", desc: "Erine menemukan portal menuju Etherland." },
+  { src: "https://cava.jkt48connect.com/scene-2.mp4", title: "Scene 2", desc: "Petualangan pertama di tanah asing." },
+  { src: "https://cava.jkt48connect.com/scene-3.mp4", title: "Scene 3", desc: "Bertemu dengan penduduk Etherland." },
+  { src: "https://cava.jkt48connect.com/scene-4.mp4", title: "Scene 4", desc: "Tantangan yang harus dihadapi." },
+  { src: "https://cava.jkt48connect.com/scene-5.mp4", title: "Scene 5", desc: "Menuju puncak petualangan." },
+  { src: "https://cava.jkt48connect.com/penutup.mp4", title: "Penutup", desc: "Akhir dari perjalanan Erine di Etherland." },
 ];
 
 const contributors = [
