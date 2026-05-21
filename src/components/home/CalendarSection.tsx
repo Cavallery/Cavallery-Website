@@ -17,6 +17,11 @@ interface Show {
   member?: ShowMember[];
   lineup?: ShowMember[];
   url?: string;
+  isLiveHistory?: boolean;
+  liveType?: string;
+  thumbnail?: string;
+  totalGift?: string;
+  duration?: number;
 }
 
 const ERINE_KEYS = ["erine", "catherina", "vallencia"];
@@ -25,16 +30,25 @@ function isErine(name: string) {
   return ERINE_KEYS.some((k) => n.includes(k));
 }
 
+function msToReadable(ms: number) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  if (h > 0) return `${h} jam ${m} menit`;
+  return `${m} menit`;
+}
+
 export default function CalendarSection() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiShows, setApiShows] = useState<Show[]>([]);
   const [apiLives, setApiLives] = useState<Show[]>([]);
+  const [apiRiwayat, setApiRiwayat] = useState<Show[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth(); // 0-indexed
+  const month = currentDate.getMonth();
 
-  // Fetch actual JKT48 schedule data dynamically based on selected month/year
+  // Fetch theater schedule
   useEffect(() => {
     async function fetchTheater() {
       try {
@@ -53,17 +67,15 @@ export default function CalendarSection() {
     fetchTheater();
   }, [month, year]);
 
-  // Fetch active live streams (Showroom / IDN)
+  // Fetch active live streams
   useEffect(() => {
     async function fetchLive() {
       try {
         const res = await fetch("/api/live");
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          // Map live streams to Show format (they happen today)
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`;
-          
           const lives: Show[] = json.data.map((stream: any, idx: number) => ({
             id: `live-${idx}`,
             title: `LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
@@ -81,46 +93,92 @@ export default function CalendarSection() {
     fetchLive();
   }, []);
 
-  // Filter live API shows to include only those featuring Erine, and combine with active Lives
+  // Fetch riwayat live Erine
+  useEffect(() => {
+    async function fetchRiwayat() {
+      try {
+        const res = await fetch("/api/riwayat");
+        const json = await res.json();
+        const raw: any[] = Array.isArray(json) ? json : json.data ?? [];
+        const mapped: Show[] = raw.map((item: any) => {
+          const startRaw = item.live_info?.date?.start;
+          const endRaw   = item.live_info?.date?.end;
+          const startDate = startRaw ? new Date(startRaw) : null;
+          const endDate   = endRaw   ? new Date(endRaw)   : null;
+
+          // Waktu dalam WIB (UTC+7)
+          const startTimeStr = startDate
+            ? `${String(startDate.getUTCHours() + 7).padStart(2, "0")}:${String(startDate.getUTCMinutes()).padStart(2, "0")}`
+            : undefined;
+
+          // Judul: pakai idn.title jika ada, fallback ke tipe live
+          const liveTitle = item.idn?.title
+            ? `${item.idn.title}`
+            : item.type === "showroom"
+            ? "Showroom Live"
+            : "IDN Live";
+
+          return {
+            id: item.data_id,
+            title: `🎥 ${liveTitle}`,
+            // Tanggal pakai date.start, konversi ke lokal
+            date: startRaw ?? undefined,
+            startTime: startTimeStr,
+            members: [{ name: item.member?.name ?? "Erine JKT48" }],
+            url: item.idn
+              ? `https://idn.app/${item.idn.username}`
+              : item.room_id
+              ? `https://www.showroom-live.com/r/${item.member?.url}`
+              : undefined,
+            isLiveHistory: true,
+            liveType: item.type ?? "idn",
+            thumbnail: item.idn?.image ?? item.member?.img,
+            totalGift: item.total_gift,
+            duration: item.live_info?.duration,
+          };
+        });
+        setApiRiwayat(mapped);
+      } catch (err) {
+        console.error("Failed to load riwayat:", err);
+      }
+    }
+    fetchRiwayat();
+  }, []);
+
   const shows = useMemo(() => {
     const filteredShows = apiShows.filter((s) => {
       const members = s.members ?? s.member ?? s.lineup ?? [];
       return members.some((m) => isErine(m.name));
     });
-    
-    // Only add lives if we are viewing the current month/year
+
     const now = new Date();
-    if (now.getFullYear() === year && now.getMonth() === month) {
-      return [...filteredShows, ...apiLives];
-    }
-    return filteredShows;
-  }, [apiShows, apiLives, year, month]);
+    const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
 
-  const daysInMonth = useMemo(() => {
-    return new Date(year, month + 1, 0).getDate();
-  }, [year, month]);
+    // Filter riwayat: hanya tampilkan yang bulan & tahunnya cocok dengan kalender
+    const filteredRiwayat = apiRiwayat.filter((s) => {
+      if (!s.date) return false;
+      const d = new Date(s.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
 
-  const firstDayIndex = useMemo(() => {
-    const day = new Date(year, month, 1).getDay(); // Sunday: 0, Monday: 1...
-    return day;
-  }, [year, month]);
+    return [
+      ...filteredShows,
+      ...(isCurrentMonth ? apiLives : []),
+      ...filteredRiwayat,
+    ];
+  }, [apiShows, apiLives, apiRiwayat, year, month]);
+
+  const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
+  const firstDayIndex = useMemo(() => new Date(year, month, 1).getDay(), [year, month]);
 
   const monthNames = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
   ];
 
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-    setSelectedDay(null);
-  };
+  const handlePrevMonth = () => { setCurrentDate(new Date(year, month - 1, 1)); setSelectedDay(null); };
+  const handleNextMonth = () => { setCurrentDate(new Date(year, month + 1, 1)); setSelectedDay(null); };
 
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-    setSelectedDay(null);
-  };
-
-  // Find shows on a specific day
   const getShowsForDay = (day: number) => {
     return shows.filter((show) => {
       const showDateStr = show.date ?? show.showDate;
@@ -130,21 +188,16 @@ export default function CalendarSection() {
     });
   };
 
-  // Render Days Header
   const daysOfWeek = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const today = new Date();
 
   const cells = [];
-  // Empty slots before first day of month
   for (let i = 0; i < firstDayIndex; i++) {
     cells.push(<div key={`empty-${i}`} className={`${styles.cell} ${styles.emptyCell}`} />);
   }
-
-  // Days in month
-  const today = new Date();
   for (let day = 1; day <= daysInMonth; day++) {
     const dayShows = getShowsForDay(day);
     const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-
     cells.push(
       <div
         key={day}
@@ -159,10 +212,15 @@ export default function CalendarSection() {
             return (
               <div
                 key={show.id ?? idx}
-                className={`${styles.eventBadge} ${hasErine ? styles.eventErine : ""}`}
+                className={`${styles.eventBadge} ${hasErine ? styles.eventErine : ""} ${show.isLiveHistory ? styles.eventLive : ""}`}
                 title={show.title}
               >
-                {hasErine ? <><i className="bx bxs-flame" style={{ fontSize: ".7rem" }} />{" "}</> : ""}{show.title}
+                {show.isLiveHistory
+                  ? <><i className="bx bx-video-recording" style={{ fontSize: ".7rem" }} />{" "}</>
+                  : hasErine
+                  ? <><i className="bx bxs-flame" style={{ fontSize: ".7rem" }} />{" "}</>
+                  : ""}
+                {show.title}
               </div>
             );
           })}
@@ -193,9 +251,7 @@ export default function CalendarSection() {
 
         <div className={`${styles.calendarCard} glassCard`}>
           <div className={styles.calendarHeader}>
-            <span className={styles.monthTitle}>
-              {monthNames[month]} {year}
-            </span>
+            <span className={styles.monthTitle}>{monthNames[month]} {year}</span>
             <div className={styles.monthNav}>
               <button className={styles.navBtn} onClick={handlePrevMonth}>
                 <i className="bx bx-chevron-left" /> Prev
@@ -208,9 +264,7 @@ export default function CalendarSection() {
 
           <div className={styles.grid}>
             {daysOfWeek.map((day) => (
-              <div key={day} className={styles.dayOfWeek}>
-                {day.slice(0, 3)}
-              </div>
+              <div key={day} className={styles.dayOfWeek}>{day.slice(0, 3)}</div>
             ))}
             {cells}
           </div>
@@ -226,11 +280,56 @@ export default function CalendarSection() {
                 selectedDayShows.map((show, idx) => {
                   const members = show.members ?? show.member ?? show.lineup ?? [];
                   return (
-                    <div key={show.id ?? idx} className={styles.eventCard}>
-                      <div className={styles.eventTitle}>{show.title}</div>
-                      <div className={styles.eventMeta}>
-                        <i className="bx bx-time" /> {show.startTime ?? "19:00"} WIB
+                    <div key={show.id ?? idx} className={`${styles.eventCard} ${show.isLiveHistory ? styles.eventCardLive : ""}`}>
+                      {/* Thumbnail untuk riwayat live */}
+                      {show.isLiveHistory && show.thumbnail && (
+                        <img
+                          src={show.thumbnail}
+                          alt={show.title}
+                          style={{
+                            width: "100%",
+                            borderRadius: 8,
+                            marginBottom: 8,
+                            maxHeight: 160,
+                            objectFit: "cover",
+                          }}
+                        />
+                      )}
+
+                      <div className={styles.eventTitle}>
+                        {show.isLiveHistory && (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              background: "var(--accent-gold)",
+                              color: "#000",
+                              borderRadius: 4,
+                              padding: "1px 6px",
+                              marginRight: 6,
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {show.liveType === "showroom" ? "Showroom" : "IDN"}
+                          </span>
+                        )}
+                        {show.title}
                       </div>
+
+                      <div className={styles.eventMeta}>
+                        <i className="bx bx-time" /> {show.startTime ?? "–"} WIB
+                        {show.duration && (
+                          <span style={{ marginLeft: 12 }}>
+                            <i className="bx bx-stopwatch" /> {msToReadable(show.duration)}
+                          </span>
+                        )}
+                        {show.totalGift && (
+                          <span style={{ marginLeft: 12 }}>
+                            <i className="bx bx-gift" /> {show.totalGift}
+                          </span>
+                        )}
+                      </div>
+
                       {members.length > 0 && (
                         <div className={styles.membersList}>
                           {members.map((m, mi) => {
@@ -240,21 +339,23 @@ export default function CalendarSection() {
                                 key={mi}
                                 className={`${styles.memberTag} ${match ? styles.memberErine : ""}`}
                               >
-                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}{m.name}
+                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}
+                                {m.name}
                               </span>
                             );
                           })}
                         </div>
                       )}
+
                       {show.url && (
-                        <a
+                        
                           href={show.url}
                           target="_blank"
                           rel="noreferrer"
                           className="btnPrimary"
                           style={{ marginTop: 12, padding: "8px 20px", fontSize: "0.85rem" }}
                         >
-                          Beli Tiket
+                          {show.isLiveHistory ? "Tonton Replay" : "Beli Tiket"}
                         </a>
                       )}
                     </div>
