@@ -67,7 +67,7 @@ export default function CalendarSection() {
     fetchTheater();
   }, [month, year]);
 
-  // Fetch active live streams
+  // Fetch active live streams (Showroom / IDN)
   useEffect(() => {
     async function fetchLive() {
       try {
@@ -82,7 +82,7 @@ export default function CalendarSection() {
             date: todayStr,
             startTime: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
             members: [{ name: stream.member_name || "Catherina Vallencia (Erine)" }],
-            url: stream.url_key ? `https://www.showroom-live.com/r/${stream.url_key}` : stream.url || "https://jkt48.com"
+            url: stream.url_key ? `https://www.showroom-live.com/r/${stream.url_key}` : stream.url || "https://jkt48.com",
           }));
           setApiLives(lives);
         }
@@ -102,34 +102,21 @@ export default function CalendarSection() {
         const raw: any[] = Array.isArray(json) ? json : json.data ?? [];
         const mapped: Show[] = raw.map((item: any) => {
           const startRaw = item.live_info?.date?.start;
-          const endRaw   = item.live_info?.date?.end;
           const startDate = startRaw ? new Date(startRaw) : null;
-          const endDate   = endRaw   ? new Date(endRaw)   : null;
-
-          // Waktu dalam WIB (UTC+7)
           const startTimeStr = startDate
             ? `${String(startDate.getUTCHours() + 7).padStart(2, "0")}:${String(startDate.getUTCMinutes()).padStart(2, "0")}`
             : undefined;
-
-          // Judul: pakai idn.title jika ada, fallback ke tipe live
           const liveTitle = item.idn?.title
-            ? `${item.idn.title}`
+            ? item.idn.title
             : item.type === "showroom"
             ? "Showroom Live"
             : "IDN Live";
-
           return {
             id: item.data_id,
             title: `🎥 ${liveTitle}`,
-            // Tanggal pakai date.start, konversi ke lokal
             date: startRaw ?? undefined,
             startTime: startTimeStr,
             members: [{ name: item.member?.name ?? "Erine JKT48" }],
-            url: item.idn
-              ? `https://idn.app/${item.idn.username}`
-              : item.room_id
-              ? `https://www.showroom-live.com/r/${item.member?.url}`
-              : undefined,
             isLiveHistory: true,
             liveType: item.type ?? "idn",
             thumbnail: item.idn?.image ?? item.member?.img,
@@ -154,7 +141,6 @@ export default function CalendarSection() {
     const now = new Date();
     const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
 
-    // Filter riwayat: hanya tampilkan yang bulan & tahunnya cocok dengan kalender
     const filteredRiwayat = apiRiwayat.filter((s) => {
       if (!s.date) return false;
       const d = new Date(s.date);
@@ -212,7 +198,7 @@ export default function CalendarSection() {
             return (
               <div
                 key={show.id ?? idx}
-                className={`${styles.eventBadge} ${hasErine ? styles.eventErine : ""} ${show.isLiveHistory ? styles.eventLive : ""}`}
+                className={`${styles.eventBadge} ${hasErine ? styles.eventErine : ""}`}
                 title={show.title}
               >
                 {show.isLiveHistory
@@ -251,7 +237,9 @@ export default function CalendarSection() {
 
         <div className={`${styles.calendarCard} glassCard`}>
           <div className={styles.calendarHeader}>
-            <span className={styles.monthTitle}>{monthNames[month]} {year}</span>
+            <span className={styles.monthTitle}>
+              {monthNames[month]} {year}
+            </span>
             <div className={styles.monthNav}>
               <button className={styles.navBtn} onClick={handlePrevMonth}>
                 <i className="bx bx-chevron-left" /> Prev
@@ -264,7 +252,9 @@ export default function CalendarSection() {
 
           <div className={styles.grid}>
             {daysOfWeek.map((day) => (
-              <div key={day} className={styles.dayOfWeek}>{day.slice(0, 3)}</div>
+              <div key={day} className={styles.dayOfWeek}>
+                {day.slice(0, 3)}
+              </div>
             ))}
             {cells}
           </div>
@@ -280,8 +270,7 @@ export default function CalendarSection() {
                 selectedDayShows.map((show, idx) => {
                   const members = show.members ?? show.member ?? show.lineup ?? [];
                   return (
-                    <div key={show.id ?? idx} className={`${styles.eventCard} ${show.isLiveHistory ? styles.eventCardLive : ""}`}>
-                      {/* Thumbnail untuk riwayat live */}
+                    <div key={show.id ?? idx} className={styles.eventCard}>
                       {show.isLiveHistory && show.thumbnail && (
                         <img
                           src={show.thumbnail}
@@ -295,29 +284,25 @@ export default function CalendarSection() {
                           }}
                         />
                       )}
-
                       <div className={styles.eventTitle}>
                         {show.isLiveHistory && (
-                          <span
-                            style={{
-                              fontSize: "0.7rem",
-                              background: "var(--accent-gold)",
-                              color: "#000",
-                              borderRadius: 4,
-                              padding: "1px 6px",
-                              marginRight: 6,
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                            }}
-                          >
+                          <span style={{
+                            fontSize: "0.7rem",
+                            background: "var(--accent-gold)",
+                            color: "#000",
+                            borderRadius: 4,
+                            padding: "1px 6px",
+                            marginRight: 6,
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                          }}>
                             {show.liveType === "showroom" ? "Showroom" : "IDN"}
                           </span>
                         )}
                         {show.title}
                       </div>
-
                       <div className={styles.eventMeta}>
-                        <i className="bx bx-time" /> {show.startTime ?? "–"} WIB
+                        <i className="bx bx-time" /> {show.startTime ?? "19:00"} WIB
                         {show.duration && (
                           <span style={{ marginLeft: 12 }}>
                             <i className="bx bx-stopwatch" /> {msToReadable(show.duration)}
@@ -329,7 +314,6 @@ export default function CalendarSection() {
                           </span>
                         )}
                       </div>
-
                       {members.length > 0 && (
                         <div className={styles.membersList}>
                           {members.map((m, mi) => {
@@ -339,24 +323,11 @@ export default function CalendarSection() {
                                 key={mi}
                                 className={`${styles.memberTag} ${match ? styles.memberErine : ""}`}
                               >
-                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}
-                                {m.name}
+                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}{m.name}
                               </span>
                             );
                           })}
                         </div>
-                      )}
-
-                      {show.url && (
-                        
-                          href={show.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btnPrimary"
-                          style={{ marginTop: 12, padding: "8px 20px", fontSize: "0.85rem" }}
-                        >
-                          {show.isLiveHistory ? "Tonton Replay" : "Beli Tiket"}
-                        </a>
                       )}
                     </div>
                   );
