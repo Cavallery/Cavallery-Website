@@ -297,6 +297,10 @@ button { cursor: pointer; font-family: var(--sans); }
   50%     { transform: translateY(-20px); }
 }
 
+@keyframes line-shadow {
+  0%   { background-position: 0 0; }
+  100% { background-position: 100% -100%; }
+}
 /* ================================================================
    MOBILE
    ================================================================ */
@@ -320,3 +324,4 @@ button { cursor: pointer; font-family: var(--sans); }
   animation: none;
   mix-blend-mode: normal;
 }
+
