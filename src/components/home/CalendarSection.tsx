@@ -113,7 +113,7 @@ export default function CalendarSection() {
             : "IDN Live";
           return {
             id: item.data_id,
-            title: `🎥 ${liveTitle}`,
+            title: `Live ${liveTitle}`,
             date: startRaw ?? undefined,
             startTime: startTimeStr,
             members: [{ name: item.member?.name ?? "Erine JKT48" }],
