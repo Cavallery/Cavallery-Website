@@ -8,7 +8,8 @@ export async function GET() {
     const res = await fetch(`${BASE}/live?priority_token=${API_KEY}`, {
       headers: { 
         "x-priority-token": API_KEY,
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0"
       },
       next: { revalidate: 60 } // Cache for 1 min
     });

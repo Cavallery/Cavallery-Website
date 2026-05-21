@@ -23,6 +23,7 @@ const navLinks = [
       { href: "/caterine17th", label: "#CatErine17th" },
       { href: "/erine-in-etherland", label: "Erine in Etherland" },
       { href: "/journal", label: "MemoRine (Journal)" },
+      { href: "/kaleidoskop", label: "Kaleidoskop Cavallery" },
     ],
   },
   {
