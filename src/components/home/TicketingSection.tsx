@@ -91,9 +91,11 @@ export default function TicketingSection() {
                   </div>
                 </div>
 
-                <button type="submit" className="btnPrimary" disabled={status === "loading"}>
-                  {status === "loading" ? "Mengirim..." : "Kirim Tiket"}
-                </button>
+                <div className={styles.btnWrapper}>
+                  <button type="submit" className="btnPrimary" disabled={status === "loading"}>
+                    {status === "loading" ? "Mengirim..." : "Kirim Tiket"}
+                  </button>
+                </div>
 
                 {status === "error" && <p className={styles.error}>Gagal mengirim. Periksa koneksi Anda.</p>}
               </form>

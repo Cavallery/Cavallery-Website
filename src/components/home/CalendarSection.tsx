@@ -272,63 +272,62 @@ export default function CalendarSection() {
                   return (
                     <div key={show.id ?? idx} className={styles.eventCard}>
                       {show.isLiveHistory && show.thumbnail && (
-                        <img
-                          src={show.thumbnail}
-                          alt={show.title}
-                          style={{
-                            width: "100%",
-                            borderRadius: 8,
-                            marginBottom: 8,
-                            maxHeight: 160,
-                            objectFit: "cover",
-                          }}
-                        />
-                      )}
-                      <div className={styles.eventTitle}>
-                        {show.isLiveHistory && (
-                          <span style={{
-                            fontSize: "0.7rem",
-                            background: "var(--accent-gold)",
-                            color: "#000",
-                            borderRadius: 4,
-                            padding: "1px 6px",
-                            marginRight: 6,
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                          }}>
-                            {show.liveType === "showroom" ? "Showroom" : "IDN"}
-                          </span>
-                        )}
-                        {show.title}
-                      </div>
-                      <div className={styles.eventMeta}>
-                        <i className="bx bx-time" /> {show.startTime ?? "19:00"} WIB
-                        {show.duration && (
-                          <span style={{ marginLeft: 12 }}>
-                            <i className="bx bx-stopwatch" /> {msToReadable(show.duration)}
-                          </span>
-                        )}
-                        {show.totalGift && (
-                          <span style={{ marginLeft: 12 }}>
-                            <i className="bx bx-gift" /> {show.totalGift}
-                          </span>
-                        )}
-                      </div>
-                      {members.length > 0 && (
-                        <div className={styles.membersList}>
-                          {members.map((m, mi) => {
-                            const match = isErine(m.name);
-                            return (
-                              <span
-                                key={mi}
-                                className={`${styles.memberTag} ${match ? styles.memberErine : ""}`}
-                              >
-                                {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}{m.name}
-                              </span>
-                            );
-                          })}
+                        <div className={styles.eventThumb}>
+                          <img
+                            src={show.thumbnail}
+                            alt={show.title}
+                          />
                         </div>
                       )}
+                      <div className={styles.eventContent}>
+                        <div className={styles.eventTitle}>
+                          {show.isLiveHistory && (
+                            <span style={{
+                              fontSize: "0.7rem",
+                              background: "var(--gold)",
+                              color: "#fff",
+                              borderRadius: 4,
+                              padding: "2px 8px",
+                              marginRight: 6,
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                            }}>
+                              {show.liveType === "showroom" ? "Showroom" : "IDN"}
+                            </span>
+                          )}
+                          {show.title}
+                        </div>
+                        <div className={styles.eventMeta}>
+                          <span className={styles.metaItem}>
+                            <i className="bx bx-time" /> {show.startTime ?? "19:00"} WIB
+                          </span>
+                          {show.duration && (
+                            <span className={styles.metaItem}>
+                              <i className="bx bx-stopwatch" /> {msToReadable(show.duration)}
+                            </span>
+                          )}
+                          {show.totalGift && (
+                            <span className={styles.metaItem}>
+                              <i className="bx bx-gift" /> {show.totalGift}
+                            </span>
+                          )}
+                        </div>
+                        {members.length > 0 && (
+                          <div className={styles.membersList}>
+                            {members.map((m, mi) => {
+                              const match = isErine(m.name);
+                              return (
+                                <span
+                                  key={mi}
+                                  className={`${styles.memberTag} ${match ? styles.memberErine : ""}`}
+                                >
+                                  {match ? <><i className="bx bxs-flame" style={{ fontSize: ".75rem" }} />{" "}</> : ""}{m.name}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })

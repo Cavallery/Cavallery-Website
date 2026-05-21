@@ -56,7 +56,7 @@ export default function GameRineSection() {
           </h2>
           <div className="divider" style={{ margin: "16px auto 20px" }} />
           <p className={styles.subtitle}>
-            Mini games eksklusif yang pernah dimainkan oleh Erine. Coba semua dan raih skor tertinggi!
+            Kumpulan mini game seru buatan fanbase Cavallery! Erine pernah main game ini.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function GameRineSection() {
         <div className={styles.featured}>
           {!videoError ? (
             <video
-              src="https://cavallery.id/wp-content/uploads/2025/06/erine-game-.mp4"
+              src="https://cava.jkt48connect.com/erine-game.mp4"
               autoPlay
               muted
               loop

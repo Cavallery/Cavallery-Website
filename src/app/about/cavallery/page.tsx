@@ -46,7 +46,7 @@ export default function AboutCavalleryPage() {
             <div className="divider" />
             <p>
               Cavallery adalah fanbase utama dari <strong>Catherina Vallencia (Erine)</strong>, 
-              member trainee JKT48 generasi ke-12. Nama Cavallery merupakan singkatan 
+              member inti JKT48 generasi ke-12 di Tim Passion. Nama Cavallery merupakan singkatan 
               kreatif dari nama panggilan Erine, sekaligus plesetan dari kata kavaleri 
               pasukan berkuda yang melambangkan kekuatan dan kesetiaan.
             </p>
@@ -90,6 +90,36 @@ export default function AboutCavalleryPage() {
           <h2 className={styles.sectionH}>Domisili Anggota Cavallery</h2>
           <div className="divider" style={{ marginBottom: 32 }} />
           <PetaDomisili />
+        </div>
+
+        <SectionDivider />
+
+        {/* Peraturan Umum */}
+        <div className={styles.domisiliSection}>
+          <div className="badge" style={{ marginBottom: 16 }}>
+            <i className="bx bx-check-shield" /> Rules
+          </div>
+          <h2 className={styles.sectionH}>Peraturan Anggota Grup Cavallery</h2>
+          <div className="divider" style={{ marginBottom: 32 }} />
+          <div className="glassCard" style={{ padding: "30px 40px", textAlign: "left", lineHeight: "1.8", margin: "0 auto", maxWidth: 800 }}>
+            <ol style={{ paddingLeft: 20, color: "var(--fg-muted)", listStyleType: "decimal" }}>
+              <li style={{ marginBottom: 8, paddingLeft: 8 }}>Mohon untuk aktif dan tidak memancing keributan di grup Cavallery.</li>
+              <li style={{ marginBottom: 8 }}>Dilarang menghina atau melakukan hate speech kepada sesama anggota grup, Erine, atau member JKT48 lainnya.</li>
+              <li style={{ marginBottom: 8 }}>Mohon bantuannya untuk berpartisipasi dalam setiap project Cavallery, baik melalui media sosial maupun langsung di lapangan.</li>
+              <li style={{ marginBottom: 8 }}>Setiap project akan melalui proses brainstorming secara online/offline bersama seluruh anggota grup sebelum diumumkan kembali di grup ini.</li>
+              <li style={{ marginBottom: 8 }}>Diharapkan membayar uang kas sesuai standar minimum yang sudah ditetapkan untuk melancarkan project-project Cavallery (detail pembayaran kas akan dijelaskan di catatan terpisah).</li>
+              <li style={{ marginBottom: 8 }}>Bagi yang tidak membayar kas selama 1 bulan akan diberi peringatan.</li>
+              <li style={{ marginBottom: 8 }}>Bagi yang tidak membayar kas selama 2 bulan berturut-turut akan diberi peringatan dan ditindak (dikeluarkan).</li>
+              <li style={{ marginBottom: 8 }}>Penagihan kas akan dilakukan setiap tanggal 25.</li>
+              <li style={{ marginBottom: 8 }}>Bagi yang ingin promosi jualan, harap menghubungi pengurus terlebih dahulu.</li>
+              <li style={{ marginBottom: 8 }}>Hanya pengurus yang dapat mengundang atau mengeluarkan anggota dari grup ini (semua anggota grup harus mengisi formulir).</li>
+              <li style={{ marginBottom: 8 }}>Hanya pengurus yang boleh menggunakan tag all di grup.</li>
+              <li style={{ marginBottom: 8 }}>Jika ada yang ingin ditanyakan, silakan menghubungi @MinCav atau @JENDERAL CAVALLERY melalui grup atau personal chat.</li>
+              <li style={{ marginBottom: 8 }}>Dilarang menghapus album yang ada di grup Line (ini merupakan pelanggaran berat yang dapat dikenai sanksi berat).</li>
+              <li style={{ marginBottom: 8 }}>Dilarang menyebarkan link Discord keluar dari grup ini.</li>
+              <li style={{ marginBottom: 8 }}>Pengurus berhak memutuskan peraturan tambahan dengan kesepakatan para pengurus lainnya.</li>
+            </ol>
+          </div>
         </div>
 
         <SectionDivider />

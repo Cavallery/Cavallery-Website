@@ -633,7 +633,39 @@
   padding: 25px;
   position: relative;
   box-shadow: 5px 10px 20px rgba(0,0,0,0.1);
-  transition: 0.3s;
+  transition: transform 0.3s, z-index 0.3s;
+  cursor: pointer;
+  perspective: 1000px;
+  border: 2px solid var(--gold);
+}
+
+.flipInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.flipFront {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.flipBack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 25px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  background: inherit;
+  border-radius: inherit;
+  overflow-y: auto;
 }
 
 .stickyCard:nth-child(even) { background: #fff0f5; transform: rotate(1.5deg); }
@@ -770,9 +802,9 @@
 
 .embedsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 30px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   align-items: start;
 }

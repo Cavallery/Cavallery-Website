@@ -38,7 +38,7 @@ export const rawData: CityData = {
   Blitar: 2, Boyolali: 2, Karawang: 3, Mojokerto: 2, "Pangkal Pinang": 2,
   Palu: 2, Kuningan: 3, Manado: 3, Probolinggo: 2, Tuban: 2,
   Kendari: 2, Wonosobo: 2, Garut: 2, Majalengka: 2, Lumajang: 2,
-  Serang: 2, Pandeglang: 2,
+  Serang: 2, Pandeglang: 2, Lubuklinggau: 1,
 };
 
 export const regionMap: RegionMap = {
@@ -63,7 +63,7 @@ export const regionMap: RegionMap = {
     paths: ["ID-BA", "ID-NB", "ID-NT"],
   },
   Sumatera: {
-    cities: ["Lampung", "Medan", "Padang", "Palembang", "Bengkulu", "Batam", "Binjai", "Jambi", "Pangkal Pinang"],
+    cities: ["Lampung", "Medan", "Padang", "Palembang", "Bengkulu", "Batam", "Binjai", "Jambi", "Pangkal Pinang", "Lubuklinggau"],
     paths: ["ID-AC", "ID-SU", "ID-SB", "ID-RI", "ID-JA", "ID-BE", "ID-SS", "ID-LA", "ID-BB", "ID-KR"],
   },
   Kalimantan: {

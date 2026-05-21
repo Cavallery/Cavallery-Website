@@ -137,9 +137,6 @@ export default function HeroSection() {
       <div className={styles.bgKnight}>
         <i className="bx bxs-chess" />
       </div>
-
-      {/* Castle Skyline Decoration */}
-      <div className={styles.castleSkyline} />
     </section>
   );
 }

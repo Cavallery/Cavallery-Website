@@ -45,7 +45,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <div className="chessboard-bg" />
+
         <div className="knight-watermark" />
         <div className="board-watermark" />
         <SplashScreen />

@@ -1,6 +1,51 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import Script from "next/script";
+import { motion } from "framer-motion";
 import styles from "./AboutErineSection.module.css";
+
+function FlipCard({ set, idx }: { set: any, idx: number }) {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  return (
+    <div 
+      className={styles.stickyCard} 
+      onClick={() => setIsFlipped(!isFlipped)}
+      style={{ zIndex: isFlipped ? 10 : 1 }}
+    >
+      <motion.div
+        className={styles.flipInner}
+        initial={false}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
+      >
+        {/* Front side */}
+        <div className={styles.flipFront}>
+          <div className={styles.tapeStrip} />
+          <div className={styles.polaroidFrame}>
+            <img src={set.img} alt={set.title} />
+          </div>
+          <div className={styles.cardTitle}>{set.title}</div>
+          <div className={styles.cardDates}>{set.date}</div>
+          <span className={styles.showBadge}>{set.badge}</span>
+        </div>
+
+        {/* Back side */}
+        <div className={styles.flipBack}>
+          <div className={styles.tapeStrip} style={{ top: "-15px" }} />
+          <div className={styles.cardTitle} style={{ marginBottom: "15px", fontSize: "1.2rem" }}>Unit Songs</div>
+          <ul className={styles.unitSongs}>
+            {set.songs.map((song: string, i: number) => (
+              <li key={song} className={styles.songRow}>
+                <span className={styles.songNum}>{i + 1}.</span> {song}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function AboutErineSection() {
   const [age, setAge] = useState(18);
@@ -18,7 +63,7 @@ export default function AboutErineSection() {
   ];
 
   const stats = [
-    { label: "Total Shows", target: 98, icon: "bx-calendar" },
+    { label: "Total Shows", target: 99, icon: "bx-calendar" },
     { label: "Setlists", target: 7, icon: "bx-music" },
     { label: "Unit Songs", target: 15, icon: "bx-microphone" }
   ];
@@ -41,7 +86,7 @@ export default function AboutErineSection() {
 
     // Counter animation
     const counterTimer = setTimeout(() => {
-      setCounts({ shows: 98, setlists: 7, units: 15 });
+      setCounts({ shows: 99, setlists: 7, units: 15 });
     }, 500);
 
     // Embed scripts
@@ -54,11 +99,6 @@ export default function AboutErineSection() {
     tkScript.src = "https://www.tiktok.com/embed.js";
     tkScript.async = true;
     document.body.appendChild(tkScript);
-
-    const thScript = document.createElement("script");
-    thScript.src = "https://platform.threads.net/en_US/embed.js";
-    thScript.async = true;
-    document.body.appendChild(thScript);
 
     return () => {
       clearInterval(slideTimer);
@@ -145,7 +185,9 @@ export default function AboutErineSection() {
           <div className={styles.socialSection} id="sosmed">
             <div className={styles.socialTitle}>Erine's Social Media</div>
             <div className={styles.socialIcons}>
-              <a href="https://x.com/CErine_JKT48" target="_blank" className={styles.socIcon}><i className="bx bxl-twitter" /></a>
+              <a href="https://x.com/CErine_JKT48" target="_blank" className={styles.socIcon}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/></svg>
+              </a>
               <a href="https://www.instagram.com/jkt48.erine/" target="_blank" className={styles.socIcon}><i className="bx bxl-instagram" /></a>
               <a href="https://www.threads.com/@jkt48.erine" target="_blank" className={styles.socIcon}><i className="bx bxl-facebook-circle" /></a>
               <a href="https://www.tiktok.com/@jkt48.erine_" target="_blank" className={styles.socIcon}><i className="bx bxl-tiktok" /></a>
@@ -234,7 +276,6 @@ export default function AboutErineSection() {
 
       {/* 3. Showcase Section (Video Debut, Kabesha, SSK) */}
       <div className={styles.showcaseContainer}>
-        <div className={styles.castleSkyline} />
         
         <div className={styles.videoDebut}>
           <div className={styles.nailedFrame} />
@@ -303,23 +344,15 @@ export default function AboutErineSection() {
 
         <div className={styles.cardsGrid}>
           {[
-            { title: "Passion 200%", date: "10 April - Present", badge: "1 Show", songs: ["Wagamama na Nagareboshi"], img: "https://cavallery.id/wp-content/uploads/2026/04/passion-200.webp" },
-            { title: "Ramune No Namikata", date: "15 Jan 2023 - Present", badge: "3 Show", songs: ["Nice To Meet You"], img: "https://cavallery.id/wp-content/uploads/2026/01/ramune.webp" },
-            { title: "Renai Kinshi Jourei", date: "20 Mar 2021 - 26 Dec 2025", badge: "2 Shows", songs: ["Renai Kinshi Jourei"], img: "https://cavallery.id/wp-content/uploads/2025/06/rkj-1.jpg" },
-            { title: "Te wo Tsunaginagara", date: "01 Feb 2025 - Present", badge: "4 Shows", songs: ["Ame no Pianist"], img: "https://cavallery.id/wp-content/uploads/2025/06/twt_waifu2x_art_noise1.png" }
-          ].map((set) => (
-            <div key={set.title} className={styles.stickyCard}>
-              <div className={styles.tapeStrip} />
-              <div className={styles.polaroidFrame}><img src={set.img} alt={set.title} /></div>
-              <div className={styles.cardTitle}>{set.title}</div>
-              <div className={styles.cardDates}>{set.date}</div>
-              <span className={styles.showBadge}>{set.badge}</span>
-              <ul className={styles.unitSongs}>
-                {set.songs.map((song, i) => (
-                  <li key={song} className={styles.songRow}><span className={styles.songNum}>{i+1}.</span> {song}</li>
-                ))}
-              </ul>
-            </div>
+            { title: "Passion 200%", date: "10 April - Present", badge: "1 Show", songs: ["Wagamama na Nagareboshi"], img: "/images/passion.jpg" },
+            { title: "Ramune No Namikata", date: "15 Jan 2023 - Present", badge: "3 Show", songs: ["Nice To Meet You"], img: "/images/ramune.jpg" },
+            { title: "Renai Kinshi Jourei", date: "20 Mar 2021 - 26 Dec 2025", badge: "2 Shows", songs: ["Renai Kinshi Jourei"], img: "/images/rkj.jpg" },
+            { title: "Te wo Tsunaginagara", date: "01 Feb 2025 - Present", badge: "4 Shows", songs: ["Ame no Pianist"], img: "/images/twt.jpg" },
+            { title: "Kira-Kira Girls", date: "24 Nov 2025 - 27 Dec 2025", badge: "5 Shows", songs: ["Kimi to Boku no Kankei", "Itoshiki Natasha"], img: "/images/kkg.jpg" },
+            { title: "Aitakatta", date: "30 Apr 2023 - 12 Dec 2025", badge: "41 Shows", songs: ["Nageki no Figure", "Glass no I Love You", "Senaka Kara Dakishimete", "Koi No Plan", "Nagisa no Cherry", "Namida no Shounan"], img: "/images/aitakatta.jpg" },
+            { title: "Pajama Drive", date: "30 May 2024 - Present", badge: "42 Shows", songs: ["Pajama Drive", "Junjou Shugi", "Kagami no Jeanne d'Arc"], img: "/images/pajama.jpg" }
+          ].map((set, idx) => (
+            <FlipCard key={set.title} set={set} idx={idx} />
           ))}
         </div>
       </div>
@@ -350,9 +383,7 @@ export default function AboutErineSection() {
 
           {/* Threads */}
           <div className={styles.embedCard}>
-             <blockquote className="twitter-tweet" data-theme="dark">
-                <a href="https://www.threads.com/@jkt48.erine/post/DXt1wb4EjK2">View on Threads</a>
-             </blockquote>
+            <iframe src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed" width="100%" height="480" frameBorder="0" scrolling="no"></iframe>
           </div>
         </div>
       </div>
