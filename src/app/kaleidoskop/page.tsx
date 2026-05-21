@@ -60,6 +60,11 @@ const htmlContent = `
             </p>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <div class="section-block">
             <h2 class="section-heading">
               Off-Air Journey — Jejak Panggung di Luar Theater
@@ -260,6 +265,11 @@ const htmlContent = `
             </article>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <div class="section-block">
             <h2 class="section-heading">
               Event JKT48 — Di Antara Riuh Panggung JKT48
@@ -428,6 +438,11 @@ const htmlContent = `
             </article>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <div class="section-block">
             <h2 class="section-heading">
               Kegiatan Cavallery — Hari-Hari Bersama Cavallery
@@ -648,6 +663,11 @@ const htmlContent = `
             </article>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <div class="section-block">
             <h2 class="section-heading">
               Perayaan Ulang Tahun ke-18 — #ErineInEtherland
@@ -822,6 +842,11 @@ const htmlContent = `
             </article>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <div class="section-block">
             <h2 class="section-heading">Langkah yang Menjadi Tonggak</h2>
             <p class="section-note">
@@ -891,6 +916,11 @@ const htmlContent = `
             </article>
           </section>
 
+          <div class="k-divider">
+            <div class="k-line"></div>
+            <div class="k-icon">♞</div>
+            <div class="k-line"></div>
+          </div>
           <h2 class="section-heading">
             Penutup — Menutup Halaman, Menyambut Cahaya Baru
           </h2>

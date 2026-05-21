@@ -18,7 +18,7 @@
 .cava-timeline {
   position: relative;
   min-height: 100vh;
-  padding: 32px 16px 64px;
+  padding: 120px 16px 64px;
   display: flex;
   justify-content: center;
   color: var(--k-color-light-1);
@@ -962,3 +962,39 @@ header.hero-k {
     font-size: 1.9rem;
   }
 }
+
+.k-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  opacity: 0.8;
+}
+.k-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #b45309, transparent);
+  position: relative;
+}
+.k-line::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  background: #b45309;
+  border-radius: 50%;
+}
+.k-line:first-child::after { right: 0; }
+.k-line:last-child::after { left: 0; }
+.k-icon {
+  margin: 0 24px;
+  font-size: 1.8rem;
+  color: #b45309;
+  animation: pulse 3s infinite alternate;
+  text-shadow: 0 0 10px rgba(180, 83, 9, 0.4);
+}
+
