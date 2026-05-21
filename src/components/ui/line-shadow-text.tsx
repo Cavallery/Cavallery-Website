@@ -1,12 +1,6 @@
 "use client"
-
 import { type CSSProperties, type HTMLAttributes } from "react"
-import {
-  motion,
-  type DOMMotionComponents,
-  type MotionProps,
-} from "motion/react"
-
+import { motion, type DOMMotionComponents, type MotionProps } from "motion/react"
 import { cn } from "@/lib/utils"
 
 const motionElements = {
@@ -24,10 +18,7 @@ const motionElements = {
   span: motion.span,
 } as const
 
-type MotionElementType = Extract<
-  keyof DOMMotionComponents,
-  keyof typeof motionElements
->
+type MotionElementType = Extract<keyof DOMMotionComponents, keyof typeof motionElements>
 
 interface LineShadowTextProps
   extends Omit<HTMLAttributes<HTMLElement>, keyof MotionProps>, MotionProps {
@@ -47,19 +38,36 @@ export function LineShadowText({
 
   return (
     <MotionComponent
-      style={{ "--shadow-color": shadowColor } as CSSProperties}
-      className={cn(
-        "relative z-0 inline-flex",
-        "after:absolute after:top-[0.04em] after:left-[0.04em] after:content-[attr(data-text)]",
-        "after:bg-[linear-gradient(45deg,transparent_45%,var(--shadow-color)_45%,var(--shadow-color)_55%,transparent_0)]",
-        "after:-z-10 after:bg-size-[0.06em_0.06em] after:bg-clip-text after:text-transparent",
-        "after:animate-line-shadow",
-        className
-      )}
+      className={cn("relative z-0 inline-flex", className)}
       data-text={children}
+      style={
+        {
+          "--shadow-color": shadowColor,
+        } as CSSProperties
+      }
       {...props}
     >
       {children}
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: "0.04em",
+          left: "0.04em",
+          content: '""',
+          backgroundImage:
+            "linear-gradient(45deg, transparent 45%, var(--shadow-color) 45%, var(--shadow-color) 55%, transparent 0)",
+          backgroundSize: "0.06em 0.06em",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          zIndex: -10,
+          animation: "line-shadow 15s linear infinite",
+          pointerEvents: "none",
+        }}
+      >
+        {children}
+      </span>
     </MotionComponent>
   )
 }
