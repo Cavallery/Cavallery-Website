@@ -40,32 +40,34 @@ export function LineShadowText({
     <MotionComponent
       className={cn("relative z-0 inline-flex", className)}
       data-text={children}
-      style={
-        {
-          "--shadow-color": shadowColor,
-        } as CSSProperties
-      }
+      style={{ "--shadow-color": shadowColor } as CSSProperties}
       {...props}
     >
-      {children}
+      {/* Shadow layer — behind the text */}
       <span
         aria-hidden
         style={{
           position: "absolute",
+          inset: 0,
           top: "0.04em",
           left: "0.04em",
-          content: '""',
           backgroundImage:
-            "linear-gradient(45deg, transparent 45%, var(--shadow-color) 45%, var(--shadow-color) 55%, transparent 0)",
+            "linear-gradient(45deg, transparent 45%, var(--shadow-color) 45%, var(--shadow-color) 55%, transparent 55%)",
           backgroundSize: "0.06em 0.06em",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
           color: "transparent",
-          zIndex: -10,
+          zIndex: -1,
           animation: "line-shadow 15s linear infinite",
           pointerEvents: "none",
+          userSelect: "none",
         }}
       >
+        {children}
+      </span>
+      {/* Actual visible text — on top */}
+      <span style={{ position: "relative", zIndex: 1 }}>
         {children}
       </span>
     </MotionComponent>
