@@ -1,25 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:wght@300..800&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  /* Premium "Chocolate & Gold" Light Theme - Eye Friendly */
-  --bg: #f4efe6; /* Softer Sand/Cream */
+  --bg: #f4efe6;
   --bg-checker: #ebe4d5;
-  --fg: #372e27; /* Deep Chocolate */
+  --fg: #372e27;
   --fg-muted: #574d44;
   --fg-dim: #8c7e73;
-  
-  --primary: #b45309; /* Amber Gold */
+
+  --primary: #b45309;
   --secondary: #fbf9f5;
   --accent: #ebe4d5;
-  --gold: #b45309; 
+  --gold: #b45309;
   --gold-dim: rgba(180, 83, 9, 0.1);
   --gold-glow: rgba(180, 83, 9, 0.15);
-  
-  --surface: #ebe4d5; /* Off-white / Cream instead of pure white */
+
+  --surface: #ebe4d5;
   --surface-2: #e3d9c3;
   --border: rgba(55, 46, 39, 0.1);
   --border-gold: rgba(180, 83, 9, 0.3);
-  
+
   --nav-h: 72px;
   --serif: "Playfair Display", Georgia, serif;
   --sans: "Montserrat", system-ui, sans-serif;
@@ -33,22 +36,35 @@
   --map-c7: #cdb899;
   --map-c8: #ddd0be;
   --map-c9: #ece7df;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
 }
 
 [data-theme="dark"] {
-  --bg: #1c1917; /* Deep Dark Brown */
+  --bg: #1c1917;
   --bg-checker: #292524;
-  --fg: #f5f5dc; /* Beige */
+  --fg: #f5f5dc;
   --fg-muted: #d6d3d1;
   --fg-dim: #a8a29e;
-  
-  --primary: #d4af37; /* Classic Gold */
+
+  --primary: #d4af37;
   --secondary: #292524;
   --accent: #2a221d;
   --gold: #d4af37;
   --gold-dim: rgba(212, 175, 55, 0.15);
   --gold-glow: rgba(212, 175, 55, 0.2);
-  
+
   --surface: #262626;
   --surface-2: #372e27;
   --border: rgba(214, 201, 182, 0.1);
@@ -63,6 +79,18 @@
   --map-c7: #422006;
   --map-c8: #36290b;
   --map-c9: #251c08;
+
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
 }
 
 /* ================================================================
@@ -81,7 +109,6 @@ body {
   transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s;
 }
 
-/* Chessboard Background Pattern */
 .chessboard-bg {
   position: fixed;
   inset: 0;
@@ -90,7 +117,6 @@ body {
   background-image: 
     radial-gradient(at 0% 0%, rgba(180, 83, 9, 0.05) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(55, 46, 39, 0.05) 0px, transparent 50%);
-  opacity: 1;
 }
 
 [data-theme="dark"] .chessboard-bg {
@@ -271,8 +297,12 @@ button { cursor: pointer; font-family: var(--sans); }
   50%     { transform: translateY(-20px); }
 }
 
+@keyframes line-shadow {
+  0%   { background-position: 0 0; }
+  100% { background-position: 100% -100%; }
+}
 /* ================================================================
-   MOBILE WATERMARKS RESPONSIVENESS
+   MOBILE
    ================================================================ */
 @media (max-width: 768px) {
   .knight-watermark {
@@ -281,9 +311,17 @@ button { cursor: pointer; font-family: var(--sans); }
     left: -10px;
     opacity: 0.07;
   }
-
   .board-watermark {
-    display: none; /* Hide secondary pawn watermark to prevent collision on narrow mobile screens */
+    display: none;
   }
+}
+
+/* ================================================================
+   VIEW TRANSITION
+   ================================================================ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
