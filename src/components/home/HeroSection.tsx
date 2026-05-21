@@ -2,9 +2,10 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import styles from "./HeroSection.module.css";
+import { LineShadowText } from "@/components/ui/line-shadow-text";
 
 const typewriterTexts = [
-  "Home of Erine’s Biggest supporters",
+  "Home of Erine's Biggest supporters",
   "We are the Cavalry of princess erine",
   "Duck Princess named Catherina Vallencia"
 ];
@@ -21,7 +22,23 @@ export default function HeroSection() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
   const [isPlayingJiko, setIsPlayingJiko] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Deteksi dark mode dari data-theme
+  useEffect(() => {
+    const check = () =>
+      setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const shadowColor = isDark ? "white" : "black";
 
   const toggleJiko = () => {
     if (!audioRef.current) {
@@ -45,7 +62,9 @@ export default function HeroSection() {
   useEffect(() => {
     const currentFullText = typewriterTexts[textIndex];
     const speed = isDeleting ? 40 : 80;
-    const delay = isDeleting ? (displayText === "" ? 1000 : speed) : (displayText === currentFullText ? 2000 : speed);
+    const delay = isDeleting
+      ? displayText === "" ? 1000 : speed
+      : displayText === currentFullText ? 2000 : speed;
 
     const timer = setTimeout(() => {
       if (!isDeleting) {
@@ -83,9 +102,15 @@ export default function HeroSection() {
             <i className="bx bxs-chess" /> Official Fanbase Erine JKT48
           </div>
           <h1 className={styles.title}>
-            Welcome to <span className="textGold">Cavallery!</span>
+            Welcome to{" "}
+            <LineShadowText
+              className="textGold italic"
+              shadowColor={shadowColor}
+            >
+              Cavallery!
+            </LineShadowText>
           </h1>
-          
+
           <div className={styles.typewriterWrapper}>
             <span className={styles.typewriterText}>{displayText}</span>
             <span className={styles.cursor}>|</span>
@@ -100,12 +125,18 @@ export default function HeroSection() {
             <Link href="/about/erine" className="btnPrimary">
               Meet Erine? <i className="bx bx-chevron-down" />
             </Link>
-            <button className="btnOutline" onClick={toggleJiko} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className={`bx ${isPlayingJiko ? 'bx-pause-circle' : 'bx-play-circle'}`} style={{ fontSize: '1.2rem' }} /> 
-              {isPlayingJiko ? 'Playing...' : 'Play Jikoshoukai'}
+            <button
+              className="btnOutline"
+              onClick={toggleJiko}
+              style={{ display: "flex", alignItems: "center", gap: "8px" }}
+            >
+              <i
+                className={`bx ${isPlayingJiko ? "bx-pause-circle" : "bx-play-circle"}`}
+                style={{ fontSize: "1.2rem" }}
+              />
+              {isPlayingJiko ? "Playing..." : "Play Jikoshoukai"}
             </button>
           </div>
-          
         </div>
 
         <div className={styles.visual}>
@@ -126,19 +157,17 @@ export default function HeroSection() {
               <span><i className="bx bxs-chess" /> Gen 12 Member</span>
             </div>
           </div>
-          
+
           <div className={styles.knightWrapper}>
             <i className={`bx bxs-chess ${styles.knightIcon}`} />
           </div>
         </div>
       </div>
-      
-      {/* Decorative Chess Knight in background */}
+
       <div className={styles.bgKnight}>
         <i className="bx bxs-chess" />
       </div>
 
-      {/* Castle Skyline Decoration */}
       <div className={styles.castleSkyline} />
     </section>
   );
