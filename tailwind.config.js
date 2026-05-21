@@ -5,7 +5,17 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "line-shadow": "line-shadow 15s linear infinite",
+      },
+      keyframes: {
+        "line-shadow": {
+          "0%": { backgroundPosition: "0 0" },
+          "100%": { backgroundPosition: "100% -100%" },
+        },
+      },
+    },
   },
   plugins: [],
 }
