@@ -40,37 +40,15 @@ export function LineShadowText({
     <MotionComponent
       className={cn("relative inline-flex", className)}
       data-text={children}
-      style={{ "--shadow-color": shadowColor } as CSSProperties}
+      style={
+        {
+          "--shadow-color": shadowColor,
+          textShadow: `0.08em 0.08em 0px ${shadowColor}40`,
+        } as CSSProperties
+      }
       {...props}
     >
       {children}
-
-      {/* Shadow overlay — pakai mask bukan background-clip */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: "0.04em",
-          left: "0.04em",
-          right: 0,
-          bottom: 0,
-          backgroundImage: `repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 45%,
-            ${shadowColor} 45%,
-            ${shadowColor} 55%,
-            transparent 55%,
-            transparent 100%
-          )`,
-          backgroundSize: "0.06em 0.06em",
-          animation: "line-shadow 15s linear infinite",
-          pointerEvents: "none",
-          userSelect: "none",
-          opacity: 0.25,
-          zIndex: 2,
-        }}
-      />
     </MotionComponent>
   )
 }
