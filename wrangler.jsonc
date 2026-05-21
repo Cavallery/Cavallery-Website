@@ -6,6 +6,11 @@
   "observability": {
     "enabled": true
   },
+  "main": ".open-next/worker.js",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
