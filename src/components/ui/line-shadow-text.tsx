@@ -38,17 +38,14 @@ export function LineShadowText({
 
   return (
     <MotionComponent
-      className={cn("relative z-0 inline-flex", className)}
+      className={cn("relative inline-flex", className)}
       data-text={children}
       style={{ "--shadow-color": shadowColor } as CSSProperties}
       {...props}
     >
-      {/* Teks asli — selalu di atas, warna dari parent (textGold) */}
-      <span style={{ position: "relative", zIndex: 1 }}>
-        {children}
-      </span>
+      {children}
 
-      {/* Shadow layer — di belakang teks */}
+      {/* Shadow overlay — pakai mask bukan background-clip */}
       <span
         aria-hidden
         style={{
@@ -57,25 +54,23 @@ export function LineShadowText({
           left: "0.04em",
           right: 0,
           bottom: 0,
-          backgroundImage:
-            "linear-gradient(45deg, transparent 45%, var(--shadow-color) 45%, var(--shadow-color) 55%, transparent 55%)",
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 45%,
+            ${shadowColor} 45%,
+            ${shadowColor} 55%,
+            transparent 55%,
+            transparent 100%
+          )`,
           backgroundSize: "0.06em 0.06em",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          color: "transparent",
-          zIndex: 0,
           animation: "line-shadow 15s linear infinite",
           pointerEvents: "none",
           userSelect: "none",
-          fontSize: "inherit",
-          fontStyle: "inherit",
-          fontWeight: "inherit",
-          fontFamily: "inherit",
+          opacity: 0.25,
+          zIndex: 2,
         }}
-      >
-        {children}
-      </span>
+      />
     </MotionComponent>
   )
 }
