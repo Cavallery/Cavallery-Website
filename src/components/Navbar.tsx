@@ -61,7 +61,7 @@ export default function Navbar() {
           className={styles.logo} 
           onClick={() => window.dispatchEvent(new Event("trigger-splash"))}
         >
-          <img src="http://localhost:3001/images/cava-logo.jpg" alt="Cava Logo" className={styles.logoImg} />
+          <img src="/images/cava-logo.jpg" alt="Cava Logo" className={styles.logoImg} />
           <div className={styles.logoInfo}>
             <span className={styles.logoText}>Cavallery.id</span>
             <span className={styles.logoSub}>Fanbase of Catherina Vallencia</span>
