@@ -1,17 +1,14 @@
 import { NextResponse } from "next/server";
 
-const API_KEY = "sJbpVqLinYlp";
-const BASE = "https://v2.jkt48connect.com/api/jkt48";
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const res = await fetch(`${BASE}/news?priority_token=${API_KEY}`, {
+    const res = await fetch("https://api.crstlnz.my.id/api/news", {
       headers: { 
-        "x-priority-token": API_KEY,
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0"
-      },
-      next: { revalidate: 300 } // Cache for 5 mins
+      }
     });
     
     if (!res.ok) {
@@ -19,7 +16,20 @@ export async function GET() {
     }
     
     const data = await res.json();
-    return NextResponse.json({ success: true, data: data.data || data });
+    const newsData = data.news || [];
+    
+    // Map crstlnz response to expected format
+    const mappedNews = newsData.map((item: any) => ({
+      id: item.id || item.link || Math.random().toString(),
+      title: item.title,
+      label: item.category || "Terkini",
+      date: item.date,
+      link_url: item.url || `https://jkt48.com/news/${item.link}`,
+      description: "", // Description not available in this API
+      image_url: "/images/jkt48-logo.svg"
+    }));
+
+    return NextResponse.json({ success: true, data: mappedNews });
   } catch (error) {
     console.error("News API Error:", error);
     return NextResponse.json({ success: false, data: [] }, { status: 500 });

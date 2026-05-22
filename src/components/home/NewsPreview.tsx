@@ -28,7 +28,7 @@ export default function NewsPreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/news")
+    fetch(`/api/news?v=${new Date().getTime()}`)
       .then((r) => r.json())
       .then((d) => {
         const items = d?.data || d?.news || [];

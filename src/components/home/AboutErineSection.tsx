@@ -214,7 +214,7 @@ export default function AboutErineSection() {
               ))}
             </div>
             <div className={styles.galleryLink}>
-              See <a href="https://cavallery.id/gallery/" target="_blank"><strong>gallerine</strong></a> for more!
+              See <a href="/gallery"><strong>gallerine</strong></a> for more!
             </div>
           </div>
         </div>
@@ -251,6 +251,7 @@ export default function AboutErineSection() {
               <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
               <li><span className={styles.lbl2}>Sebelum Berbuka</span><span className={styles.tag}>#Ngabuburine</span></li>
               <li><span className={styles.lbl2}>Setiap Berbuka</span><span className={styles.tag}>#BukbeRine</span></li>
+              <li><span className={styles.lbl2}>Setiap Game</span><span className={styles.tag}>#GameRine</span></li>
             </ul>
             <div className={styles.ewPm}>
               <img src="/images/pm.png" alt="PM" />
