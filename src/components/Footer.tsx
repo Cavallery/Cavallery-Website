@@ -2,7 +2,8 @@ import Link from "next/link";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+
+  const currentYear = 2025;
 
   return (
     <footer className={styles.footer}>
@@ -38,7 +39,8 @@ export default function Footer() {
               <ul className={styles.links}>
                 <li><Link href="/show-theater">Show Theater</Link></li>
                 <li><Link href="/live">Live Status</Link></li>
-                <li><Link href="/news">News & Updates</Link></li>
+                <li><Link href="/news">News JKT48</Link></li>
+                <li><Link href="/news/cavallery-statement">News Cavallery</Link></li>
               </ul>
             </div>
             <div className={styles.col}>
@@ -49,7 +51,7 @@ export default function Footer() {
               </ul>
             </div>
             <div className={styles.col}>
-              <h4 className={styles.title}>Corner</h4>
+              <h4 className={styles.title}>#GameRine</h4>
               <ul className={styles.links}>
                 <li><Link href="/games/jumping-adventure">Game Bibir Yang Telah Dicuri</Link></li>
                 <li><Link href="/games/zombie-escape">Game Erine In Etherland</Link></li>

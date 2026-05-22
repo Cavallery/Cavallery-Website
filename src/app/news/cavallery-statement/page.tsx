@@ -1,84 +1,84 @@
-import Image from "next/image";
 import Link from "next/link";
-import styles from "./page.module.css";
+import styles from "../page.module.css";
+
+interface CavalleryNewsItem {
+  id: string;
+  title: string;
+  label: string;
+  date: string;
+  link_url: string;
+  image_url: string;
+  description: string;
+}
+
+const CAVALLERY_NEWS: CavalleryNewsItem[] = [
+  {
+    id: "cavallery-statement-2026",
+    title: "Pernyataan Resmi Cavallery",
+    label: "Resmi",
+    date: "2026-05-19T00:00:00",
+    link_url: "/news/cavallery-statement/detail",
+    image_url: "/images/cava-logo.jpg",
+    description:
+      "Cavallery menyadari bahwa dalam beberapa hari terakhir telah beredar sejumlah unggahan bernada ancaman dan pembahasan yang mengarah pada ancaman secara langsung terhadap Erine.",
+  },
+];
 
 export const metadata = {
-  title: "Pernyataan Resmi Cavallery",
-  description: "Pernyataan resmi Cavallery terkait keamanan dan ancaman terhadap Erine — 19 Mei 2026",
+  title: "News Cavallery",
+  description: "Berita dan pernyataan resmi dari Cavallery, fanbase Erine JKT48.",
 };
 
-export default function CavalleryStatementPage() {
+export default function CavalleryNewsPage() {
   return (
     <div className={styles.page}>
-      {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroBg} />
         <div className={styles.heroInner}>
-          <div className="badge"><i className="bx bx-shield-quarter" /> Pernyataan Resmi</div>
-          <h1 className={styles.heroTitle}>
-            Pernyataan Resmi <span className="textGold">Cavallery</span>
-          </h1>
-          <p className={styles.heroDate}>
-            <i className="bx bx-calendar" /> 19 Mei 2026
+          <div className="badge"><i className="bx bx-shield-quarter" /> Berita Cavallery</div>
+          <h1 className={styles.heroTitle}>News <span className="textGold">Cavallery</span></h1>
+          <p className={styles.heroSub}>
+            Pernyataan resmi dan berita dari fanbase Cavallery.
           </p>
         </div>
       </div>
 
-      {/* Content */}
-      <article className={styles.content}>
-        <div className={styles.statementCard}>
-          <div className={styles.statementHeader}>
-            <i className="bx bxs-shield-alt-2" style={{ fontSize: "1.4rem", color: "var(--gold)" }} />
-            <h2 className={styles.statementTitle}>Pernyataan Resmi Cavallery</h2>
+      <div className={styles.content}>
+        {CAVALLERY_NEWS.length === 0 ? (
+          <div className={styles.empty}>
+            <i className="bx bx-news" />
+            <p>Belum ada berita yang tersedia.</p>
           </div>
-
-          <div className={styles.statementBody}>
-            <p>
-              Cavallery menyadari bahwa dalam beberapa hari terakhir telah beredar sejumlah unggahan bernada ancaman dan pembahasan yang mengarah pada ancaman secara langsung terhadap Erine.
-            </p>
-            <p>
-              Perlu kami sampaikan bahwa persoalan ini sebenarnya telah kami tindak lanjuti sejak 7 Mei. Bukti terkait ancaman tersebut juga telah kami sampaikan kepada pihak manajemen sebagai bentuk kewaspadaan dan pencegahan.
-            </p>
-            <p>
-              Sejak awal, kami memilih untuk menyikapi persoalan ini melalui jalur yang lebih kondusif dan tidak langsung membawanya ke ruang publik, mengingat isu yang dibahas sudah menyangkut keamanan dan kenyamanan member. Namun, melihat situasi yang kini semakin meluas dan menjadi perhatian banyak pihak, kami merasa penting untuk menyampaikan posisi kami secara terbuka.
-            </p>
-            <p>
-              Bagi kami, pembahasan yang sudah menyentuh ancaman fisik, lingkungan kampus, aktivitas pribadi, hingga keluarga bukan lagi sesuatu yang dapat dianggap sebagai candaan ataupun dinamika fandom biasa. Situasi seperti ini seharusnya tidak perlu menunggu perhatian publik terlebih dahulu untuk dapat ditanggapi secara serius.
-            </p>
-            <p>
-              Kami percaya bahwa setiap member berhak memiliki ruang yang aman dan terlindungi dari segala bentuk intimidasi maupun tindakan yang mengarah pada kehidupan pribadi mereka di luar aktivitas sebagai idola. Karena itu, kami berharap isu keamanan member dapat benar-benar diprioritaskan, bukan hanya ketika situasi telah meluas, tetapi juga sebagai bentuk perlindungan yang konsisten bagi member di balik panggung.
-            </p>
-            <p>
-              Kami berharap keamanan member tidak hanya menjadi respons terhadap situasi terkini, tetapi juga menjadi komitmen yang dijaga secara nyata dan berkelanjutan. Pada akhirnya, kami hanya ingin memastikan bahwa idola yang kami dukung dapat tetap merasa aman, dihargai, dan memiliki ruang yang sehat untuk menjalani aktivitas serta mengejar mimpinya.
-            </p>
-            <p className={styles.signature}>
-              Cavallery
-            </p>
+        ) : (
+          <div className={styles.grid}>
+            {CAVALLERY_NEWS.map((item) => (
+              <Link
+                key={item.id}
+                href={item.link_url}
+                className={`glassCard ${styles.card}`}
+              >
+                <div className={styles.imgWrap}>
+                  <img src={item.image_url} alt={item.title} loading="lazy" />
+                  <div className={styles.labelBadge}>{item.label}</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.date}>
+                    <i className="bx bx-calendar" />
+                    {new Date(item.date).toLocaleDateString("id-ID", {
+                      day: "numeric", month: "long", year: "numeric",
+                    })}
+                  </div>
+                  <h2 className={styles.cardTitle}>{item.title}</h2>
+                  <p className={styles.cardDesc}>{item.description}</p>
+                  <div className={styles.readMore}>
+                    Baca Selengkapnya <i className="bx bx-right-arrow-alt" />
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-        </div>
-
-        {/* Evidence */}
-        <div className={styles.evidenceSection}>
-          <h3 className={styles.evidenceTitle}>
-            <i className="bx bx-image-alt" /> Bukti Dokumentasi
-          </h3>
-          <div className={styles.evidenceGrid}>
-            <div className={styles.evidenceFrame}>
-              <Image src="/images/bukti-1.jpg" alt="Bukti dokumentasi 1" width={800} height={600} style={{ width: "100%", height: "auto" }} />
-            </div>
-            <div className={styles.evidenceFrame}>
-              <Image src="/images/bukti-2.jpg" alt="Bukti dokumentasi 2" width={800} height={600} style={{ width: "100%", height: "auto" }} />
-            </div>
-          </div>
-        </div>
-
-        {/* Back */}
-        <div className={styles.backWrap}>
-          <Link href="/news" className={styles.backLink}>
-            <i className="bx bx-arrow-back" /> Kembali ke Berita
-          </Link>
-        </div>
-      </article>
+        )}
+      </div>
     </div>
   );
 }

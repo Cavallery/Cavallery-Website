@@ -13,6 +13,38 @@
   margin-bottom: 60px;
 }
 
+/* ── Year Section ── */
+.yearSection {
+  margin-bottom: 48px;
+}
+
+.yearHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.yearBadge {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--gold);
+  background: var(--surface);
+  border: 2px solid var(--gold);
+  padding: 6px 20px;
+  border-radius: 50px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+.yearLine {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, var(--gold), transparent);
+}
+
+/* ── Timeline Line ── */
 .timeline {
   position: relative;
   padding-left: 40px;
@@ -30,7 +62,7 @@
 
 .item {
   position: relative;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
 }
 
 .item:last-child {
@@ -40,7 +72,7 @@
 .dot {
   position: absolute;
   left: -46px;
-  top: 0;
+  top: 16px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -49,53 +81,93 @@
   box-shadow: 0 0 0 2px var(--gold);
 }
 
+/* ── Card ── */
 .content {
   background: var(--surface);
-  padding: 24px;
   border-radius: 16px;
   border: 1px solid var(--border);
+  overflow: hidden;
   transition: 0.3s;
 }
 
 .content:hover {
   transform: translateX(10px);
   border-color: var(--gold);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.year {
-  font-weight: 800;
-  color: var(--gold);
-  font-size: 1.25rem;
-  margin-bottom: 4px;
+.cardInner {
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── Image Placeholder ── */
+.imgPlaceholder {
+  width: 140px;
+  min-height: 120px;
+  flex-shrink: 0;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.imgPlaceholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.noImg {
+  font-size: 2rem;
+  color: var(--fg-dim);
+  opacity: 0.35;
+}
+
+/* ── Text Side ── */
+.textSide {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
 .date {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  opacity: 0.6;
-  margin-bottom: 12px;
+  color: var(--gold);
+  opacity: 0.8;
 }
 
 .title {
   font-family: var(--serif);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  margin-bottom: 8px;
   color: var(--primary);
+  line-height: 1.3;
 }
 
 .desc {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   line-height: 1.6;
   color: var(--fg-dim);
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .timeline {
     padding-left: 30px;
   }
   .dot {
     left: -36px;
+  }
+  .cardInner {
+    flex-direction: column;
+  }
+  .imgPlaceholder {
+    width: 100%;
+    height: 160px;
   }
 }

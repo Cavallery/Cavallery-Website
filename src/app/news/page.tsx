@@ -13,17 +13,6 @@ interface NewsItem {
   description?: string;
 }
 
-const STATIC_NEWS: NewsItem[] = [
-  {
-    id: "cavallery-statement-2026",
-    title: "Pernyataan Resmi Cavallery",
-    label: "Resmi",
-    date: "2026-05-19T00:00:00",
-    link_url: "/news/cavallery-statement",
-    image_url: "/images/cava-logo.jpg",
-    description: "Cavallery menyadari bahwa dalam beberapa hari terakhir telah beredar sejumlah unggahan bernada ancaman dan pembahasan yang mengarah pada ancaman secara langsung terhadap Erine.",
-  },
-];
 
 export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -31,18 +20,18 @@ export default function NewsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/news")
+    fetch(`/api/news?v=${new Date().getTime()}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
           const items = Array.isArray(d.data) ? d.data : [];
-          setNews([...STATIC_NEWS, ...items]);
+          setNews(items);
         } else {
           setError(d.message || "Gagal memuat berita");
-          setNews(STATIC_NEWS);
+          setNews([]);
         }
       })
-      .catch((e) => { setError(String(e)); setNews(STATIC_NEWS); })
+      .catch((e) => { setError(String(e)); setNews([]); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -52,9 +41,9 @@ export default function NewsPage() {
         <div className={styles.heroBg} />
         <div className={styles.heroInner}>
           <div className="badge"><i className="bx bx-news" /> Berita Terbaru</div>
-          <h1 className={styles.heroTitle}>News & <span className="textGold">Updates</span></h1>
+          <h1 className={styles.heroTitle}>News <span className="textGold">JKT48</span></h1>
           <p className={styles.heroSub}>
-            Informasi terkini seputar Erine, JKT48, dan kegiatan fanbase Cavallery.
+            Informasi terkini seputar JKT48.
           </p>
         </div>
       </div>

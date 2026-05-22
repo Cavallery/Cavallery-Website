@@ -8,6 +8,13 @@ import ThemeToggle from "./ThemeToggle";
 const navLinks = [
   { href: "/", label: "Home" },
   {
+    label: "News",
+    children: [
+      { href: "/news", label: "News JKT48" },
+      { href: "/news/cavallery-statement", label: "News Cavallery" },
+    ],
+  },
+  {
     label: "About",
     children: [
       { href: "/about/erine", label: "About Erine" },
@@ -30,7 +37,6 @@ const navLinks = [
     label: "Corner",
     children: [
       { href: "/games", label: "GameRine" },
-      { href: "/news", label: "News & Updates" },
       { href: "/#tickets", label: "Ticketing" },
     ],
   },
