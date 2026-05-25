@@ -582,7 +582,7 @@ export default function AboutErineSection() {
             {
               title: "Passion 200%",
               date: "10 April - Present",
-              badge: "1 Show",
+              badge: "3 Show",
               songs: ["Wagamama na Nagareboshi"],
               img: "/images/passion.jpg",
             },
