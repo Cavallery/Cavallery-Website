@@ -88,8 +88,12 @@ export default function AboutErineSection() {
 
     // Counter animation
     const counterTimer = setTimeout(() => {
-      setCounts({ shows: 99, setlists: 7, units: 15 });
-    }, 500);
+  setCounts({
+    shows:    stats[0].target,
+    setlists: stats[1].target,
+    units:    stats[2].target,
+  });
+}, 500);
 
     fetch('/api/pm-statistik')
   .then(r => r.json())
