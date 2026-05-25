@@ -64,6 +64,8 @@ export default function AboutErineSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", desc: "" });
   const [counts, setCounts] = useState({ shows: 0, setlists: 0, units: 0 });
+  const [pmStats, setPmStats] = useState<any>(null);
+  const [pmLoading, setPmLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const slides = [
@@ -96,9 +98,21 @@ export default function AboutErineSection() {
 
     // Counter animation
     const counterTimer = setTimeout(() => {
-      setCounts({ shows: 99, setlists: 7, units: 15 });
-    }, 500);
+  setCounts({
+    shows:    stats[0].target,
+    setlists: stats[1].target,
+    units:    stats[2].target,
+  });
+}, 500);
 
+    fetch('/api/pm-statistik')
+  .then(r => r.json())
+  .then(json => {
+    if (json.success) setPmStats(json.data);
+  })
+  .catch(() => {})
+  .finally(() => setPmLoading(false));
+    
     // Embed scripts
     const twScript = document.createElement("script");
     twScript.src = "https://platform.twitter.com/widgets.js";
@@ -640,6 +654,66 @@ export default function AboutErineSection() {
           ))}
         </div>
       </div>
+
+      {/* 4.5 PM Weekly Stats */}
+<div className={styles.pmStatsSection}>
+  <div className={styles.nailedFrame} />
+  <h3 className={styles.erineTitle}>Statistik PM Mingguan</h3>
+
+  {pmLoading ? (
+    <div className={styles.pmLoading}>
+      <i className="bx bx-loader-alt bx-spin" /> Memuat data...
+    </div>
+  ) : pmStats ? (
+    <div className={styles.pmStatsCard}>
+      <div className={styles.pmCardHeader}>
+        <img src={pmStats.profile_image} alt={pmStats.member_name} className={styles.pmAvatar} />
+        <div className={styles.pmHeaderInfo}>
+          <span className={styles.pmName}>{pmStats.member_name}</span>
+          <span className={styles.pmId}>{pmStats.idol_id}</span>
+          <div className={styles.pmBadges}>
+            {pmStats.is_active && <span className={styles.badgeActive}>● Aktif</span>}
+            {pmStats.is_popular && <span className={styles.badgePopular}>★ Popular</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.pmStatsGrid}>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-medal" />
+          <span className={styles.pmStatVal}>#{pmStats.current_rank}</span>
+          <span className={styles.pmStatLbl}>Rank Saat Ini</span>
+        </div>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-message-dots" />
+          <span className={styles.pmStatVal}>{pmStats.messages_per_week}</span>
+          <span className={styles.pmStatLbl}>Pesan / Minggu</span>
+        </div>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-group" />
+          <span className={styles.pmStatVal}>{pmStats.group_name}</span>
+          <span className={styles.pmStatLbl}>Grup</span>
+        </div>
+      </div>
+
+      <div className={styles.pmBarWrapper}>
+        <div className={styles.pmBarLabel}>
+          <span>Aktivitas Mingguan</span>
+          <span>{pmStats.messages_per_week} pesan</span>
+        </div>
+        <div className={styles.pmBarTrack}>
+          <div
+            className={styles.pmBarFill}
+            style={{ width: `${Math.min((parseInt(pmStats.messages_per_week) / 100) * 100, 100)}%` }}
+          />
+        </div>
+        <div className={styles.pmBarHint}>Skala: 0 – 100 pesan/minggu</div>
+      </div>
+    </div>
+  ) : (
+    <p className={styles.pmError}>Data statistik tidak tersedia.</p>
+  )}
+</div>
 
       {/* 5. Social Media Embeds */}
       <div className={styles.embedsSection}>
