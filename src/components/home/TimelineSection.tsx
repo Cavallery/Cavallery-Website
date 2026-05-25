@@ -28,6 +28,7 @@ const timelineEvents: TimelineEvent[] = [
   { year: "2025", date: "21 November 2025", title: "Erine's First Time on Kira Kira Girls' Trainee Special Setlist", desc: "Erine melakukan penampilan teaternya dengan setlist spesial trainee Kira Kira Girls.", image: "" },
   { year: "2026", date: "17 Januari 2026", title: "Erine's First Time Being Included in Ramune no Namikata Setlist", desc: "Erine melakukan penampilan teaternya dengan setlist Cara Meminum Ramune pada 17 Januari 2026.", image: "" },
   { year: "2026", date: "11 April 2026", title: "Erine's First Time Being Included in Passion 200% Setlist", desc: "Erine melakukan penampilan teaternya dengan setlist Passion 200% pada 11 April 2026.", image: "" },
+  { year: "2026", date: "23 Mei 2026", title: "Erine's Fourth Meet & Greet", desc: "Erine mengikuti sesi Meet & Greet ke-4 dalam acara 'Love Dream Passion'.", image: "" },
 ];
 
 // Group events by year
