@@ -820,3 +820,206 @@
   overflow: hidden;
   width: 100%;
 }
+
+/* 4.5 PM WEEKLY STATS */
+.pmStatsSection {
+  background: var(--bg-card);
+  padding: 80px 20px;
+  border-top: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  text-align: center;
+}
+
+.pmLoading {
+  font-size: 1.1rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 0;
+}
+
+.pmError {
+  opacity: 0.5;
+  font-style: italic;
+  padding: 40px 0;
+}
+
+.pmStatsCard {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 35px 30px;
+  box-shadow: 8px 8px 0 var(--border-color);
+  text-align: left;
+}
+
+.pmCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 25px;
+  margin-bottom: 25px;
+  border-bottom: 2px dashed var(--border-color);
+}
+
+.pmAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border-color);
+}
+
+.pmHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pmName {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.pmId {
+  font-size: 0.85rem;
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+.pmBadges {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.badgeActive {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+
+[data-theme="dark"] .badgeActive {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+
+.badgePopular {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 3px 10px;
+  border-radius: 50px;
+}
+
+[data-theme="dark"] .badgePopular {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.pmStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.pmStatBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-stripe);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 18px 10px;
+  text-align: center;
+}
+
+.pmStatBox i {
+  font-size: 1.75rem;
+  color: #372e27;
+}
+
+[data-theme="dark"] .pmStatBox i {
+  color: #d6c9b6;
+}
+
+.pmStatVal {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-color);
+}
+
+.pmStatLbl {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.55;
+}
+
+.pmBarWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pmBarLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.pmBarTrack {
+  width: 100%;
+  height: 12px;
+  background: var(--bg-stripe);
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.pmBarFill {
+  height: 100%;
+  background: linear-gradient(to right, #372e27, #a3836a);
+  border-radius: 50px;
+  transition: width 1s ease;
+}
+
+[data-theme="dark"] .pmBarFill {
+  background: linear-gradient(to right, #d6c9b6, #e1ddd2);
+}
+
+.pmBarHint {
+  font-size: 0.75rem;
+  opacity: 0.45;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .pmStatsCard {
+    padding: 20px 15px;
+  }
+  .pmCardHeader {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+  .pmStatsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .pmStatVal {
+    font-size: 1.2rem;
+  }
+}
