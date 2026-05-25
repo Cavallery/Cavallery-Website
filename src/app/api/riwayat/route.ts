@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const API_KEY = "sJbpVqLinYlp";
-const BASE = "https://v2.jkt48connect.com/api/jkt48";
+const BASE = "https://v5.jkt48connect.com/api/jkt48";
 
 export async function GET() {
   try {
