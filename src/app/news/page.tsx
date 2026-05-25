@@ -13,7 +13,6 @@ interface NewsItem {
   description?: string;
 }
 
-
 export default function NewsPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +22,16 @@ export default function NewsPage() {
     fetch(`/api/news?v=${new Date().getTime()}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) {
-          const items = Array.isArray(d.data) ? d.data : [];
+        if (d.success && d.data?.news) {
+          const items: NewsItem[] = d.data.news.map((n: any) => ({
+            id:          n.id,
+            title:       n.title,
+            label:       n.category,
+            date:        n.date,
+            link_url:    n.url,
+            image_url:   n.background_image,
+            description: undefined,
+          }));
           setNews(items);
         } else {
           setError(d.message || "Gagal memuat berita");
@@ -99,7 +106,7 @@ export default function NewsPage() {
                   {cardContent}
                 </Link>
               ) : (
-                <a
+                
                   key={item.id || idx}
                   href={item.link_url}
                   target="_blank"
