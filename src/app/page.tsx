@@ -5,6 +5,7 @@ import BlueRoseCountdown from "@/components/home/BlueRoseCountdown";
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
+import YoutubeSection from "@/components/home/YoutubeSection";
 import SectionDivider from "@/components/SectionDivider";
 import type { Metadata } from "next";
 
@@ -26,7 +27,10 @@ export default function HomePage() {
       <TicketingSection />
       <SectionDivider />
       <NewsPreview />
+      <SectionDivider />
+      <YoutubeSection />
     </div>
   );
 }
+
 

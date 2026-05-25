@@ -6,13 +6,13 @@ import styles from "./HeroSection.module.css";
 const typewriterTexts = [
   "Home of Erine’s Biggest supporters",
   "We are the Cavalry of princess erine",
-  "Duck Princess named Catherina Vallencia"
+  "Duck Princess named Catherina Vallencia",
 ];
 
 const slideImages = [
   "/images/erine1.jpg",
   "/images/erine2.jpg",
-  "/images/erine3.jpg"
+  "/images/erine3.jpg",
 ];
 
 export default function HeroSection() {
@@ -25,11 +25,11 @@ export default function HeroSection() {
 
   const toggleJiko = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/audio/jikorine1.mp4');
+      audioRef.current = new Audio("/audio/jikorine1.mp4");
       audioRef.current.onended = () => setIsPlayingJiko(false);
     }
     if (audioRef.current.paused) {
-      audioRef.current.play().catch(e => {
+      audioRef.current.play().catch((e) => {
         console.error("Audio error:", e);
         setIsPlayingJiko(false);
       });
@@ -45,7 +45,13 @@ export default function HeroSection() {
   useEffect(() => {
     const currentFullText = typewriterTexts[textIndex];
     const speed = isDeleting ? 40 : 80;
-    const delay = isDeleting ? (displayText === "" ? 1000 : speed) : (displayText === currentFullText ? 2000 : speed);
+    const delay = isDeleting
+      ? displayText === ""
+        ? 1000
+        : speed
+      : displayText === currentFullText
+        ? 2000
+        : speed;
 
     const timer = setTimeout(() => {
       if (!isDeleting) {
@@ -85,27 +91,34 @@ export default function HeroSection() {
           <h1 className={styles.title}>
             Welcome to <span className="textGold">Cavallery!</span>
           </h1>
-          
+
           <div className={styles.typewriterWrapper}>
             <span className={styles.typewriterText}>{displayText}</span>
             <span className={styles.cursor}>|</span>
           </div>
 
           <p className={styles.desc}>
-            Selamat datang di Cavallery — barisan pelindung Erine, selalu siap mendukungnya 
-            di setiap langkah perjuangannya. Bersama kita susun strategi dukungan terbaik.
+            Selamat datang di Cavallery. barisan pelindung Erine, selalu siap
+            mendukungnya di setiap langkah perjuangannya. Bersama kita susun
+            strategi dukungan terbaik.
           </p>
 
           <div className={styles.actions}>
             <Link href="/about/erine" className="btnPrimary">
               Meet Erine? <i className="bx bx-chevron-down" />
             </Link>
-            <button className="btnOutline" onClick={toggleJiko} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className={`bx ${isPlayingJiko ? 'bx-pause-circle' : 'bx-play-circle'}`} style={{ fontSize: '1.2rem' }} /> 
-              {isPlayingJiko ? 'Playing...' : 'Play Jikoshoukai'}
+            <button
+              className="btnOutline"
+              onClick={toggleJiko}
+              style={{ display: "flex", alignItems: "center", gap: "8px" }}
+            >
+              <i
+                className={`bx ${isPlayingJiko ? "bx-pause-circle" : "bx-play-circle"}`}
+                style={{ fontSize: "1.2rem" }}
+              />
+              {isPlayingJiko ? "Playing..." : "Play Jikoshoukai"}
             </button>
           </div>
-          
         </div>
 
         <div className={styles.visual}>
@@ -123,16 +136,18 @@ export default function HeroSection() {
             </div>
             <div className={styles.floatingCard}>
               <strong className="textGold">JKT48 Erine</strong>
-              <span><i className="bx bxs-chess" /> Gen 12 Member</span>
+              <span>
+                <i className="bx bxs-chess" /> Gen 12 Member
+              </span>
             </div>
           </div>
-          
+
           <div className={styles.knightWrapper}>
             <i className={`bx bxs-chess ${styles.knightIcon}`} />
           </div>
         </div>
       </div>
-      
+
       {/* Decorative Chess Knight in background */}
       <div className={styles.bgKnight}>
         <i className="bx bxs-chess" />

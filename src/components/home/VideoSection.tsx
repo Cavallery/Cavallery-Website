@@ -12,10 +12,13 @@ export default function VideoSection() {
           <div className="badge">
             <i className="bx bx-play-circle" /> Official Teaser
           </div>
-          <h2 className={`sectionTitle textGold ${styles.title}`}>Erine Moments</h2>
+          <h2 className={`sectionTitle textGold ${styles.title}`}>
+            Erine Moments
+          </h2>
           <div className="divider" style={{ margin: "16px auto 20px" }} />
           <p className={styles.subtitle}>
-            Video teaser resmi dan momen-momen terbaik Erine JKT48 bersama fanbase Cavallery.
+            Video teaser resmi dan momen-momen terbaik Erine JKT48 bersama
+            fanbase Cavallery.
           </p>
         </div>
 
@@ -34,10 +37,18 @@ export default function VideoSection() {
               />
             ) : (
               <div className={styles.fallbackPlayer}>
-                <i className="bx bx-play-circle" style={{ fontSize: "4.5rem", color: "var(--gold)", filter: "drop-shadow(0 0 15px var(--gold))" }} />
+                <i
+                  className="bx bx-play-circle"
+                  style={{
+                    fontSize: "4.5rem",
+                    color: "var(--gold)",
+                    filter: "drop-shadow(0 0 15px var(--gold))",
+                  }}
+                />
                 <h3 className={styles.fallbackTitle}>Video Offline</h3>
                 <p className={styles.fallbackDesc}>
-                  Mohon maaf, video preview dari cavallery.id sedang tidak dapat dimuat saat ini.
+                  Mohon maaf, video preview dari cavallery.id sedang tidak dapat
+                  dimuat saat ini.
                 </p>
               </div>
             )}
