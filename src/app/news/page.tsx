@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
@@ -9,8 +10,12 @@ const DEFAULT_IMG =
 // Proxy untuk gambar dari jkt48.com
 function proxyImg(url: string): string {
   if (!url) return DEFAULT_IMG;
+
   if (!url.includes("jkt48.com")) return url;
-  return `https://autumn-limit-898f.aslannarnia806.workers.dev/?url=${encodeURIComponent(url)}`;
+
+  return `https://autumn-limit-898f.aslannarnia806.workers.dev/?url=${encodeURIComponent(
+    url,
+  )}`;
 }
 
 interface NewsItem {
@@ -34,30 +39,34 @@ export default function NewsPage() {
       .then((d) => {
         if (d.success && d.data?.news) {
           const items: NewsItem[] = d.data.news.map((n: any) => ({
-            id:          n.id,
-            title:       n.title,
-            label:       n.category,
-            date:        n.date,
-            link_url:    n.url,
-            image_url:   n.background_image,
+            id: n.id,
+            title: n.title,
+            label: n.category,
+            date: n.date,
+            link_url: n.url,
+            image_url: n.background_image,
             description: undefined,
           }));
+
           setNews(items);
         } else {
           setError(d.message || "Gagal memuat berita");
           setNews([]);
         }
       })
-      .catch((e) => { setError(String(e)); setNews([]); })
+      .catch((e) => {
+        setError(String(e));
+        setNews([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  // Komponen card image dengan fallback
+  // Komponen image card dengan fallback
   const CardImage = ({ item }: { item: NewsItem }) => {
     const [imgError, setImgError] = useState(false);
-    const imgSrc = imgError || !item.image_url
-      ? DEFAULT_IMG
-      : proxyImg(item.image_url);
+
+    const imgSrc =
+      imgError || !item.image_url ? DEFAULT_IMG : proxyImg(item.image_url);
 
     return (
       <div className={styles.imgWrap}>
@@ -67,6 +76,7 @@ export default function NewsPage() {
           loading="lazy"
           onError={() => setImgError(true)}
         />
+
         <div className={styles.labelBadge}>{item.label || "Terkini"}</div>
       </div>
     );
@@ -75,15 +85,24 @@ export default function NewsPage() {
   const cardContent = (item: NewsItem) => (
     <>
       <CardImage item={item} />
+
       <div className={styles.cardBody}>
         <div className={styles.date}>
           <i className="bx bx-calendar" />
+
           {new Date(item.date).toLocaleDateString("id-ID", {
-            day: "numeric", month: "long", year: "numeric",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
           })}
         </div>
+
         <h2 className={styles.cardTitle}>{item.title}</h2>
-        {item.description && <p className={styles.cardDesc}>{item.description}</p>}
+
+        {item.description && (
+          <p className={styles.cardDesc}>{item.description}</p>
+        )}
+
         <div className={styles.readMore}>
           Baca Selengkapnya <i className="bx bx-right-arrow-alt" />
         </div>
@@ -95,12 +114,20 @@ export default function NewsPage() {
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroBg} />
+
         <div className={styles.heroInner}>
-          <div className="badge"><i className="bx bx-news" /> Berita Terbaru</div>
-          <h1 className={styles.heroTitle}>News <span className="textGold">JKT48</span></h1>
+          <div className="badge">
+            <i className="bx bx-news" /> Berita Terbaru
+          </div>
+
+          <h1 className={styles.heroTitle}>
+            News <span className="textGold">JKT48</span>
+          </h1>
+
           <p className={styles.heroSub}>Informasi terkini seputar JKT48.</p>
         </div>
       </div>
+
       <div className={styles.content}>
         {loading ? (
           <div className={styles.skeletons}>
@@ -122,15 +149,15 @@ export default function NewsPage() {
             {news.map((item, idx) =>
               item.link_url?.startsWith("/") ? (
                 <Link
-                  key={item.id || idx}
+                  key={item.id || String(idx)}
                   href={item.link_url}
                   className={`glassCard ${styles.card}`}
                 >
                   {cardContent(item)}
                 </Link>
               ) : (
-                
-                  key={item.id || idx}
+                <a
+                  key={item.id || String(idx)}
                   href={item.link_url}
                   target="_blank"
                   rel="noreferrer"
@@ -138,7 +165,7 @@ export default function NewsPage() {
                 >
                   {cardContent(item)}
                 </a>
-              )
+              ),
             )}
           </div>
         )}
