@@ -54,6 +54,8 @@ export default function AboutErineSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", desc: "" });
   const [counts, setCounts] = useState({ shows: 0, setlists: 0, units: 0 });
+  const [pmStats, setPmStats] = useState<any>(null);
+  const [pmLoading, setPmLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const slides = [
@@ -63,7 +65,7 @@ export default function AboutErineSection() {
   ];
 
   const stats = [
-    { label: "Total Shows", target: 99, icon: "bx-calendar" },
+    { label: "Total Shows", target: 100, icon: "bx-calendar" },
     { label: "Setlists", target: 7, icon: "bx-music" },
     { label: "Unit Songs", target: 15, icon: "bx-microphone" }
   ];
@@ -89,6 +91,14 @@ export default function AboutErineSection() {
       setCounts({ shows: 99, setlists: 7, units: 15 });
     }, 500);
 
+    fetch('/api/pm-statistik')
+  .then(r => r.json())
+  .then(json => {
+    if (json.success) setPmStats(json.data);
+  })
+  .catch(() => {})
+  .finally(() => setPmLoading(false));
+    
     // Embed scripts
     const twScript = document.createElement("script");
     twScript.src = "https://platform.twitter.com/widgets.js";
@@ -345,7 +355,7 @@ export default function AboutErineSection() {
 
         <div className={styles.cardsGrid}>
           {[
-            { title: "Passion 200%", date: "10 April - Present", badge: "1 Show", songs: ["Wagamama na Nagareboshi"], img: "/images/passion.jpg" },
+            { title: "Passion 200%", date: "10 April - Present", badge: "3 Show", songs: ["Wagamama na Nagareboshi"], img: "/images/passion.jpg" },
             { title: "Ramune No Namikata", date: "15 Jan 2023 - Present", badge: "3 Show", songs: ["Nice To Meet You"], img: "/images/ramune.jpg" },
             { title: "Renai Kinshi Jourei", date: "20 Mar 2021 - 26 Dec 2025", badge: "2 Shows", songs: ["Renai Kinshi Jourei"], img: "/images/rkj.jpg" },
             { title: "Te wo Tsunaginagara", date: "01 Feb 2025 - Present", badge: "4 Shows", songs: ["Ame no Pianist"], img: "/images/twt.jpg" },
@@ -357,6 +367,66 @@ export default function AboutErineSection() {
           ))}
         </div>
       </div>
+
+      {/* 4.5 PM Weekly Stats */}
+<div className={styles.pmStatsSection}>
+  <div className={styles.nailedFrame} />
+  <h3 className={styles.erineTitle}>Statistik PM Mingguan</h3>
+
+  {pmLoading ? (
+    <div className={styles.pmLoading}>
+      <i className="bx bx-loader-alt bx-spin" /> Memuat data...
+    </div>
+  ) : pmStats ? (
+    <div className={styles.pmStatsCard}>
+      <div className={styles.pmCardHeader}>
+        <img src={pmStats.profile_image} alt={pmStats.member_name} className={styles.pmAvatar} />
+        <div className={styles.pmHeaderInfo}>
+          <span className={styles.pmName}>{pmStats.member_name}</span>
+          <span className={styles.pmId}>{pmStats.idol_id}</span>
+          <div className={styles.pmBadges}>
+            {pmStats.is_active && <span className={styles.badgeActive}>● Aktif</span>}
+            {pmStats.is_popular && <span className={styles.badgePopular}>★ Popular</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.pmStatsGrid}>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-medal" />
+          <span className={styles.pmStatVal}>#{pmStats.current_rank}</span>
+          <span className={styles.pmStatLbl}>Rank Saat Ini</span>
+        </div>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-message-dots" />
+          <span className={styles.pmStatVal}>{pmStats.messages_per_week}</span>
+          <span className={styles.pmStatLbl}>Pesan / Minggu</span>
+        </div>
+        <div className={styles.pmStatBox}>
+          <i className="bx bx-group" />
+          <span className={styles.pmStatVal}>{pmStats.group_name}</span>
+          <span className={styles.pmStatLbl}>Grup</span>
+        </div>
+      </div>
+
+      <div className={styles.pmBarWrapper}>
+        <div className={styles.pmBarLabel}>
+          <span>Aktivitas Mingguan</span>
+          <span>{pmStats.messages_per_week} pesan</span>
+        </div>
+        <div className={styles.pmBarTrack}>
+          <div
+            className={styles.pmBarFill}
+            style={{ width: `${Math.min((parseInt(pmStats.messages_per_week) / 100) * 100, 100)}%` }}
+          />
+        </div>
+        <div className={styles.pmBarHint}>Skala: 0 – 100 pesan/minggu</div>
+      </div>
+    </div>
+  ) : (
+    <p className={styles.pmError}>Data statistik tidak tersedia.</p>
+  )}
+</div>
 
       {/* 5. Social Media Embeds */}
       <div className={styles.embedsSection}>
