@@ -107,7 +107,7 @@ export default function NewsPage() {
                   {cardContent(item)}
                 </Link>
               ) : (
-                
+                <a
                   key={item.id || idx}
                   href={item.link_url}
                   target="_blank"
