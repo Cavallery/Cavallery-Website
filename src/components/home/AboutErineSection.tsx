@@ -4,12 +4,12 @@ import Script from "next/script";
 import { motion } from "framer-motion";
 import styles from "./AboutErineSection.module.css";
 
-function FlipCard({ set, idx }: { set: any, idx: number }) {
+function FlipCard({ set, idx }: { set: any; idx: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
-    <div 
-      className={styles.stickyCard} 
+    <div
+      className={styles.stickyCard}
       onClick={() => setIsFlipped(!isFlipped)}
       style={{ zIndex: isFlipped ? 10 : 1 }}
     >
@@ -17,7 +17,12 @@ function FlipCard({ set, idx }: { set: any, idx: number }) {
         className={styles.flipInner}
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
+        transition={{
+          duration: 0.6,
+          type: "spring",
+          stiffness: 200,
+          damping: 20,
+        }}
       >
         {/* Front side */}
         <div className={styles.flipFront}>
@@ -33,7 +38,12 @@ function FlipCard({ set, idx }: { set: any, idx: number }) {
         {/* Back side */}
         <div className={styles.flipBack}>
           <div className={styles.tapeStrip} style={{ top: "-15px" }} />
-          <div className={styles.cardTitle} style={{ marginBottom: "15px", fontSize: "1.2rem" }}>Unit Songs</div>
+          <div
+            className={styles.cardTitle}
+            style={{ marginBottom: "15px", fontSize: "1.2rem" }}
+          >
+            Unit Songs
+          </div>
           <ul className={styles.unitSongs}>
             {set.songs.map((song: string, i: number) => (
               <li key={song} className={styles.songRow}>
@@ -63,14 +73,14 @@ export default function AboutErineSection() {
   ];
 
   const stats = [
-    { label: "Total Shows", target: 99, icon: "bx-calendar" },
+    { label: "Total Shows", target: 100, icon: "bx-calendar" },
     { label: "Setlists", target: 7, icon: "bx-music" },
-    { label: "Unit Songs", target: 15, icon: "bx-microphone" }
+    { label: "Unit Songs", target: 15, icon: "bx-microphone" },
   ];
 
   useEffect(() => {
     // Age Calculation
-    const birthDate = new Date('2007-08-21');
+    const birthDate = new Date("2007-08-21");
     const today = new Date();
     let calculatedAge = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -108,12 +118,12 @@ export default function AboutErineSection() {
 
   const toggleJiko = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/audio/jikorine1.mp4');
+      audioRef.current = new Audio("/audio/jikorine1.mp4");
       audioRef.current.onended = () => setIsPlayingJiko(false);
     }
 
     if (audioRef.current.paused) {
-      audioRef.current.play().catch(e => {
+      audioRef.current.play().catch((e) => {
         console.error("Audio error:", e);
         setIsPlayingJiko(false);
       });
@@ -138,7 +148,13 @@ export default function AboutErineSection() {
           <div className={styles.headerSection}>
             <div className={styles.titleBox}>
               <h1 className={styles.wikiName}>Erine</h1>
-              <a href="https://www.idn.app/jkt48_erine" target="_blank" className={styles.followBtn}>+ Follow</a>
+              <a
+                href="https://www.idn.app/jkt48_erine"
+                target="_blank"
+                className={styles.followBtn}
+              >
+                + Follow
+              </a>
             </div>
             <span className={styles.jpName}>Japan : エリーヌ</span>
           </div>
@@ -146,24 +162,53 @@ export default function AboutErineSection() {
           <div className={styles.tableContainer}>
             <table className={styles.bioTable}>
               <tbody>
-                <tr><td className={styles.labelCell}>Nama Asli</td><td className={styles.valueCell}>Catherina Vallencia Kurniawan</td></tr>
-                <tr><td className={styles.labelCell}>Nama Panggilan</td><td className={styles.valueCell}>Erine</td></tr>
-                <tr><td className={styles.labelCell}>Tanggal Lahir</td><td className={styles.valueCell}>21 Agustus 2007 <span className={styles.ageDim}>(Usia {age})</span></td></tr>
+                <tr>
+                  <td className={styles.labelCell}>Nama Asli</td>
+                  <td className={styles.valueCell}>
+                    Catherina Vallencia Kurniawan
+                  </td>
+                </tr>
+                <tr>
+                  <td className={styles.labelCell}>Nama Panggilan</td>
+                  <td className={styles.valueCell}>Erine</td>
+                </tr>
+                <tr>
+                  <td className={styles.labelCell}>Tanggal Lahir</td>
+                  <td className={styles.valueCell}>
+                    21 Agustus 2007{" "}
+                    <span className={styles.ageDim}>(Usia {age})</span>
+                  </td>
+                </tr>
                 <tr>
                   <td className={styles.labelCell}>Kota Asal</td>
                   <td className={styles.valueCell}>
                     <div className={styles.hometownContainer}>
                       <span>Bekasi, Jawa Barat, Indonesia</span>
                       <div className={styles.mapIcon}>
-                        <img src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png" alt="Bekasi" />
+                        <img
+                          src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png"
+                          alt="Bekasi"
+                        />
                       </div>
                     </div>
                   </td>
                 </tr>
-                <tr><td className={styles.labelCell}>Golongan Darah</td><td className={styles.valueCell}>B</td></tr>
-                <tr><td className={styles.labelCell}>Zodiak</td><td className={styles.valueCell}>♌︎ Leo</td></tr>
-                <tr><td className={styles.labelCell}>Tinggi Badan</td><td className={styles.valueCell}>162 cm</td></tr>
-                <tr><td className={styles.labelCell}>Tim</td><td className={styles.valueCell}>Passion</td></tr>
+                <tr>
+                  <td className={styles.labelCell}>Golongan Darah</td>
+                  <td className={styles.valueCell}>B</td>
+                </tr>
+                <tr>
+                  <td className={styles.labelCell}>Zodiak</td>
+                  <td className={styles.valueCell}>♌︎ Leo</td>
+                </tr>
+                <tr>
+                  <td className={styles.labelCell}>Tinggi Badan</td>
+                  <td className={styles.valueCell}>162 cm</td>
+                </tr>
+                <tr>
+                  <td className={styles.labelCell}>Tim</td>
+                  <td className={styles.valueCell}>Passion</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -172,12 +217,14 @@ export default function AboutErineSection() {
             <div className={styles.jikoLeft}>
               <div className={styles.jikoLabel}>Jikoshoukai</div>
               <button className={styles.audioBtn} onClick={toggleJiko}>
-                <i className={`bx ${isPlayingJiko ? 'bx-pause' : 'bx-play'}`} />
+                <i className={`bx ${isPlayingJiko ? "bx-pause" : "bx-play"}`} />
               </button>
             </div>
             <div className={styles.jikoQuoteBox}>
-              Hadir dengan seribu kejutan,<br />
-              <span className={styles.checkmateAnim}>Checkmate!</span><br />
+              Hadir dengan seribu kejutan,
+              <br />
+              <span className={styles.checkmateAnim}>Checkmate!</span>
+              <br />
               Siap memenangkan hatimu.
             </div>
           </div>
@@ -185,17 +232,73 @@ export default function AboutErineSection() {
           <div className={styles.socialSection} id="sosmed">
             <div className={styles.socialTitle}>Erine's Social Media</div>
             <div className={styles.socialIcons}>
-              <a href="https://x.com/CErine_JKT48" target="_blank" className={styles.socIcon}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/></svg>
+              <a
+                href="https://x.com/CErine_JKT48"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z" />
+                </svg>
               </a>
-              <a href="https://www.instagram.com/jkt48.erine/" target="_blank" className={styles.socIcon}><i className="bx bxl-instagram" /></a>
-              <a href="https://www.threads.com/@jkt48.erine" target="_blank" className={styles.socIcon}><i className="bx bxl-facebook-circle" /></a>
-              <a href="https://www.tiktok.com/@jkt48.erine_" target="_blank" className={styles.socIcon}><i className="bx bxl-tiktok" /></a>
-              <a href="https://www.showroom-live.com/r/JKT48_Erine" target="_blank" className={styles.socIcon}>
-                <img src="/images/showroom.png" alt="Showroom" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+              <a
+                href="https://www.instagram.com/jkt48.erine/"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <i className="bx bxl-instagram" />
               </a>
-              <a href="https://www.idn.app/jkt48_erine" target="_blank" className={styles.socIcon}>
-                <img src="/images/idn.png" alt="IDN" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+              <a
+                href="https://www.threads.com/@jkt48.erine"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <i className="bx bxl-facebook-circle" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@jkt48.erine_"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <i className="bx bxl-tiktok" />
+              </a>
+              <a
+                href="https://www.showroom-live.com/r/JKT48_Erine"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <img
+                  src="/images/showroom.png"
+                  alt="Showroom"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+              </a>
+              <a
+                href="https://www.idn.app/jkt48_erine"
+                target="_blank"
+                className={styles.socIcon}
+              >
+                <img
+                  src="/images/idn.png"
+                  alt="IDN"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
               </a>
             </div>
           </div>
@@ -204,17 +307,28 @@ export default function AboutErineSection() {
         <div className={styles.rightCol}>
           <div className={styles.mainPhotoFrame}>
             {slides.map((src, idx) => (
-              <img key={src} src={src} className={`${styles.mainPhoto} ${idx === activeSlide ? styles.active : ""}`} alt="Erine" />
+              <img
+                key={src}
+                src={src}
+                className={`${styles.mainPhoto} ${idx === activeSlide ? styles.active : ""}`}
+                alt="Erine"
+              />
             ))}
           </div>
           <div className={styles.galleryStrip}>
             <div className={styles.thumbsGrid}>
               {slides.slice(1, 4).map((src) => (
-                <div key={src} className={styles.thumbItem}><img src={src} alt="Thumb" /></div>
+                <div key={src} className={styles.thumbItem}>
+                  <img src={src} alt="Thumb" />
+                </div>
               ))}
             </div>
             <div className={styles.galleryLink}>
-              See <a href="/gallery"><strong>gallerine</strong></a> for more!
+              See{" "}
+              <a href="/gallery">
+                <strong>gallerine</strong>
+              </a>{" "}
+              for more!
             </div>
           </div>
         </div>
@@ -224,21 +338,53 @@ export default function AboutErineSection() {
       <div className={styles.ewContainer}>
         <div className={styles.ewIntro}>
           <h3>Introduction</h3>
-          <p>Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai "Putri Bebek" oleh fans karena kepribadiannya yang unik dan menggemaskan.</p>
+          <p>
+            Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai
+            "Putri Bebek" oleh fans karena kepribadiannya yang unik dan
+            menggemaskan.
+          </p>
         </div>
 
         <div className={styles.ewSplit}>
           <div className={styles.ewBio}>
             <table>
               <tbody>
-                <tr><td className={styles.lbl}>Debut</td><td>18 November 2023</td></tr>
-                <tr><td className={styles.lbl}>Tahun Aktif</td><td>Member JKT48 Gen 12</td></tr>
-                <tr><td className={styles.lbl}>Member Favorit</td><td><a href="https://x.com/I_KathrinaJKT48" target="_blank">Kathrina Irene</a></td></tr>
-                <tr><td className={styles.lbl}>MBTI</td><td>ISFP / INFP</td></tr>
-                <tr><td className={styles.lbl}>Shio</td><td>Babi</td></tr>
-                <tr><td className={styles.lbl}>Hobi</td><td>Bermain Piano, Menari</td></tr>
-                <tr><td className={styles.lbl}>Angka Favorit</td><td>7</td></tr>
-                <tr><td className={styles.lbl}>Warna Favorit</td><td>Pink, Blue, Tosca</td></tr>
+                <tr>
+                  <td className={styles.lbl}>Debut</td>
+                  <td>18 November 2023</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Tahun Aktif</td>
+                  <td>Member JKT48 Gen 12</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Member Favorit</td>
+                  <td>
+                    <a href="https://x.com/I_KathrinaJKT48" target="_blank">
+                      Kathrina Irene
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>MBTI</td>
+                  <td>ISFP / INFP</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Shio</td>
+                  <td>Babi</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Hobi</td>
+                  <td>Bermain Piano, Menari</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Angka Favorit</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td className={styles.lbl}>Warna Favorit</td>
+                  <td>Pink, Blue, Tosca</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -246,12 +392,36 @@ export default function AboutErineSection() {
           <div className={styles.ewHt}>
             <p className={styles.ewHtTitle}># Official Hashtags</p>
             <ul>
-              <li><span className={styles.lbl2}>Setiap Hari Jumat</span><a href="https://cavallery.id/diesvenerine/" target="_blank" className={styles.tag}>#DiesVenErine</a></li>
-              <li><span className={styles.lbl2}>Setiap Jurnal</span><span className={styles.tag}>#MemoRine</span></li>
-              <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
-              <li><span className={styles.lbl2}>Sebelum Berbuka</span><span className={styles.tag}>#Ngabuburine</span></li>
-              <li><span className={styles.lbl2}>Setiap Berbuka</span><span className={styles.tag}>#BukbeRine</span></li>
-              <li><span className={styles.lbl2}>Setiap Game</span><span className={styles.tag}>#GameRine</span></li>
+              <li>
+                <span className={styles.lbl2}>Setiap Hari Jumat</span>
+                <a
+                  href="https://cavallery.id/diesvenerine/"
+                  target="_blank"
+                  className={styles.tag}
+                >
+                  #DiesVenErine
+                </a>
+              </li>
+              <li>
+                <span className={styles.lbl2}>Setiap Jurnal</span>
+                <span className={styles.tag}>#MemoRine</span>
+              </li>
+              <li>
+                <span className={styles.lbl2}>Setiap Sahur</span>
+                <span className={styles.tag}>#SahuRine</span>
+              </li>
+              <li>
+                <span className={styles.lbl2}>Sebelum Berbuka</span>
+                <span className={styles.tag}>#Ngabuburine</span>
+              </li>
+              <li>
+                <span className={styles.lbl2}>Setiap Berbuka</span>
+                <span className={styles.tag}>#BukbeRine</span>
+              </li>
+              <li>
+                <span className={styles.lbl2}>Setiap Game</span>
+                <span className={styles.tag}>#GameRine</span>
+              </li>
             </ul>
             <div className={styles.ewPm}>
               <img src="/images/pm.png" alt="PM" />
@@ -263,7 +433,10 @@ export default function AboutErineSection() {
         <div className={styles.ewFf}>
           <h3>Funfact Erine</h3>
           <ol>
-            <li>Penampilan pertamanya sebagai penari latar di JKT48 Stage ke-5 untuk lagu Glory Days adalah pada tanggal 1 Februari 2025.</li>
+            <li>
+              Penampilan pertamanya sebagai penari latar di JKT48 Stage ke-5
+              untuk lagu Glory Days adalah pada tanggal 1 Februari 2025.
+            </li>
             <li>Suka aespa, terutama member bernama Ningning.</li>
             <li>Cita-cita pengen bawa bendera saat upacara.</li>
             <li>Erine Waktu SMA ada dijurusan IPS.</li>
@@ -277,13 +450,16 @@ export default function AboutErineSection() {
 
       {/* 3. Showcase Section (Video Debut, Kabesha, SSK) */}
       <div className={styles.showcaseContainer}>
-        
         <div className={styles.videoDebut}>
           <div className={styles.nailedFrame} />
           <h3 className={styles.erineTitle}>Erine's Video Debut</h3>
           <div className={styles.videoFrameWrapper}>
             <div className={styles.responsiveVideo}>
-              <iframe src="https://www.youtube.com/embed/Obxn7knXq38" title="Debut" allowFullScreen />
+              <iframe
+                src="https://www.youtube.com/embed/Obxn7knXq38"
+                title="Debut"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>
@@ -293,12 +469,33 @@ export default function AboutErineSection() {
         <div className={styles.galleryGrid}>
           {/* Kabesha Grid */}
           {[
-            { img: "/images/trainee.jpg", year: "2023", title: "First Kabesha", desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
-            { img: "/images/regular.webp", year: "2026", title: "Regular Member", desc: "Dipromosikan menjadi Member reguler JKT48." },
-            { img: "/images/erine-passion.webp", year: "2026", title: "Team Passion", desc: "Dipromosikan menjadi Member Passion JKT48." }
+            {
+              img: "/images/trainee.jpg",
+              year: "2023",
+              title: "First Kabesha",
+              desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri.",
+            },
+            {
+              img: "/images/regular.webp",
+              year: "2026",
+              title: "Regular Member",
+              desc: "Dipromosikan menjadi Member reguler JKT48.",
+            },
+            {
+              img: "/images/erine-passion.webp",
+              year: "2026",
+              title: "Team Passion",
+              desc: "Dipromosikan menjadi Member Passion JKT48.",
+            },
           ].map((item) => (
-            <div key={`${item.year}-${item.title}`} className={styles.frameCard} onClick={() => openModal(item.img, item.year, item.desc)}>
-              <div className={styles.imageContainer}><img src={item.img} alt={item.year} /></div>
+            <div
+              key={`${item.year}-${item.title}`}
+              className={styles.frameCard}
+              onClick={() => openModal(item.img, item.year, item.desc)}
+            >
+              <div className={styles.imageContainer}>
+                <img src={item.img} alt={item.year} />
+              </div>
               <div className={styles.captionBox}>
                 <span className={styles.captionYear}>{item.year}</span>
                 {item.title}
@@ -312,16 +509,49 @@ export default function AboutErineSection() {
           <h3 className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
           <div className={styles.frameCardWide}>
             <div className={styles.responsiveVideo}>
-              <iframe src="https://www.youtube.com/embed/XbAqE7iBJAw" title="SSK" allowFullScreen />
+              <iframe
+                src="https://www.youtube.com/embed/XbAqE7iBJAw"
+                title="SSK"
+                allowFullScreen
+              />
             </div>
             <div className={styles.electionGrid}>
-              <div className={styles.electionItem} onClick={() => openModal("/images/chapter.jpg", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}>
-                <div className={styles.electionImg}><img src="/images/chapter.jpg" alt="Poster" /></div>
-                <div className={styles.captionBox}>Poster Erine's Sousenkyo</div>
+              <div
+                className={styles.electionItem}
+                onClick={() =>
+                  openModal(
+                    "/images/chapter.jpg",
+                    "Campaign 2024",
+                    "Erine mengusung Project SSK dengan #Dongeng & #Chapter.",
+                  )
+                }
+              >
+                <div className={styles.electionImg}>
+                  <img src="/images/chapter.jpg" alt="Poster" />
+                </div>
+                <div className={styles.captionBox}>
+                  Poster Erine's Sousenkyo
+                </div>
               </div>
-              <div className={styles.electionItem} onClick={() => openModal("https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}>
-                <div className={styles.electionImg}><img src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg" alt="Rank" /></div>
-                <div className={styles.captionBox}>Erine di posisi #18 (Undergirls)</div>
+              <div
+                className={styles.electionItem}
+                onClick={() =>
+                  openModal(
+                    "https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg",
+                    "Result Rank #18",
+                    "Erine berhasil mendapatkan posisi ke 18.",
+                  )
+                }
+              >
+                <div className={styles.electionImg}>
+                  <img
+                    src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg"
+                    alt="Rank"
+                  />
+                </div>
+                <div className={styles.captionBox}>
+                  Erine di posisi #18 (Undergirls)
+                </div>
               </div>
             </div>
           </div>
@@ -335,8 +565,12 @@ export default function AboutErineSection() {
           <div className={styles.statsGrid}>
             {stats.map((s, i) => (
               <div key={s.label} className={styles.statItem}>
-                <div className={styles.statIcon}><i className={`bx ${s.icon}`} /></div>
-                <div className={styles.statNumber}>{(counts as any)[['shows', 'setlists', 'units'][i]]}</div>
+                <div className={styles.statIcon}>
+                  <i className={`bx ${s.icon}`} />
+                </div>
+                <div className={styles.statNumber}>
+                  {(counts as any)[["shows", "setlists", "units"][i]]}
+                </div>
                 <div className={styles.statLabel}>{s.label}</div>
               </div>
             ))}
@@ -345,13 +579,62 @@ export default function AboutErineSection() {
 
         <div className={styles.cardsGrid}>
           {[
-            { title: "Passion 200%", date: "10 April - Present", badge: "1 Show", songs: ["Wagamama na Nagareboshi"], img: "/images/passion.jpg" },
-            { title: "Ramune No Namikata", date: "15 Jan 2023 - Present", badge: "3 Show", songs: ["Nice To Meet You"], img: "/images/ramune.jpg" },
-            { title: "Renai Kinshi Jourei", date: "20 Mar 2021 - 26 Dec 2025", badge: "2 Shows", songs: ["Renai Kinshi Jourei"], img: "/images/rkj.jpg" },
-            { title: "Te wo Tsunaginagara", date: "01 Feb 2025 - Present", badge: "4 Shows", songs: ["Ame no Pianist"], img: "/images/twt.jpg" },
-            { title: "Kira-Kira Girls", date: "24 Nov 2025 - 27 Dec 2025", badge: "5 Shows", songs: ["Kimi to Boku no Kankei", "Itoshiki Natasha"], img: "/images/kkg.jpg" },
-            { title: "Aitakatta", date: "30 Apr 2023 - 12 Dec 2025", badge: "41 Shows", songs: ["Nageki no Figure", "Glass no I Love You", "Senaka Kara Dakishimete", "Koi No Plan", "Nagisa no Cherry", "Namida no Shounan"], img: "/images/aitakatta.jpg" },
-            { title: "Pajama Drive", date: "30 May 2024 - Present", badge: "42 Shows", songs: ["Pajama Drive", "Junjou Shugi", "Kagami no Jeanne d'Arc"], img: "/images/pajama.jpg" }
+            {
+              title: "Passion 200%",
+              date: "10 April - Present",
+              badge: "1 Show",
+              songs: ["Wagamama na Nagareboshi"],
+              img: "/images/passion.jpg",
+            },
+            {
+              title: "Ramune No Namikata",
+              date: "15 Jan 2023 - Present",
+              badge: "3 Show",
+              songs: ["Nice To Meet You"],
+              img: "/images/ramune.jpg",
+            },
+            {
+              title: "Renai Kinshi Jourei",
+              date: "20 Mar 2021 - 26 Dec 2025",
+              badge: "2 Shows",
+              songs: ["Renai Kinshi Jourei"],
+              img: "/images/rkj.jpg",
+            },
+            {
+              title: "Te wo Tsunaginagara",
+              date: "01 Feb 2025 - Present",
+              badge: "4 Shows",
+              songs: ["Ame no Pianist"],
+              img: "/images/twt.jpg",
+            },
+            {
+              title: "Kira-Kira Girls",
+              date: "24 Nov 2025 - 27 Dec 2025",
+              badge: "5 Shows",
+              songs: ["Kimi to Boku no Kankei", "Itoshiki Natasha"],
+              img: "/images/kkg.jpg",
+            },
+            {
+              title: "Aitakatta",
+              date: "30 Apr 2023 - 12 Dec 2025",
+              badge: "41 Shows",
+              songs: [
+                "Nageki no Figure",
+                "Glass no I Love You",
+                "Senaka Kara Dakishimete",
+                "Koi No Plan",
+                "Nagisa no Cherry",
+                "Namida no Shounan",
+              ],
+              img: "/images/aitakatta.jpg",
+            },
+            {
+              title: "Pajama Drive",
+              date: "30 May 2024 - Present",
+              badge: "42 Shows",
+              songs: ["Pajama Drive", "Junjou Shugi", "Kagami no Jeanne d'Arc"],
+              img: "/images/pajama.jpg",
+            },
           ].map((set, idx) => (
             <FlipCard key={set.title} set={set} idx={idx} />
           ))}
@@ -369,35 +652,70 @@ export default function AboutErineSection() {
               <a href="https://twitter.com/CErine_JKT48/status/2056685755616104632"></a>
             </blockquote>
           </div>
-          
+
           {/* TikTok */}
           <div className={styles.embedCard}>
-            <blockquote className="tiktok-embed" cite="https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280" data-video-id="7640445924992470280" style={{maxWidth: "100%", minWidth: 325}}>
-              <section><a href="https://www.tiktok.com/@jkt48.erine_">@jkt48.erine_</a></section>
+            <blockquote
+              className="tiktok-embed"
+              cite="https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280"
+              data-video-id="7640445924992470280"
+              style={{ maxWidth: "100%", minWidth: 325 }}
+            >
+              <section>
+                <a href="https://www.tiktok.com/@jkt48.erine_">@jkt48.erine_</a>
+              </section>
             </blockquote>
           </div>
 
           {/* Instagram */}
           <div className={styles.embedCard}>
-            <iframe src="https://www.instagram.com/p/DXt1vRJEpuf/embed" width="100%" height="480" frameBorder="0" scrolling="no"></iframe>
+            <iframe
+              src="https://www.instagram.com/p/DXt1vRJEpuf/embed"
+              width="100%"
+              height="480"
+              frameBorder="0"
+              scrolling="no"
+            ></iframe>
           </div>
 
           {/* Threads */}
           <div className={styles.embedCard}>
-            <iframe src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed" width="100%" height="480" frameBorder="0" scrolling="no"></iframe>
+            <iframe
+              src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed"
+              width="100%"
+              height="480"
+              frameBorder="0"
+              scrolling="no"
+            ></iframe>
           </div>
         </div>
       </div>
 
       {/* Modal */}
       {isModalOpen && (
-        <div className={`${styles.modalOverlay} ${styles.active}`} onClick={() => setIsModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>&times;</button>
-            <div className={styles.modalImgWrapper}><img src={modalData.image} alt="Detail" /></div>
+        <div
+          className={`${styles.modalOverlay} ${styles.active}`}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={styles.closeBtn}
+              onClick={() => setIsModalOpen(false)}
+            >
+              &times;
+            </button>
+            <div className={styles.modalImgWrapper}>
+              <img src={modalData.image} alt="Detail" />
+            </div>
             <div className={styles.modalDetails}>
               <span className={styles.modalDate}>{modalData.date}</span>
-              <p className={styles.modalDesc} dangerouslySetInnerHTML={{ __html: modalData.desc }} />
+              <p
+                className={styles.modalDesc}
+                dangerouslySetInnerHTML={{ __html: modalData.desc }}
+              />
             </div>
           </div>
         </div>
