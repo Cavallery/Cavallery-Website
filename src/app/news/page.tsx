@@ -3,6 +3,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 
+const DEFAULT_IMG =
+  "https://res.cloudinary.com/haymzm4wp/image/upload/v1760105848/bi5ej2hgh0cc2uowu5xr.jpg";
+
+// Proxy untuk gambar dari jkt48.com
+function proxyImg(url: string): string {
+  if (!url) return DEFAULT_IMG;
+  if (!url.includes("jkt48.com")) return url;
+  return `https://autumn-limit-898f.aslannarnia806.workers.dev/?url=${encodeURIComponent(url)}`;
+}
+
 interface NewsItem {
   id: string;
   title: string;
@@ -42,16 +52,29 @@ export default function NewsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const cardContent = (item: NewsItem) => (
-    <>
+  // Komponen card image dengan fallback
+  const CardImage = ({ item }: { item: NewsItem }) => {
+    const [imgError, setImgError] = useState(false);
+    const imgSrc = imgError || !item.image_url
+      ? DEFAULT_IMG
+      : proxyImg(item.image_url);
+
+    return (
       <div className={styles.imgWrap}>
-        {item.image_url ? (
-          <img src={item.image_url} alt={item.title} loading="lazy" />
-        ) : (
-          <div className={styles.noImg}><i className="bx bx-image" /></div>
-        )}
+        <img
+          src={imgSrc}
+          alt={item.title}
+          loading="lazy"
+          onError={() => setImgError(true)}
+        />
         <div className={styles.labelBadge}>{item.label || "Terkini"}</div>
       </div>
+    );
+  };
+
+  const cardContent = (item: NewsItem) => (
+    <>
+      <CardImage item={item} />
       <div className={styles.cardBody}>
         <div className={styles.date}>
           <i className="bx bx-calendar" />
@@ -78,7 +101,6 @@ export default function NewsPage() {
           <p className={styles.heroSub}>Informasi terkini seputar JKT48.</p>
         </div>
       </div>
-
       <div className={styles.content}>
         {loading ? (
           <div className={styles.skeletons}>
@@ -107,7 +129,7 @@ export default function NewsPage() {
                   {cardContent(item)}
                 </Link>
               ) : (
-                <a
+                
                   key={item.id || idx}
                   href={item.link_url}
                   target="_blank"
