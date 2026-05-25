@@ -33,9 +33,9 @@
   font-family: var(--serif);
   font-size: 1.8rem;
   font-weight: 900;
-  letter-spacing: .2em;
+  letter-spacing: 0.2em;
   color: var(--primary);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .logoDot {
@@ -66,7 +66,7 @@
   justify-content: center;
   font-size: 1.4rem;
   color: var(--fg-muted);
-  transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .socials a:hover {
@@ -84,10 +84,10 @@
 }
 
 .title {
-  font-size: .8rem;
+  font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: .15em;
+  letter-spacing: 0.15em;
   color: var(--gold);
   margin-bottom: 32px;
 }
@@ -100,10 +100,10 @@
 }
 
 .links a {
-  font-size: .95rem;
+  font-size: 0.95rem;
   color: var(--fg-muted);
   font-weight: 500;
-  transition: all .2s;
+  transition: all 0.2s;
 }
 
 .links a:hover {
@@ -123,7 +123,7 @@
 }
 
 .copy {
-  font-size: .9rem;
+  font-size: 0.9rem;
   color: var(--fg-dim);
   font-weight: 500;
 }
@@ -139,10 +139,10 @@
 }
 
 .bottomLinks a {
-  font-size: .85rem;
+  font-size: 0.85rem;
   color: var(--fg-dim);
   font-weight: 600;
-  transition: color .2s;
+  transition: color 0.2s;
 }
 
 .bottomLinks a:hover {
@@ -150,17 +150,34 @@
 }
 
 @media (max-width: 1000px) {
-  .top { grid-template-columns: 1fr; gap: 80px; }
-  .grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
-  .container { padding: 0 24px; }
+  .top {
+    grid-template-columns: 1fr;
+    gap: 80px;
+  }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  .container {
+    padding: 0 24px;
+  }
 }
 
 @media (max-width: 700px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 560px) {
-  .grid { grid-template-columns: 1fr; }
-  .bottom { justify-content: center; text-align: center; }
-  .bottomLinks { justify-content: center; }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .bottom {
+    justify-content: center;
+    text-align: center;
+  }
+  .bottomLinks {
+    justify-content: center;
+  }
 }
