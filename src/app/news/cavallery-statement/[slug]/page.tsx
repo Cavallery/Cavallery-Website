@@ -47,8 +47,9 @@ function renderContent(content: string) {
   ));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const news = await getNewsDetail(params.slug);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const news = await getNewsDetail(slug);
   return {
     title: news?.title ?? "Berita Cavallery",
     description: news?.description ?? "",
@@ -58,9 +59,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function CavalleryStatementDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const news = await getNewsDetail(params.slug);
+  const { slug } = await params;
+  const news = await getNewsDetail(slug);
 
   if (!news) notFound();
 
