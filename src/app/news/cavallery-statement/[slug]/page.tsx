@@ -115,21 +115,17 @@ export default async function CavalleryStatementDetailPage({
             </h3>
             <div className={styles.evidenceGrid}>
               {extraImages.map((url, i) => (
-                
-                  key={i}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.evidenceFrame}
-                >
-                  <img
-                    src={url}
-                    alt={`Bukti dokumentasi ${i + 1}`}
-                    style={{ width: "100%", height: "auto" }}
-                    loading="lazy"
-                  />
-                </a>
-              ))}
+  <div key={i} className={styles.evidenceFrame}>
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      <img
+        src={url}
+        alt={`Bukti dokumentasi ${i + 1}`}
+        style={{ width: "100%", height: "auto" }}
+        loading="lazy"
+      />
+    </a>
+  </div>
+))}
             </div>
           </div>
         )}
