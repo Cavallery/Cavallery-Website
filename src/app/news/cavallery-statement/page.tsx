@@ -1,42 +1,51 @@
 import Link from "next/link";
 import styles from "../page.module.css";
 
-interface CavalleryNewsItem {
+interface NewsItem {
   id: string;
+  slug: string;
   title: string;
   label: string;
-  date: string;
-  link_url: string;
-  image_url: string;
   description: string;
+  image_url: string;
+  link_url: string;
+  is_internal: boolean;
+  published_at: string;
 }
 
-const CAVALLERY_NEWS: CavalleryNewsItem[] = [
-  {
-    id: "cavallery-statement-2026",
-    title: "Pernyataan Resmi Cavallery",
-    label: "Resmi",
-    date: "2026-05-19T00:00:00",
-    link_url: "/news/cavallery-statement/detail",
-    image_url: "/images/cava-logo.jpg",
-    description:
-      "Cavallery menyadari bahwa dalam beberapa hari terakhir telah beredar sejumlah unggahan bernada ancaman dan pembahasan yang mengarah pada ancaman secara langsung terhadap Erine.",
-  },
-];
+async function getCavalleryNews(): Promise<NewsItem[]> {
+  try {
+    const res = await fetch(
+      "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT",
+      { next: { revalidate: 60 } } // ISR: revalidate every 60s
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json?.data?.news ?? [];
+  } catch {
+    return [];
+  }
+}
 
 export const metadata = {
   title: "News Cavallery",
   description: "Berita dan pernyataan resmi dari Cavallery, fanbase Erine JKT48.",
 };
 
-export default function CavalleryNewsPage() {
+export default async function CavalleryNewsPage() {
+  const news = await getCavalleryNews();
+
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroBg} />
         <div className={styles.heroInner}>
-          <div className="badge"><i className="bx bx-shield-quarter" /> Berita Cavallery</div>
-          <h1 className={styles.heroTitle}>News <span className="textGold">Cavallery</span></h1>
+          <div className="badge">
+            <i className="bx bx-shield-quarter" /> Berita Cavallery
+          </div>
+          <h1 className={styles.heroTitle}>
+            News <span className="textGold">Cavallery</span>
+          </h1>
           <p className={styles.heroSub}>
             Pernyataan resmi dan berita dari fanbase Cavallery.
           </p>
@@ -44,19 +53,19 @@ export default function CavalleryNewsPage() {
       </div>
 
       <div className={styles.content}>
-        {CAVALLERY_NEWS.length === 0 ? (
+        {news.length === 0 ? (
           <div className={styles.empty}>
             <i className="bx bx-news" />
             <p>Belum ada berita yang tersedia.</p>
           </div>
         ) : (
           <div className={styles.grid}>
-            {CAVALLERY_NEWS.map((item) => (
+            {news.map((item) => (
               <Link
-                key={item.id}
-                href={item.link_url}
-                className={`glassCard ${styles.card}`}
-              >
+  key={item.id}
+  href={`/news/cavallery-statement/${item.slug}`}  // ← pakai slug
+  className={`glassCard ${styles.card}`}
+>
                 <div className={styles.imgWrap}>
                   <img src={item.image_url} alt={item.title} loading="lazy" />
                   <div className={styles.labelBadge}>{item.label}</div>
@@ -64,8 +73,10 @@ export default function CavalleryNewsPage() {
                 <div className={styles.cardBody}>
                   <div className={styles.date}>
                     <i className="bx bx-calendar" />
-                    {new Date(item.date).toLocaleDateString("id-ID", {
-                      day: "numeric", month: "long", year: "numeric",
+                    {new Date(item.published_at).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
                     })}
                   </div>
                   <h2 className={styles.cardTitle}>{item.title}</h2>
