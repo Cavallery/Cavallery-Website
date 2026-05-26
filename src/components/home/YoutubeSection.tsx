@@ -11,6 +11,12 @@ interface YtVideo {
 }
 
 const VIDEOS: YtVideo[] = [
+    {
+    title: "FOR YOUR INSIGHT - ERINE & DELYNN TAU ISTILAH-ISTILAH INI GAK YA??",
+    url: "https://youtu.be/TMfowp-RC4U?si=ipZnxV7VjUXy4Fn-",
+    id: "TMfowp-RC4U",
+    category: "For Your Insight"
+  },
   {
     title: "Q&A ABOUT JKT48 TEAM PASSION - PASSION 200%",
     url: "https://youtu.be/dpg5K1eKuEQ?si=Vo8lyMnZ6HAImE7U",

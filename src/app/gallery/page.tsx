@@ -13,21 +13,27 @@ interface GalleryItem {
 const initialGalleryItems: GalleryItem[] = [
   {
     id: 1,
-    src: "/images/erine1.jpg",
-    title: "Erine JKT48 Trainee - Momen JakJapan Matsuri",
-    date: "18 November 2023",
+    src: "/images/gallery/erine-gallery-1.jpg",
+    title: "Selfie Manis Erine Bersama Member",
+    date: "2026",
   },
   {
     id: 2,
-    src: "/images/erine2.jpg",
-    title: "Momen Te Wo Tsunaginagara - Erine",
-    date: "Desember 2023",
+    src: "/images/gallery/erine-gallery-2.jpg",
+    title: "Keseruan Backstage Teater Cara Meminum Ramune",
+    date: "2026",
   },
   {
     id: 3,
-    src: "/images/erine3.jpg",
-    title: "Erine JKT48 Promotional Banner",
-    date: "2024",
+    src: "/images/gallery/erine-gallery-3.jpg",
+    title: "Erine dengan Gaya Denim Kasual yang Keren",
+    date: "2026",
+  },
+  {
+    id: 4,
+    src: "/images/gallery/erine-gallery-4.jpg",
+    title: "Ekspresi Lucu dan Grumpy Menggemaskan Erine",
+    date: "2026",
   },
 ];
 
@@ -56,10 +62,6 @@ export default function GalleryPage() {
             onClick={() => setSelectedItem(item)}
           >
             <img src={item.src} alt={item.title} className={styles.cardImg} />
-            <div className={styles.cardBody}>
-              <h3 className={styles.cardTitle}>{item.title}</h3>
-              <p className={styles.cardDate}>{item.date}</p>
-            </div>
           </div>
         ))}
       </div>
@@ -70,10 +72,7 @@ export default function GalleryPage() {
             <i className="bx bx-x" />
           </button>
           <img src={selectedItem.src} alt={selectedItem.title} className={styles.lightboxImg} />
-          <div className={styles.lightboxCaption}>
-            <h3>{selectedItem.title}</h3>
-            <p>{selectedItem.date}</p>
-          </div>
+
         </div>
       )}
     </div>
