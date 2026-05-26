@@ -200,7 +200,7 @@ export default function AboutErineSection() {
                       <span>Bekasi, Jawa Barat, Indonesia</span>
                       <div className={styles.mapIcon}>
                         <img
-                          src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png"
+                          src="/images/bekasi.png"
                           alt="Bekasi"
                         />
                       </div>
@@ -408,13 +408,7 @@ export default function AboutErineSection() {
             <ul>
               <li>
                 <span className={styles.lbl2}>Setiap Hari Jumat</span>
-                <a
-                  href="https://cavallery.id/diesvenerine/"
-                  target="_blank"
-                  className={styles.tag}
-                >
-                  #DiesVenErine
-                </a>
+                <span className={styles.tag}>#DiesVenErine</span>
               </li>
               <li>
                 <span className={styles.lbl2}>Setiap Jurnal</span>
@@ -551,7 +545,7 @@ export default function AboutErineSection() {
                 className={styles.electionItem}
                 onClick={() =>
                   openModal(
-                    "https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg",
+                    "/images/about/timeline-2024-8.jpeg",
                     "Result Rank #18",
                     "Erine berhasil mendapatkan posisi ke 18.",
                   )
@@ -559,7 +553,7 @@ export default function AboutErineSection() {
               >
                 <div className={styles.electionImg}>
                   <img
-                    src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg"
+                    src="/images/about/timeline-2024-8.jpeg"
                     alt="Rank"
                   />
                 </div>

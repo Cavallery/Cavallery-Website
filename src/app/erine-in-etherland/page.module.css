@@ -190,23 +190,6 @@
   color: var(--fg-muted);
 }
 
-@media (max-width: 900px) {
-  .gameContainer { grid-template-columns: 1fr; }
-  .gameMeta { padding: 30px; text-align: center; align-items: center; }
-}
-
-@media (max-width: 900px) {
-  .playerGrid { grid-template-columns: 1fr; }
-  .sceneList { max-height: unset; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-  .sceneBtn { flex-direction: column; min-width: 120px; align-items: flex-start; }
-  .plaqueGrid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 560px) {
-  .plaqueGrid { grid-template-columns: 1fr; }
-}
-
-
-
 .errorPlayer {
   width: 100%;
   aspect-ratio: 16/9;
@@ -234,198 +217,80 @@
   pointer-events: none;
 }
 
-/* #CATHERINE17 PROJECT */
-.catSection {
-.sceneTitle { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--gold); margin-bottom: 6px; }
-.sceneDesc { font-size: .875rem; color: var(--fg-muted); line-height: 1.6; font-weight: 300; }
-
-.sceneList {
-  display: flex; flex-direction: column; gap: 8px;
-  max-height: 520px; overflow-y: auto; padding-right: 4px;
-}
-.sceneList::-webkit-scrollbar { width: 4px; }
-.sceneList::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 2px; }
-
-.sceneBtn {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 16px; border-radius: 14px;
-  background: var(--surface); border: 1px solid transparent;
-  text-align: left; cursor: pointer;
-  transition: background .2s, border-color .2s, transform .2s;
-}
-.sceneBtn:hover { background: var(--surface-2); border-color: var(--border); transform: translateX(4px); }
-.sceneBtnActive { background: var(--gold-dim) !important; border-color: var(--border-gold) !important; }
-
-.sceneNum {
-  font-family: var(--serif); font-size: 1.4rem; font-weight: 800;
-  color: var(--fg-dim); width: 32px; flex-shrink: 0;
-  line-height: 1;
-}
-.sceneBtnActive .sceneNum { color: var(--gold); }
-
-.sceneLabel { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-.sceneLabelTitle { font-size: .875rem; font-weight: 700; color: var(--fg); }
-.sceneLabelDesc { font-size: .75rem; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.scenePlay { font-size: 1.4rem; color: var(--fg-dim); flex-shrink: 0; }
-.sceneBtnActive .scenePlay { color: var(--gold); }
-
-/* CONTRIBUTORS */
-.contribSection {
-  max-width: 1200px; margin: 0 auto;
-  padding: 0 24px 100px;
-}
-.contribHeader { text-align: center; margin-bottom: 48px; }
-.contribSub { color: var(--fg-muted); font-size: .9rem; font-weight: 300; max-width: 480px; margin: 0 auto; line-height: 1.7; }
-
-.plaqueGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px; margin-bottom: 40px;
-}
-
-.plaque {
-  position: relative;
-  padding: 32px 20px;
-  border-radius: 16px;
-  border: 2px solid var(--border-gold);
-  background: linear-gradient(135deg, rgba(212,175,55,0.06), rgba(212,175,55,0.02));
-  text-align: center;
-  transition: transform .3s, box-shadow .3s;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-}
-.plaque:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(212,175,55,0.2); }
-
-.plaqueStar {
-  position: absolute;
-  font-size: .7rem; color: var(--gold); opacity: .7;
-}
-.plaqueStar:nth-child(1) { top: 8px; left: 12px; }
-.plaqueStar:nth-child(2) { top: 8px; right: 12px; }
-.plaqueStar:nth-child(3) { bottom: 8px; left: 12px; }
-.plaqueStar:nth-child(4) { bottom: 8px; right: 12px; }
-
-.plaqueName { font-family: var(--serif); font-size: 1.05rem; font-weight: 700; color: var(--fg); }
-.plaqueHandle { font-size: .8rem; color: var(--gold); font-style: italic; }
-
-.contribNav {
-  display: flex; align-items: center; justify-content: center; gap: 12px;
-}
-.navBtn {
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid var(--border); background: var(--surface);
-  color: var(--fg-muted); font-size: 1.3rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color .2s, color .2s, background .2s;
-}
-.navBtn:hover:not(:disabled) { border-color: var(--border-gold); color: var(--gold); background: var(--gold-dim); }
-.navBtn:disabled { opacity: .3; cursor: not-allowed; }
-
-.dotBtn {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--surface-2); border: none;
-  transition: background .2s, transform .2s;
-}
-.dotActive { background: var(--gold); transform: scale(1.4); }
-
-/* GAME SECTION */
-.gameSection {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 60px 24px 100px;
-}
-.gameHeader { text-align: center; margin-bottom: 40px; }
-.gameSub { color: var(--fg-muted); font-size: .95rem; margin-top: 10px; }
-
-.gameContainer {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-}
-
-.gameFrameWrapper {
-  background: transparent;
-  aspect-ratio: 16/9;
-  position: relative;
-}
-
-.gameFrame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-.gameMeta {
-  padding: 40px 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-}
-
-.gameBadge {
-  color: var(--gold);
-  font-weight: 800;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.gameMeta p {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--fg-muted);
-}
-
 @media (max-width: 900px) {
-  .gameContainer { grid-template-columns: 1fr; }
-  .gameMeta { padding: 30px; text-align: center; align-items: center; }
+  .hero {
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+  
+  .playerSection {
+    padding: 40px 16px 40px;
+  }
+  
+  .playerGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .sceneList {
+    max-height: unset;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 4px 16px;
+    gap: 12px;
+    scrollbar-width: none;
+  }
+  
+  .sceneList::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .sceneBtn {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    min-width: 180px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  
+  .sceneBtn:hover {
+    transform: none;
+  }
+  
+  .sceneLabelDesc {
+    display: none;
+  }
+  
+  .gameSection {
+    padding: 40px 16px 60px;
+  }
+  
+  .gameContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .gameMeta {
+    padding: 30px 20px;
+    text-align: center;
+    align-items: center;
+  }
+  
+  .contribSection {
+    padding: 0 16px 60px;
+  }
+  
+  .plaqueGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
 }
 
-@media (max-width: 900px) {
-  .playerGrid { grid-template-columns: 1fr; }
-  .sceneList { max-height: unset; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-  .sceneBtn { flex-direction: column; min-width: 120px; align-items: flex-start; }
-  .plaqueGrid { grid-template-columns: repeat(2, 1fr); }
-}
 @media (max-width: 560px) {
-  .plaqueGrid { grid-template-columns: 1fr; }
-}
-
-
-
-.errorPlayer {
-  width: 100%;
-  aspect-ratio: 16/9;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  background: linear-gradient(135deg, #100f0d 0%, #1a1712 100%);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  border-radius: 20px 20px 0 0;
-  padding: 24px;
-}
-
-.errorPlayerGlow {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
-  filter: blur(50px);
-  opacity: 0.5;
-  pointer-events: none;
-}
+  .plaqueGrid {
+    grid-template-columns: 1fr;
+  }
 }

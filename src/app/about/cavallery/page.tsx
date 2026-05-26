@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import styles from "./page.module.css";
 import PetaDomisili from "@/components/PetaDomisili/PetaDomisili";
 import SectionDivider from "@/components/SectionDivider";
+import CavalleryGallery from "@/components/about/CavalleryGallery";
 
 export const metadata: Metadata = {
   title: "About Cavallery",
@@ -91,6 +92,11 @@ export default function AboutCavalleryPage() {
           <div className="divider" style={{ marginBottom: 32 }} />
           <PetaDomisili />
         </div>
+
+        <SectionDivider />
+
+        {/* Galeri Foto */}
+        <CavalleryGallery />
 
         <SectionDivider />
 
