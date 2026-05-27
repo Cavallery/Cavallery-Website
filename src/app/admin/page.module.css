@@ -657,7 +657,7 @@
 .success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 .error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 
-:global([data-theme="dark"])] .success { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
+:global([data-theme="dark"]) .success { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
 :global([data-theme="dark"]) .error   { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
 
 @keyframes slideIn {
