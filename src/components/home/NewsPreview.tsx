@@ -117,7 +117,7 @@ export default function NewsPreview() {
                 {cardInner}
               </Link>
             ) : (
-              
+              <a
                 key={item.id ?? idx}
                 href={resolvedHref}
                 target="_blank"
