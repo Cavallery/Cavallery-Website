@@ -116,7 +116,9 @@ export default function Navbar() {
               </li>
             )
           )}
-          <ThemeToggle />
+          <li>
+            <ThemeToggle />
+          </li>
         </ul>
 
         {/* Mobile Toggle */}
@@ -157,6 +159,9 @@ export default function Navbar() {
               </Link>
             )
           )}
+          <div style={{ padding: "16px", display: "flex", justifyContent: "center", borderTop: "1px dashed var(--border)" }}>
+            <ThemeToggle />
+          </div>
         </div>
       )}
     </nav>
