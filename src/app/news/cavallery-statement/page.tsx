@@ -17,7 +17,7 @@ async function getCavalleryNews(): Promise<NewsItem[]> {
   try {
     const res = await fetch(
       "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT",
-      { next: { revalidate: 60 } } // ISR: revalidate every 60s
+      { cache: "no-store" } // Selalu ambil data terbaru (no cache)
     );
     if (!res.ok) return [];
     const json = await res.json();

@@ -19,7 +19,7 @@ async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
   try {
     const res = await fetch(
       `https://v5.jkt48connect.com/api/cavallery/news/${slug}?apikey=JKTCONNECT`,
-      { next: { revalidate: 60 } }
+      { cache: "no-store" }
     );
     if (!res.ok) return null;
     const json = await res.json();

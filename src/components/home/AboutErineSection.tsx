@@ -193,7 +193,7 @@ export default function AboutErineSection() {
                     <div className={styles.hometownContainer}>
                       <span>Bekasi, Jawa Barat, Indonesia</span>
                       <div className={styles.mapIcon}>
-                        <img src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png" alt="Bekasi" />
+                        <img src="/images/bekasi.png" alt="Bekasi" />
                       </div>
                     </div>
                   </td>
@@ -327,9 +327,7 @@ export default function AboutErineSection() {
             <ul>
               <li>
                 <span className={styles.lbl2}>Setiap Hari Jumat</span>
-                <a href="https://cavallery.id/diesvenerine/" target="_blank" rel="noopener noreferrer" className={styles.tag}>
-                  #DiesVenErine
-                </a>
+                <span className={styles.tag}>#DiesVenErine</span>
               </li>
               <li><span className={styles.lbl2}>Setiap Jurnal</span><span className={styles.tag}>#MemoRine</span></li>
               <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
@@ -412,10 +410,10 @@ export default function AboutErineSection() {
               </div>
               <div
                 className={styles.electionItem}
-                onClick={() => openModal("https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}
+                onClick={() => openModal("https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}
               >
                 <div className={styles.electionImg}>
-                  <img src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg" alt="Rank" />
+                  <img src="https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg" alt="Rank" />
                 </div>
                 <div className={styles.captionBox}>Erine di posisi #18 (Undergirls)</div>
               </div>
