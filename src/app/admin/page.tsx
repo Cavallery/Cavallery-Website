@@ -8,24 +8,17 @@ const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 
 type Section = "dashboard" | "news" | "timeline" | "gallery" | "setlists" | "stats" | "youtube" | "funfacts" | "kabesha";
 
-// ============================================================
-// ARRAY FIELD SANITIZER
-// Converts any value to a proper JS array before sending to API.
-// This prevents "could not parse "" as type string[]" errors.
-// ============================================================
 function sanitizeArrayField(val: any): string[] {
   if (Array.isArray(val)) return val.map(String).filter(Boolean);
   if (val === null || val === undefined || val === "") return [];
   const s = String(val).trim();
   if (s === "") return [];
-  // JSON array string: ["a","b"]
   if (s.startsWith("[")) {
     try {
       const parsed = JSON.parse(s);
       if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
     } catch {}
   }
-  // PostgreSQL literal: {a,"b c"}
   if (s.startsWith("{") && s.endsWith("}")) {
     const inner = s.slice(1, -1);
     const items: string[] = [];
@@ -38,21 +31,15 @@ function sanitizeArrayField(val: any): string[] {
     if (current.trim()) items.push(current.trim());
     return items.filter(Boolean);
   }
-  // Plain CSV or single value
   return s.split(",").map(v => v.trim()).filter(Boolean);
 }
 
-// Array field keys per section — these will be sanitized before POST/PUT
 const ARRAY_FIELDS: Record<string, string[]> = {
   gallery:  ["tags"],
   news:     ["images"],
   setlists: ["songs"],
 };
 
-/**
- * Prepare payload before sending to API:
- * - Sanitize known array fields so they're always real arrays, never ""
- */
 function preparePayload(section: string, data: Record<string, any>): Record<string, any> {
   const payload = { ...data };
   const arrayKeys = ARRAY_FIELDS[section] ?? [];
@@ -152,7 +139,7 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
           {rows.length === 0 ? (
             <tr><td colSpan={cols.length + 1} className={styles.empty}><i className="bx bx-inbox" /> Tidak ada data</td></tr>
           ) : rows.map((row, i) => (
-            <tr key={row.id ?? i}>
+            <tr key={row.id ?? row.stat_key ?? i}>
               {cols.map(c => (
                 <td key={c.key}>{
                   typeof row[c.key] === "boolean" ? (row[c.key] ? "✓" : "✗") :
@@ -185,7 +172,6 @@ function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
   onClose: () => void;
   saving: boolean;
 }) {
-  // Display helper: convert array → comma-separated string for text inputs
   const displayValue = (key: string, val: any): string => {
     if (Array.isArray(val)) return val.join(", ");
     return String(val ?? "");
@@ -267,7 +253,6 @@ function SectionManager({ section }: { section: Section }) {
         { key: "description", label: "Deskripsi Singkat", type: "textarea", rows: 2 },
         { key: "content", label: "Konten Lengkap", type: "textarea", rows: 6 },
         { key: "image_url", label: "URL Gambar Utama" },
-        // images is an array field — user types comma-separated URLs
         { key: "images", label: "URL Gambar Dokumentasi", hint: "pisahkan dengan koma", type: "textarea", rows: 2 },
         { key: "link_url", label: "Link URL" },
         { key: "published_at", label: "Tanggal Publish", type: "datetime-local" },
@@ -309,7 +294,6 @@ function SectionManager({ section }: { section: Section }) {
         { key: "image_url", label: "URL Gambar" },
         { key: "date_label", label: "Label Tanggal" },
         { key: "alt_text", label: "Alt Text" },
-        // tags is an array field — user types comma-separated
         { key: "tags", label: "Tags", hint: "pisahkan dengan koma, boleh kosong" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
@@ -330,13 +314,13 @@ function SectionManager({ section }: { section: Section }) {
         { key: "date_range", label: "Periode (cth: 1 Jan - Present)" },
         { key: "badge", label: "Badge (cth: 3 Shows)" },
         { key: "image_url", label: "URL Gambar" },
-        // songs is an array field — user types comma-separated
         { key: "songs", label: "Songs", hint: "pisahkan dengan koma, cth: Lagu A, Lagu B", type: "textarea", rows: 3 },
         { key: "show_count", label: "Jumlah Show", type: "number" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
     },
+    // FIX: stats listKey tetap "" tapi load() sekarang cek Array.isArray(data) duluan
     stats: {
       endpoint: "/stats",
       listKey: "",
@@ -350,7 +334,7 @@ function SectionManager({ section }: { section: Section }) {
       fields: [
         { key: "stat_key", label: "Stat Key (cth: total_shows)" },
         { key: "label", label: "Label" },
-        { key: "value", label: "Nilai" },
+        { key: "value", label: "Nilai", type: "number" },
         { key: "icon", label: "Icon (cth: bx-calendar)" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
@@ -417,31 +401,58 @@ function SectionManager({ section }: { section: Section }) {
       const res = await fetch(api(c.endpoint));
       const json = await res.json();
       const data = json?.data;
-      if (Array.isArray(data)) setRows(data);
-      else if (c.listKey && data?.[c.listKey]) setRows(data[c.listKey]);
-      else if (data?.news)   setRows(data.news);
-      else if (data?.items)  setRows(data.items);
-      else if (data?.videos) setRows(data.videos);
-      else if (data?.events) setRows(data.events);
-      else setRows([]);
-    } catch { setRows([]); }
+
+      // FIX: cek Array.isArray duluan sebelum cek listKey
+      // stats & funfacts & kabesha return { data: [...] } langsung array
+      if (Array.isArray(data)) {
+        setRows(data);
+      } else if (data?.news) {
+        setRows(data.news);
+      } else if (data?.items) {
+        setRows(data.items);
+      } else if (data?.videos) {
+        setRows(data.videos);
+      } else if (data?.events) {
+        setRows(data.events);
+      } else if (c.listKey && data?.[c.listKey]) {
+        setRows(data[c.listKey]);
+      } else {
+        setRows([]);
+      }
+    } catch {
+      setRows([]);
+    }
     setLoading(false);
   }, [section]);
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd = () => { setFormData({ is_active: true }); setModal("add"); };
-  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
+  const openAdd = () => {
+    setFormData({ is_active: true, sort_order: 0 });
+    setModal("add");
+  };
+
+  const openEdit = (row: any) => {
+    setFormData({ ...row });
+    setModal("edit");
+  };
 
   const save = async () => {
     setSaving(true);
     try {
       const isEdit = modal === "edit";
+
+      // FIX: stats edit pakai stat_key, youtube pakai video_id, lainnya pakai id
+      const editId = section === "stats"
+        ? formData.stat_key
+        : section === "youtube"
+          ? formData.video_id
+          : formData.id;
+
       const url = isEdit
-        ? api(`${c.endpoint}/${section === "stats" ? formData.stat_key : formData.id}`)
+        ? api(`${c.endpoint}/${editId}`)
         : api(c.endpoint);
 
-      // FIX: sanitize array fields before sending to API
       const payload = preparePayload(section, formData);
 
       const res = await fetch(url, {
@@ -457,18 +468,23 @@ function SectionManager({ section }: { section: Section }) {
       } else {
         showToast(json.message || "Gagal menyimpan", "error");
       }
-    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
     setSaving(false);
   };
 
   const del = async (row: any) => {
+    // FIX: tutup modal confirm duluan supaya tidak stuck
+    setConfirm(null);
     try {
-      // FIX: for youtube, always use video_id (string) not UUID id to avoid type mismatch
+      // FIX: stats pakai stat_key, youtube pakai video_id, lainnya pakai id
       const id = section === "stats"
         ? row.stat_key
         : section === "youtube"
-          ? row.video_id   // ← use video_id (plain string, not UUID)
+          ? row.video_id
           : row.id;
+
       const res = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
       const json = await res.json();
       if (json.status) {
@@ -477,8 +493,9 @@ function SectionManager({ section }: { section: Section }) {
       } else {
         showToast(json.message || "Gagal menghapus", "error");
       }
-    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
-    setConfirm(null);
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
   };
 
   if (section === "dashboard") return null;
@@ -488,7 +505,7 @@ function SectionManager({ section }: { section: Section }) {
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       {confirm && (
         <ConfirmModal
-          msg={`Hapus "${confirm.title || confirm.label || confirm.content?.slice(0, 40) || "item ini"}"?`}
+          msg={`Hapus "${confirm.title || confirm.label || confirm.stat_key || confirm.content?.slice(0, 40) || "item ini"}"?`}
           onConfirm={() => del(confirm)}
           onCancel={() => setConfirm(null)}
         />
@@ -535,16 +552,21 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "youtube",   path: "/youtube",   listKey: "videos" },
       { key: "funfacts",  path: "/funfacts",  listKey: "" },
       { key: "kabesha",   path: "/kabesha",   listKey: "" },
+      { key: "stats",     path: "/stats",     listKey: "" },
     ];
-    endpoints.forEach(async ({ key, path, listKey }) => {
+    endpoints.forEach(async ({ key, path }) => {
       try {
         const res  = await fetch(api(path));
         const json = await res.json();
         const data = json?.data;
         let count = 0;
+        // FIX: cek Array.isArray duluan untuk stats/funfacts/kabesha/setlists
         if (Array.isArray(data)) count = data.length;
         else if (data?.total !== undefined) count = data.total;
-        else if (listKey && data?.[listKey]) count = data[listKey].length;
+        else if (data?.news)   count = data.news.length;
+        else if (data?.items)  count = data.items.length;
+        else if (data?.videos) count = data.videos.length;
+        else if (data?.events) count = data.events.length;
         setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
@@ -620,7 +642,6 @@ export default function AdminPage() {
 
   return (
     <div className={styles.adminWrap}>
-      {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sideOpen ? styles.open : ""}`}>
         <div className={styles.sideTop}>
           <div className={styles.sideLogo}>
