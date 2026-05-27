@@ -1,13 +1,18 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import styles from "./page.module.css";
 
 const API_BASE = "https://v5.jkt48connect.com/api/cavallery";
-const API_KEY = "JKTCONNECT";
+const API_KEY  = "JKTCONNECT";
 const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 
-type Section = "dashboard" | "news" | "timeline" | "gallery" | "setlists" | "stats" | "youtube" | "funfacts" | "kabesha";
+type Section =
+  | "dashboard" | "news"     | "timeline" | "gallery"
+  | "setlists"  | "stats"    | "youtube"  | "funfacts"
+  | "kabesha"   | "media";
 
+// ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
   if (Array.isArray(val)) return val.map(String).filter(Boolean);
   if (val === null || val === undefined || val === "") return [];
@@ -49,15 +54,10 @@ function preparePayload(section: string, data: Record<string, any>): Record<stri
   return payload;
 }
 
-// ─── PORTAL WRAPPER — bypass website navbar/layout ────────────
-// Renders children into a fixed full-screen overlay via useEffect
-import { useRef } from "react";
-import { createPortal } from "react-dom";
-
+// ─── ADMIN PORTAL ─────────────────────────────────────────────
 function AdminPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    // Hide website header/navbar while admin is open
     const siteHeader = document.querySelector("header") as HTMLElement | null;
     const siteNav    = document.querySelector("nav")    as HTMLElement | null;
     if (siteHeader) siteHeader.style.display = "none";
@@ -76,9 +76,9 @@ function AdminPortal({ children }: { children: React.ReactNode }) {
 
 // ─── LOGIN ────────────────────────────────────────────────────
 function LoginPage({ onLogin }: { onLogin: () => void }) {
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
-  const [err, setErr]   = useState("");
+  const [user, setUser]   = useState("");
+  const [pass, setPass]   = useState("");
+  const [err, setErr]     = useState("");
   const [loading, setLoading] = useState(false);
 
   const submit = () => {
@@ -189,8 +189,284 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
   );
 }
 
-// ─── MODAL FORM ───────────────────────────────────────────────
-function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
+// ─── MEDIA UPLOAD MODAL ───────────────────────────────────────
+function MediaUploadModal({
+  onClose,
+  onUploaded,
+}: {
+  onClose: () => void;
+  onUploaded: (url: string) => void;
+}) {
+  const [files, setFiles]         = useState<File[]>([]);
+  const [folder, setFolder]       = useState("cavallery/images");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress]   = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setFiles(Array.from(e.target.files));
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) setFiles(Array.from(e.dataTransfer.files));
+  };
+
+  const upload = async () => {
+    if (files.length === 0) return;
+    setUploading(true);
+    setProgress([]);
+
+    if (files.length === 1) {
+      const fd = new FormData();
+      fd.append("file", files[0]);
+      fd.append("folder", folder);
+      fd.append("alt_text", files[0].name);
+      try {
+        const res  = await fetch(api("/media/upload"), { method: "POST", body: fd });
+        const json = await res.json();
+        if (json.status) {
+          setProgress([`✓ ${files[0].name} — berhasil`]);
+          onUploaded(json.data.public_url);
+        } else {
+          setProgress([`✗ ${files[0].name} — ${json.message}`]);
+        }
+      } catch {
+        setProgress([`✗ ${files[0].name} — error jaringan`]);
+      }
+    } else {
+      const fd = new FormData();
+      files.forEach(f => fd.append("files[]", f));
+      fd.append("folder", folder);
+      try {
+        const res  = await fetch(api("/media/upload-multiple"), { method: "POST", body: fd });
+        const json = await res.json();
+        const logs: string[] = [];
+        (json.data?.uploaded ?? []).forEach((u: any) => logs.push(`✓ ${u.original_name}`));
+        (json.data?.errors   ?? []).forEach((e: any) => logs.push(`✗ ${e.name} — ${e.reason}`));
+        setProgress(logs);
+        if (json.data?.uploaded?.length > 0) onUploaded(json.data.uploaded[0].public_url);
+      } catch {
+        setProgress(["✗ Error jaringan"]);
+      }
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.formModal} style={{ maxWidth: 520 }} onClick={e => e.stopPropagation()}>
+        <div className={styles.formModalHeader}>
+          <h3><i className="bx bx-upload" /> Upload Media</h3>
+          <button className={styles.closeX} onClick={onClose}><i className="bx bx-x" /></button>
+        </div>
+        <div className={styles.formBody}>
+          <div
+            className={styles.dropZone}
+            onDragOver={e => e.preventDefault()}
+            onDrop={handleDrop}
+            onClick={() => inputRef.current?.click()}
+          >
+            <i className="bx bx-cloud-upload" style={{ fontSize: "2.5rem", opacity: 0.5 }} />
+            <p>Drag & drop atau <u>klik untuk pilih file</u></p>
+            <small>JPEG, PNG, WEBP, GIF, MP4, WEBM, MOV · Maks 10MB gambar / 200MB video</small>
+            <input
+              ref={inputRef} type="file" multiple style={{ display: "none" }}
+              accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+              onChange={handleFiles}
+            />
+          </div>
+
+          {files.length > 0 && (
+            <div className={styles.fileList}>
+              {files.map((f, i) => (
+                <div key={i} className={styles.fileItem}>
+                  <i className={`bx ${f.type.startsWith("video") ? "bx-video" : "bx-image"}`} />
+                  <span>{f.name}</span>
+                  <small>{(f.size / 1024 / 1024).toFixed(2)} MB</small>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className={styles.field}>
+            <label>Folder</label>
+            <select
+              value={folder}
+              onChange={e => setFolder(e.target.value)}
+              style={{
+                background: "var(--adm-surface)", color: "var(--adm-text)",
+                border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+              }}
+            >
+              <option value="cavallery/images">cavallery/images</option>
+              <option value="cavallery/videos">cavallery/videos</option>
+              <option value="gallery">gallery</option>
+              <option value="news">news</option>
+            </select>
+          </div>
+
+          {progress.length > 0 && (
+            <div className={styles.progressLog}>
+              {progress.map((p, i) => (
+                <div key={i} className={p.startsWith("✓") ? styles.logOk : styles.logErr}>{p}</div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className={styles.formFooter}>
+          <button className={styles.btnGhost} onClick={onClose}>Tutup</button>
+          <button className={styles.btnPrimary} onClick={upload} disabled={uploading || files.length === 0}>
+            {uploading
+              ? <><i className="bx bx-loader-alt bx-spin" /> Mengupload...</>
+              : <><i className="bx bx-upload" /> Upload {files.length > 0 ? `(${files.length})` : ""}</>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MEDIA PICKER MODAL ───────────────────────────────────────
+function MediaPickerModal({
+  onPick,
+  onClose,
+  type = "image",
+}: {
+  onPick: (url: string) => void;
+  onClose: () => void;
+  type?: "image" | "video" | "all";
+}) {
+  const [items, setItems]         = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState("");
+  const [folder, setFolder]       = useState("");
+  const [showUpload, setShowUpload] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (search) params.set("search", search);
+      if (folder) params.set("folder", folder);
+      if (type !== "all") params.set("type", type);
+      params.set("limit", "100");
+      const res  = await fetch(`${api("/media")}&${params}`);
+      const json = await res.json();
+      setItems(json?.data?.items ?? []);
+    } catch { setItems([]); }
+    setLoading(false);
+  }, [search, folder, type]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <>
+      <div className={styles.modalOverlay} onClick={onClose}>
+        <div
+          className={styles.formModal}
+          style={{ maxWidth: 760, width: "95vw" }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className={styles.formModalHeader}>
+            <h3><i className="bx bx-folder-open" /> Pilih Media</h3>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                className={styles.btnPrimary}
+                style={{ fontSize: 13 }}
+                onClick={() => setShowUpload(true)}
+              >
+                <i className="bx bx-upload" /> Upload Baru
+              </button>
+              <button className={styles.closeX} onClick={onClose}><i className="bx bx-x" /></button>
+            </div>
+          </div>
+          <div className={styles.formBody}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+              <input
+                placeholder="Cari nama file..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  flex: 1, minWidth: 160,
+                  background: "var(--adm-surface)", color: "var(--adm-text)",
+                  border: "1px solid var(--adm-border)", borderRadius: 6, padding: "7px 12px",
+                }}
+              />
+              <select
+                value={folder}
+                onChange={e => setFolder(e.target.value)}
+                style={{
+                  background: "var(--adm-surface)", color: "var(--adm-text)",
+                  border: "1px solid var(--adm-border)", borderRadius: 6, padding: "7px 12px",
+                }}
+              >
+                <option value="">Semua Folder</option>
+                <option value="cavallery/images">cavallery/images</option>
+                <option value="cavallery/videos">cavallery/videos</option>
+                <option value="gallery">gallery</option>
+                <option value="news">news</option>
+              </select>
+              <button className={styles.btnGhost} onClick={load}>
+                <i className="bx bx-refresh" />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat...</div>
+            ) : items.length === 0 ? (
+              <div style={{ padding: "40px 0", textAlign: "center", opacity: 0.4 }}>
+                <i className="bx bx-image-alt" style={{ fontSize: "2.5rem" }} />
+                <p>Belum ada media</p>
+              </div>
+            ) : (
+              <div className={styles.mediaGrid}>
+                {items.map(item => (
+                  <div
+                    key={item.id}
+                    className={styles.mediaThumbWrap}
+                    onClick={() => { onPick(item.public_url); onClose(); }}
+                  >
+                    {item.type === "video" ? (
+                      <div className={styles.videoThumb}>
+                        <i className="bx bx-video-recording" />
+                        <small>{item.original_name.slice(0, 20)}</small>
+                      </div>
+                    ) : (
+                      <img
+                        src={item.public_url}
+                        alt={item.alt_text || item.original_name}
+                        className={styles.mediaThumbImg}
+                        loading="lazy"
+                      />
+                    )}
+                    <div className={styles.mediaThumbLabel}>{item.original_name.slice(0, 22)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={styles.formFooter}>
+            <button className={styles.btnGhost} onClick={onClose}>Tutup</button>
+          </div>
+        </div>
+      </div>
+
+      {showUpload && (
+        <MediaUploadModal
+          onClose={() => { setShowUpload(false); load(); }}
+          onUploaded={() => { setShowUpload(false); load(); }}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── FORM MODAL ───────────────────────────────────────────────
+function FormModal({
+  title, fields, data, onChange, onSave, onClose, saving,
+}: {
   title: string;
   fields: { key: string; label: string; type?: string; rows?: number; hint?: string }[];
   data: Record<string, any>;
@@ -199,61 +475,349 @@ function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
   onClose: () => void;
   saving: boolean;
 }) {
+  const [pickerField, setPickerField] = useState<string | null>(null);
+
   const displayValue = (key: string, val: any): string => {
     if (Array.isArray(val)) return val.join(", ");
     return String(val ?? "");
   };
 
+  const isImageField = (key: string) =>
+    key === "image_url" || key === "images" || key === "img";
+
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.formModal} onClick={e => e.stopPropagation()}>
-        <div className={styles.formModalHeader}>
-          <h3>{title}</h3>
-          <button className={styles.closeX} onClick={onClose}><i className="bx bx-x" /></button>
-        </div>
-        <div className={styles.formBody}>
-          {fields.map(f => (
-            <div key={f.key} className={styles.field}>
-              <label>
-                {f.label}
-                {f.hint && <span className={styles.fieldHint}> — {f.hint}</span>}
-              </label>
-              {f.type === "textarea" ? (
-                <textarea rows={f.rows ?? 4} value={displayValue(f.key, data[f.key])}
-                  onChange={e => onChange(f.key, e.target.value)} />
-              ) : f.type === "checkbox" ? (
-                <label className={styles.toggle}>
-                  <input type="checkbox" checked={!!data[f.key]}
-                    onChange={e => onChange(f.key, e.target.checked)} />
-                  <span>{data[f.key] ? "Aktif" : "Nonaktif"}</span>
+    <>
+      <div className={styles.modalOverlay} onClick={onClose}>
+        <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+          <div className={styles.formModalHeader}>
+            <h3>{title}</h3>
+            <button className={styles.closeX} onClick={onClose}><i className="bx bx-x" /></button>
+          </div>
+          <div className={styles.formBody}>
+            {fields.map(f => (
+              <div key={f.key} className={styles.field}>
+                <label>
+                  {f.label}
+                  {f.hint && <span className={styles.fieldHint}> — {f.hint}</span>}
                 </label>
-              ) : (
-                <input type={f.type ?? "text"} value={displayValue(f.key, data[f.key])}
-                  onChange={e => onChange(f.key, e.target.value)} />
-              )}
-            </div>
-          ))}
+
+                {isImageField(f.key) ? (
+                  <>
+                    <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+                      <input
+                        style={{ flex: 1 }}
+                        type="text"
+                        value={displayValue(f.key, data[f.key])}
+                        onChange={e => onChange(f.key, e.target.value)}
+                        placeholder="URL gambar atau pilih dari media..."
+                      />
+                      <button
+                        type="button"
+                        className={styles.btnGhost}
+                        style={{ whiteSpace: "nowrap", fontSize: 13 }}
+                        onClick={() => setPickerField(f.key)}
+                      >
+                        <i className="bx bx-folder-open" /> Pilih
+                      </button>
+                    </div>
+                    {data[f.key] &&
+                      typeof data[f.key] === "string" &&
+                      !data[f.key].includes(",") && (
+                        <img
+                          src={data[f.key]}
+                          alt="preview"
+                          style={{
+                            marginTop: 6, maxHeight: 100, borderRadius: 6,
+                            objectFit: "cover", border: "1px solid var(--adm-border)",
+                          }}
+                          onError={e => (e.currentTarget.style.display = "none")}
+                        />
+                    )}
+                  </>
+                ) : f.type === "textarea" ? (
+                  <textarea
+                    rows={f.rows ?? 4}
+                    value={displayValue(f.key, data[f.key])}
+                    onChange={e => onChange(f.key, e.target.value)}
+                  />
+                ) : f.type === "checkbox" ? (
+                  <label className={styles.toggle}>
+                    <input
+                      type="checkbox"
+                      checked={!!data[f.key]}
+                      onChange={e => onChange(f.key, e.target.checked)}
+                    />
+                    <span>{data[f.key] ? "Aktif" : "Nonaktif"}</span>
+                  </label>
+                ) : (
+                  <input
+                    type={f.type ?? "text"}
+                    value={displayValue(f.key, data[f.key])}
+                    onChange={e => onChange(f.key, e.target.value)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className={styles.formFooter}>
+            <button className={styles.btnGhost} onClick={onClose}>Batal</button>
+            <button className={styles.btnPrimary} onClick={onSave} disabled={saving}>
+              {saving
+                ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                : <><i className="bx bx-save" /> Simpan</>
+              }
+            </button>
+          </div>
         </div>
-        <div className={styles.formFooter}>
-          <button className={styles.btnGhost} onClick={onClose}>Batal</button>
-          <button className={styles.btnPrimary} onClick={onSave} disabled={saving}>
-            {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan</>}
+      </div>
+
+      {pickerField && (
+        <MediaPickerModal
+          type="image"
+          onPick={url => { onChange(pickerField, url); setPickerField(null); }}
+          onClose={() => setPickerField(null)}
+        />
+      )}
+    </>
+  );
+}
+
+// ─── MEDIA MANAGER ────────────────────────────────────────────
+function MediaManager() {
+  const [items, setItems]           = useState<any[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState("");
+  const [folder, setFolder]         = useState("");
+  const [filterType, setFilterType] = useState("");
+  const [showUpload, setShowUpload] = useState(false);
+  const [confirm, setConfirm]       = useState<any>(null);
+  const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [selected, setSelected]     = useState<Set<string>>(new Set());
+  const [total, setTotal]           = useState(0);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (search)     params.set("search", search);
+      if (folder)     params.set("folder", folder);
+      if (filterType) params.set("type",   filterType);
+      params.set("limit", "100");
+      const res  = await fetch(`${api("/media")}&${params}`);
+      const json = await res.json();
+      setItems(json?.data?.items ?? []);
+      setTotal(json?.data?.total ?? 0);
+    } catch { setItems([]); }
+    setLoading(false);
+  }, [search, folder, filterType]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const deleteOne = async (item: any) => {
+    setConfirm(null);
+    try {
+      const res  = await fetch(api(`/media/${item.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) { showToast("Media berhasil dihapus", "success"); load(); }
+      else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Error jaringan", "error"); }
+  };
+
+  const deleteBulk = async () => {
+    setConfirm(null);
+    try {
+      const res  = await fetch(api("/media/bulk"), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected) }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast(`${selected.size} media dihapus`, "success");
+        setSelected(new Set());
+        load();
+      } else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Error jaringan", "error"); }
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && (
+        <ConfirmModal
+          msg={confirm.bulk
+            ? `Hapus ${selected.size} media yang dipilih?`
+            : `Hapus "${confirm.original_name}"?`}
+          onConfirm={() => confirm.bulk ? deleteBulk() : deleteOne(confirm)}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+      {showUpload && (
+        <MediaUploadModal
+          onClose={() => { setShowUpload(false); load(); }}
+          onUploaded={() => { setShowUpload(false); load(); }}
+        />
+      )}
+
+      {/* Header */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-folder-open" /> Media
+          <span className={styles.count}>{total} file</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          {selected.size > 0 && (
+            <button className={styles.btnDanger} onClick={() => setConfirm({ bulk: true })}>
+              <i className="bx bx-trash" /> Hapus ({selected.size})
+            </button>
+          )}
+          <button className={styles.btnPrimary} onClick={() => setShowUpload(true)}>
+            <i className="bx bx-upload" /> Upload
           </button>
         </div>
       </div>
+
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <input
+          placeholder="Cari nama file..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 180,
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        />
+        <select
+          value={folder}
+          onChange={e => setFolder(e.target.value)}
+          style={{
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        >
+          <option value="">Semua Folder</option>
+          <option value="cavallery/images">cavallery/images</option>
+          <option value="cavallery/videos">cavallery/videos</option>
+          <option value="gallery">gallery</option>
+          <option value="news">news</option>
+        </select>
+        <select
+          value={filterType}
+          onChange={e => setFilterType(e.target.value)}
+          style={{
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        >
+          <option value="">Semua Tipe</option>
+          <option value="image">Gambar</option>
+          <option value="video">Video</option>
+        </select>
+        <button className={styles.btnGhost} onClick={load}>
+          <i className="bx bx-refresh" /> Refresh
+        </button>
+      </div>
+
+      {/* Grid */}
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat media...</div>
+      ) : items.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-image-alt" style={{ fontSize: "3rem" }} />
+          <p>Belum ada media</p>
+        </div>
+      ) : (
+        <div className={styles.mediaGrid}>
+          {items.map(item => {
+            const sel = selected.has(item.id);
+            return (
+              <div
+                key={item.id}
+                className={`${styles.mediaCard} ${sel ? styles.mediaCardSelected : ""}`}
+              >
+                <div className={styles.mediaCheckbox} onClick={() => toggleSelect(item.id)}>
+                  <i className={`bx ${sel ? "bx-checkbox-checked" : "bx-checkbox"}`} />
+                </div>
+                {item.type === "video" ? (
+                  <div className={styles.videoThumb}>
+                    <i className="bx bx-video-recording" style={{ fontSize: "2.5rem" }} />
+                  </div>
+                ) : (
+                  <img
+                    src={item.public_url}
+                    alt={item.alt_text || item.original_name}
+                    className={styles.mediaCardImg}
+                    loading="lazy"
+                  />
+                )}
+                <div className={styles.mediaCardInfo}>
+                  <div className={styles.mediaCardName} title={item.original_name}>
+                    {item.original_name.length > 22
+                      ? item.original_name.slice(0, 20) + "…"
+                      : item.original_name}
+                  </div>
+                  <div className={styles.mediaCardMeta}>
+                    <span className={`${styles.typeBadge} ${item.type === "video" ? styles.typeBadgeVideo : styles.typeBadgeImage}`}>
+                      {item.type}
+                    </span>
+                    <span>{(item.file_size / 1024).toFixed(0)} KB</span>
+                  </div>
+                </div>
+                <div className={styles.mediaCardActions}>
+                  <button
+                    title="Salin URL"
+                    onClick={() => navigator.clipboard.writeText(item.public_url)}
+                    className={styles.btnEdit}
+                  >
+                    <i className="bx bx-copy" />
+                  </button>
+                  <a
+                    href={item.public_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.btnEdit}
+                    title="Buka"
+                  >
+                    <i className="bx bx-link-external" />
+                  </a>
+                  <button
+                    className={styles.btnDel}
+                    onClick={() => setConfirm(item)}
+                    title="Hapus"
+                  >
+                    <i className="bx bx-trash" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── SECTION MANAGER ──────────────────────────────────────────
 function SectionManager({ section }: { section: Section }) {
-  const [rows, setRows]     = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal]   = useState<"add" | "edit" | null>(null);
+  const [rows, setRows]         = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [modal, setModal]       = useState<"add" | "edit" | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  const [saving, setSaving] = useState(false);
-  const [confirm, setConfirm] = useState<any>(null);
-  const [toast, setToast]   = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [saving, setSaving]     = useState(false);
+  const [confirm, setConfirm]   = useState<any>(null);
+  const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
@@ -271,16 +835,17 @@ function SectionManager({ section }: { section: Section }) {
         { key: "published_at", label: "Tanggal" },
       ],
       fields: [
-        { key: "slug", label: "Slug" }, { key: "title", label: "Judul" },
-        { key: "label", label: "Label" },
-        { key: "description", label: "Deskripsi Singkat", type: "textarea", rows: 2 },
-        { key: "content", label: "Konten Lengkap", type: "textarea", rows: 6 },
-        { key: "image_url", label: "URL Gambar Utama" },
-        { key: "images", label: "URL Gambar Dokumentasi", hint: "pisahkan dengan koma", type: "textarea", rows: 2 },
-        { key: "link_url", label: "Link URL" },
-        { key: "published_at", label: "Tanggal Publish", type: "datetime-local" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
-        { key: "is_pinned", label: "Pin", type: "checkbox" },
+        { key: "slug",         label: "Slug" },
+        { key: "title",        label: "Judul" },
+        { key: "label",        label: "Label" },
+        { key: "description",  label: "Deskripsi Singkat",    type: "textarea", rows: 2 },
+        { key: "content",      label: "Konten Lengkap",       type: "textarea", rows: 6 },
+        { key: "image_url",    label: "URL Gambar Utama" },
+        { key: "images",       label: "URL Gambar Dokumentasi", hint: "pisahkan dengan koma", type: "textarea", rows: 2 },
+        { key: "link_url",     label: "Link URL" },
+        { key: "published_at", label: "Tanggal Publish",      type: "datetime-local" },
+        { key: "is_active",    label: "Aktif",                type: "checkbox" },
+        { key: "is_pinned",    label: "Pin",                  type: "checkbox" },
       ],
     },
     timeline: {
@@ -290,12 +855,14 @@ function SectionManager({ section }: { section: Section }) {
         { key: "title", label: "Judul" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "year", label: "Tahun" }, { key: "event_date", label: "Tanggal Event", type: "date" },
-        { key: "date_label", label: "Label Tanggal" }, { key: "title", label: "Judul" },
-        { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
-        { key: "image_url", label: "URL Gambar" },
-        { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "year",        label: "Tahun" },
+        { key: "event_date",  label: "Tanggal Event", type: "date" },
+        { key: "date_label",  label: "Label Tanggal" },
+        { key: "title",       label: "Judul" },
+        { key: "description", label: "Deskripsi",    type: "textarea", rows: 3 },
+        { key: "image_url",   label: "URL Gambar" },
+        { key: "sort_order",  label: "Urutan",       type: "number" },
+        { key: "is_active",   label: "Aktif",        type: "checkbox" },
       ],
     },
     gallery: {
@@ -305,11 +872,13 @@ function SectionManager({ section }: { section: Section }) {
         { key: "date_label", label: "Tanggal" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "title", label: "Judul" }, { key: "image_url", label: "URL Gambar" },
-        { key: "date_label", label: "Label Tanggal" }, { key: "alt_text", label: "Alt Text" },
-        { key: "tags", label: "Tags", hint: "pisahkan dengan koma, boleh kosong" },
+        { key: "title",      label: "Judul" },
+        { key: "image_url",  label: "URL Gambar" },
+        { key: "date_label", label: "Label Tanggal" },
+        { key: "alt_text",   label: "Alt Text" },
+        { key: "tags",       label: "Tags", hint: "pisahkan dengan koma, boleh kosong" },
         { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "is_active",  label: "Aktif",  type: "checkbox" },
       ],
     },
     setlists: {
@@ -320,14 +889,14 @@ function SectionManager({ section }: { section: Section }) {
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "title", label: "Judul" },
+        { key: "title",      label: "Judul" },
         { key: "date_range", label: "Periode (cth: 1 Jan - Present)" },
-        { key: "badge", label: "Badge (cth: 3 Shows)" },
-        { key: "image_url", label: "URL Gambar" },
-        { key: "songs", label: "Songs", hint: "pisahkan dengan koma", type: "textarea", rows: 3 },
+        { key: "badge",      label: "Badge (cth: 3 Shows)" },
+        { key: "image_url",  label: "URL Gambar" },
+        { key: "songs",      label: "Songs", hint: "pisahkan dengan koma", type: "textarea", rows: 3 },
         { key: "show_count", label: "Jumlah Show", type: "number" },
-        { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "sort_order", label: "Urutan",      type: "number" },
+        { key: "is_active",  label: "Aktif",       type: "checkbox" },
       ],
     },
     stats: {
@@ -338,11 +907,12 @@ function SectionManager({ section }: { section: Section }) {
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "stat_key", label: "Stat Key (cth: total_shows)" },
-        { key: "label", label: "Label" }, { key: "value", label: "Nilai", type: "number" },
-        { key: "icon", label: "Icon (cth: bx-calendar)" },
+        { key: "stat_key",   label: "Stat Key (cth: total_shows)" },
+        { key: "label",      label: "Label" },
+        { key: "value",      label: "Nilai",  type: "number" },
+        { key: "icon",       label: "Icon (cth: bx-calendar)" },
         { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "is_active",  label: "Aktif",  type: "checkbox" },
       ],
     },
     youtube: {
@@ -352,10 +922,11 @@ function SectionManager({ section }: { section: Section }) {
         { key: "video_id", label: "Video ID" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "title", label: "Judul" }, { key: "url", label: "URL YouTube" },
-        { key: "category", label: "Kategori" },
+        { key: "title",      label: "Judul" },
+        { key: "url",        label: "URL YouTube" },
+        { key: "category",   label: "Kategori" },
         { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "is_active",  label: "Aktif",  type: "checkbox" },
       ],
     },
     funfacts: {
@@ -365,9 +936,9 @@ function SectionManager({ section }: { section: Section }) {
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "content", label: "Konten Funfact", type: "textarea", rows: 3 },
-        { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "content",    label: "Konten Funfact", type: "textarea", rows: 3 },
+        { key: "sort_order", label: "Urutan",         type: "number" },
+        { key: "is_active",  label: "Aktif",          type: "checkbox" },
       ],
     },
     kabesha: {
@@ -377,32 +948,34 @@ function SectionManager({ section }: { section: Section }) {
         { key: "title", label: "Judul" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "year_label", label: "Label Tahun" }, { key: "title", label: "Judul" },
+        { key: "year_label",  label: "Label Tahun" },
+        { key: "title",       label: "Judul" },
         { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
-        { key: "image_url", label: "URL Gambar" },
-        { key: "sort_order", label: "Urutan", type: "number" },
-        { key: "is_active", label: "Aktif", type: "checkbox" },
+        { key: "image_url",   label: "URL Gambar" },
+        { key: "sort_order",  label: "Urutan",    type: "number" },
+        { key: "is_active",   label: "Aktif",     type: "checkbox" },
       ],
     },
     dashboard: { endpoint: "", listKey: "", cols: [], fields: [] },
+    media:     { endpoint: "", listKey: "", cols: [], fields: [] },
   };
 
   const c = cfg[section];
 
   const load = useCallback(async () => {
-    if (section === "dashboard") return;
+    if (section === "dashboard" || section === "media") return;
     setLoading(true);
     try {
       const res  = await fetch(api(c.endpoint));
       const json = await res.json();
       const data = json?.data;
-      if      (Array.isArray(data))              setRows(data);
-      else if (data?.news)                       setRows(data.news);
-      else if (data?.items)                      setRows(data.items);
-      else if (data?.videos)                     setRows(data.videos);
-      else if (data?.events)                     setRows(data.events);
-      else if (c.listKey && data?.[c.listKey])   setRows(data[c.listKey]);
-      else                                       setRows([]);
+      if      (Array.isArray(data))            setRows(data);
+      else if (data?.news)                     setRows(data.news);
+      else if (data?.items)                    setRows(data.items);
+      else if (data?.videos)                   setRows(data.videos);
+      else if (data?.events)                   setRows(data.events);
+      else if (c.listKey && data?.[c.listKey]) setRows(data[c.listKey]);
+      else                                     setRows([]);
     } catch { setRows([]); }
     setLoading(false);
   }, [section]);
@@ -419,12 +992,21 @@ function SectionManager({ section }: { section: Section }) {
       const editId = section === "stats"   ? formData.stat_key
                    : section === "youtube" ? formData.video_id
                    : formData.id;
-      const url    = isEdit ? api(`${c.endpoint}/${editId}`) : api(c.endpoint);
+      const url     = isEdit ? api(`${c.endpoint}/${editId}`) : api(c.endpoint);
       const payload = preparePayload(section, formData);
-      const res  = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const res     = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       const json = await res.json();
-      if (json.status) { showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success"); setModal(null); load(); }
-      else               showToast(json.message || "Gagal menyimpan", "error");
+      if (json.status) {
+        showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success");
+        setModal(null);
+        load();
+      } else {
+        showToast(json.message || "Gagal menyimpan", "error");
+      }
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
     setSaving(false);
   };
@@ -438,11 +1020,11 @@ function SectionManager({ section }: { section: Section }) {
       const res  = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
       const json = await res.json();
       if (json.status) { showToast("Berhasil dihapus!", "success"); load(); }
-      else               showToast(json.message || "Gagal menghapus", "error");
+      else showToast(json.message || "Gagal menghapus", "error");
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
-  if (section === "dashboard") return null;
+  if (section === "dashboard" || section === "media") return null;
 
   return (
     <div className={styles.sectionWrap}>
@@ -457,9 +1039,12 @@ function SectionManager({ section }: { section: Section }) {
       {modal && (
         <FormModal
           title={modal === "add" ? `Tambah ${section}` : `Edit ${section}`}
-          fields={c.fields} data={formData}
+          fields={c.fields}
+          data={formData}
           onChange={(k, v) => setFormData(prev => ({ ...prev, [k]: v }))}
-          onSave={save} onClose={() => setModal(null)} saving={saving}
+          onSave={save}
+          onClose={() => setModal(null)}
+          saving={saving}
         />
       )}
       <div className={styles.sectionHeader}>
@@ -467,7 +1052,9 @@ function SectionManager({ section }: { section: Section }) {
           <i className="bx bx-data" /> {section.charAt(0).toUpperCase() + section.slice(1)}
           <span className={styles.count}>{rows.length} item</span>
         </h2>
-        <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah</button>
+        <button className={styles.btnPrimary} onClick={openAdd}>
+          <i className="bx bx-plus" /> Tambah
+        </button>
       </div>
       {loading
         ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
@@ -491,32 +1078,34 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "funfacts", path: "/funfacts" },
       { key: "kabesha",  path: "/kabesha"  },
       { key: "stats",    path: "/stats"    },
+      { key: "media",    path: "/media"    },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
         const res  = await fetch(api(path));
         const json = await res.json();
         const data = json?.data;
         let count = 0;
-        if      (Array.isArray(data))            count = data.length;
-        else if (data?.total !== undefined)      count = data.total;
-        else if (data?.news)                     count = data.news.length;
-        else if (data?.items)                    count = data.items.length;
-        else if (data?.videos)                   count = data.videos.length;
-        else if (data?.events)                   count = data.events.length;
+        if      (Array.isArray(data))       count = data.length;
+        else if (data?.total !== undefined) count = data.total;
+        else if (data?.news)                count = data.news.length;
+        else if (data?.items)               count = data.items.length;
+        else if (data?.videos)              count = data.videos.length;
+        else if (data?.events)              count = data.events.length;
         setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
   }, []);
 
-  const cards = [
-    { key: "news"      as Section, icon: "bx-news",      label: "News",     color: "#b45309" },
-    { key: "timeline"  as Section, icon: "bx-history",   label: "Timeline", color: "#047857" },
-    { key: "gallery"   as Section, icon: "bx-image-alt", label: "Gallery",  color: "#7c3aed" },
-    { key: "setlists"  as Section, icon: "bx-music",     label: "Setlists", color: "#0369a1" },
-    { key: "youtube"   as Section, icon: "bxl-youtube",  label: "YouTube",  color: "#dc2626" },
-    { key: "funfacts"  as Section, icon: "bx-laugh",     label: "Funfacts", color: "#059669" },
-    { key: "kabesha"   as Section, icon: "bx-star",      label: "Kabesha",  color: "#d97706" },
-    { key: "stats"     as Section, icon: "bx-bar-chart", label: "Stats",    color: "#9333ea" },
+  const cards: { key: Section; icon: string; label: string; color: string }[] = [
+    { key: "news",      icon: "bx-news",        label: "News",     color: "#b45309" },
+    { key: "timeline",  icon: "bx-history",     label: "Timeline", color: "#047857" },
+    { key: "gallery",   icon: "bx-image-alt",   label: "Gallery",  color: "#7c3aed" },
+    { key: "setlists",  icon: "bx-music",       label: "Setlists", color: "#0369a1" },
+    { key: "youtube",   icon: "bxl-youtube",    label: "YouTube",  color: "#dc2626" },
+    { key: "funfacts",  icon: "bx-laugh",       label: "Funfacts", color: "#059669" },
+    { key: "kabesha",   icon: "bx-star",        label: "Kabesha",  color: "#d97706" },
+    { key: "stats",     icon: "bx-bar-chart",   label: "Stats",    color: "#9333ea" },
+    { key: "media",     icon: "bx-folder-open", label: "Media",    color: "#0891b2" },
   ];
 
   return (
@@ -530,8 +1119,12 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       </div>
       <div className={styles.dashGrid}>
         {cards.map(card => (
-          <button key={card.key} className={styles.dashCard} onClick={() => onNav(card.key)}
-            style={{ "--accent": card.color } as any}>
+          <button
+            key={card.key}
+            className={styles.dashCard}
+            onClick={() => onNav(card.key)}
+            style={{ "--accent": card.color } as any}
+          >
             <i className={`bx ${card.icon}`} style={{ color: card.color }} />
             <div className={styles.dashCardCount}>{counts[card.key] ?? "—"}</div>
             <div className={styles.dashCardLabel}>{card.label}</div>
@@ -544,22 +1137,23 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
 // ─── NAV ITEMS ────────────────────────────────────────────────
 const navItems: { key: Section; icon: string; label: string }[] = [
-  { key: "dashboard", icon: "bx-home-alt",  label: "Dashboard" },
-  { key: "news",      icon: "bx-news",      label: "News"      },
-  { key: "timeline",  icon: "bx-history",   label: "Timeline"  },
-  { key: "gallery",   icon: "bx-image-alt", label: "Gallery"   },
-  { key: "setlists",  icon: "bx-music",     label: "Setlists"  },
-  { key: "youtube",   icon: "bxl-youtube",  label: "YouTube"   },
-  { key: "funfacts",  icon: "bx-laugh",     label: "Funfacts"  },
-  { key: "kabesha",   icon: "bx-star",      label: "Kabesha"   },
-  { key: "stats",     icon: "bx-bar-chart", label: "Stats"     },
+  { key: "dashboard", icon: "bx-home-alt",    label: "Dashboard" },
+  { key: "news",      icon: "bx-news",        label: "News"      },
+  { key: "timeline",  icon: "bx-history",     label: "Timeline"  },
+  { key: "gallery",   icon: "bx-image-alt",   label: "Gallery"   },
+  { key: "setlists",  icon: "bx-music",       label: "Setlists"  },
+  { key: "youtube",   icon: "bxl-youtube",    label: "YouTube"   },
+  { key: "funfacts",  icon: "bx-laugh",       label: "Funfacts"  },
+  { key: "kabesha",   icon: "bx-star",        label: "Kabesha"   },
+  { key: "stats",     icon: "bx-bar-chart",   label: "Stats"     },
+  { key: "media",     icon: "bx-folder-open", label: "Media"     },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
-  const [authed,   setAuthed]   = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [active,   setActive]   = useState<Section>("dashboard");
+  const [authed,     setAuthed]     = useState(false);
+  const [checking,   setChecking]   = useState(true);
+  const [active,     setActive]     = useState<Section>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
@@ -581,7 +1175,6 @@ export default function AdminPage() {
 
   return (
     <AdminPortal>
-      {/* ── scoped CSS vars so admin styles don't conflict with site theme ── */}
       <style>{`
         .adm-root {
           --adm-bg:      #1a1a1a;
@@ -598,7 +1191,7 @@ export default function AdminPage() {
 
       <div className={`${styles.adminRoot} adm-root`}>
 
-        {/* ── DESKTOP SIDEBAR ── */}
+        {/* DESKTOP SIDEBAR */}
         <aside className={styles.sidebar}>
           <div className={styles.sideTop}>
             <div className={styles.sideLogo}>
@@ -607,9 +1200,11 @@ export default function AdminPage() {
             </div>
             <nav className={styles.nav}>
               {navItems.map(n => (
-                <button key={n.key}
+                <button
+                  key={n.key}
                   className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
-                  onClick={() => navigate(n.key)}>
+                  onClick={() => navigate(n.key)}
+                >
                   <i className={`bx ${n.icon}`} />
                   <span>{n.label}</span>
                 </button>
@@ -621,7 +1216,7 @@ export default function AdminPage() {
           </button>
         </aside>
 
-        {/* ── MOBILE DRAWER OVERLAY ── */}
+        {/* MOBILE DRAWER */}
         {drawerOpen && (
           <div className={styles.drawerOverlay} onClick={() => setDrawerOpen(false)}>
             <aside className={styles.drawer} onClick={e => e.stopPropagation()}>
@@ -632,9 +1227,11 @@ export default function AdminPage() {
                 </div>
                 <nav className={styles.nav}>
                   {navItems.map(n => (
-                    <button key={n.key}
+                    <button
+                      key={n.key}
                       className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
-                      onClick={() => navigate(n.key)}>
+                      onClick={() => navigate(n.key)}
+                    >
                       <i className={`bx ${n.icon}`} />
                       <span>{n.label}</span>
                     </button>
@@ -648,12 +1245,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── MAIN AREA ── */}
+        {/* MAIN AREA */}
         <div className={styles.mainArea}>
-
-          {/* topbar */}
           <header className={styles.topbar}>
-            {/* hamburger — mobile only */}
             <button className={styles.menuBtn} onClick={() => setDrawerOpen(true)}>
               <i className="bx bx-menu" />
             </button>
@@ -662,19 +1256,20 @@ export default function AdminPage() {
             </div>
             <div className={styles.topbarRight}>
               <span className={styles.adminBadge}><i className="bx bx-user" /> Admin</span>
-              {/* logout shortcut on mobile */}
               <button className={styles.logoutIconBtn} onClick={logout} title="Keluar">
                 <i className="bx bx-log-out" />
               </button>
             </div>
           </header>
 
-          {/* content */}
           <div className={styles.content}>
-            {active === "dashboard"
-              ? <DashboardHome onNav={setActive} />
-              : <SectionManager section={active} />
-            }
+            {active === "dashboard" ? (
+              <DashboardHome onNav={setActive} />
+            ) : active === "media" ? (
+              <MediaManager />
+            ) : (
+              <SectionManager section={active} />
+            )}
           </div>
         </div>
       </div>
