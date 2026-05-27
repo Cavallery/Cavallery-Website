@@ -67,11 +67,11 @@
   white-space: nowrap;
 }
 
-.scrolled .logoText {
+.scrolled .logoText, .forceLightText .logoText {
   color: #fff !important;
 }
 
-.scrolled .logoSub {
+.scrolled .logoSub, .forceLightText .logoSub {
   color: rgba(255, 255, 255, 0.7) !important;
 }
 
@@ -94,11 +94,11 @@
   text-transform: uppercase;
 }
 
-.scrolled .link, .scrolled .dropdownToggle {
+.scrolled .link, .scrolled .dropdownToggle, .forceLightText .link, .forceLightText .dropdownToggle {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.link:hover, .link.active, .scrolled .link:hover {
+.link:hover, .link.active, .scrolled .link:hover, .forceLightText .link:hover {
   color: var(--gold) !important;
   background: rgba(212, 175, 55, 0.1);
 }
@@ -125,7 +125,7 @@
   text-transform: uppercase;
 }
 
-.dropdownToggle:hover, .scrolled .dropdownToggle:hover {
+.dropdownToggle:hover, .scrolled .dropdownToggle:hover, .forceLightText .dropdownToggle:hover {
   color: var(--gold) !important;
   background: rgba(212, 175, 55, 0.1);
 }
@@ -189,7 +189,13 @@
   transition: all .2s;
 }
 
-.burger:hover { border-color: var(--gold); color: var(--gold); }
+.forceLightText .burger {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.burger:hover, .forceLightText .burger:hover { border-color: var(--gold); color: var(--gold); }
 
 /* MOBILE MENU */
 .mobileMenu {

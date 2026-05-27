@@ -59,8 +59,11 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
+  const isDarkBgPage = ["/kaleidoskop"].includes(pathname);
+  const isForceLightText = isDarkBgPage && !scrolled;
+
   return (
-    <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ""}`}>
+    <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ""} ${isForceLightText ? styles.forceLightText : ""}`}>
       <div className={styles.inner}>
         {/* Logo */}
         <Link 
