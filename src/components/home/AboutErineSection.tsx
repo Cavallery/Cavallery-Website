@@ -1,10 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import Script from "next/script";
 import { motion } from "framer-motion";
 import styles from "./AboutErineSection.module.css";
 
-// Helper parse PostgreSQL array songs: '{"Song A","Song B"}' → ["Song A", "Song B"]
 function parseSongs(raw: string): string[] {
   if (!raw) return [];
   return raw
@@ -27,14 +25,8 @@ function FlipCard({ set, idx }: { set: any; idx: number }) {
         className={styles.flipInner}
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{
-          duration: 0.6,
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-        }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
       >
-        {/* Front side */}
         <div className={styles.flipFront}>
           <div className={styles.tapeStrip} />
           <div className={styles.polaroidFrame}>
@@ -45,13 +37,9 @@ function FlipCard({ set, idx }: { set: any; idx: number }) {
           <span className={styles.showBadge}>{set.badge}</span>
         </div>
 
-        {/* Back side */}
         <div className={styles.flipBack}>
           <div className={styles.tapeStrip} style={{ top: "-15px" }} />
-          <div
-            className={styles.cardTitle}
-            style={{ marginBottom: "15px", fontSize: "1.2rem" }}
-          >
+          <div className={styles.cardTitle} style={{ marginBottom: "15px", fontSize: "1.2rem" }}>
             Unit Songs
           </div>
           <ul className={styles.unitSongs}>
@@ -79,54 +67,36 @@ export default function AboutErineSection() {
   const [statsData, setStatsData] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const slides = [
-    "/images/erine1.jpg",
-    "/images/erine2.jpg",
-    "/images/erine3.jpg",
-  ];
+  const slides = ["/images/erine1.jpg", "/images/erine2.jpg", "/images/erine3.jpg"];
 
   useEffect(() => {
-    // Age Calculation
     const birthDate = new Date("2007-08-21");
     const today = new Date();
     let calculatedAge = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      calculatedAge--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) calculatedAge--;
     setAge(calculatedAge);
 
-    // Slideshow
     const slideTimer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % slides.length);
     }, 8000);
 
-    // PM Stats
     fetch("/api/pm-statistik")
       .then((r) => r.json())
-      .then((json) => {
-        if (json.success) setPmStats(json.data);
-      })
+      .then((json) => { if (json.success) setPmStats(json.data); })
       .catch(() => {})
       .finally(() => setPmLoading(false));
 
-    // Fetch setlists
     fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
       .then((r) => r.json())
-      .then((json) => {
-        if (json?.status) setSetlists(json.data);
-      })
+      .then((json) => { if (json?.status) setSetlists(json.data); })
       .catch(console.error);
 
-    // Fetch stats
     fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
       .then((r) => r.json())
-      .then((json) => {
-        if (json?.status) setStatsData(json.data);
-      })
+      .then((json) => { if (json?.status) setStatsData(json.data); })
       .catch(console.error);
 
-    // Embed scripts
     const twScript = document.createElement("script");
     twScript.src = "https://platform.twitter.com/widgets.js";
     twScript.async = true;
@@ -137,9 +107,7 @@ export default function AboutErineSection() {
     tkScript.async = true;
     document.body.appendChild(tkScript);
 
-    return () => {
-      clearInterval(slideTimer);
-    };
+    return () => { clearInterval(slideTimer); };
   }, []);
 
   const toggleJiko = () => {
@@ -147,12 +115,8 @@ export default function AboutErineSection() {
       audioRef.current = new Audio("/audio/jikorine1.mp4");
       audioRef.current.onended = () => setIsPlayingJiko(false);
     }
-
     if (audioRef.current.paused) {
-      audioRef.current.play().catch((e) => {
-        console.error("Audio error:", e);
-        setIsPlayingJiko(false);
-      });
+      audioRef.current.play().catch((e) => { console.error("Audio error:", e); setIsPlayingJiko(false); });
       setIsPlayingJiko(true);
     } else {
       audioRef.current.pause();
@@ -177,6 +141,7 @@ export default function AboutErineSection() {
               
                 href="https://www.idn.app/jkt48_erine"
                 target="_blank"
+                rel="noopener noreferrer"
                 className={styles.followBtn}
               >
                 + Follow
@@ -209,10 +174,7 @@ export default function AboutErineSection() {
                     <div className={styles.hometownContainer}>
                       <span>Bekasi, Jawa Barat, Indonesia</span>
                       <div className={styles.mapIcon}>
-                        <img
-                          src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png"
-                          alt="Bekasi"
-                        />
+                        <img src="https://cavallery.id/wp-content/uploads/2026/01/bekasi.png" alt="Bekasi" />
                       </div>
                     </div>
                   </td>
@@ -254,7 +216,7 @@ export default function AboutErineSection() {
           </div>
 
           <div className={styles.socialSection} id="sosmed">
-            <div className={styles.socialTitle}>Erine's Social Media</div>
+            <div className={styles.socialTitle}>{"Erine's Social Media"}</div>
             <div className={styles.socialIcons}>
               <a href="https://x.com/CErine_JKT48" target="_blank" rel="noopener noreferrer" className={styles.socIcon}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
@@ -314,7 +276,7 @@ export default function AboutErineSection() {
           <h3>Introduction</h3>
           <p>
             Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai
-            "Putri Bebek" oleh fans karena kepribadiannya yang unik dan menggemaskan.
+            {" "}&quot;Putri Bebek&quot; oleh fans karena kepribadiannya yang unik dan menggemaskan.
           </p>
         </div>
 
@@ -326,7 +288,11 @@ export default function AboutErineSection() {
                 <tr><td className={styles.lbl}>Tahun Aktif</td><td>Member JKT48 Gen 12</td></tr>
                 <tr>
                   <td className={styles.lbl}>Member Favorit</td>
-                  <td><a href="https://x.com/I_KathrinaJKT48" target="_blank">Kathrina Irene</a></td>
+                  <td>
+                    <a href="https://x.com/I_KathrinaJKT48" target="_blank" rel="noopener noreferrer">
+                      Kathrina Irene
+                    </a>
+                  </td>
                 </tr>
                 <tr><td className={styles.lbl}>MBTI</td><td>ISFP / INFP</td></tr>
                 <tr><td className={styles.lbl}>Shio</td><td>Babi</td></tr>
@@ -340,7 +306,12 @@ export default function AboutErineSection() {
           <div className={styles.ewHt}>
             <p className={styles.ewHtTitle}># Official Hashtags</p>
             <ul>
-              <li><span className={styles.lbl2}>Setiap Hari Jumat</span><a href="https://cavallery.id/diesvenerine/" target="_blank" className={styles.tag}>#DiesVenErine</a></li>
+              <li>
+                <span className={styles.lbl2}>Setiap Hari Jumat</span>
+                <a href="https://cavallery.id/diesvenerine/" target="_blank" rel="noopener noreferrer" className={styles.tag}>
+                  #DiesVenErine
+                </a>
+              </li>
               <li><span className={styles.lbl2}>Setiap Jurnal</span><span className={styles.tag}>#MemoRine</span></li>
               <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
               <li><span className={styles.lbl2}>Sebelum Berbuka</span><span className={styles.tag}>#Ngabuburine</span></li>
@@ -364,7 +335,7 @@ export default function AboutErineSection() {
             <li>Bisa memainkan Kalimba.</li>
             <li>Mata sehat, tidak silinder atau minus.</li>
             <li>Mendaftar JKT48 di hari terakhir pendaftaran.</li>
-            <li>Tidak bisa maen catur, "Checkmate" cuman spontan kepikiran.</li>
+            <li>Tidak bisa maen catur, &quot;Checkmate&quot; cuman spontan kepikiran.</li>
           </ol>
         </div>
       </div>
@@ -373,7 +344,7 @@ export default function AboutErineSection() {
       <div className={styles.showcaseContainer}>
         <div className={styles.videoDebut}>
           <div className={styles.nailedFrame} />
-          <h3 className={styles.erineTitle}>Erine's Video Debut</h3>
+          <h3 className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
           <div className={styles.videoFrameWrapper}>
             <div className={styles.responsiveVideo}>
               <iframe src="https://www.youtube.com/embed/Obxn7knXq38" title="Debut" allowFullScreen />
@@ -382,7 +353,7 @@ export default function AboutErineSection() {
         </div>
 
         <div className={styles.nailedFrame} />
-        <h3 className={styles.erineTitle}>Erine's Kabesha</h3>
+        <h3 className={styles.erineTitle}>{"Erine's Kabesha"}</h3>
         <div className={styles.galleryGrid}>
           {[
             { img: "/images/trainee.jpg", year: "2023", title: "First Kabesha", desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
@@ -413,12 +384,20 @@ export default function AboutErineSection() {
               <iframe src="https://www.youtube.com/embed/XbAqE7iBJAw" title="SSK" allowFullScreen />
             </div>
             <div className={styles.electionGrid}>
-              <div className={styles.electionItem} onClick={() => openModal("/images/chapter.jpg", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}>
+              <div
+                className={styles.electionItem}
+                onClick={() => openModal("/images/chapter.jpg", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}
+              >
                 <div className={styles.electionImg}><img src="/images/chapter.jpg" alt="Poster" /></div>
-                <div className={styles.captionBox}>Poster Erine's Sousenkyo</div>
+                <div className={styles.captionBox}>{"Poster Erine's Sousenkyo"}</div>
               </div>
-              <div className={styles.electionItem} onClick={() => openModal("https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}>
-                <div className={styles.electionImg}><img src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg" alt="Rank" /></div>
+              <div
+                className={styles.electionItem}
+                onClick={() => openModal("https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}
+              >
+                <div className={styles.electionImg}>
+                  <img src="https://cavallery.id/wp-content/uploads/2025/05/LINE_ALBUM_Erine-X_250515_276.jpg" alt="Rank" />
+                </div>
                 <div className={styles.captionBox}>Erine di posisi #18 (Undergirls)</div>
               </div>
             </div>
@@ -476,7 +455,6 @@ export default function AboutErineSection() {
       <div className={styles.pmStatsSection}>
         <div className={styles.nailedFrame} />
         <h3 className={styles.erineTitle}>Statistik PM Mingguan</h3>
-
         {pmLoading ? (
           <div className={styles.pmLoading}>
             <i className="bx bx-loader-alt bx-spin" /> Memuat data...
@@ -494,7 +472,6 @@ export default function AboutErineSection() {
                 </div>
               </div>
             </div>
-
             <div className={styles.pmStatsGrid}>
               <div className={styles.pmStatBox}>
                 <i className="bx bx-medal" />
@@ -512,7 +489,6 @@ export default function AboutErineSection() {
                 <span className={styles.pmStatLbl}>Grup</span>
               </div>
             </div>
-
             <div className={styles.pmBarWrapper}>
               <div className={styles.pmBarLabel}>
                 <span>Aktivitas Mingguan</span>
@@ -550,15 +526,27 @@ export default function AboutErineSection() {
               style={{ maxWidth: "100%", minWidth: 325 }}
             >
               <section>
-                <a href="https://www.tiktok.com/@jkt48.erine_">@jkt48.erine_</a>
+                <a href="https://www.tiktok.com/@jkt48.erine_" rel="noopener noreferrer">@jkt48.erine_</a>
               </section>
             </blockquote>
           </div>
           <div className={styles.embedCard}>
-            <iframe src="https://www.instagram.com/p/DXt1vRJEpuf/embed" width="100%" height="480" frameBorder="0" scrolling="no" />
+            <iframe
+              src="https://www.instagram.com/p/DXt1vRJEpuf/embed"
+              width="100%"
+              height="480"
+              frameBorder="0"
+              scrolling="no"
+            />
           </div>
           <div className={styles.embedCard}>
-            <iframe src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed" width="100%" height="480" frameBorder="0" scrolling="no" />
+            <iframe
+              src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed"
+              width="100%"
+              height="480"
+              frameBorder="0"
+              scrolling="no"
+            />
           </div>
         </div>
       </div>
