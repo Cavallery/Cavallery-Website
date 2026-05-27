@@ -50,23 +50,41 @@ export default function CatErine17Page() {
           <div className={styles.galleryGrid}>
             <div className={styles.card}>
               <div className={styles.imageWrapper}>
-                <Image src="/images/cerine.jpg" alt="Princess CatErine Poster" fill className={styles.image} />
+                <Image 
+                  src="/images/caterine17th-poster.jpg" 
+                  alt="Princess CatErine Poster" 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className={styles.image} 
+                />
               </div>
               <h3>Princess CatErine Poster</h3>
             </div>
             
             <div className={styles.card}>
               <div className={styles.imageWrapper}>
-                <Image src="/images/cerine 2.jpg" alt="Videotron CatErine17th" fill className={styles.image} />
+                <Image 
+                  src="/images/caterine17th-freebies.jpg" 
+                  alt="Princess CatErine Freebies" 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className={styles.image} 
+                />
               </div>
-              <h3>Videotron CatErine17th</h3>
+              <h3>Princess CatErine Freebies</h3>
             </div>
 
             <div className={styles.card}>
               <div className={styles.imageWrapper}>
-                <Image src="/images/freebies.jpg" alt="Erine Birthday Gallery" fill className={styles.image} />
+                <Image 
+                  src="/images/caterine17th-encore.png" 
+                  alt="Princess CatErine Encore" 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className={styles.image} 
+                />
               </div>
-              <h3>Erine Birthday Gallery</h3>
+              <h3>Princess CatErine Encore</h3>
             </div>
           </div>
         </div>
