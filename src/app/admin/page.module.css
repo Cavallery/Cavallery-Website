@@ -14,7 +14,7 @@
   --shadow: 0 4px 24px rgba(55,46,39,0.10);
 }
 
-[data-theme="dark"] {
+:global([data-theme="dark"]) {
   --bg-card: #1c1917;
   --bg-stripe: #292524;
   --border-color: #44403c;
@@ -97,7 +97,7 @@
   gap: 8px;
 }
 
-[data-theme="dark"] .errMsg {
+:global([data-theme="dark"]) .errMsg {
   background: #450a0a;
   border-color: #991b1b;
   color: #fca5a5;
@@ -657,8 +657,8 @@
 .success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 .error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 
-[data-theme="dark"] .success { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
-[data-theme="dark"] .error   { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
+:global([data-theme="dark"])] .success { background: #064e3b; color: #6ee7b7; border-color: #065f46; }
+:global([data-theme="dark"]) .error   { background: #450a0a; color: #fca5a5; border-color: #991b1b; }
 
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(16px); }
