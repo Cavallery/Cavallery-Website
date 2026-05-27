@@ -5,36 +5,40 @@ import styles from "./NewsPreview.module.css";
 
 interface NewsItem {
   id: string;
+  slug: string;
   title: string;
   label: string;
-  date: string;
+  description?: string;
+  published_at: string;
   link_url: string;
-  image_url?: string;
+  image_url?: string | null;
+  is_internal: boolean;
+  is_pinned: boolean;
+  is_active: boolean;
 }
 
-const STATIC_NEWS: NewsItem[] = [
-  {
-    id: "cavallery-statement-2026",
-    title: "Pernyataan Resmi Cavallery",
-    label: "Resmi",
-    date: "2026-05-19T00:00:00",
-    link_url: "/news/cavallery-statement",
-    image_url: "/images/cava-logo.jpg",
-  },
-];
+const API_URL = "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT";
 
 export default function NewsPreview() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/news?v=${new Date().getTime()}`)
+    fetch(`${API_URL}&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((d) => {
-        const items = d?.data || d?.news || [];
-        setNews([...STATIC_NEWS, ...items.slice(0, 3)]);
+        if (d?.status && Array.isArray(d?.data?.news)) {
+          // Tampilkan hanya yang aktif, pinned duluan
+          const items: NewsItem[] = d.data.news
+            .filter((n: NewsItem) => n.is_active)
+            .sort((a: NewsItem, b: NewsItem) => Number(b.is_pinned) - Number(a.is_pinned))
+            .slice(0, 4);
+          setNews(items);
+        } else {
+          setNews([]);
+        }
       })
-      .catch(() => setNews(STATIC_NEWS))
+      .catch(() => setNews([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,7 +57,7 @@ export default function NewsPreview() {
 
       {loading ? (
         <div className={styles.loadWrap}>
-          {[0,1,2,3].map(i => (
+          {[0, 1, 2, 3].map((i) => (
             <div key={i} className={styles.skeleton} />
           ))}
         </div>
@@ -65,7 +69,6 @@ export default function NewsPreview() {
       ) : (
         <div className={styles.grid}>
           {news.map((item, idx) => {
-            const isInternal = item.link_url?.startsWith("/");
             const cardInner = (
               <>
                 {item.image_url && (
@@ -74,30 +77,49 @@ export default function NewsPreview() {
                   </div>
                 )}
                 <div className={styles.body}>
-                  <span className={styles.label}>{item.label || "Terkini"}</span>
+                  <div className={styles.labelRow}>
+                    <span className={styles.label}>{item.label || "Terkini"}</span>
+                    {item.is_pinned && (
+                      <span className={styles.pinned}>
+                        <i className="bx bx-pin" /> Pinned
+                      </span>
+                    )}
+                  </div>
                   <h3 className={styles.cardTitle}>{item.title}</h3>
+                  {item.description && (
+                    <p className={styles.desc}>{item.description}</p>
+                  )}
                   <span className={styles.date}>
                     <i className="bx bx-calendar" />
-                    {new Date(item.date).toLocaleDateString("id-ID", {
-                      day: "numeric", month: "long", year: "numeric",
+                    {new Date(item.published_at).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
                     })}
                   </span>
                 </div>
               </>
             );
 
-            return isInternal ? (
+            // Resolve URL: internal pakai Link, eksternal pakai <a>
+            const resolvedHref = item.is_internal
+              ? item.link_url.startsWith("/")
+                ? item.link_url
+                : `/${item.link_url}`
+              : item.link_url;
+
+            return item.is_internal ? (
               <Link
-                key={item.id || idx}
-                href={item.link_url}
+                key={item.id ?? idx}
+                href={resolvedHref}
                 className={`glassCard ${styles.card}`}
               >
                 {cardInner}
               </Link>
             ) : (
-              <a
-                key={item.id || idx}
-                href={item.link_url}
+              
+                key={item.id ?? idx}
+                href={resolvedHref}
                 target="_blank"
                 rel="noreferrer"
                 className={`glassCard ${styles.card}`}
