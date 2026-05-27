@@ -139,13 +139,13 @@ export default function AboutErineSection() {
             <div className={styles.titleBox}>
               <h1 className={styles.wikiName}>Erine</h1>
               
-                href="https://www.idn.app/jkt48_erine"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.followBtn}
-              >
-                + Follow
-              </a>
+               href="https://www.idn.app/jkt48_erine"
+  target="_blank"
+  rel="noopener noreferrer"
+  className={styles.followBtn}
+>
+  &#43; Follow
+</a>
             </div>
             <span className={styles.jpName}>Japan : エリーヌ</span>
           </div>
