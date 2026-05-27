@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
@@ -12,7 +13,30 @@ function parseSongs(raw: string): string[] {
     .filter(Boolean);
 }
 
-function FlipCard({ set, idx }: { set: any; idx: number }) {
+function calculateAge() {
+  const birthDate = new Date("2007-08-21");
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+}
+
+const SLIDES = [
+  "/images/gallery/erine-gallery-1.jpg",
+  "/images/gallery/erine-gallery-2.jpg",
+  "/images/gallery/erine-gallery-3.jpg",
+];
+
+interface SetlistData {
+  title: string;
+  date: string;
+  badge: string;
+  img: string;
+  songs: string[];
+}
+
+function FlipCard({ set, idx }: { set: SetlistData; idx: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
@@ -56,29 +80,23 @@ function FlipCard({ set, idx }: { set: any; idx: number }) {
 }
 
 export default function AboutErineSection() {
-  const [age, setAge] = useState(18);
+  const age = calculateAge();
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPlayingJiko, setIsPlayingJiko] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", desc: "" });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pmStats, setPmStats] = useState<any>(null);
   const [pmLoading, setPmLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [setlists, setSetlists] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [statsData, setStatsData] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const slides = ["/images/erine1.jpg", "/images/erine2.jpg", "/images/erine3.jpg"];
-
   useEffect(() => {
-    const birthDate = new Date("2007-08-21");
-    const today = new Date();
-    let calculatedAge = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) calculatedAge--;
-    setAge(calculatedAge);
-
     const slideTimer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % slides.length);
+      setActiveSlide((prev) => (prev + 1) % SLIDES.length);
     }, 8000);
 
     fetch("/api/pm-statistik")
@@ -108,6 +126,7 @@ export default function AboutErineSection() {
     document.body.appendChild(tkScript);
 
     return () => { clearInterval(slideTimer); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleJiko = () => {
@@ -244,7 +263,7 @@ export default function AboutErineSection() {
 
         <div className={styles.rightCol}>
           <div className={styles.mainPhotoFrame}>
-            {slides.map((src, idx) => (
+            {SLIDES.map((src, idx) => (
               <img
                 key={src}
                 src={src}
@@ -255,7 +274,7 @@ export default function AboutErineSection() {
           </div>
           <div className={styles.galleryStrip}>
             <div className={styles.thumbsGrid}>
-              {slides.slice(1, 4).map((src) => (
+              {SLIDES.slice(1, 4).map((src) => (
                 <div key={src} className={styles.thumbItem}>
                   <img src={src} alt="Thumb" />
                 </div>
