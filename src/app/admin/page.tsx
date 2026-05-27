@@ -8,6 +8,62 @@ const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 
 type Section = "dashboard" | "news" | "timeline" | "gallery" | "setlists" | "stats" | "youtube" | "funfacts" | "kabesha";
 
+// ============================================================
+// ARRAY FIELD SANITIZER
+// Converts any value to a proper JS array before sending to API.
+// This prevents "could not parse "" as type string[]" errors.
+// ============================================================
+function sanitizeArrayField(val: any): string[] {
+  if (Array.isArray(val)) return val.map(String).filter(Boolean);
+  if (val === null || val === undefined || val === "") return [];
+  const s = String(val).trim();
+  if (s === "") return [];
+  // JSON array string: ["a","b"]
+  if (s.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+    } catch {}
+  }
+  // PostgreSQL literal: {a,"b c"}
+  if (s.startsWith("{") && s.endsWith("}")) {
+    const inner = s.slice(1, -1);
+    const items: string[] = [];
+    let current = ""; let inQuote = false;
+    for (const ch of inner) {
+      if (ch === '"') { inQuote = !inQuote; continue; }
+      if (ch === "," && !inQuote) { items.push(current.trim()); current = ""; continue; }
+      current += ch;
+    }
+    if (current.trim()) items.push(current.trim());
+    return items.filter(Boolean);
+  }
+  // Plain CSV or single value
+  return s.split(",").map(v => v.trim()).filter(Boolean);
+}
+
+// Array field keys per section — these will be sanitized before POST/PUT
+const ARRAY_FIELDS: Record<string, string[]> = {
+  gallery:  ["tags"],
+  news:     ["images"],
+  setlists: ["songs"],
+};
+
+/**
+ * Prepare payload before sending to API:
+ * - Sanitize known array fields so they're always real arrays, never ""
+ */
+function preparePayload(section: string, data: Record<string, any>): Record<string, any> {
+  const payload = { ...data };
+  const arrayKeys = ARRAY_FIELDS[section] ?? [];
+  for (const key of arrayKeys) {
+    if (key in payload) {
+      payload[key] = sanitizeArrayField(payload[key]);
+    }
+  }
+  return payload;
+}
+
 // ─── LOGIN ───────────────────────────────────────────────────
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [user, setUser] = useState("");
@@ -31,9 +87,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   return (
     <div className={styles.loginWrap}>
       <div className={styles.loginCard}>
-        <div className={styles.loginLogo}>
-          <i className="bx bxs-shield-alt-2" />
-        </div>
+        <div className={styles.loginLogo}><i className="bx bxs-shield-alt-2" /></div>
         <h1 className={styles.loginTitle}>Cavallery Admin</h1>
         <p className={styles.loginSub}>Masuk untuk mengelola konten</p>
         {err && <div className={styles.errMsg}><i className="bx bx-error-circle" /> {err}</div>}
@@ -43,8 +97,8 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
         </div>
         <div className={styles.field}>
           <label>Password</label>
-          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password" autoComplete="current-password"
-            onKeyDown={e => e.key === "Enter" && submit()} />
+          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password"
+            autoComplete="current-password" onKeyDown={e => e.key === "Enter" && submit()} />
         </div>
         <button className={styles.loginBtn} onClick={submit} disabled={loading}>
           {loading ? <><i className="bx bx-loader-alt bx-spin" /> Masuk...</> : "Masuk"}
@@ -103,6 +157,7 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
                 <td key={c.key}>{
                   typeof row[c.key] === "boolean" ? (row[c.key] ? "✓" : "✗") :
                   c.key === "image_url" && row[c.key] ? <img src={row[c.key]} alt="" className={styles.thumb} /> :
+                  Array.isArray(row[c.key]) ? row[c.key].join(", ").slice(0, 60) :
                   String(row[c.key] ?? "-").slice(0, 60)
                 }</td>
               ))}
@@ -123,13 +178,19 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
 // ─── MODAL FORM ───────────────────────────────────────────────
 function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
   title: string;
-  fields: { key: string; label: string; type?: string; rows?: number }[];
+  fields: { key: string; label: string; type?: string; rows?: number; hint?: string }[];
   data: Record<string, any>;
   onChange: (key: string, val: any) => void;
   onSave: () => void;
   onClose: () => void;
   saving: boolean;
 }) {
+  // Display helper: convert array → comma-separated string for text inputs
+  const displayValue = (key: string, val: any): string => {
+    if (Array.isArray(val)) return val.join(", ");
+    return String(val ?? "");
+  };
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.formModal} onClick={e => e.stopPropagation()}>
@@ -140,16 +201,22 @@ function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
         <div className={styles.formBody}>
           {fields.map(f => (
             <div key={f.key} className={styles.field}>
-              <label>{f.label}</label>
+              <label>
+                {f.label}
+                {f.hint && <span className={styles.fieldHint}> — {f.hint}</span>}
+              </label>
               {f.type === "textarea" ? (
-                <textarea rows={f.rows ?? 4} value={data[f.key] ?? ""} onChange={e => onChange(f.key, e.target.value)} />
+                <textarea rows={f.rows ?? 4} value={displayValue(f.key, data[f.key])}
+                  onChange={e => onChange(f.key, e.target.value)} />
               ) : f.type === "checkbox" ? (
                 <label className={styles.toggle}>
-                  <input type="checkbox" checked={!!data[f.key]} onChange={e => onChange(f.key, e.target.checked)} />
+                  <input type="checkbox" checked={!!data[f.key]}
+                    onChange={e => onChange(f.key, e.target.checked)} />
                   <span>{data[f.key] ? "Aktif" : "Nonaktif"}</span>
                 </label>
               ) : (
-                <input type={f.type ?? "text"} value={data[f.key] ?? ""} onChange={e => onChange(f.key, e.target.value)} />
+                <input type={f.type ?? "text"} value={displayValue(f.key, data[f.key])}
+                  onChange={e => onChange(f.key, e.target.value)} />
               )}
             </div>
           ))}
@@ -177,7 +244,12 @@ function SectionManager({ section }: { section: Section }) {
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
-  const cfg: Record<string, { endpoint: string; cols: { key: string; label: string }[]; fields: any[]; listKey: string }> = {
+  const cfg: Record<string, {
+    endpoint: string;
+    cols: { key: string; label: string }[];
+    fields: { key: string; label: string; type?: string; rows?: number; hint?: string }[];
+    listKey: string;
+  }> = {
     news: {
       endpoint: "/news",
       listKey: "news",
@@ -195,6 +267,8 @@ function SectionManager({ section }: { section: Section }) {
         { key: "description", label: "Deskripsi Singkat", type: "textarea", rows: 2 },
         { key: "content", label: "Konten Lengkap", type: "textarea", rows: 6 },
         { key: "image_url", label: "URL Gambar Utama" },
+        // images is an array field — user types comma-separated URLs
+        { key: "images", label: "URL Gambar Dokumentasi", hint: "pisahkan dengan koma", type: "textarea", rows: 2 },
         { key: "link_url", label: "Link URL" },
         { key: "published_at", label: "Tanggal Publish", type: "datetime-local" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
@@ -235,6 +309,8 @@ function SectionManager({ section }: { section: Section }) {
         { key: "image_url", label: "URL Gambar" },
         { key: "date_label", label: "Label Tanggal" },
         { key: "alt_text", label: "Alt Text" },
+        // tags is an array field — user types comma-separated
+        { key: "tags", label: "Tags", hint: "pisahkan dengan koma, boleh kosong" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
@@ -254,7 +330,8 @@ function SectionManager({ section }: { section: Section }) {
         { key: "date_range", label: "Periode (cth: 1 Jan - Present)" },
         { key: "badge", label: "Badge (cth: 3 Shows)" },
         { key: "image_url", label: "URL Gambar" },
-        { key: "songs", label: 'Songs (format: {"Lagu A","Lagu B"})' },
+        // songs is an array field — user types comma-separated
+        { key: "songs", label: "Songs", hint: "pisahkan dengan koma, cth: Lagu A, Lagu B", type: "textarea", rows: 3 },
         { key: "show_count", label: "Jumlah Show", type: "number" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
@@ -342,8 +419,8 @@ function SectionManager({ section }: { section: Section }) {
       const data = json?.data;
       if (Array.isArray(data)) setRows(data);
       else if (c.listKey && data?.[c.listKey]) setRows(data[c.listKey]);
-      else if (data?.news) setRows(data.news);
-      else if (data?.items) setRows(data.items);
+      else if (data?.news)   setRows(data.news);
+      else if (data?.items)  setRows(data.items);
       else if (data?.videos) setRows(data.videos);
       else if (data?.events) setRows(data.events);
       else setRows([]);
@@ -363,10 +440,14 @@ function SectionManager({ section }: { section: Section }) {
       const url = isEdit
         ? api(`${c.endpoint}/${section === "stats" ? formData.stat_key : formData.id}`)
         : api(c.endpoint);
+
+      // FIX: sanitize array fields before sending to API
+      const payload = preparePayload(section, formData);
+
       const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.status) {
@@ -382,7 +463,12 @@ function SectionManager({ section }: { section: Section }) {
 
   const del = async (row: any) => {
     try {
-      const id = section === "stats" ? row.stat_key : row.id;
+      // FIX: for youtube, always use video_id (string) not UUID id to avoid type mismatch
+      const id = section === "stats"
+        ? row.stat_key
+        : section === "youtube"
+          ? row.video_id   // ← use video_id (plain string, not UUID)
+          : row.id;
       const res = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
       const json = await res.json();
       if (json.status) {
@@ -420,7 +506,7 @@ function SectionManager({ section }: { section: Section }) {
       )}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className={`bx bx-data`} /> {section.charAt(0).toUpperCase() + section.slice(1)}
+          <i className="bx bx-data" /> {section.charAt(0).toUpperCase() + section.slice(1)}
           <span className={styles.count}>{rows.length} item</span>
         </h2>
         <button className={styles.btnPrimary} onClick={openAdd}>
@@ -442,17 +528,17 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
   useEffect(() => {
     const endpoints: { key: string; path: string; listKey: string }[] = [
-      { key: "news", path: "/news", listKey: "news" },
-      { key: "timeline", path: "/timeline", listKey: "events" },
-      { key: "gallery", path: "/gallery", listKey: "items" },
-      { key: "setlists", path: "/setlists", listKey: "" },
-      { key: "youtube", path: "/youtube", listKey: "videos" },
-      { key: "funfacts", path: "/funfacts", listKey: "" },
-      { key: "kabesha", path: "/kabesha", listKey: "" },
+      { key: "news",      path: "/news",      listKey: "news" },
+      { key: "timeline",  path: "/timeline",  listKey: "events" },
+      { key: "gallery",   path: "/gallery",   listKey: "items" },
+      { key: "setlists",  path: "/setlists",  listKey: "" },
+      { key: "youtube",   path: "/youtube",   listKey: "videos" },
+      { key: "funfacts",  path: "/funfacts",  listKey: "" },
+      { key: "kabesha",   path: "/kabesha",   listKey: "" },
     ];
     endpoints.forEach(async ({ key, path, listKey }) => {
       try {
-        const res = await fetch(api(path));
+        const res  = await fetch(api(path));
         const json = await res.json();
         const data = json?.data;
         let count = 0;
@@ -465,14 +551,14 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   }, []);
 
   const cards = [
-    { key: "news" as Section, icon: "bx-news", label: "News", color: "#b45309" },
-    { key: "timeline" as Section, icon: "bx-history", label: "Timeline", color: "#047857" },
-    { key: "gallery" as Section, icon: "bx-image-alt", label: "Gallery", color: "#7c3aed" },
-    { key: "setlists" as Section, icon: "bx-music", label: "Setlists", color: "#0369a1" },
-    { key: "youtube" as Section, icon: "bxl-youtube", label: "YouTube", color: "#dc2626" },
-    { key: "funfacts" as Section, icon: "bx-laugh", label: "Funfacts", color: "#059669" },
-    { key: "kabesha" as Section, icon: "bx-star", label: "Kabesha", color: "#d97706" },
-    { key: "stats" as Section, icon: "bx-bar-chart", label: "Stats", color: "#9333ea" },
+    { key: "news"      as Section, icon: "bx-news",       label: "News",      color: "#b45309" },
+    { key: "timeline"  as Section, icon: "bx-history",    label: "Timeline",  color: "#047857" },
+    { key: "gallery"   as Section, icon: "bx-image-alt",  label: "Gallery",   color: "#7c3aed" },
+    { key: "setlists"  as Section, icon: "bx-music",      label: "Setlists",  color: "#0369a1" },
+    { key: "youtube"   as Section, icon: "bxl-youtube",   label: "YouTube",   color: "#dc2626" },
+    { key: "funfacts"  as Section, icon: "bx-laugh",      label: "Funfacts",  color: "#059669" },
+    { key: "kabesha"   as Section, icon: "bx-star",       label: "Kabesha",   color: "#d97706" },
+    { key: "stats"     as Section, icon: "bx-bar-chart",  label: "Stats",     color: "#9333ea" },
   ];
 
   return (
@@ -486,7 +572,8 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       </div>
       <div className={styles.dashGrid}>
         {cards.map(card => (
-          <button key={card.key} className={styles.dashCard} onClick={() => onNav(card.key)} style={{ "--accent": card.color } as any}>
+          <button key={card.key} className={styles.dashCard} onClick={() => onNav(card.key)}
+            style={{ "--accent": card.color } as any}>
             <i className={`bx ${card.icon}`} style={{ color: card.color }} />
             <div className={styles.dashCardCount}>{counts[card.key] ?? "—"}</div>
             <div className={styles.dashCardLabel}>{card.label}</div>
@@ -499,22 +586,22 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
 // ─── SIDEBAR ──────────────────────────────────────────────────
 const navItems: { key: Section; icon: string; label: string }[] = [
-  { key: "dashboard", icon: "bx-home-alt", label: "Dashboard" },
-  { key: "news", icon: "bx-news", label: "News" },
-  { key: "timeline", icon: "bx-history", label: "Timeline" },
-  { key: "gallery", icon: "bx-image-alt", label: "Gallery" },
-  { key: "setlists", icon: "bx-music", label: "Setlists" },
-  { key: "youtube", icon: "bxl-youtube", label: "YouTube" },
-  { key: "funfacts", icon: "bx-laugh", label: "Funfacts" },
-  { key: "kabesha", icon: "bx-star", label: "Kabesha" },
-  { key: "stats", icon: "bx-bar-chart", label: "Stats" },
+  { key: "dashboard", icon: "bx-home-alt",  label: "Dashboard" },
+  { key: "news",      icon: "bx-news",      label: "News" },
+  { key: "timeline",  icon: "bx-history",   label: "Timeline" },
+  { key: "gallery",   icon: "bx-image-alt", label: "Gallery" },
+  { key: "setlists",  icon: "bx-music",     label: "Setlists" },
+  { key: "youtube",   icon: "bxl-youtube",  label: "YouTube" },
+  { key: "funfacts",  icon: "bx-laugh",     label: "Funfacts" },
+  { key: "kabesha",   icon: "bx-star",      label: "Kabesha" },
+  { key: "stats",     icon: "bx-bar-chart", label: "Stats" },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
-  const [authed, setAuthed] = useState(false);
+  const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
-  const [active, setActive] = useState<Section>("dashboard");
+  const [active,   setActive]   = useState<Section>("dashboard");
   const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => {
@@ -524,7 +611,11 @@ export default function AdminPage() {
 
   const logout = () => { sessionStorage.removeItem("cava_admin"); setAuthed(false); };
 
-  if (checking) return <div className={styles.fullCenter}><i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem" }} /></div>;
+  if (checking) return (
+    <div className={styles.fullCenter}>
+      <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem" }} />
+    </div>
+  );
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
 
   return (
@@ -538,11 +629,9 @@ export default function AdminPage() {
           </div>
           <nav className={styles.nav}>
             {navItems.map(n => (
-              <button
-                key={n.key}
+              <button key={n.key}
                 className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
-                onClick={() => { setActive(n.key); setSideOpen(false); }}
-              >
+                onClick={() => { setActive(n.key); setSideOpen(false); }}>
                 <i className={`bx ${n.icon}`} />
                 <span>{n.label}</span>
               </button>
@@ -554,10 +643,8 @@ export default function AdminPage() {
         </button>
       </aside>
 
-      {/* Overlay mobile */}
       {sideOpen && <div className={styles.overlay} onClick={() => setSideOpen(false)} />}
 
-      {/* Main */}
       <main className={styles.main}>
         <header className={styles.topbar}>
           <button className={styles.menuBtn} onClick={() => setSideOpen(true)}>
@@ -572,11 +659,10 @@ export default function AdminPage() {
         </header>
 
         <div className={styles.content}>
-          {active === "dashboard" ? (
-            <DashboardHome onNav={setActive} />
-          ) : (
-            <SectionManager section={active} />
-          )}
+          {active === "dashboard"
+            ? <DashboardHome onNav={setActive} />
+            : <SectionManager section={active} />
+          }
         </div>
       </main>
     </div>
