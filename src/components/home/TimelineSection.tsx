@@ -34,6 +34,13 @@ function groupByYear(events: TimelineEvent[]) {
 export default function TimelineSection() {
   const [timelineData, setTimelineData] = useState<TimelineData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalData, setModalData] = useState({ image: "", date: "", title: "", desc: "" });
+
+  const openModal = (image: string, date: string, title: string, desc: string) => {
+    setModalData({ image, date, title, desc });
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT")
@@ -100,7 +107,11 @@ export default function TimelineSection() {
                   <div className={styles.dot} />
                   <div className={styles.content}>
                     <div className={styles.cardInner}>
-                      <div className={styles.imgPlaceholder}>
+                      <div
+                        className={styles.imgPlaceholder}
+                        style={{ cursor: event.image_url ? "pointer" : "default" }}
+                        onClick={() => event.image_url && openModal(event.image_url, event.date_label, event.title, event.description)}
+                      >
                         {event.image_url ? (
                           <img src={event.image_url} alt={event.title} />
                         ) : (
@@ -122,6 +133,27 @@ export default function TimelineSection() {
           </div>
         ))}
       </div>
+
+      {isModalOpen && (
+        <div
+          className={`${styles.modalOverlay} ${styles.active}`}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+              &times;
+            </button>
+            <div className={styles.modalImgWrapper}>
+              <img src={modalData.image} alt={modalData.title} />
+            </div>
+            <div className={styles.modalDetails}>
+              <span className={styles.modalDate}>{modalData.date}</span>
+              <h3 style={{ fontSize: "1.5rem", marginBottom: "10px", color: "var(--primary)" }}>{modalData.title}</h3>
+              <p className={styles.modalDesc}>{modalData.desc}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
