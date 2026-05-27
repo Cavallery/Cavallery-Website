@@ -138,7 +138,7 @@ export default function AboutErineSection() {
           <div className={styles.headerSection}>
             <div className={styles.titleBox}>
               <h1 className={styles.wikiName}>Erine</h1>
-              
+              <a
                href="https://www.idn.app/jkt48_erine"
   target="_blank"
   rel="noopener noreferrer"
