@@ -44,18 +44,41 @@ function preparePayload(section: string, data: Record<string, any>): Record<stri
   const payload = { ...data };
   const arrayKeys = ARRAY_FIELDS[section] ?? [];
   for (const key of arrayKeys) {
-    if (key in payload) {
-      payload[key] = sanitizeArrayField(payload[key]);
-    }
+    if (key in payload) payload[key] = sanitizeArrayField(payload[key]);
   }
   return payload;
 }
 
-// ─── LOGIN ───────────────────────────────────────────────────
+// ─── PORTAL WRAPPER — bypass website navbar/layout ────────────
+// Renders children into a fixed full-screen overlay via useEffect
+import { useRef } from "react";
+import { createPortal } from "react-dom";
+
+function AdminPortal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // Hide website header/navbar while admin is open
+    const siteHeader = document.querySelector("header") as HTMLElement | null;
+    const siteNav    = document.querySelector("nav")    as HTMLElement | null;
+    if (siteHeader) siteHeader.style.display = "none";
+    if (siteNav)    siteNav.style.display    = "none";
+    document.body.style.overflow = "hidden";
+    setMounted(true);
+    return () => {
+      if (siteHeader) siteHeader.style.display = "";
+      if (siteNav)    siteNav.style.display    = "";
+      document.body.style.overflow = "";
+    };
+  }, []);
+  if (!mounted) return null;
+  return createPortal(children, document.body);
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
-  const [err, setErr] = useState("");
+  const [err, setErr]   = useState("");
   const [loading, setLoading] = useState(false);
 
   const submit = () => {
@@ -72,30 +95,34 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <div className={styles.loginWrap}>
-      <div className={styles.loginCard}>
-        <div className={styles.loginLogo}><i className="bx bxs-shield-alt-2" /></div>
-        <h1 className={styles.loginTitle}>Cavallery Admin</h1>
-        <p className={styles.loginSub}>Masuk untuk mengelola konten</p>
-        {err && <div className={styles.errMsg}><i className="bx bx-error-circle" /> {err}</div>}
-        <div className={styles.field}>
-          <label>Username</label>
-          <input value={user} onChange={e => setUser(e.target.value)} placeholder="Username" autoComplete="username" />
+    <AdminPortal>
+      <div className={styles.adminRoot}>
+        <div className={styles.loginWrap}>
+          <div className={styles.loginCard}>
+            <div className={styles.loginLogo}><i className="bx bxs-shield-alt-2" /></div>
+            <h1 className={styles.loginTitle}>Cavallery Admin</h1>
+            <p className={styles.loginSub}>Masuk untuk mengelola konten</p>
+            {err && <div className={styles.errMsg}><i className="bx bx-error-circle" /> {err}</div>}
+            <div className={styles.field}>
+              <label>Username</label>
+              <input value={user} onChange={e => setUser(e.target.value)} placeholder="Username" autoComplete="username" />
+            </div>
+            <div className={styles.field}>
+              <label>Password</label>
+              <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password"
+                autoComplete="current-password" onKeyDown={e => e.key === "Enter" && submit()} />
+            </div>
+            <button className={styles.loginBtn} onClick={submit} disabled={loading}>
+              {loading ? <><i className="bx bx-loader-alt bx-spin" /> Masuk...</> : "Masuk"}
+            </button>
+          </div>
         </div>
-        <div className={styles.field}>
-          <label>Password</label>
-          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password"
-            autoComplete="current-password" onKeyDown={e => e.key === "Enter" && submit()} />
-        </div>
-        <button className={styles.loginBtn} onClick={submit} disabled={loading}>
-          {loading ? <><i className="bx bx-loader-alt bx-spin" /> Masuk...</> : "Masuk"}
-        </button>
       </div>
-    </div>
+    </AdminPortal>
   );
 }
 
-// ─── TOAST ───────────────────────────────────────────────────
+// ─── TOAST ────────────────────────────────────────────────────
 function Toast({ msg, type, onClose }: { msg: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
   return (
@@ -111,7 +138,7 @@ function ConfirmModal({ msg, onConfirm, onCancel }: { msg: string; onConfirm: ()
   return (
     <div className={styles.modalOverlay} onClick={onCancel}>
       <div className={styles.confirmBox} onClick={e => e.stopPropagation()}>
-        <i className="bx bx-trash" style={{ fontSize: "2.5rem", color: "var(--danger)" }} />
+        <i className="bx bx-trash" style={{ fontSize: "2.5rem", color: "var(--adm-danger)" }} />
         <p>{msg}</p>
         <div className={styles.confirmBtns}>
           <button className={styles.btnGhost} onClick={onCancel}>Batal</button>
@@ -151,7 +178,7 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
               <td>
                 <div className={styles.actionBtns}>
                   <button className={styles.btnEdit} onClick={() => onEdit(row)}><i className="bx bx-edit" /></button>
-                  <button className={styles.btnDel} onClick={() => onDelete(row)}><i className="bx bx-trash" /></button>
+                  <button className={styles.btnDel}  onClick={() => onDelete(row)}><i className="bx bx-trash" /></button>
                 </div>
               </td>
             </tr>
@@ -220,13 +247,13 @@ function FormModal({ title, fields, data, onChange, onSave, onClose, saving }: {
 
 // ─── SECTION MANAGER ──────────────────────────────────────────
 function SectionManager({ section }: { section: Section }) {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows]     = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState<"add" | "edit" | null>(null);
+  const [modal, setModal]   = useState<"add" | "edit" | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [confirm, setConfirm] = useState<any>(null);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast]   = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
@@ -237,18 +264,14 @@ function SectionManager({ section }: { section: Section }) {
     listKey: string;
   }> = {
     news: {
-      endpoint: "/news",
-      listKey: "news",
+      endpoint: "/news", listKey: "news",
       cols: [
-        { key: "image_url", label: "Gambar" },
-        { key: "title", label: "Judul" },
-        { key: "label", label: "Label" },
-        { key: "is_active", label: "Aktif" },
+        { key: "image_url", label: "Gambar" }, { key: "title", label: "Judul" },
+        { key: "label", label: "Label" }, { key: "is_active", label: "Aktif" },
         { key: "published_at", label: "Tanggal" },
       ],
       fields: [
-        { key: "slug", label: "Slug" },
-        { key: "title", label: "Judul" },
+        { key: "slug", label: "Slug" }, { key: "title", label: "Judul" },
         { key: "label", label: "Label" },
         { key: "description", label: "Deskripsi Singkat", type: "textarea", rows: 2 },
         { key: "content", label: "Konten Lengkap", type: "textarea", rows: 6 },
@@ -261,19 +284,14 @@ function SectionManager({ section }: { section: Section }) {
       ],
     },
     timeline: {
-      endpoint: "/timeline",
-      listKey: "events",
+      endpoint: "/timeline", listKey: "events",
       cols: [
-        { key: "year", label: "Tahun" },
-        { key: "date_label", label: "Tanggal" },
-        { key: "title", label: "Judul" },
-        { key: "is_active", label: "Aktif" },
+        { key: "year", label: "Tahun" }, { key: "date_label", label: "Tanggal" },
+        { key: "title", label: "Judul" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "year", label: "Tahun" },
-        { key: "event_date", label: "Tanggal Event", type: "date" },
-        { key: "date_label", label: "Label Tanggal" },
-        { key: "title", label: "Judul" },
+        { key: "year", label: "Tahun" }, { key: "event_date", label: "Tanggal Event", type: "date" },
+        { key: "date_label", label: "Label Tanggal" }, { key: "title", label: "Judul" },
         { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
         { key: "image_url", label: "URL Gambar" },
         { key: "sort_order", label: "Urutan", type: "number" },
@@ -281,32 +299,24 @@ function SectionManager({ section }: { section: Section }) {
       ],
     },
     gallery: {
-      endpoint: "/gallery",
-      listKey: "items",
+      endpoint: "/gallery", listKey: "items",
       cols: [
-        { key: "image_url", label: "Gambar" },
-        { key: "title", label: "Judul" },
-        { key: "date_label", label: "Tanggal" },
-        { key: "is_active", label: "Aktif" },
+        { key: "image_url", label: "Gambar" }, { key: "title", label: "Judul" },
+        { key: "date_label", label: "Tanggal" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "title", label: "Judul" },
-        { key: "image_url", label: "URL Gambar" },
-        { key: "date_label", label: "Label Tanggal" },
-        { key: "alt_text", label: "Alt Text" },
+        { key: "title", label: "Judul" }, { key: "image_url", label: "URL Gambar" },
+        { key: "date_label", label: "Label Tanggal" }, { key: "alt_text", label: "Alt Text" },
         { key: "tags", label: "Tags", hint: "pisahkan dengan koma, boleh kosong" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
     },
     setlists: {
-      endpoint: "/setlists",
-      listKey: "",
+      endpoint: "/setlists", listKey: "",
       cols: [
-        { key: "image_url", label: "Gambar" },
-        { key: "title", label: "Judul" },
-        { key: "date_range", label: "Periode" },
-        { key: "badge", label: "Badge" },
+        { key: "image_url", label: "Gambar" }, { key: "title", label: "Judul" },
+        { key: "date_range", label: "Periode" }, { key: "badge", label: "Badge" },
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
@@ -314,55 +324,44 @@ function SectionManager({ section }: { section: Section }) {
         { key: "date_range", label: "Periode (cth: 1 Jan - Present)" },
         { key: "badge", label: "Badge (cth: 3 Shows)" },
         { key: "image_url", label: "URL Gambar" },
-        { key: "songs", label: "Songs", hint: "pisahkan dengan koma, cth: Lagu A, Lagu B", type: "textarea", rows: 3 },
+        { key: "songs", label: "Songs", hint: "pisahkan dengan koma", type: "textarea", rows: 3 },
         { key: "show_count", label: "Jumlah Show", type: "number" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
     },
-    // FIX: stats listKey tetap "" tapi load() sekarang cek Array.isArray(data) duluan
     stats: {
-      endpoint: "/stats",
-      listKey: "",
+      endpoint: "/stats", listKey: "",
       cols: [
-        { key: "stat_key", label: "Key" },
-        { key: "label", label: "Label" },
-        { key: "value", label: "Nilai" },
-        { key: "icon", label: "Icon" },
+        { key: "stat_key", label: "Key" }, { key: "label", label: "Label" },
+        { key: "value", label: "Nilai" }, { key: "icon", label: "Icon" },
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
         { key: "stat_key", label: "Stat Key (cth: total_shows)" },
-        { key: "label", label: "Label" },
-        { key: "value", label: "Nilai", type: "number" },
+        { key: "label", label: "Label" }, { key: "value", label: "Nilai", type: "number" },
         { key: "icon", label: "Icon (cth: bx-calendar)" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
     },
     youtube: {
-      endpoint: "/youtube",
-      listKey: "videos",
+      endpoint: "/youtube", listKey: "videos",
       cols: [
-        { key: "title", label: "Judul" },
-        { key: "category", label: "Kategori" },
-        { key: "video_id", label: "Video ID" },
-        { key: "is_active", label: "Aktif" },
+        { key: "title", label: "Judul" }, { key: "category", label: "Kategori" },
+        { key: "video_id", label: "Video ID" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "title", label: "Judul" },
-        { key: "url", label: "URL YouTube" },
+        { key: "title", label: "Judul" }, { key: "url", label: "URL YouTube" },
         { key: "category", label: "Kategori" },
         { key: "sort_order", label: "Urutan", type: "number" },
         { key: "is_active", label: "Aktif", type: "checkbox" },
       ],
     },
     funfacts: {
-      endpoint: "/funfacts",
-      listKey: "",
+      endpoint: "/funfacts", listKey: "",
       cols: [
-        { key: "content", label: "Konten" },
-        { key: "sort_order", label: "Urutan" },
+        { key: "content", label: "Konten" }, { key: "sort_order", label: "Urutan" },
         { key: "is_active", label: "Aktif" },
       ],
       fields: [
@@ -372,17 +371,13 @@ function SectionManager({ section }: { section: Section }) {
       ],
     },
     kabesha: {
-      endpoint: "/kabesha",
-      listKey: "",
+      endpoint: "/kabesha", listKey: "",
       cols: [
-        { key: "image_url", label: "Gambar" },
-        { key: "year_label", label: "Tahun" },
-        { key: "title", label: "Judul" },
-        { key: "is_active", label: "Aktif" },
+        { key: "image_url", label: "Gambar" }, { key: "year_label", label: "Tahun" },
+        { key: "title", label: "Judul" }, { key: "is_active", label: "Aktif" },
       ],
       fields: [
-        { key: "year_label", label: "Label Tahun" },
-        { key: "title", label: "Judul" },
+        { key: "year_label", label: "Label Tahun" }, { key: "title", label: "Judul" },
         { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
         { key: "image_url", label: "URL Gambar" },
         { key: "sort_order", label: "Urutan", type: "number" },
@@ -398,104 +393,53 @@ function SectionManager({ section }: { section: Section }) {
     if (section === "dashboard") return;
     setLoading(true);
     try {
-      const res = await fetch(api(c.endpoint));
+      const res  = await fetch(api(c.endpoint));
       const json = await res.json();
       const data = json?.data;
-
-      // FIX: cek Array.isArray duluan sebelum cek listKey
-      // stats & funfacts & kabesha return { data: [...] } langsung array
-      if (Array.isArray(data)) {
-        setRows(data);
-      } else if (data?.news) {
-        setRows(data.news);
-      } else if (data?.items) {
-        setRows(data.items);
-      } else if (data?.videos) {
-        setRows(data.videos);
-      } else if (data?.events) {
-        setRows(data.events);
-      } else if (c.listKey && data?.[c.listKey]) {
-        setRows(data[c.listKey]);
-      } else {
-        setRows([]);
-      }
-    } catch {
-      setRows([]);
-    }
+      if      (Array.isArray(data))              setRows(data);
+      else if (data?.news)                       setRows(data.news);
+      else if (data?.items)                      setRows(data.items);
+      else if (data?.videos)                     setRows(data.videos);
+      else if (data?.events)                     setRows(data.events);
+      else if (c.listKey && data?.[c.listKey])   setRows(data[c.listKey]);
+      else                                       setRows([]);
+    } catch { setRows([]); }
     setLoading(false);
   }, [section]);
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd = () => {
-    setFormData({ is_active: true, sort_order: 0 });
-    setModal("add");
-  };
-
-  const openEdit = (row: any) => {
-    setFormData({ ...row });
-    setModal("edit");
-  };
+  const openAdd  = () => { setFormData({ is_active: true, sort_order: 0 }); setModal("add"); };
+  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
 
   const save = async () => {
     setSaving(true);
     try {
       const isEdit = modal === "edit";
-
-      // FIX: stats edit pakai stat_key, youtube pakai video_id, lainnya pakai id
-      const editId = section === "stats"
-        ? formData.stat_key
-        : section === "youtube"
-          ? formData.video_id
-          : formData.id;
-
-      const url = isEdit
-        ? api(`${c.endpoint}/${editId}`)
-        : api(c.endpoint);
-
+      const editId = section === "stats"   ? formData.stat_key
+                   : section === "youtube" ? formData.video_id
+                   : formData.id;
+      const url    = isEdit ? api(`${c.endpoint}/${editId}`) : api(c.endpoint);
       const payload = preparePayload(section, formData);
-
-      const res = await fetch(url, {
-        method: isEdit ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res  = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const json = await res.json();
-      if (json.status) {
-        showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success");
-        setModal(null);
-        load();
-      } else {
-        showToast(json.message || "Gagal menyimpan", "error");
-      }
-    } catch {
-      showToast("Terjadi kesalahan jaringan", "error");
-    }
+      if (json.status) { showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success"); setModal(null); load(); }
+      else               showToast(json.message || "Gagal menyimpan", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
     setSaving(false);
   };
 
   const del = async (row: any) => {
-    // FIX: tutup modal confirm duluan supaya tidak stuck
     setConfirm(null);
     try {
-      // FIX: stats pakai stat_key, youtube pakai video_id, lainnya pakai id
-      const id = section === "stats"
-        ? row.stat_key
-        : section === "youtube"
-          ? row.video_id
-          : row.id;
-
-      const res = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
+      const id  = section === "stats"   ? row.stat_key
+                : section === "youtube" ? row.video_id
+                : row.id;
+      const res  = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
       const json = await res.json();
-      if (json.status) {
-        showToast("Berhasil dihapus!", "success");
-        load();
-      } else {
-        showToast(json.message || "Gagal menghapus", "error");
-      }
-    } catch {
-      showToast("Terjadi kesalahan jaringan", "error");
-    }
+      if (json.status) { showToast("Berhasil dihapus!", "success"); load(); }
+      else               showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
   if (section === "dashboard") return null;
@@ -513,12 +457,9 @@ function SectionManager({ section }: { section: Section }) {
       {modal && (
         <FormModal
           title={modal === "add" ? `Tambah ${section}` : `Edit ${section}`}
-          fields={c.fields}
-          data={formData}
+          fields={c.fields} data={formData}
           onChange={(k, v) => setFormData(prev => ({ ...prev, [k]: v }))}
-          onSave={save}
-          onClose={() => setModal(null)}
-          saving={saving}
+          onSave={save} onClose={() => setModal(null)} saving={saving}
         />
       )}
       <div className={styles.sectionHeader}>
@@ -526,15 +467,12 @@ function SectionManager({ section }: { section: Section }) {
           <i className="bx bx-data" /> {section.charAt(0).toUpperCase() + section.slice(1)}
           <span className={styles.count}>{rows.length} item</span>
         </h2>
-        <button className={styles.btnPrimary} onClick={openAdd}>
-          <i className="bx bx-plus" /> Tambah
-        </button>
+        <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah</button>
       </div>
-      {loading ? (
-        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
-      ) : (
-        <DataTable cols={c.cols} rows={rows} onEdit={openEdit} onDelete={row => setConfirm(row)} />
-      )}
+      {loading
+        ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
+        : <DataTable cols={c.cols} rows={rows} onEdit={openEdit} onDelete={row => setConfirm(row)} />
+      }
     </div>
   );
 }
@@ -544,43 +482,41 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const endpoints: { key: string; path: string; listKey: string }[] = [
-      { key: "news",      path: "/news",      listKey: "news" },
-      { key: "timeline",  path: "/timeline",  listKey: "events" },
-      { key: "gallery",   path: "/gallery",   listKey: "items" },
-      { key: "setlists",  path: "/setlists",  listKey: "" },
-      { key: "youtube",   path: "/youtube",   listKey: "videos" },
-      { key: "funfacts",  path: "/funfacts",  listKey: "" },
-      { key: "kabesha",   path: "/kabesha",   listKey: "" },
-      { key: "stats",     path: "/stats",     listKey: "" },
-    ];
-    endpoints.forEach(async ({ key, path }) => {
+    ([
+      { key: "news",     path: "/news"     },
+      { key: "timeline", path: "/timeline" },
+      { key: "gallery",  path: "/gallery"  },
+      { key: "setlists", path: "/setlists" },
+      { key: "youtube",  path: "/youtube"  },
+      { key: "funfacts", path: "/funfacts" },
+      { key: "kabesha",  path: "/kabesha"  },
+      { key: "stats",    path: "/stats"    },
+    ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
         const res  = await fetch(api(path));
         const json = await res.json();
         const data = json?.data;
         let count = 0;
-        // FIX: cek Array.isArray duluan untuk stats/funfacts/kabesha/setlists
-        if (Array.isArray(data)) count = data.length;
-        else if (data?.total !== undefined) count = data.total;
-        else if (data?.news)   count = data.news.length;
-        else if (data?.items)  count = data.items.length;
-        else if (data?.videos) count = data.videos.length;
-        else if (data?.events) count = data.events.length;
+        if      (Array.isArray(data))            count = data.length;
+        else if (data?.total !== undefined)      count = data.total;
+        else if (data?.news)                     count = data.news.length;
+        else if (data?.items)                    count = data.items.length;
+        else if (data?.videos)                   count = data.videos.length;
+        else if (data?.events)                   count = data.events.length;
         setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
   }, []);
 
   const cards = [
-    { key: "news"      as Section, icon: "bx-news",       label: "News",      color: "#b45309" },
-    { key: "timeline"  as Section, icon: "bx-history",    label: "Timeline",  color: "#047857" },
-    { key: "gallery"   as Section, icon: "bx-image-alt",  label: "Gallery",   color: "#7c3aed" },
-    { key: "setlists"  as Section, icon: "bx-music",      label: "Setlists",  color: "#0369a1" },
-    { key: "youtube"   as Section, icon: "bxl-youtube",   label: "YouTube",   color: "#dc2626" },
-    { key: "funfacts"  as Section, icon: "bx-laugh",      label: "Funfacts",  color: "#059669" },
-    { key: "kabesha"   as Section, icon: "bx-star",       label: "Kabesha",   color: "#d97706" },
-    { key: "stats"     as Section, icon: "bx-bar-chart",  label: "Stats",     color: "#9333ea" },
+    { key: "news"      as Section, icon: "bx-news",      label: "News",     color: "#b45309" },
+    { key: "timeline"  as Section, icon: "bx-history",   label: "Timeline", color: "#047857" },
+    { key: "gallery"   as Section, icon: "bx-image-alt", label: "Gallery",  color: "#7c3aed" },
+    { key: "setlists"  as Section, icon: "bx-music",     label: "Setlists", color: "#0369a1" },
+    { key: "youtube"   as Section, icon: "bxl-youtube",  label: "YouTube",  color: "#dc2626" },
+    { key: "funfacts"  as Section, icon: "bx-laugh",     label: "Funfacts", color: "#059669" },
+    { key: "kabesha"   as Section, icon: "bx-star",      label: "Kabesha",  color: "#d97706" },
+    { key: "stats"     as Section, icon: "bx-bar-chart", label: "Stats",    color: "#9333ea" },
   ];
 
   return (
@@ -606,17 +542,17 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   );
 }
 
-// ─── SIDEBAR ──────────────────────────────────────────────────
+// ─── NAV ITEMS ────────────────────────────────────────────────
 const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "dashboard", icon: "bx-home-alt",  label: "Dashboard" },
-  { key: "news",      icon: "bx-news",      label: "News" },
-  { key: "timeline",  icon: "bx-history",   label: "Timeline" },
-  { key: "gallery",   icon: "bx-image-alt", label: "Gallery" },
-  { key: "setlists",  icon: "bx-music",     label: "Setlists" },
-  { key: "youtube",   icon: "bxl-youtube",  label: "YouTube" },
-  { key: "funfacts",  icon: "bx-laugh",     label: "Funfacts" },
-  { key: "kabesha",   icon: "bx-star",      label: "Kabesha" },
-  { key: "stats",     icon: "bx-bar-chart", label: "Stats" },
+  { key: "news",      icon: "bx-news",      label: "News"      },
+  { key: "timeline",  icon: "bx-history",   label: "Timeline"  },
+  { key: "gallery",   icon: "bx-image-alt", label: "Gallery"   },
+  { key: "setlists",  icon: "bx-music",     label: "Setlists"  },
+  { key: "youtube",   icon: "bxl-youtube",  label: "YouTube"   },
+  { key: "funfacts",  icon: "bx-laugh",     label: "Funfacts"  },
+  { key: "kabesha",   icon: "bx-star",      label: "Kabesha"   },
+  { key: "stats",     icon: "bx-bar-chart", label: "Stats"     },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -624,7 +560,7 @@ export default function AdminPage() {
   const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
   const [active,   setActive]   = useState<Section>("dashboard");
-  const [sideOpen, setSideOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (sessionStorage.getItem("cava_admin") === "1") setAuthed(true);
@@ -638,54 +574,110 @@ export default function AdminPage() {
       <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem" }} />
     </div>
   );
+
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
 
+  const navigate = (section: Section) => { setActive(section); setDrawerOpen(false); };
+
   return (
-    <div className={styles.adminWrap}>
-      <aside className={`${styles.sidebar} ${sideOpen ? styles.open : ""}`}>
-        <div className={styles.sideTop}>
-          <div className={styles.sideLogo}>
-            <i className="bx bxs-shield-alt-2" />
-            <span>Cavallery</span>
+    <AdminPortal>
+      {/* ── scoped CSS vars so admin styles don't conflict with site theme ── */}
+      <style>{`
+        .adm-root {
+          --adm-bg:      #1a1a1a;
+          --adm-surface: #242424;
+          --adm-border:  #333;
+          --adm-text:    #f0f0f0;
+          --adm-muted:   #999;
+          --adm-accent:  #c9a84c;
+          --adm-danger:  #e05252;
+          --adm-sidebar: 220px;
+          --adm-topbar:  52px;
+        }
+      `}</style>
+
+      <div className={`${styles.adminRoot} adm-root`}>
+
+        {/* ── DESKTOP SIDEBAR ── */}
+        <aside className={styles.sidebar}>
+          <div className={styles.sideTop}>
+            <div className={styles.sideLogo}>
+              <i className="bx bxs-shield-alt-2" />
+              <span>Cavallery</span>
+            </div>
+            <nav className={styles.nav}>
+              {navItems.map(n => (
+                <button key={n.key}
+                  className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
+                  onClick={() => navigate(n.key)}>
+                  <i className={`bx ${n.icon}`} />
+                  <span>{n.label}</span>
+                </button>
+              ))}
+            </nav>
           </div>
-          <nav className={styles.nav}>
-            {navItems.map(n => (
-              <button key={n.key}
-                className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
-                onClick={() => { setActive(n.key); setSideOpen(false); }}>
-                <i className={`bx ${n.icon}`} />
-                <span>{n.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-        <button className={styles.logoutBtn} onClick={logout}>
-          <i className="bx bx-log-out" /> Keluar
-        </button>
-      </aside>
-
-      {sideOpen && <div className={styles.overlay} onClick={() => setSideOpen(false)} />}
-
-      <main className={styles.main}>
-        <header className={styles.topbar}>
-          <button className={styles.menuBtn} onClick={() => setSideOpen(true)}>
-            <i className="bx bx-menu" />
+          <button className={styles.logoutBtn} onClick={logout}>
+            <i className="bx bx-log-out" /> Keluar
           </button>
-          <div className={styles.topbarTitle}>
-            {navItems.find(n => n.key === active)?.label ?? "Dashboard"}
-          </div>
-          <div className={styles.topbarRight}>
-            <span className={styles.adminBadge}><i className="bx bx-user" /> Admin</span>
-          </div>
-        </header>
+        </aside>
 
-        <div className={styles.content}>
-          {active === "dashboard"
-            ? <DashboardHome onNav={setActive} />
-            : <SectionManager section={active} />
-          }
+        {/* ── MOBILE DRAWER OVERLAY ── */}
+        {drawerOpen && (
+          <div className={styles.drawerOverlay} onClick={() => setDrawerOpen(false)}>
+            <aside className={styles.drawer} onClick={e => e.stopPropagation()}>
+              <div className={styles.sideTop}>
+                <div className={styles.sideLogo}>
+                  <i className="bx bxs-shield-alt-2" />
+                  <span>Cavallery</span>
+                </div>
+                <nav className={styles.nav}>
+                  {navItems.map(n => (
+                    <button key={n.key}
+                      className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
+                      onClick={() => navigate(n.key)}>
+                      <i className={`bx ${n.icon}`} />
+                      <span>{n.label}</span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              <button className={styles.logoutBtn} onClick={logout}>
+                <i className="bx bx-log-out" /> Keluar
+              </button>
+            </aside>
+          </div>
+        )}
+
+        {/* ── MAIN AREA ── */}
+        <div className={styles.mainArea}>
+
+          {/* topbar */}
+          <header className={styles.topbar}>
+            {/* hamburger — mobile only */}
+            <button className={styles.menuBtn} onClick={() => setDrawerOpen(true)}>
+              <i className="bx bx-menu" />
+            </button>
+            <div className={styles.topbarTitle}>
+              {navItems.find(n => n.key === active)?.label ?? "Dashboard"}
+            </div>
+            <div className={styles.topbarRight}>
+              <span className={styles.adminBadge}><i className="bx bx-user" /> Admin</span>
+              {/* logout shortcut on mobile */}
+              <button className={styles.logoutIconBtn} onClick={logout} title="Keluar">
+                <i className="bx bx-log-out" />
+              </button>
+            </div>
+          </header>
+
+          {/* content */}
+          <div className={styles.content}>
+            {active === "dashboard"
+              ? <DashboardHome onNav={setActive} />
+              : <SectionManager section={active} />
+            }
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AdminPortal>
   );
 }
