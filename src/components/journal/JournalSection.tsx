@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./JournalSection.module.css";
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbxiiUkBqWpRrYSDkC-6RKZ_mFxPAWB2uydW_hxaYWL0tr-o_GwrJ6b4zt_Goj9gFeen/exec";
 
 interface Message {
   name: string;
@@ -25,12 +24,12 @@ export default function JournalSection() {
 
   const loadMessages = async () => {
     try {
-      const res = await fetch(scriptURL);
+      const res = await fetch("/api/journal");
       const data = await res.json();
-      const formatted = data.map((row: any) => ({
-        name: row[1],
-        msg: row[2],
-        date: row[3] ? new Date(row[3]).toLocaleDateString("id-ID") : ""
+      const formatted = data.map((item: any) => ({
+        name: item.name,
+        msg: item.msg,
+        date: item.date ? new Date(item.date).toLocaleDateString("id-ID") : ""
       }));
       setMessages(formatted);
     } catch (e) {
@@ -45,7 +44,7 @@ export default function JournalSection() {
     if (!formRef.current) return;
 
     try {
-      await fetch(scriptURL, { method: "POST", body: new FormData(formRef.current) });
+      await fetch("/api/journal", { method: "POST", body: new FormData(formRef.current) });
       setIsSubmitted(true);
       loadMessages();
     } catch (e) {

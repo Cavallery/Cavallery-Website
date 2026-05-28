@@ -33,15 +33,23 @@ export default function Chatbot() {
     if (!text || isLoading) return;
 
     // Add user message
-    setMessages((prev) => [...prev, { text, sender: "user" }]);
+    const updatedMessages = [...messages, { text, sender: "user" as const }];
+    setMessages(updatedMessages);
     setInputText("");
     setIsLoading(true);
+
+    // Build conversation history for memory
+    const history = updatedMessages
+      .map((m) => ({
+        role: m.sender === "user" ? "user" : "model",
+        text: m.text,
+      }));
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, history }),
       });
 
       const data = await response.json();
