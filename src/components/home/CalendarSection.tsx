@@ -43,6 +43,7 @@ export default function CalendarSection() {
   const [apiShows, setApiShows] = useState<Show[]>([]);
   const [apiLives, setApiLives] = useState<Show[]>([]);
   const [apiRiwayat, setApiRiwayat] = useState<Show[]>([]);
+  const [apiBirthdays, setApiBirthdays] = useState<Show[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const year = currentDate.getFullYear();
@@ -132,6 +133,36 @@ export default function CalendarSection() {
     fetchRiwayat();
   }, []);
 
+  // Fetch birthdays
+  useEffect(() => {
+    async function fetchBirthdays() {
+      try {
+        const res = await fetch("/api/birthday");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: Show[] = json.data.map((item: any, idx: number) => {
+            const dateStr = item.date;
+            const dateObj = new Date(dateStr);
+            dateObj.setFullYear(year); 
+            const todayStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}T00:00:00`;
+            return {
+              id: `birthday-${idx}`,
+              title: `🎂 Ulang Tahun: ${item.name}`,
+              date: todayStr,
+              startTime: "00:00",
+              members: [{ name: item.name }],
+              isLiveHistory: false,
+            };
+          });
+          setApiBirthdays(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load birthdays:", err);
+      }
+    }
+    fetchBirthdays();
+  }, [year]);
+
   const shows = useMemo(() => {
     const filteredShows = apiShows.filter((s) => {
       const members = s.members ?? s.member ?? s.lineup ?? [];
@@ -145,14 +176,32 @@ export default function CalendarSection() {
       if (!s.date) return false;
       const d = new Date(s.date);
       return d.getFullYear() === year && d.getMonth() === month;
+    }).filter((s) => {
+      const members = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name));
+    });
+
+    const filteredLives = apiLives.filter((s) => {
+      const members = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name));
+    });
+
+    const filteredBirthdays = apiBirthdays.filter((s) => {
+      const members = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name));
+    }).filter((s) => {
+      if (!s.date) return false;
+      const d = new Date(s.date);
+      return d.getFullYear() === year && d.getMonth() === month;
     });
 
     return [
       ...filteredShows,
-      ...(isCurrentMonth ? apiLives : []),
+      ...(isCurrentMonth ? filteredLives : []),
       ...filteredRiwayat,
+      ...filteredBirthdays,
     ];
-  }, [apiShows, apiLives, apiRiwayat, year, month]);
+  }, [apiShows, apiLives, apiRiwayat, apiBirthdays, year, month]);
 
   const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
   const firstDayIndex = useMemo(() => new Date(year, month, 1).getDay(), [year, month]);
