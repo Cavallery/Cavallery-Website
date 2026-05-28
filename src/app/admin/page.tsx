@@ -3,14 +3,17 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "./page.module.css";
 
-const API_BASE = "https://v5.jkt48connect.com/api/cavallery";
-const API_KEY  = "JKTCONNECT";
+const API_BASE    = "https://v5.jkt48connect.com/api/cavallery";
+const API_KEY     = "JKTCONNECT";
 const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
+
+const DISCORD_API   = "http://apps1.vynzzhost.com:25613/api/send";
+const DISCORD_TOKEN = "21082007";
 
 type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
-  | "kabesha"   | "media";
+  | "kabesha"   | "media"    | "discord";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -338,10 +341,10 @@ function MediaPickerModal({
   onClose: () => void;
   type?: "image" | "video" | "all";
 }) {
-  const [items, setItems]         = useState<any[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState("");
-  const [folder, setFolder]       = useState("");
+  const [items, setItems]           = useState<any[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState("");
+  const [folder, setFolder]         = useState("");
   const [showUpload, setShowUpload] = useState(false);
 
   const load = useCallback(async () => {
@@ -669,7 +672,6 @@ function MediaManager() {
         />
       )}
 
-      {/* Header */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
           <i className="bx bx-folder-open" /> Media
@@ -687,7 +689,6 @@ function MediaManager() {
         </div>
       </div>
 
-      {/* Filters */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         <input
           placeholder="Cari nama file..."
@@ -730,7 +731,6 @@ function MediaManager() {
         </button>
       </div>
 
-      {/* Grid */}
       {loading ? (
         <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat media...</div>
       ) : items.length === 0 ? (
@@ -805,6 +805,377 @@ function MediaManager() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── DISCORD MANAGER ──────────────────────────────────────────
+interface DiscordLog {
+  time: string;
+  title: string;
+  mention: string;
+  hasImage: boolean;
+}
+
+function DiscordManager() {
+  const [title,    setTitle]    = useState("");
+  const [desc,     setDesc]     = useState("");
+  const [url,      setUrl]      = useState("https://cavallery.id");
+  const [image,    setImage]    = useState("");
+  const [mention,  setMention]  = useState("");
+  const [sending,  setSending]  = useState(false);
+  const [logs,     setLogs]     = useState<DiscordLog[]>([]);
+  const [toast,    setToast]    = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const STORAGE_KEY = "cava_discord_logs";
+
+  // Load logs dari localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setLogs(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const saveLogs = (newLogs: DiscordLog[]) => {
+    setLogs(newLogs);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newLogs)); } catch {}
+  };
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const now = () => {
+    return new Date().toLocaleString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      day: "numeric", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  };
+
+  const send = async () => {
+    if (!title.trim() || !desc.trim()) {
+      showToast("Judul dan deskripsi wajib diisi", "error");
+      return;
+    }
+    setSending(true);
+    try {
+      const time    = now();
+      const payload = {
+        title:       "📌 " + title.trim(),
+        description: desc.trim() + "\n\n🕐 " + time,
+        url:         url.trim() || "https://cavallery.id",
+        mention:     mention || "",
+        image:       image.trim() || "",
+      };
+
+      const res = await fetch(DISCORD_API, {
+        method:  "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": "Bearer " + DISCORD_TOKEN,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        showToast("✅ Berhasil dikirim ke Discord!", "success");
+        // Simpan ke log
+        const newLog: DiscordLog = {
+          time,
+          title:    title.trim(),
+          mention:  mention || "—",
+          hasImage: !!image.trim(),
+        };
+        const updated = [newLog, ...logs].slice(0, 30);
+        saveLogs(updated);
+        // Reset form
+        setTitle(""); setDesc(""); setImage(""); setMention("");
+      } else {
+        const body = await res.text();
+        showToast(`❌ Gagal (${res.status}): ${body.slice(0, 80)}`, "error");
+      }
+    } catch (e: any) {
+      showToast("❌ Error jaringan: " + (e?.message ?? "unknown"), "error");
+    }
+    setSending(false);
+  };
+
+  const clearLogs = () => {
+    saveLogs([]);
+    setConfirmClear(false);
+    showToast("Log dihapus", "success");
+  };
+
+  // Preview embed warna sesuai mention
+  const embedColor =
+    mention === "@everyone" ? "#e05252" :
+    mention === "@here"     ? "#d97706" :
+    "#5865f2";
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmClear && (
+        <ConfirmModal
+          msg="Hapus semua riwayat pengiriman Discord?"
+          onConfirm={clearLogs}
+          onCancel={() => setConfirmClear(false)}
+        />
+      )}
+      {showPicker && (
+        <MediaPickerModal
+          type="image"
+          onPick={url => { setImage(url); setShowPicker(false); }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bxl-discord-alt" style={{ color: "#5865f2" }} /> Discord Notifier
+        </h2>
+      </div>
+
+      {/* ── Two-column layout ── */}
+      <div className={styles.discordLayout}>
+
+        {/* ── FORM PANEL ── */}
+        <div className={styles.discordForm}>
+          <div className={styles.discordFormInner}>
+
+            {/* Judul */}
+            <div className={styles.field}>
+              <label>Judul Update <span style={{ color: "#e05252" }}>*</span></label>
+              <input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Masukkan judul pengumuman..."
+                maxLength={256}
+              />
+              <span style={{ fontSize: 11, color: "#555", textAlign: "right" }}>{title.length}/256</span>
+            </div>
+
+            {/* Deskripsi */}
+            <div className={styles.field}>
+              <label>Deskripsi <span style={{ color: "#e05252" }}>*</span></label>
+              <textarea
+                rows={6}
+                value={desc}
+                onChange={e => setDesc(e.target.value)}
+                placeholder="Tulis detail pengumuman di sini..."
+                maxLength={2000}
+              />
+              <span style={{ fontSize: 11, color: "#555", textAlign: "right" }}>{desc.length}/2000</span>
+            </div>
+
+            {/* URL */}
+            <div className={styles.field}>
+              <label>URL Website</label>
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                placeholder="https://cavallery.id"
+              />
+            </div>
+
+            {/* Gambar */}
+            <div className={styles.field}>
+              <label>Gambar <span style={{ color: "#777", fontWeight: 400 }}>(opsional)</span></label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={image}
+                  onChange={e => setImage(e.target.value)}
+                  placeholder="URL gambar atau pilih dari media..."
+                  style={{ flex: 1 }}
+                />
+                <button
+                  className={styles.btnGhost}
+                  style={{ whiteSpace: "nowrap", fontSize: 13 }}
+                  onClick={() => setShowPicker(true)}
+                >
+                  <i className="bx bx-folder-open" /> Pilih
+                </button>
+                {image && (
+                  <button
+                    className={styles.btnDel}
+                    style={{ width: 36, height: 36, flexShrink: 0 }}
+                    onClick={() => setImage("")}
+                    title="Hapus gambar"
+                  >
+                    <i className="bx bx-x" />
+                  </button>
+                )}
+              </div>
+              {image && (
+                <img
+                  src={image}
+                  alt="preview"
+                  style={{
+                    marginTop: 8, maxHeight: 120, borderRadius: 8,
+                    objectFit: "cover", border: "1px solid var(--adm-border)", width: "100%",
+                  }}
+                  onError={e => (e.currentTarget.style.display = "none")}
+                />
+              )}
+            </div>
+
+            {/* Mention */}
+            <div className={styles.field}>
+              <label>Mention</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {["", "@everyone", "@here"].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => setMention(m)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 4px",
+                      borderRadius: 8,
+                      border: "1px solid",
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      transition: "all 0.15s",
+                      borderColor: mention === m
+                        ? (m === "@everyone" ? "#e05252" : m === "@here" ? "#d97706" : "#5865f2")
+                        : "#333",
+                      background: mention === m
+                        ? (m === "@everyone" ? "#3a1a1a" : m === "@here" ? "#2a1e10" : "#1a1d3a")
+                        : "transparent",
+                      color: mention === m
+                        ? (m === "@everyone" ? "#e05252" : m === "@here" ? "#f59e0b" : "#7289da")
+                        : "#777",
+                    }}
+                  >
+                    {m || "Tanpa Mention"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Send button */}
+            <button
+              className={styles.btnPrimary}
+              onClick={send}
+              disabled={sending || !title.trim() || !desc.trim()}
+              style={{
+                width: "100%",
+                justifyContent: "center",
+                padding: "0.65rem",
+                fontSize: "0.9rem",
+                background: sending ? "#333" : "linear-gradient(135deg, #5865f2, #7289da)",
+                color: "#fff",
+              }}
+            >
+              {sending
+                ? <><i className="bx bx-loader-alt bx-spin" /> Mengirim ke Discord...</>
+                : <><i className="bx bxl-discord-alt" /> Kirim Sekarang</>
+              }
+            </button>
+          </div>
+        </div>
+
+        {/* ── RIGHT COLUMN: Preview + Logs ── */}
+        <div className={styles.discordRight}>
+
+          {/* Embed Preview */}
+          <div className={styles.discordPreviewCard}>
+            <p className={styles.discordPreviewLabel}>
+              <i className="bx bx-show" /> Preview Embed
+            </p>
+            <div
+              className={styles.discordEmbed}
+              style={{ borderLeftColor: embedColor }}
+            >
+              {mention && (
+                <div className={styles.discordMention}
+                  style={{
+                    color: mention === "@everyone" ? "#e05252" : "#f59e0b",
+                    background: mention === "@everyone" ? "#3a1a1a" : "#2a1e10",
+                  }}>
+                  {mention}
+                </div>
+              )}
+              <div className={styles.discordEmbedTitle}>
+                {title ? "📌 " + title : <span style={{ opacity: 0.3 }}>Judul pengumuman...</span>}
+              </div>
+              <div className={styles.discordEmbedDesc}>
+                {desc
+                  ? desc.split("\n").map((line, i) => <span key={i}>{line}<br /></span>)
+                  : <span style={{ opacity: 0.3 }}>Deskripsi pengumuman...</span>
+                }
+                {desc && (
+                  <><br /><span style={{ opacity: 0.5, fontSize: 11 }}>🕐 {now()}</span></>
+                )}
+              </div>
+              {image && (
+                <img
+                  src={image}
+                  alt="embed"
+                  className={styles.discordEmbedImg}
+                  onError={e => (e.currentTarget.style.display = "none")}
+                />
+              )}
+              {url && (
+                <div className={styles.discordEmbedUrl}>
+                  <i className="bx bx-link-external" style={{ fontSize: 11 }} /> {url}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* History */}
+          <div className={styles.discordLogsCard}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <p className={styles.discordPreviewLabel} style={{ margin: 0 }}>
+                <i className="bx bx-history" /> Riwayat ({logs.length})
+              </p>
+              {logs.length > 0 && (
+                <button
+                  className={styles.btnDel}
+                  style={{ width: "auto", height: "auto", padding: "3px 10px", fontSize: 11, borderRadius: 6 }}
+                  onClick={() => setConfirmClear(true)}
+                >
+                  Hapus Log
+                </button>
+              )}
+            </div>
+            {logs.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px 0", opacity: 0.3, fontSize: 13 }}>
+                <i className="bx bx-inbox" style={{ fontSize: "2rem", display: "block", marginBottom: 4 }} />
+                Belum ada riwayat
+              </div>
+            ) : (
+              <div className={styles.discordLogList}>
+                {logs.map((log, i) => (
+                  <div key={i} className={styles.discordLogItem}>
+                    <div className={styles.discordLogTitle}>{log.title}</div>
+                    <div className={styles.discordLogMeta}>
+                      <span>{log.time}</span>
+                      {log.mention !== "—" && (
+                        <span style={{
+                          background: log.mention === "@everyone" ? "#3a1a1a" : "#2a1e10",
+                          color:      log.mention === "@everyone" ? "#e05252" : "#f59e0b",
+                          padding: "1px 6px", borderRadius: 4, fontSize: 10,
+                        }}>{log.mention}</span>
+                      )}
+                      {log.hasImage && (
+                        <span style={{ color: "#5865f2", fontSize: 10 }}>
+                          <i className="bx bx-image" /> gambar
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -958,12 +1329,13 @@ function SectionManager({ section }: { section: Section }) {
     },
     dashboard: { endpoint: "", listKey: "", cols: [], fields: [] },
     media:     { endpoint: "", listKey: "", cols: [], fields: [] },
+    discord:   { endpoint: "", listKey: "", cols: [], fields: [] },
   };
 
   const c = cfg[section];
 
   const load = useCallback(async () => {
-    if (section === "dashboard" || section === "media") return;
+    if (section === "dashboard" || section === "media" || section === "discord") return;
     setLoading(true);
     try {
       const res  = await fetch(api(c.endpoint));
@@ -1024,7 +1396,7 @@ function SectionManager({ section }: { section: Section }) {
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
-  if (section === "dashboard" || section === "media") return null;
+  if (section === "dashboard" || section === "media" || section === "discord") return null;
 
   return (
     <div className={styles.sectionWrap}>
@@ -1097,15 +1469,16 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   }, []);
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
-    { key: "news",      icon: "bx-news",        label: "News",     color: "#b45309" },
-    { key: "timeline",  icon: "bx-history",     label: "Timeline", color: "#047857" },
-    { key: "gallery",   icon: "bx-image-alt",   label: "Gallery",  color: "#7c3aed" },
-    { key: "setlists",  icon: "bx-music",       label: "Setlists", color: "#0369a1" },
-    { key: "youtube",   icon: "bxl-youtube",    label: "YouTube",  color: "#dc2626" },
-    { key: "funfacts",  icon: "bx-laugh",       label: "Funfacts", color: "#059669" },
-    { key: "kabesha",   icon: "bx-star",        label: "Kabesha",  color: "#d97706" },
-    { key: "stats",     icon: "bx-bar-chart",   label: "Stats",    color: "#9333ea" },
-    { key: "media",     icon: "bx-folder-open", label: "Media",    color: "#0891b2" },
+    { key: "news",      icon: "bx-news",          label: "News",     color: "#b45309" },
+    { key: "timeline",  icon: "bx-history",       label: "Timeline", color: "#047857" },
+    { key: "gallery",   icon: "bx-image-alt",     label: "Gallery",  color: "#7c3aed" },
+    { key: "setlists",  icon: "bx-music",         label: "Setlists", color: "#0369a1" },
+    { key: "youtube",   icon: "bxl-youtube",      label: "YouTube",  color: "#dc2626" },
+    { key: "funfacts",  icon: "bx-laugh",         label: "Funfacts", color: "#059669" },
+    { key: "kabesha",   icon: "bx-star",          label: "Kabesha",  color: "#d97706" },
+    { key: "stats",     icon: "bx-bar-chart",     label: "Stats",    color: "#9333ea" },
+    { key: "media",     icon: "bx-folder-open",   label: "Media",    color: "#0891b2" },
+    { key: "discord",   icon: "bxl-discord-alt",  label: "Discord",  color: "#5865f2" },
   ];
 
   return (
@@ -1137,16 +1510,17 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
 // ─── NAV ITEMS ────────────────────────────────────────────────
 const navItems: { key: Section; icon: string; label: string }[] = [
-  { key: "dashboard", icon: "bx-home-alt",    label: "Dashboard" },
-  { key: "news",      icon: "bx-news",        label: "News"      },
-  { key: "timeline",  icon: "bx-history",     label: "Timeline"  },
-  { key: "gallery",   icon: "bx-image-alt",   label: "Gallery"   },
-  { key: "setlists",  icon: "bx-music",       label: "Setlists"  },
-  { key: "youtube",   icon: "bxl-youtube",    label: "YouTube"   },
-  { key: "funfacts",  icon: "bx-laugh",       label: "Funfacts"  },
-  { key: "kabesha",   icon: "bx-star",        label: "Kabesha"   },
-  { key: "stats",     icon: "bx-bar-chart",   label: "Stats"     },
-  { key: "media",     icon: "bx-folder-open", label: "Media"     },
+  { key: "dashboard", icon: "bx-home-alt",       label: "Dashboard" },
+  { key: "news",      icon: "bx-news",           label: "News"      },
+  { key: "timeline",  icon: "bx-history",        label: "Timeline"  },
+  { key: "gallery",   icon: "bx-image-alt",      label: "Gallery"   },
+  { key: "setlists",  icon: "bx-music",          label: "Setlists"  },
+  { key: "youtube",   icon: "bxl-youtube",       label: "YouTube"   },
+  { key: "funfacts",  icon: "bx-laugh",          label: "Funfacts"  },
+  { key: "kabesha",   icon: "bx-star",           label: "Kabesha"   },
+  { key: "stats",     icon: "bx-bar-chart",      label: "Stats"     },
+  { key: "media",     icon: "bx-folder-open",    label: "Media"     },
+  { key: "discord",   icon: "bxl-discord-alt",   label: "Discord"   },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -1267,6 +1641,8 @@ export default function AdminPage() {
               <DashboardHome onNav={setActive} />
             ) : active === "media" ? (
               <MediaManager />
+            ) : active === "discord" ? (
+              <DiscordManager />
             ) : (
               <SectionManager section={active} />
             )}
