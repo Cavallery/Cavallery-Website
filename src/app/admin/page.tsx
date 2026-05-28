@@ -10,10 +10,13 @@ const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 const DISCORD_API   = "/api/discord";  // relative, no token needed di frontend
 const DISCORD_TOKEN = "";              // token dipindah ke backend
 
+const JOURNAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiiUkBqWpRrYSDkC-6RKZ_mFxPAWB2uydW_hxaYWL0tr-o_GwrJ6b4zt_Goj9gFeen/exec";
+
 type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
-  | "kabesha"   | "media"    | "discord";
+  | "kabesha"   | "media"    | "discord"  | "journal"
+  | "bot";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -1179,6 +1182,817 @@ function DiscordManager() {
   );
 }
 
+// ─── JOURNAL MANAGER ──────────────────────────────────────────
+interface JournalMessage {
+  id: number;
+  name: string;
+  msg: string;
+  date: string;
+  rawDate: string;
+}
+
+function JournalManager() {
+  const [messages, setMessages] = useState<JournalMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<JournalMessage | null>(null);
+  
+  const [newSender, setNewSender] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [editSender, setEditSender] = useState("");
+  const [editMessageText, setEditMessageText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<JournalMessage | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/journal");
+      const data = await res.json();
+      const formatted: JournalMessage[] = data.map((item: any) => ({
+        id: item.id,
+        name: item.name || "Anonim",
+        msg: item.msg || "",
+        date: item.date ? new Date(item.date).toLocaleString("id-ID", {
+          day: "numeric", month: "short", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        }) : "-",
+        rawDate: item.date || ""
+      }));
+      setMessages(formatted.reverse());
+    } catch (e) {
+      showToast("Gagal memuat data jurnal", "error");
+      setMessages([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSender.trim() || !newMessage.trim()) {
+      showToast("Nama dan pesan wajib diisi", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/journal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newSender.trim(),
+          msg: newMessage.trim()
+        })
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Pesan berhasil disematkan!", "success");
+        setNewSender("");
+        setNewMessage("");
+        setShowAddModal(false);
+        load();
+      } else {
+        showToast(json.message || "Gagal menyematkan pesan", "error");
+      }
+    } catch (e) {
+      showToast("Gagal mengirim pesan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMessage) return;
+    if (!editSender.trim() || !editMessageText.trim()) {
+      showToast("Nama dan pesan wajib diisi", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/journal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedMessage.id,
+          name: editSender.trim(),
+          msg: editMessageText.trim()
+        })
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Pesan berhasil diperbarui!", "success");
+        setShowEditModal(false);
+        setSelectedMessage(null);
+        load();
+      } else {
+        showToast(json.message || "Gagal memperbarui pesan", "error");
+      }
+    } catch (e) {
+      showToast("Gagal memperbarui pesan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`/api/journal?id=${confirmDelete.id}`, {
+        method: "DELETE"
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Pesan berhasil dihapus!", "success");
+        setConfirmDelete(null);
+        load();
+      } else {
+        showToast(json.message || "Gagal menghapus pesan", "error");
+      }
+    } catch (e) {
+      showToast("Gagal menghapus pesan", "error");
+    }
+  };
+
+  const openEdit = (msg: JournalMessage) => {
+    setSelectedMessage(msg);
+    setEditSender(msg.name);
+    setEditMessageText(msg.msg);
+    setShowEditModal(true);
+  };
+
+  const filtered = messages.filter(m =>
+    m.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.msg.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const exportCSV = () => {
+    try {
+      const headers = ["Nama", "Pesan", "Tanggal"];
+      const rows = messages.map(m => [
+        `"${m.name.replace(/"/g, '""')}"`,
+        `"${m.msg.replace(/"/g, '""')}"`,
+        `"${m.rawDate}"`
+      ]);
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+        + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Journal_MemoRine_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Ekspor CSV berhasil!", "success");
+    } catch {
+      showToast("Gagal mengekspor CSV", "error");
+    }
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      
+      {/* CONFIRM DELETE MODAL */}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Hapus pesan dari "${confirmDelete.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {/* ADD MODAL */}
+      {showAddModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>Tambah Pesan MemoRine</h3>
+              <button className={styles.closeX} onClick={() => setShowAddModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handleAdd}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Nama Pengirim</label>
+                  <input
+                    type="text"
+                    value={newSender}
+                    onChange={e => setNewSender(e.target.value)}
+                    placeholder="Nama Kamu"
+                    required
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Pesan</label>
+                  <textarea
+                    rows={4}
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    placeholder="Tulis pesan..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowAddModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? (
+                    <><i className="bx bx-loader-alt bx-spin" /> Mengirim...</>
+                  ) : (
+                    <><i className="bx bx-send" /> Sematkan Pesan</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {showEditModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowEditModal(false)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>Edit Pesan MemoRine</h3>
+              <button className={styles.closeX} onClick={() => setShowEditModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handleEdit}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Nama Pengirim</label>
+                  <input
+                    type="text"
+                    value={editSender}
+                    onChange={e => setEditSender(e.target.value)}
+                    placeholder="Nama Kamu"
+                    required
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Pesan</label>
+                  <textarea
+                    rows={4}
+                    value={editMessageText}
+                    onChange={e => setEditMessageText(e.target.value)}
+                    placeholder="Tulis pesan..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => { setShowEditModal(false); setSelectedMessage(null); }}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? (
+                    <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                  ) : (
+                    <><i className="bx bx-save" /> Simpan Perubahan</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-book-open" style={{ color: "#db2777" }} /> Journal MemoRine
+          <span className={styles.count}>{messages.length} pesan</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={styles.btnGhost} onClick={exportCSV} disabled={messages.length === 0}>
+            <i className="bx bx-export" /> Ekspor CSV
+          </button>
+          <button className={styles.btnPrimary} onClick={() => setShowAddModal(true)}>
+            <i className="bx bx-plus" /> Tambah Pesan
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          placeholder="Cari nama pengirim atau pesan..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 200,
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        />
+        <button className={styles.btnGhost} onClick={load}>
+          <i className="bx bx-refresh" /> Refresh
+        </button>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}>
+          <i className="bx bx-loader-alt bx-spin" /> Memuat pesan MemoRine...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
+          <p>Tidak ada pesan yang ditemukan</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: "50px" }}>No</th>
+                <th style={{ width: "150px" }}>Tanggal</th>
+                <th style={{ width: "200px" }}>Pengirim</th>
+                <th>Pesan</th>
+                <th style={{ width: "100px", textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((m, i) => (
+                <tr key={m.id}>
+                  <td>{filtered.length - i}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{m.date}</td>
+                  <td style={{ fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {m.name}
+                  </td>
+                  <td style={{ 
+                    whiteSpace: "normal", 
+                    wordBreak: "break-word",
+                    maxWidth: "500px",
+                    lineHeight: "1.4"
+                  }}>
+                    {m.msg}
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(m)} title="Edit">
+                        <i className="bx bx-edit" />
+                      </button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(m)} title="Hapus">
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── BOT MANAGER ──────────────────────────────────────────────
+interface BotConfig {
+  apiKey: string;
+  fallbackResponse: string;
+  rules: {
+    id: string;
+    triggers: string[][];
+    response: string;
+  }[];
+}
+
+function BotManager() {
+  const [config, setConfig] = useState<BotConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const [showRuleModal, setShowRuleModal] = useState<"add" | "edit" | null>(null);
+  const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
+  const [ruleGroups, setRuleGroups] = useState<string[]>([""]);
+  const [ruleResponse, setRuleResponse] = useState("");
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/bot-config");
+      const json = await res.json();
+      if (json.status) {
+        setConfig(json.data);
+      } else {
+        showToast("Gagal memuat konfigurasi bot", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan saat memuat bot", "error");
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleSaveGeneral = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!config) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: config.apiKey,
+          fallbackResponse: config.fallbackResponse
+        })
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Konfigurasi umum berhasil disimpan!", "success");
+        setConfig(json.data);
+      } else {
+        showToast(json.message || "Gagal menyimpan konfigurasi", "error");
+      }
+    } catch {
+      showToast("Gagal menyimpan konfigurasi", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleAddTriggerGroup = () => {
+    setRuleGroups(prev => [...prev, ""]);
+  };
+
+  const handleRemoveTriggerGroup = (idx: number) => {
+    setRuleGroups(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleTriggerGroupChange = (idx: number, val: string) => {
+    setRuleGroups(prev => {
+      const copy = [...prev];
+      copy[idx] = val;
+      return copy;
+    });
+  };
+
+  const openAddRule = () => {
+    setRuleGroups([""]);
+    setRuleResponse("");
+    setSelectedRuleId(null);
+    setShowRuleModal("add");
+  };
+
+  const openEditRule = (rule: any) => {
+    const groups = rule.triggers.map((g: string[]) => g.join(", "));
+    setRuleGroups(groups);
+    setRuleResponse(rule.response);
+    setSelectedRuleId(rule.id);
+    setShowRuleModal("edit");
+  };
+
+  const handleSaveRule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!config) return;
+
+    const triggers2D = ruleGroups
+      .map(g => g.split(",").map(word => word.trim()).filter(Boolean))
+      .filter(g => g.length > 0);
+
+    if (triggers2D.length === 0) {
+      showToast("Harap masukkan setidaknya satu kata kunci", "error");
+      return;
+    }
+
+    if (!ruleResponse.trim()) {
+      showToast("Pesan balasan wajib diisi", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updatedRules = [...config.rules];
+      if (showRuleModal === "add") {
+        const newRule = {
+          id: "rule_" + Date.now(),
+          triggers: triggers2D,
+          response: ruleResponse.trim()
+        };
+        updatedRules.push(newRule);
+      } else {
+        const index = updatedRules.findIndex(r => r.id === selectedRuleId);
+        if (index !== -1) {
+          updatedRules[index] = {
+            id: selectedRuleId!,
+            triggers: triggers2D,
+            response: ruleResponse.trim()
+          };
+        }
+      }
+
+      const res = await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: config.apiKey,
+          fallbackResponse: config.fallbackResponse,
+          rules: updatedRules
+        })
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Aturan pesan berhasil disimpan!", "success");
+        setConfig(json.data);
+        setShowRuleModal(null);
+      } else {
+        showToast(json.message || "Gagal menyimpan aturan", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDeleteRule = async (ruleId: string) => {
+    if (!config) return;
+    if (!confirm("Hapus aturan pesan ini?")) return;
+
+    try {
+      const updatedRules = config.rules.filter(r => r.id !== ruleId);
+      const res = await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: config.apiKey,
+          fallbackResponse: config.fallbackResponse,
+          rules: updatedRules
+        })
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Aturan pesan berhasil dihapus", "success");
+        setConfig(json.data);
+      } else {
+        showToast(json.message || "Gagal menghapus aturan", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+  };
+
+  const filteredRules = config?.rules.filter(r =>
+    r.response.toLowerCase().includes(search.toLowerCase()) ||
+    r.triggers.some(g => g.some(t => t.toLowerCase().includes(search.toLowerCase())))
+  ) || [];
+
+  if (loading && !config) {
+    return (
+      <div className={styles.loadingState}>
+        <i className="bx bx-loader-alt bx-spin" /> Memuat data bot...
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      {showRuleModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowRuleModal(null)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>{showRuleModal === "add" ? "Tambah Aturan Pesan" : "Edit Aturan Pesan"}</h3>
+              <button className={styles.closeX} onClick={() => setShowRuleModal(null)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveRule}>
+              <div className={styles.formBody} style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                <div className={styles.field}>
+                  <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Kata Kunci Triggers (Grup AND)</span>
+                    <button type="button" className={styles.btnGhost} style={{ padding: "4px 8px", fontSize: "0.75rem" }} onClick={handleAddTriggerGroup}>
+                      <i className="bx bx-plus" /> Tambah Kondisi AND
+                    </button>
+                  </label>
+                  <p style={{ fontSize: "0.75rem", opacity: 0.6, margin: "4px 0 12px 0" }}>
+                    Pisahkan kata kunci dengan koma (,) untuk kondisi OR. Tambah grup untuk kondisi AND (harus mengandung kata kunci dari setiap grup).
+                  </p>
+                  
+                  {ruleGroups.map((group, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+                      <span style={{ fontSize: "0.8rem", minWidth: 60, opacity: 0.7 }}>Grup {idx + 1}:</span>
+                      <input
+                        type="text"
+                        value={group}
+                        onChange={e => handleTriggerGroupChange(idx, e.target.value)}
+                        placeholder="Contoh: halo, hai, hey"
+                        required
+                        style={{ flex: 1, background: "var(--adm-surface)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px" }}
+                      />
+                      {ruleGroups.length > 1 && (
+                        <button type="button" style={{ background: "rgba(239, 68, 68, 0.1)", color: "#ef4444", border: "none", borderRadius: 6, padding: 8, cursor: "pointer" }} onClick={() => handleRemoveTriggerGroup(idx)}>
+                          <i className="bx bx-trash" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className={styles.field}>
+                  <label>Pesan Balasan (Response)</label>
+                  <textarea
+                    rows={4}
+                    value={ruleResponse}
+                    onChange={e => setRuleResponse(e.target.value)}
+                    placeholder="Masukkan balasan bot..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowRuleModal(null)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? (
+                    <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                  ) : (
+                    <><i className="bx bx-save" /> Simpan Aturan</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-bot" style={{ color: "#db2777" }} /> Asisten Bot Cavallery
+        </h2>
+      </div>
+
+      {config && (
+        <form onSubmit={handleSaveGeneral} style={{
+          background: "var(--adm-surface)",
+          border: "1px solid var(--adm-border)",
+          borderRadius: 8,
+          padding: 20,
+          marginBottom: 24,
+        }}>
+          <h3 style={{ fontSize: "1.1rem", marginBottom: 16, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="bx bx-cog" /> Pengaturan Umum Bot
+          </h3>
+          
+          <div className={styles.field} style={{ marginBottom: 16 }}>
+            <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Gemini API Key</span>
+              <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>Kosongkan untuk menggunakan mode fallback aturan lokal saja</span>
+            </label>
+            <input
+              type="password"
+              value={config.apiKey}
+              onChange={e => setConfig({ ...config, apiKey: e.target.value })}
+              placeholder="Masukkan Gemini API Key..."
+              style={{
+                width: "100%",
+                background: "#111", color: "#fff",
+                border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px",
+                fontSize: "0.9rem"
+              }}
+            />
+          </div>
+
+          <div className={styles.field} style={{ marginBottom: 20 }}>
+            <label>Pesan Default (Jika tidak ada kecocokan & Gemini offline)</label>
+            <textarea
+              rows={3}
+              value={config.fallbackResponse}
+              onChange={e => setConfig({ ...config, fallbackResponse: e.target.value })}
+              placeholder="Masukkan balasan default..."
+              required
+              style={{
+                width: "100%",
+                background: "#111", color: "#fff",
+                border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px",
+                fontSize: "0.9rem", resize: "vertical"
+              }}
+            />
+          </div>
+
+          <button type="submit" className={styles.btnPrimary} disabled={saving}>
+            {saving ? (
+              <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+            ) : (
+              <><i className="bx bx-save" /> Simpan Pengaturan Umum</>
+            )}
+          </button>
+        </form>
+      )}
+
+      <div className={styles.sectionHeader} style={{ marginTop: 24 }}>
+        <h3 style={{ fontSize: "1.1rem", margin: 0, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+          <i className="bx bx-list-ul" /> Aturan Respon Kustom ({config?.rules.length || 0})
+        </h3>
+        <button className={styles.btnPrimary} onClick={openAddRule}>
+          <i className="bx bx-plus" /> Tambah Aturan
+        </button>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+        <input
+          placeholder="Cari kata kunci atau balasan..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 200,
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        />
+        <button className={styles.btnGhost} onClick={load}>
+          <i className="bx bx-refresh" /> Refresh
+        </button>
+      </div>
+
+      {filteredRules.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-comment-detail" style={{ fontSize: "3rem" }} />
+          <p>Tidak ada aturan pesan yang ditemukan</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: "220px" }}>Kata Kunci (Triggers)</th>
+                <th>Respon Balasan</th>
+                <th style={{ width: "120px", textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRules.map((rule) => (
+                <tr key={rule.id}>
+                  <td style={{ verticalAlign: "top" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {rule.triggers.map((group, idx) => (
+                        <div key={idx} style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
+                          {idx > 0 && <span style={{ fontSize: "0.7rem", color: "#db2777", fontWeight: 600, marginRight: 4 }}>AND</span>}
+                          {group.map((t, tid) => (
+                            <span key={tid} style={{
+                              background: "rgba(219, 39, 119, 0.1)",
+                              color: "#db2777",
+                              border: "1px solid rgba(219, 39, 119, 0.2)",
+                              borderRadius: 4,
+                              padding: "2px 6px",
+                              fontSize: "0.75rem",
+                              fontWeight: 500
+                            }}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  <td style={{ 
+                    whiteSpace: "normal", 
+                    wordBreak: "break-word",
+                    lineHeight: "1.4",
+                    fontSize: "0.85rem",
+                    verticalAlign: "top"
+                  }}>
+                    {rule.response}
+                  </td>
+                  <td style={{ textAlign: "center", verticalAlign: "top" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEditRule(rule)} title="Edit">
+                        <i className="bx bx-edit" />
+                      </button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => handleDeleteRule(rule.id)} title="Hapus">
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── SECTION MANAGER ──────────────────────────────────────────
 function SectionManager({ section }: { section: Section }) {
   const [rows, setRows]         = useState<any[]>([]);
@@ -1403,12 +2217,13 @@ function SectionManager({ section }: { section: Section }) {
     dashboard: { endpoint: "", listKey: "", cols: [], fields: [] },
     media:     { endpoint: "", listKey: "", cols: [], fields: [] },
     discord:   { endpoint: "", listKey: "", cols: [], fields: [] },
+    journal:   { endpoint: "", listKey: "", cols: [], fields: [] },
   };
 
   const c = cfg[section];
 
   const load = useCallback(async () => {
-    if (section === "dashboard" || section === "media" || section === "discord") return;
+    if (section === "dashboard" || section === "media" || section === "discord" || section === "journal") return;
     setLoading(true);
     try {
       const res  = await fetch(api(c.endpoint));
@@ -1469,7 +2284,7 @@ function SectionManager({ section }: { section: Section }) {
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
-  if (section === "dashboard" || section === "media" || section === "discord") return null;
+  if (section === "dashboard" || section === "media" || section === "discord" || section === "journal") return null;
 
   return (
     <div className={styles.sectionWrap}>
@@ -1594,18 +2409,24 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "kabesha",  path: "/kabesha"  },
       { key: "stats",    path: "/stats"    },
       { key: "media",    path: "/media"    },
+      { key: "journal",  path: ""          },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        const res  = await fetch(api(path));
+        const url = key === "journal" ? JOURNAL_SCRIPT_URL : api(path);
+        const res  = await fetch(url);
         const json = await res.json();
-        const data = json?.data;
         let count = 0;
-        if      (Array.isArray(data))       count = data.length;
-        else if (data?.total !== undefined) count = data.total;
-        else if (data?.news)                count = data.news.length;
-        else if (data?.items)               count = data.items.length;
-        else if (data?.videos)              count = data.videos.length;
-        else if (data?.events)              count = data.events.length;
+        if (key === "journal") {
+          count = Array.isArray(json) ? json.length : 0;
+        } else {
+          const data = json?.data;
+          if      (Array.isArray(data))       count = data.length;
+          else if (data?.total !== undefined) count = data.total;
+          else if (data?.news)                count = data.news.length;
+          else if (data?.items)               count = data.items.length;
+          else if (data?.videos)              count = data.videos.length;
+          else if (data?.events)              count = data.events.length;
+        }
         setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
@@ -1622,6 +2443,8 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "stats",     icon: "bx-bar-chart",     label: "Stats",    color: "#9333ea" },
     { key: "media",     icon: "bx-folder-open",   label: "Media",    color: "#0891b2" },
     { key: "discord",   icon: "bxl-discord-alt",  label: "Discord",  color: "#5865f2" },
+    { key: "journal",   icon: "bx-book-open",     label: "MemoRine", color: "#db2777" },
+    { key: "bot",       icon: "bx-bot",            label: "Bot",      color: "#f59e0b" },
   ];
 
   return (
@@ -1664,6 +2487,8 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "stats",     icon: "bx-bar-chart",      label: "Stats"     },
   { key: "media",     icon: "bx-folder-open",    label: "Media"     },
   { key: "discord",   icon: "bxl-discord-alt",   label: "Discord"   },
+  { key: "journal",   icon: "bx-book-open",      label: "MemoRine"  },
+  { key: "bot",       icon: "bx-bot",            label: "Bot"       },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -1786,6 +2611,10 @@ export default function AdminPage() {
               <MediaManager />
             ) : active === "discord" ? (
               <DiscordManager />
+            ) : active === "journal" ? (
+              <JournalManager />
+            ) : active === "bot" ? (
+              <BotManager />
             ) : (
               <SectionManager section={active} />
             )}
