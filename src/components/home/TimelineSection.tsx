@@ -84,7 +84,10 @@ export default function TimelineSection() {
     );
   }
 
-  const yearGroups = groupByYear(timelineData.events);
+  const yearGroups = groupByYear(timelineData.events).reverse().map((group) => ({
+    ...group,
+    events: [...group.events].reverse(),
+  }));
 
   return (
     <section className={styles.section}>
