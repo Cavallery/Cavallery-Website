@@ -16,7 +16,7 @@ type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot";
+  | "bot"       | "tickets";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -2218,12 +2218,13 @@ function SectionManager({ section }: { section: Section }) {
     media:     { endpoint: "", listKey: "", cols: [], fields: [] },
     discord:   { endpoint: "", listKey: "", cols: [], fields: [] },
     journal:   { endpoint: "", listKey: "", cols: [], fields: [] },
+    tickets:   { endpoint: "", listKey: "", cols: [], fields: [] },
   };
 
   const c = cfg[section];
 
   const load = useCallback(async () => {
-    if (section === "dashboard" || section === "media" || section === "discord" || section === "journal") return;
+    if (section === "dashboard" || section === "media" || section === "discord" || section === "journal" || section === "tickets") return;
     setLoading(true);
     try {
       const res  = await fetch(api(c.endpoint));
@@ -2284,7 +2285,7 @@ function SectionManager({ section }: { section: Section }) {
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
-  if (section === "dashboard" || section === "media" || section === "discord" || section === "journal") return null;
+  if (section === "dashboard" || section === "media" || section === "discord" || section === "journal" || section === "tickets") return null;
 
   return (
     <div className={styles.sectionWrap}>
@@ -2394,6 +2395,205 @@ function SectionManager({ section }: { section: Section }) {
   );
 }
 
+// ─── TICKETS MANAGER ──────────────────────────────────────────
+function TicketsManager() {
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tickets");
+      const data = await res.json();
+      const formatted = data.map((item: any) => ({
+        ...item,
+        formattedDate: item.date ? new Date(item.date).toLocaleString("id-ID", {
+          day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+        }) : "-"
+      }));
+      setTickets(formatted.reverse());
+    } catch (e) {
+      showToast("Gagal memuat data tiket", "error");
+      setTickets([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`/api/tickets?id=${confirmDelete.id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Tiket berhasil dihapus secara permanen!", "success");
+        setConfirmDelete(null);
+        load();
+      } else {
+        showToast(json.message || "Gagal menghapus tiket", "error");
+      }
+    } catch (e) {
+      showToast("Gagal menghapus tiket", "error");
+    }
+  };
+
+  const handleUpdate = async (id: number, field: "divisi" | "status", value: string) => {
+    // Optimistic update
+    setTickets(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
+    
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, [field]: value })
+      });
+      const json = await res.json();
+      if (!json.status) {
+        showToast("Gagal update: " + json.message, "error");
+        load();
+      }
+    } catch {
+      showToast("Gagal update", "error");
+      load();
+    }
+  };
+
+  const filtered = tickets.filter(t =>
+    t.name.toLowerCase().includes(search.toLowerCase()) ||
+    t.kategori.toLowerCase().includes(search.toLowerCase()) ||
+    t.pesan.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Hapus tiket dari "${confirmDelete.name}"?`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-receipt" style={{ color: "#10b981" }} /> Ticketing Fanbase
+          <span className={styles.count}>{tickets.length} tiket</span>
+        </h2>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+        <input
+          placeholder="Cari pengirim, kategori atau pesan..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 200, background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+          }}
+        />
+        <button className={styles.btnGhost} onClick={load}><i className="bx bx-refresh" /> Refresh</button>
+      </div>
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat tiket...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
+          <p>Tidak ada tiket yang ditemukan</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: "130px" }}>Tanggal</th>
+                <th style={{ width: "130px" }}>Pengirim</th>
+                <th style={{ width: "130px" }}>Kategori</th>
+                <th>Pesan</th>
+                <th style={{ width: "120px" }}>Divisi</th>
+                <th style={{ width: "100px", textAlign: "center" }}>Status</th>
+                <th style={{ width: "60px", textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((t) => (
+                <tr key={t.id}>
+                  <td style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}>{t.formattedDate}</td>
+                  <td>
+                    <div style={{ fontWeight: 600 }}>{t.name}</div>
+                    <div style={{ fontSize: "0.75rem", opacity: 0.7 }}>No. Anggota: {t.no_anggota}</div>
+                  </td>
+                  <td>
+                    <span style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10b981", padding: "2px 6px", borderRadius: 4, fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+                      {t.kategori}
+                    </span>
+                  </td>
+                  <td style={{ whiteSpace: "normal", wordBreak: "break-word", fontSize: "0.85rem" }}>{t.pesan}</td>
+                  <td style={{ fontSize: "0.8rem", color: "#f0f0f0", opacity: t.divisi === "-" ? 0.4 : 1 }}>
+                    <select 
+                      value={t.divisi} 
+                      onChange={e => handleUpdate(t.id, "divisi", e.target.value)}
+                      style={{ 
+                        background: "transparent", border: "1px solid rgba(255,255,255,0.1)", 
+                        color: "inherit", borderRadius: 4, padding: "2px 4px", fontSize: "0.75rem",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <option value="-" style={{background: "#242424", color: "#fff"}}>-</option>
+                      <option value="Divisi Humas" style={{background: "#242424", color: "#fff"}}>Divisi Humas</option>
+                      <option value="Divisi Desain" style={{background: "#242424", color: "#fff"}}>Divisi Desain</option>
+                      <option value="Divisi IT" style={{background: "#242424", color: "#fff"}}>Divisi IT</option>
+                      <option value="Divisi Medsos" style={{background: "#242424", color: "#fff"}}>Divisi Medsos</option>
+                      <option value="Divisi Esports" style={{background: "#242424", color: "#fff"}}>Divisi Esports</option>
+                      <option value="Divisi Sekretaris" style={{background: "#242424", color: "#fff"}}>Divisi Sekretaris</option>
+                      <option value="Divisi Girl" style={{background: "#242424", color: "#fff"}}>Divisi Girl</option>
+                      <option value="Divisi Video Editor" style={{background: "#242424", color: "#fff"}}>Divisi Video Editor</option>
+                      <option value="All Divisi" style={{background: "#242424", color: "#fff"}}>All Divisi</option>
+                    </select>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <select
+                      value={t.status}
+                      onChange={e => handleUpdate(t.id, "status", e.target.value)}
+                      style={{
+                        padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600,
+                        cursor: "pointer", border: "none", outline: "none",
+                        appearance: "none", textAlign: "center",
+                        background: t.status === "Completed" ? "rgba(16, 185, 129, 0.2)" :
+                                    t.status === "Progress" ? "rgba(245, 158, 11, 0.2)" :
+                                    t.status === "Rejected" ? "rgba(239, 68, 68, 0.2)" :
+                                    "rgba(156, 163, 175, 0.2)",
+                        color:      t.status === "Completed" ? "#10b981" :
+                                    t.status === "Progress" ? "#f59e0b" :
+                                    t.status === "Rejected" ? "#ef4444" :
+                                    "#9ca3af"
+                      }}
+                    >
+                      <option value="Pending" style={{background: "#242424", color: "#fff"}}>Pending</option>
+                      <option value="Progress" style={{background: "#242424", color: "#fff"}}>Progress</option>
+                      <option value="Completed" style={{background: "#242424", color: "#fff"}}>Completed</option>
+                      <option value="Rejected" style={{background: "#242424", color: "#fff"}}>Rejected</option>
+                    </select>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(t)} title="Hapus">
+                      <i className="bx bx-trash" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -2410,13 +2610,14 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "stats",    path: "/stats"    },
       { key: "media",    path: "/media"    },
       { key: "journal",  path: ""          },
+      { key: "tickets",  path: ""          },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        const url = key === "journal" ? JOURNAL_SCRIPT_URL : api(path);
+        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : api(path);
         const res  = await fetch(url);
         const json = await res.json();
         let count = 0;
-        if (key === "journal") {
+        if (key === "journal" || key === "tickets") {
           count = Array.isArray(json) ? json.length : 0;
         } else {
           const data = json?.data;
@@ -2444,7 +2645,8 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "media",     icon: "bx-folder-open",   label: "Media",    color: "#0891b2" },
     { key: "discord",   icon: "bxl-discord-alt",  label: "Discord",  color: "#5865f2" },
     { key: "journal",   icon: "bx-book-open",     label: "MemoRine", color: "#db2777" },
-    { key: "bot",       icon: "bx-bot",            label: "Bot",      color: "#f59e0b" },
+    { key: "bot",       icon: "bx-bot",           label: "Bot",      color: "#f59e0b" },
+    { key: "tickets",   icon: "bx-receipt",       label: "Tickets",  color: "#10b981" },
   ];
 
   return (
@@ -2489,6 +2691,7 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "discord",   icon: "bxl-discord-alt",   label: "Discord"   },
   { key: "journal",   icon: "bx-book-open",      label: "MemoRine"  },
   { key: "bot",       icon: "bx-bot",            label: "Bot"       },
+  { key: "tickets",   icon: "bx-receipt",        label: "Tickets"   },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -2615,6 +2818,8 @@ export default function AdminPage() {
               <JournalManager />
             ) : active === "bot" ? (
               <BotManager />
+            ) : active === "tickets" ? (
+              <TicketsManager />
             ) : (
               <SectionManager section={active} />
             )}

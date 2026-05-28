@@ -11,7 +11,7 @@ export default function TicketingPage() {
     setStatus("loading");
     
     const formData = new FormData(e.currentTarget);
-    const scriptURL = "https://script.google.com/macros/s/AKfycby3B6MCdryHfKxNf8TKFq_Rtu7_PX9QIPy8ecfnG4Il8sgOoIh-Vqno9KWncgf9QXWg7g/exec";
+    const scriptURL = "/api/tickets";
 
     try {
       await fetch(scriptURL, { method: "POST", body: formData });

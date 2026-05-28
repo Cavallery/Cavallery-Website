@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const BOT_CONFIG_PATH = path.join(process.cwd(), "src", "data", "bot_config.json");
-
+const isVercel = process.env.VERCEL === "1";
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+const BOT_CONFIG_PATH = path.join(DATA_DIR, "bot_config.json");
 const defaultRules = [
   {
     id: "rule_1",
