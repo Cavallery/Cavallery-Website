@@ -7,8 +7,8 @@ const API_BASE    = "https://v5.jkt48connect.com/api/cavallery";
 const API_KEY     = "JKTCONNECT";
 const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 
-const DISCORD_API   = "http://apps1.vynzzhost.com:25613/api/send";
-const DISCORD_TOKEN = "21082007";
+const DISCORD_API   = "/api/discord";  // relative, no token needed di frontend
+const DISCORD_TOKEN = "";              // token dipindah ke backend
 
 type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
@@ -874,7 +874,6 @@ function DiscordManager() {
         method:  "POST",
         headers: {
           "Content-Type":  "application/json",
-          "Authorization": "Bearer " + DISCORD_TOKEN,
         },
         body: JSON.stringify(payload),
       });
