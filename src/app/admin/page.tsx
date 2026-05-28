@@ -1189,7 +1189,81 @@ function SectionManager({ section }: { section: Section }) {
   const [confirm, setConfirm]   = useState<any>(null);
   const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  // For setlists statistics quick editing
+  const [stats, setStats] = useState<Record<string, any>>({});
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsSaving, setStatsSaving] = useState(false);
+
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadStats = useCallback(async () => {
+    if (section !== "setlists") return;
+    setStatsLoading(true);
+    try {
+      const res = await fetch(api("/stats"));
+      const json = await res.json();
+      if (json.status && Array.isArray(json.data)) {
+        const totalShows = json.data.find((s: any) => s.stat_key === "total_shows");
+        const setlists = json.data.find((s: any) => s.stat_key === "setlists");
+        const unitSongs = json.data.find((s: any) => s.stat_key === "unit_songs");
+        setStats({
+          total_shows: totalShows || { stat_key: "total_shows", label: "Total Shows", value: "0", icon: "bx-calendar", sort_order: "1", is_active: true },
+          setlists: setlists || { stat_key: "setlists", label: "Setlists", value: "0", icon: "bx-music", sort_order: "2", is_active: true },
+          unit_songs: unitSongs || { stat_key: "unit_songs", label: "Unit Songs", value: "0", icon: "bx-microphone", sort_order: "3", is_active: true }
+        });
+      }
+    } catch (e) {
+      console.error("Error loading stats:", e);
+    }
+    setStatsLoading(false);
+  }, [section]);
+
+  useEffect(() => {
+    if (section === "setlists") {
+      loadStats();
+    }
+  }, [section, loadStats]);
+
+  const handleStatChange = (key: string, val: string) => {
+    setStats(prev => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        value: val
+      }
+    }));
+  };
+
+  const saveStats = async () => {
+    setStatsSaving(true);
+    try {
+      const keys = ['total_shows', 'setlists', 'unit_songs'];
+      let allSuccess = true;
+      for (const key of keys) {
+        const item = stats[key];
+        if (!item) continue;
+        const editId = item.stat_key;
+        const url = api(`/stats/${editId}`);
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item),
+        });
+        const json = await res.json();
+        if (!json.status) {
+          allSuccess = false;
+        }
+      }
+      if (allSuccess) {
+        showToast("Statistik berhasil disimpan!", "success");
+      } else {
+        showToast("Beberapa statistik gagal disimpan", "error");
+      }
+    } catch (e) {
+      showToast("Gagal menyimpan statistik", "error");
+    }
+    setStatsSaving(false);
+  };
 
   const cfg: Record<string, {
     endpoint: string;
@@ -1427,6 +1501,76 @@ function SectionManager({ section }: { section: Section }) {
           <i className="bx bx-plus" /> Tambah
         </button>
       </div>
+
+      {section === "setlists" && (
+        <div style={{
+          background: "var(--adm-surface)",
+          border: "1px solid var(--adm-border)",
+          borderRadius: 12,
+          padding: "1rem 1.25rem",
+          marginBottom: "1.25rem",
+        }}>
+          <h3 style={{ fontSize: "0.9rem", color: "#f0f0f0", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="bx bx-bar-chart-alt-2" style={{ color: "var(--adm-accent)", fontSize: "1.1rem" }} />
+            Edit Statistik
+          </h3>
+          {statsLoading ? (
+            <div style={{ color: "#888", fontSize: 13, padding: "5px 0" }}>
+              <i className="bx bx-loader-alt bx-spin" /> Memuat statistik...
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div className={styles.field} style={{ flex: 1, minWidth: 120 }}>
+                <label>Total Shows</label>
+                <input
+                  type="number"
+                  value={stats.total_shows?.value ?? ""}
+                  onChange={e => handleStatChange("total_shows", e.target.value)}
+                  placeholder="100"
+                  style={{ background: "#141414" }}
+                />
+              </div>
+              <div className={styles.field} style={{ flex: 1, minWidth: 120 }}>
+                <label>Setlists</label>
+                <input
+                  type="number"
+                  value={stats.setlists?.value ?? ""}
+                  onChange={e => handleStatChange("setlists", e.target.value)}
+                  placeholder="7"
+                  style={{ background: "#141414" }}
+                />
+              </div>
+              <div className={styles.field} style={{ flex: 1, minWidth: 120 }}>
+                <label>Unit Songs</label>
+                <input
+                  type="number"
+                  value={stats.unit_songs?.value ?? ""}
+                  onChange={e => handleStatChange("unit_songs", e.target.value)}
+                  placeholder="15"
+                  style={{ background: "#141414" }}
+                />
+              </div>
+              <button
+                className={styles.btnPrimary}
+                onClick={saveStats}
+                disabled={statsSaving}
+                style={{
+                  height: 36,
+                  padding: "0 1.25rem",
+                  fontSize: "0.85rem",
+                }}
+              >
+                {statsSaving ? (
+                  <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                ) : (
+                  <><i className="bx bx-save" /> Simpan Statistik</>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {loading
         ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
         : <DataTable cols={c.cols} rows={rows} onEdit={openEdit} onDelete={row => setConfirm(row)} />

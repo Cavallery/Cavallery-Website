@@ -72,7 +72,7 @@ export default function MerchandisePage() {
           </div>
 
           <p className={styles.desc}>
-            Didesain khusus untuk kampanye <i>Request Hour #Memory</i>, Bundle Pack "HESITATE" 
+            Didesain khusus untuk merayakan ulang tahun erine ke-18 <i>#ErineInEtherland</i>, Bundle Pack "HESITATE" 
             merupakan merchandise eksklusif edisi terbatas dari Jenderal Cavallery. 
             Setiap item membawa pesan keteguhan hati (<b>No Hesitation</b>) untuk selalu 
             menjadi garda terdepan pelindung Erine.
