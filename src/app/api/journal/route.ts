@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-const JOURNAL_FILE_PATH = path.join(process.cwd(), "src", "data", "journal.json");
+const isVercel = process.env.VERCEL === "1";
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+const JOURNAL_FILE_PATH = path.join(DATA_DIR, "journal.json");
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiiUkBqWpRrYSDkC-6RKZ_mFxPAWB2uydW_hxaYWL0tr-o_GwrJ6b4zt_Goj9gFeen/exec";
 
 // Ensure data folder exists
