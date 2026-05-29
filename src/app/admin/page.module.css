@@ -301,6 +301,51 @@
   display: block;
 }
 
+/* ── RESPONSIVE CARD TABLE (MOBILE) ────────────────────────── */
+@media (max-width: 768px) {
+  .responsiveTable {
+    display: block;
+    min-width: 0 !important;
+  }
+  .responsiveTable thead {
+    display: none;
+  }
+  .responsiveTable tbody {
+    display: block;
+  }
+  .responsiveTable tr {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 0.5rem;
+  }
+  .responsiveTable td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem;
+    border-bottom: 1px solid #222;
+    text-align: left;
+    white-space: normal;
+    max-width: 100%;
+  }
+  .responsiveTable td:last-child {
+    border-bottom: none;
+  }
+  .responsiveTable td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 4px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+}
+
 .empty {
   text-align: center;
   color: #666;
