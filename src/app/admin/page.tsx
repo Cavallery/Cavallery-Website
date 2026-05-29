@@ -2507,7 +2507,7 @@ function TicketsManager() {
         </div>
       ) : (
         <div className={styles.tableWrap}>
-          <table className={styles.table}>
+          <table className={`${styles.table} ${styles.responsiveTable}`}>
             <thead>
               <tr>
                 <th style={{ width: "130px" }}>Tanggal</th>
@@ -2522,25 +2522,25 @@ function TicketsManager() {
             <tbody>
               {filtered.map((t) => (
                 <tr key={t.id}>
-                  <td style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}>{t.formattedDate}</td>
-                  <td>
+                  <td data-label="Tanggal" style={{ whiteSpace: "nowrap", fontSize: "0.8rem" }}>{t.formattedDate}</td>
+                  <td data-label="Pengirim">
                     <div style={{ fontWeight: 600 }}>{t.name}</div>
                     <div style={{ fontSize: "0.75rem", opacity: 0.7 }}>No. Anggota: {t.no_anggota}</div>
                   </td>
-                  <td>
+                  <td data-label="Kategori">
                     <span style={{ background: "rgba(16, 185, 129, 0.1)", color: "#10b981", padding: "2px 6px", borderRadius: 4, fontSize: "0.75rem", whiteSpace: "nowrap" }}>
                       {t.kategori}
                     </span>
                   </td>
-                  <td style={{ whiteSpace: "normal", wordBreak: "break-word", fontSize: "0.85rem" }}>{t.pesan}</td>
-                  <td style={{ fontSize: "0.8rem", color: "#f0f0f0", opacity: t.divisi === "-" ? 0.4 : 1 }}>
+                  <td data-label="Pesan" style={{ whiteSpace: "normal", wordBreak: "break-word", fontSize: "0.85rem" }}>{t.pesan}</td>
+                  <td data-label="Divisi" style={{ fontSize: "0.8rem", color: "#f0f0f0", opacity: t.divisi === "-" ? 0.4 : 1 }}>
                     <select 
                       value={t.divisi} 
                       onChange={e => handleUpdate(t.id, "divisi", e.target.value)}
                       style={{ 
                         background: "transparent", border: "1px solid rgba(255,255,255,0.1)", 
                         color: "inherit", borderRadius: 4, padding: "2px 4px", fontSize: "0.75rem",
-                        cursor: "pointer"
+                        cursor: "pointer", width: "100%"
                       }}
                     >
                       <option value="-" style={{background: "#242424", color: "#fff"}}>-</option>
@@ -2555,14 +2555,14 @@ function TicketsManager() {
                       <option value="All Divisi" style={{background: "#242424", color: "#fff"}}>All Divisi</option>
                     </select>
                   </td>
-                  <td style={{ textAlign: "center" }}>
+                  <td data-label="Status" style={{ textAlign: "center" }}>
                     <select
                       value={t.status}
                       onChange={e => handleUpdate(t.id, "status", e.target.value)}
                       style={{
                         padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600,
                         cursor: "pointer", border: "none", outline: "none",
-                        appearance: "none", textAlign: "center",
+                        appearance: "none", textAlign: "center", width: "100%",
                         background: t.status === "Completed" ? "rgba(16, 185, 129, 0.2)" :
                                     t.status === "Progress" ? "rgba(245, 158, 11, 0.2)" :
                                     t.status === "Rejected" ? "rgba(239, 68, 68, 0.2)" :
@@ -2579,7 +2579,7 @@ function TicketsManager() {
                       <option value="Rejected" style={{background: "#242424", color: "#fff"}}>Rejected</option>
                     </select>
                   </td>
-                  <td style={{ textAlign: "center" }}>
+                  <td data-label="Aksi" style={{ textAlign: "center" }}>
                     <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(t)} title="Hapus">
                       <i className="bx bx-trash" />
                     </button>

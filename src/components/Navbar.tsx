@@ -27,8 +27,9 @@ const navLinks = [
   {
     label: "Project",
     children: [
-      { href: "/caterine17th", label: "#CatErine17th" },
       { href: "/erine-in-etherland", label: "Erine in Etherland" },
+      { href: "/ssk", label: "SSK JKT48 2024" },
+      { href: "/caterine17th", label: "#CatErine17th" },
       { href: "/journal", label: "MemoRine (Journal)" },
       { href: "/kaleidoskop", label: "Kaleidoskop Cavallery" },
     ],

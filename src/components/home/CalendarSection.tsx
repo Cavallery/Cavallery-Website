@@ -77,14 +77,26 @@ export default function CalendarSection() {
         if (json.success && Array.isArray(json.data)) {
           const now = new Date();
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`;
-          const lives: Show[] = json.data.map((stream: any, idx: number) => ({
-            id: `live-${idx}`,
-            title: `LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
-            date: todayStr,
-            startTime: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-            members: [{ name: stream.member_name || "Catherina Vallencia (Erine)" }],
-            url: stream.url_key ? `https://www.showroom-live.com/r/${stream.url_key}` : stream.url || "https://jkt48.com",
-          }));
+          const lives: Show[] = json.data.map((stream: any, idx: number) => {
+            const type = (stream.type || stream.platform || "").toLowerCase();
+            let liveUrl = "https://www.showroom-live.com/r/JKT48_Erine";
+            if (type.includes("idn") || stream.url?.includes("idn.app") || stream.idn_url) {
+              liveUrl = "https://www.idn.app/jkt48_erine";
+            } else if (stream.url_key) {
+              liveUrl = `https://www.showroom-live.com/r/${stream.url_key}`;
+            } else if (stream.url) {
+              liveUrl = stream.url;
+            }
+
+            return {
+              id: `live-${idx}`,
+              title: `LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
+              date: todayStr,
+              startTime: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+              members: [{ name: stream.member_name || "Catherina Vallencia (Erine)" }],
+              url: liveUrl,
+            };
+          });
           setApiLives(lives);
         }
       } catch (err) {
@@ -318,8 +330,14 @@ export default function CalendarSection() {
               ) : (
                 selectedDayShows.map((show, idx) => {
                   const members = show.members ?? show.member ?? show.lineup ?? [];
+                  const CardComponent = show.url ? "a" : "div";
                   return (
-                    <div key={show.id ?? idx} className={styles.eventCard}>
+                    <CardComponent 
+                      key={show.id ?? idx} 
+                      className={styles.eventCard}
+                      {...(show.url ? { href: show.url, target: "_blank", rel: "noreferrer" } : {})}
+                      style={show.url ? { textDecoration: "none", display: "flex", flexDirection: "column" } : {}}
+                    >
                       {show.isLiveHistory && show.thumbnail && (
                         <div className={styles.eventThumb}>
                           <img
@@ -377,7 +395,7 @@ export default function CalendarSection() {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </CardComponent>
                   );
                 })
               )}

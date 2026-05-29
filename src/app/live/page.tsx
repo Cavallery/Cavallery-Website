@@ -47,7 +47,15 @@ export default function LivePage() {
     const name = live.name ?? live.member_name ?? "Unknown";
     const img = live.image ?? live.img ?? live.avatar ?? "";
     const platform = live.platform ?? live.type ?? "IDN";
-    const url = live.url ?? live.idn_url ?? live.showroom_url ?? "#";
+    
+    let url = live.url ?? live.idn_url ?? live.showroom_url ?? "#";
+    if (highlight || isErine(name)) {
+      if (platform.toLowerCase().includes("idn") || url.includes("idn.app")) {
+        url = "https://www.idn.app/jkt48_erine";
+      } else {
+        url = "https://www.showroom-live.com/r/JKT48_Erine";
+      }
+    }
 
     return (
       <div className={`${styles.card} ${highlight ? styles.cardErine : ""}`}>
