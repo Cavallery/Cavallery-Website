@@ -131,23 +131,14 @@ export async function POST(request: Request) {
         }
         
         // API returned error - fall through to trigger rules
-        const errorMessage = data.error?.message || "Unknown";
-        console.error("Gemini API error, falling back to rules:", errorMessage);
-        
-        // Return a debug message so we can see the exact error on Vercel
-        return NextResponse.json({ reply: `[Gemini Error: ${errorMessage}] ${fallbackDefault}` });
-      } catch (apiError: any) {
+        console.error("Gemini API error, falling back to rules:", data.error?.message || "Unknown");
+      } catch (apiError) {
         // Network error - fall through to trigger rules
         console.error("Gemini API network error, falling back to rules:", apiError);
-        return NextResponse.json({ reply: `[Network Error: ${apiError?.message || "Unknown"}] ${fallbackDefault}` });
       }
-    } else {
-      // API Key is empty
-      return NextResponse.json({ reply: `[Config Error: API Key Kosong] ${fallbackDefault}` });
     }
 
-    // FALLBACK: This line is only reached if there's no api key (but we handled it above) 
-    // or if we decide to keep the dynamic trigger rules. Let's just use trigger rules if API key is missing.
+    // FALLBACK: Only use trigger rules if Gemini API is unavailable or errored
     const reply = getDynamicFallbackResponse(message, rules, fallbackDefault);
     return NextResponse.json({ reply });
 
