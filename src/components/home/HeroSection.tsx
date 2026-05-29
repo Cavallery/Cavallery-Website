@@ -137,7 +137,7 @@ export default function HeroSection() {
             <div className={styles.floatingCard}>
               <strong className="textGold">JKT48 Erine</strong>
               <span>
-                <i className="bx bxs-chess" /> Gen 12 Member
+                <i className="bx bxs-flame" style={{ color: "var(--gold)" }} /> Gen 12 Member Team Passion
               </span>
             </div>
           </div>

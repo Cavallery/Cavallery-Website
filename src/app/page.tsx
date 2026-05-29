@@ -1,10 +1,10 @@
 import styles from "./page.module.css";
 import HeroSection from "@/components/home/HeroSection";
 import BlueRoseCountdown from "@/components/home/BlueRoseCountdown";
-
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
+import VideoSection from "@/components/home/VideoSection";
 import YoutubeSection from "@/components/home/YoutubeSection";
 import SectionDivider from "@/components/SectionDivider";
 import type { Metadata } from "next";
@@ -19,6 +19,8 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
+      <SectionDivider />
+      <VideoSection />
       <SectionDivider />
       <BlueRoseCountdown />
       <SectionDivider />
