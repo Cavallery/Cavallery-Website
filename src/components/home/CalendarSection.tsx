@@ -18,6 +18,7 @@ interface Show {
   lineup?: ShowMember[];
   url?: string;
   isLiveHistory?: boolean;
+  isManual?: boolean;
   liveType?: string;
   thumbnail?: string;
   totalGift?: string;
@@ -44,6 +45,7 @@ export default function CalendarSection() {
   const [apiLives, setApiLives] = useState<Show[]>([]);
   const [apiRiwayat, setApiRiwayat] = useState<Show[]>([]);
   const [apiBirthdays, setApiBirthdays] = useState<Show[]>([]);
+  const [apiManualEvents, setApiManualEvents] = useState<Show[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const year = currentDate.getFullYear();
@@ -175,6 +177,32 @@ export default function CalendarSection() {
     fetchBirthdays();
   }, [year]);
 
+  // Fetch manual calendar events
+  useEffect(() => {
+    async function fetchManual() {
+      try {
+        const res = await fetch("/api/calendar");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const manual: Show[] = json.data.map((item: any) => ({
+            id: `manual-${item.id}`,
+            title: `${item.title}`,
+            date: `${item.date}T00:00:00`, // To avoid timezone issues when checking year/month
+            startTime: item.startTime,
+            url: item.url,
+            members: item.members || [{ name: "Cavallery" }],
+            thumbnail: item.imageUrl || "/images/cava-logo.jpg",
+            isManual: true,
+          }));
+          setApiManualEvents(manual);
+        }
+      } catch (err) {
+        console.error("Failed to load manual events:", err);
+      }
+    }
+    fetchManual();
+  }, []);
+
   const shows = useMemo(() => {
     const filteredShows = apiShows.filter((s) => {
       const members = s.members ?? s.member ?? s.lineup ?? [];
@@ -207,13 +235,20 @@ export default function CalendarSection() {
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
+    const filteredManual = apiManualEvents.filter((s) => {
+      if (!s.date) return false;
+      const d = new Date(s.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+
     return [
       ...filteredShows,
       ...(isCurrentMonth ? filteredLives : []),
       ...filteredRiwayat,
       ...filteredBirthdays,
+      ...filteredManual,
     ];
-  }, [apiShows, apiLives, apiRiwayat, apiBirthdays, year, month]);
+  }, [apiShows, apiLives, apiRiwayat, apiBirthdays, apiManualEvents, year, month]);
 
   const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
   const firstDayIndex = useMemo(() => new Date(year, month, 1).getDay(), [year, month]);
@@ -338,7 +373,7 @@ export default function CalendarSection() {
                       {...(show.url ? { href: show.url, target: "_blank", rel: "noreferrer" } : {})}
                       style={show.url ? { textDecoration: "none", display: "flex", flexDirection: "column" } : {}}
                     >
-                      {show.isLiveHistory && show.thumbnail && (
+                      {(show.isLiveHistory || show.isManual) && show.thumbnail && (
                         <div className={styles.eventThumb}>
                           <img
                             src={show.thumbnail}
@@ -360,6 +395,20 @@ export default function CalendarSection() {
                               textTransform: "uppercase",
                             }}>
                               {show.liveType === "showroom" ? "Showroom" : "IDN"}
+                            </span>
+                          )}
+                          {show.isManual && (
+                            <span style={{
+                              fontSize: "0.7rem",
+                              background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                              color: "#fff",
+                              borderRadius: 4,
+                              padding: "2px 8px",
+                              marginRight: 6,
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                            }}>
+                              🐴 Cavallery
                             </span>
                           )}
                           {show.title}

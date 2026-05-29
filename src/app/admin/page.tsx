@@ -16,7 +16,7 @@ type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot"       | "tickets";
+  | "bot"       | "tickets"  | "calendar";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -2594,6 +2594,235 @@ function TicketsManager() {
   );
 }
 
+// ─── CALENDAR MANAGER ──────────────────────────────────────────
+function CalendarManager() {
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState("");
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("19:00");
+  const [url, setUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/calendar");
+      const json = await res.json();
+      setEvents(json.data || []);
+    } catch {
+      showToast("Gagal memuat jadwal", "error");
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !date) {
+      showToast("Judul dan Tanggal wajib diisi", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        action: isEdit ? "update" : "add",
+        id: editId,
+        title, date, startTime, url, imageUrl,
+        item: { title, date, startTime, url, imageUrl }
+      };
+      const res = await fetch("/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(isEdit ? "Jadwal diperbarui" : "Jadwal ditambahkan", "success");
+        setShowModal(false);
+        load();
+      } else {
+        showToast("Gagal menyimpan jadwal", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch("/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: confirmDelete.id })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Jadwal dihapus", "success");
+        setConfirmDelete(null);
+        load();
+      } else {
+        showToast("Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan", "error");
+    }
+  };
+
+  const openAdd = () => {
+    setIsEdit(false); setEditId(""); setTitle(""); setDate(""); setStartTime("19:00"); setUrl(""); setImageUrl(""); setShowModal(true);
+  };
+
+  const openEdit = (item: any) => {
+    setIsEdit(true); setEditId(item.id); setTitle(item.title); setDate(item.date); setStartTime(item.startTime || "19:00"); setUrl(item.url || ""); setImageUrl(item.imageUrl || ""); setShowModal(true);
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Hapus jadwal "${confirmDelete.title}"?`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+      
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>{isEdit ? "Edit Jadwal" : "Tambah Jadwal Manual"}</h3>
+              <button className={styles.closeX} onClick={() => setShowModal(false)}><i className="bx bx-x" /></button>
+            </div>
+            <form onSubmit={handleSave}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Judul Event <span style={{color: "#e05252"}}>*</span></label>
+                  <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Contoh: Meet & Greet" />
+                </div>
+                <div style={{display: "flex", gap: 12}}>
+                  <div className={styles.field} style={{flex: 1}}>
+                    <label>Tanggal <span style={{color: "#e05252"}}>*</span></label>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} required />
+                  </div>
+                  <div className={styles.field} style={{flex: 1}}>
+                    <label>Waktu (WIB)</label>
+                    <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label>URL / Link <small>(opsional)</small></label>
+                  <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://..." />
+                </div>
+                <div className={styles.field}>
+                  <label>🐴 Gambar Event <small>(opsional, URL gambar)</small></label>
+                  <input type="url" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://... atau kosongkan untuk logo Cavallery" />
+                  {imageUrl && (
+                    <img
+                      src={imageUrl}
+                      alt="preview"
+                      style={{ marginTop: 8, maxHeight: 80, borderRadius: 8, objectFit: "cover", border: "1px solid var(--adm-border)" }}
+                      onError={e => (e.currentTarget.style.display = "none")}
+                    />
+                  )}
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? <><i className="bx bx-loader-alt bx-spin"/> Menyimpan...</> : <><i className="bx bx-save"/> Simpan</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-calendar" style={{ color: "#3b82f6" }} /> Kalender Manual
+          <span className={styles.count}>{events.length} jadwal</span>
+        </h2>
+        <button className={styles.btnPrimary} onClick={openAdd}>
+          <i className="bx bx-plus" /> Tambah Jadwal
+        </button>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat jadwal...</div>
+      ) : events.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-calendar-x" style={{ fontSize: "3rem" }} />
+          <p>Belum ada jadwal manual</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Waktu</th>
+                <th>Judul Event</th>
+                <th>URL</th>
+                <th style={{ textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map(ev => (
+                <tr key={ev.id}>
+                  <td>{ev.date}</td>
+                  <td>{ev.startTime} WIB</td>
+                  <td style={{ fontWeight: 600 }}>{ev.title}</td>
+                  <td>
+                    {ev.url ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <img
+                          src={ev.url}
+                          alt={ev.title}
+                          style={{
+                            width: 48, height: 48, borderRadius: 8,
+                            objectFit: "cover", border: "1px solid var(--adm-border)",
+                            flexShrink: 0, background: "var(--adm-surface)",
+                          }}
+                          onError={e => (e.currentTarget.style.display = "none")}
+                        />
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                          <span style={{ fontSize: "0.75rem", display: "flex", alignItems: "center", gap: 4 }}>
+                            🐴 <a href={ev.url} target="_blank" rel="noreferrer" style={{ color: "#3b82f6", wordBreak: "break-all", fontSize: "0.78rem" }}>{ev.url.length > 40 ? ev.url.slice(0, 40) + "…" : ev.url}</a>
+                          </span>
+                        </div>
+                      </div>
+                    ) : "-"}
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(ev)}><i className="bx bx-edit" /></button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(ev)}><i className="bx bx-trash" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -2611,14 +2840,15 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "media",    path: "/media"    },
       { key: "journal",  path: ""          },
       { key: "tickets",  path: ""          },
+      { key: "calendar", path: ""          },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : api(path);
+        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : key === "calendar" ? "/api/calendar" : api(path);
         const res  = await fetch(url);
         const json = await res.json();
         let count = 0;
-        if (key === "journal" || key === "tickets") {
-          count = Array.isArray(json) ? json.length : 0;
+        if (key === "journal" || key === "tickets" || key === "calendar") {
+          count = Array.isArray(json) ? json.length : Array.isArray(json.data) ? json.data.length : 0;
         } else {
           const data = json?.data;
           if      (Array.isArray(data))       count = data.length;
@@ -2647,6 +2877,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "journal",   icon: "bx-book-open",     label: "MemoRine", color: "#db2777" },
     { key: "bot",       icon: "bx-bot",           label: "Bot",      color: "#f59e0b" },
     { key: "tickets",   icon: "bx-receipt",       label: "Tickets",  color: "#10b981" },
+    { key: "calendar",  icon: "bx-calendar",      label: "Calendar", color: "#3b82f6" },
   ];
 
   return (
@@ -2692,6 +2923,7 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "journal",   icon: "bx-book-open",      label: "MemoRine"  },
   { key: "bot",       icon: "bx-bot",            label: "Bot"       },
   { key: "tickets",   icon: "bx-receipt",        label: "Tickets"   },
+  { key: "calendar",  icon: "bx-calendar",       label: "Calendar"  },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -2820,6 +3052,8 @@ export default function AdminPage() {
               <BotManager />
             ) : active === "tickets" ? (
               <TicketsManager />
+            ) : active === "calendar" ? (
+              <CalendarManager />
             ) : (
               <SectionManager section={active} />
             )}
