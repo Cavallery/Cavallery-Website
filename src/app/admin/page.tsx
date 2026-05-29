@@ -16,7 +16,7 @@ type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot"       | "tickets"  | "calendar";
+  | "bot"       | "tickets"  | "calendar" | "updates";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -2823,6 +2823,209 @@ function CalendarManager() {
   );
 }
 
+// ─── UPDATES MANAGER ──────────────────────────────────────────
+function UpdatesManager() {
+  const [updates, setUpdates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [platform, setPlatform] = useState("twitter");
+  const [url, setUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/updates");
+      const json = await res.json();
+      if (json.success) setUpdates(json.data);
+      else showToast("Gagal memuat updates", "error");
+    } catch {
+      showToast("Error jaringan", "error");
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return showToast("URL wajib diisi", "error");
+    setSaving(true);
+    try {
+      const payload = editId 
+        ? { action: "update", id: editId, item: { platform, url: url.trim() } }
+        : { action: "add", platform, url: url.trim() };
+      
+      const res = await fetch("/api/updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Berhasil disimpan", "success");
+        setShowModal(false);
+        load();
+      } else {
+        showToast("Gagal menyimpan", "error");
+      }
+    } catch {
+      showToast("Error jaringan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch("/api/updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: confirmDelete.id })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Berhasil dihapus", "success");
+        setConfirmDelete(null);
+        load();
+      } else {
+        showToast("Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Error jaringan", "error");
+    }
+  };
+
+  const openAdd = () => {
+    setEditId(null);
+    setPlatform("twitter");
+    setUrl("");
+    setShowModal(true);
+  };
+
+  const openEdit = (item: any) => {
+    setEditId(item.id);
+    setPlatform(item.platform);
+    setUrl(item.url);
+    setShowModal(true);
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      
+      {confirmDelete && (
+        <ConfirmModal
+          msg="Hapus update ini?"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>{editId ? "Edit Update" : "Tambah Update"}</h3>
+              <button className={styles.closeX} onClick={() => setShowModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handleSave}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Platform</label>
+                  <select value={platform} onChange={e => setPlatform(e.target.value)} required style={{ background: "var(--adm-surface)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px" }}>
+                    <option value="twitter">Twitter / X</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="threads">Threads</option>
+                  </select>
+                </div>
+                <div className={styles.field}>
+                  <label>URL Post</label>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    placeholder="https://..."
+                    required
+                  />
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-refresh" style={{ color: "#10b981" }} /> Latest Updates
+          <span className={styles.count}>{updates.length} post</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={styles.btnPrimary} onClick={openAdd}>
+            <i className="bx bx-plus" /> Tambah Update
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}>
+          <i className="bx bx-loader-alt bx-spin" /> Memuat updates...
+        </div>
+      ) : updates.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
+          <p>Belum ada update</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: "150px" }}>Platform</th>
+                <th>URL</th>
+                <th style={{ width: "100px", textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {updates.map((item) => (
+                <tr key={item.id}>
+                  <td style={{ textTransform: "capitalize" }}>{item.platform}</td>
+                  <td>
+                    <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>
+                      {item.url.length > 50 ? item.url.slice(0, 50) + "..." : item.url}
+                    </a>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(item)}><i className="bx bx-edit" /></button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(item)}><i className="bx bx-trash" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -2841,13 +3044,14 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "journal",  path: ""          },
       { key: "tickets",  path: ""          },
       { key: "calendar", path: ""          },
+      { key: "updates",  path: ""          },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : key === "calendar" ? "/api/calendar" : api(path);
+        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : key === "calendar" ? "/api/calendar" : key === "updates" ? "/api/updates" : api(path);
         const res  = await fetch(url);
         const json = await res.json();
         let count = 0;
-        if (key === "journal" || key === "tickets" || key === "calendar") {
+        if (key === "journal" || key === "tickets" || key === "calendar" || key === "updates") {
           count = Array.isArray(json) ? json.length : Array.isArray(json.data) ? json.data.length : 0;
         } else {
           const data = json?.data;
@@ -2878,6 +3082,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "bot",       icon: "bx-bot",           label: "Bot",      color: "#f59e0b" },
     { key: "tickets",   icon: "bx-receipt",       label: "Tickets",  color: "#10b981" },
     { key: "calendar",  icon: "bx-calendar",      label: "Calendar", color: "#3b82f6" },
+    { key: "updates",   icon: "bx-refresh",       label: "Updates",  color: "#10b981" },
   ];
 
   return (
@@ -2924,6 +3129,7 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "bot",       icon: "bx-bot",            label: "Bot"       },
   { key: "tickets",   icon: "bx-receipt",        label: "Tickets"   },
   { key: "calendar",  icon: "bx-calendar",       label: "Calendar"  },
+  { key: "updates",   icon: "bx-refresh",        label: "Updates"   },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -3054,6 +3260,8 @@ export default function AdminPage() {
               <TicketsManager />
             ) : active === "calendar" ? (
               <CalendarManager />
+            ) : active === "updates" ? (
+              <UpdatesManager />
             ) : (
               <SectionManager section={active} />
             )}
