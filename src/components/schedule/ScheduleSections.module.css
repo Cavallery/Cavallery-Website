@@ -127,8 +127,10 @@
 [data-theme="dark"] .vcContainer {
   --vc-bg: #1c1917;
   --vc-stripe: #292524;
-  --vc-border: #44403c;
+  --vc-border: var(--gold);
   --vc-text: #f5f5f4;
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
 }
 
 .vcSkyline {

@@ -16,7 +16,7 @@ type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot"       | "tickets"  | "calendar" | "updates";
+  | "bot"       | "tickets"  | "calendar" | "updates" | "vcschedule";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -3026,6 +3026,107 @@ function UpdatesManager() {
   );
 }
 
+// ─── VC SCHEDULE MANAGER ───────────────────────────────────────
+function VcScheduleManager() {
+  const [data, setData] = useState<any>({ date: "", session1: "", session2: "", session3: "", session4: "", imageUrl: "" });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/vcschedule");
+      const json = await res.json();
+      if (json.success && json.data) setData(json.data);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/vcschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: "Jadwal VC berhasil disimpan", type: "success" });
+        load();
+      } else {
+        setToast({ msg: "Gagal menyimpan", type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Error jaringan", type: "error" });
+    }
+    setSaving(false);
+  };
+
+  const handleChange = (key: string, value: string) => {
+    setData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-video" style={{ color: "#ec4899" }} /> Jadwal Video Call
+        </h2>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
+      ) : (
+        <div className={styles.formModal} style={{ position: "relative", maxWidth: 600 }}>
+          <form onSubmit={handleSave}>
+            <div className={styles.formBody}>
+              <div className={styles.field}>
+                <label>Tanggal / Keterangan Event</label>
+                <input value={data.date || ""} onChange={e => handleChange("date", e.target.value)} placeholder="Contoh: Rabu, 11 Maret 2026" />
+              </div>
+              <div className={styles.field}>
+                <label>Sesi 1</label>
+                <input value={data.session1 || ""} onChange={e => handleChange("session1", e.target.value)} placeholder="Contoh: Sesi 1: 16.30 – 17.30" />
+              </div>
+              <div className={styles.field}>
+                <label>Sesi 2</label>
+                <input value={data.session2 || ""} onChange={e => handleChange("session2", e.target.value)} placeholder="Contoh: Sesi 2: 17.00 – 18.00" />
+              </div>
+              <div className={styles.field}>
+                <label>Sesi 3</label>
+                <input value={data.session3 || ""} onChange={e => handleChange("session3", e.target.value)} placeholder="Contoh: Sesi 3: 19.30 – 20.30" />
+              </div>
+              <div className={styles.field}>
+                <label>Sesi 4 (Opsional)</label>
+                <input value={data.session4 || ""} onChange={e => handleChange("session4", e.target.value)} />
+              </div>
+              <div className={styles.field}>
+                <label>URL Gambar Poster</label>
+                <input type="url" value={data.imageUrl || ""} onChange={e => handleChange("imageUrl", e.target.value)} placeholder="https://..." />
+                {data.imageUrl && (
+                  <img src={data.imageUrl} alt="preview" style={{ marginTop: 8, maxHeight: 150, borderRadius: 8, objectFit: "cover" }} />
+                )}
+              </div>
+            </div>
+            <div className={styles.formFooter} style={{ justifyContent: "flex-end", marginTop: 16 }}>
+              <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                {saving ? <><i className="bx bx-loader-alt bx-spin"/> Menyimpan...</> : <><i className="bx bx-save"/> Simpan</>}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -3083,6 +3184,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "tickets",   icon: "bx-receipt",       label: "Tickets",  color: "#10b981" },
     { key: "calendar",  icon: "bx-calendar",      label: "Calendar", color: "#3b82f6" },
     { key: "updates",   icon: "bx-refresh",       label: "Updates",  color: "#10b981" },
+    { key: "vcschedule",icon: "bx-video",         label: "Video Call",color: "#ec4899" },
   ];
 
   return (
@@ -3130,6 +3232,7 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "tickets",   icon: "bx-receipt",        label: "Tickets"   },
   { key: "calendar",  icon: "bx-calendar",       label: "Calendar"  },
   { key: "updates",   icon: "bx-refresh",        label: "Updates"   },
+  { key: "vcschedule",icon: "bx-video",          label: "Video Call"},
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
@@ -3262,6 +3365,8 @@ export default function AdminPage() {
               <CalendarManager />
             ) : active === "updates" ? (
               <UpdatesManager />
+            ) : active === "vcschedule" ? (
+              <VcScheduleManager />
             ) : (
               <SectionManager section={active} />
             )}

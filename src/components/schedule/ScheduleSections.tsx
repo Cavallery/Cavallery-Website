@@ -156,5 +156,56 @@ export function LiveSection() {
 }
 
 export function VideoCallSection() {
-  return null;
+  const [vcSchedule, setVcSchedule] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchVc() {
+      try {
+        const res = await fetch("/api/vcschedule");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setVcSchedule(json.data);
+        }
+      } catch (err) {
+        console.error("Failed to load VC schedule:", err);
+      }
+    }
+    fetchVc();
+  }, []);
+
+  if (!vcSchedule) return null;
+
+  return (
+    <section className={styles.section} id="videocall">
+      <div className={styles.vcContainer}>
+        <div className={styles.vcSkyline}></div>
+        
+        <div className={styles.vcNailed}></div>
+        <h3 className={styles.vcTitle}>Jadwal Video Call Erine</h3>
+        
+        <div className={styles.vcContent}>
+            {/* SCHEDULE */}
+            <div className={styles.vcSchedule}>
+                <div className={styles.vcDate}>{vcSchedule.date}</div>
+                {vcSchedule.session1 && <div className={styles.vcSession}>{vcSchedule.session1}</div>}
+                {vcSchedule.session2 && <div className={styles.vcSession}>{vcSchedule.session2}</div>}
+                {vcSchedule.session3 && <div className={styles.vcSession}>{vcSchedule.session3}</div>}
+                {vcSchedule.session4 && <div className={styles.vcSession}>{vcSchedule.session4}</div>}
+                {!vcSchedule.session1 && !vcSchedule.session2 && !vcSchedule.session3 && !vcSchedule.session4 && (
+                  <div className={styles.vcSession}>Belum ada jadwal sesi</div>
+                )}
+            </div>
+            
+            {/* POSTER */}
+            {vcSchedule.imageUrl && (
+              <div className={styles.vcPoster}>
+                  <div className={styles.vcFrame}>
+                      <img src={vcSchedule.imageUrl} alt="Poster VC" />
+                  </div>
+              </div>
+            )}
+        </div>
+      </div>
+    </section>
+  );
 }
