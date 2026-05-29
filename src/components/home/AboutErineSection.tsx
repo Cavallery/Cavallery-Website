@@ -92,6 +92,8 @@ export default function AboutErineSection() {
   const [setlists, setSetlists] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [statsData, setStatsData] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [updates, setUpdates] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -115,6 +117,11 @@ export default function AboutErineSection() {
       .then((json) => { if (json?.status) setStatsData(json.data); })
       .catch(console.error);
 
+    fetch("/api/updates")
+      .then((r) => r.json())
+      .then((json) => { if (json?.success) setUpdates(json.data); })
+      .catch(console.error);
+
     const twScript = document.createElement("script");
     twScript.src = "https://platform.twitter.com/widgets.js";
     twScript.async = true;
@@ -128,6 +135,14 @@ export default function AboutErineSection() {
     return () => { clearInterval(slideTimer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (updates.length > 0) {
+      if (typeof window !== "undefined" && (window as any).twttr) {
+        (window as any).twttr.widgets.load();
+      }
+    }
+  }, [updates]);
 
   const toggleJiko = () => {
     if (!audioRef.current) {
@@ -529,43 +544,77 @@ export default function AboutErineSection() {
       <div className={styles.embedsSection}>
         <div className={styles.nailedFrame} />
         <h3 className={styles.erineTitle}>Latest Updates</h3>
-        <div className={styles.embedsGrid}>
-          <div className={styles.embedCard}>
-            <blockquote className="twitter-tweet" data-theme="dark">
-              <a href="https://twitter.com/CErine_JKT48/status/2056685755616104632"></a>
-            </blockquote>
+        {updates.length === 0 ? (
+          <div style={{ color: "var(--gold)", padding: "1rem", textAlign: "center" }}>
+            <i className="bx bx-loader-alt bx-spin" /> Memuat updates...
           </div>
-          <div className={styles.embedCard}>
-            <blockquote
-              className="tiktok-embed"
-              cite="https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280"
-              data-video-id="7640445924992470280"
-              style={{ maxWidth: "100%", minWidth: 325 }}
-            >
-              <section>
-                <a href="https://www.tiktok.com/@jkt48.erine_" rel="noopener noreferrer">@jkt48.erine_</a>
-              </section>
-            </blockquote>
+        ) : (
+          <div className={styles.embedsGrid}>
+            {updates.map((update) => {
+              if (update.platform === "twitter") {
+                return (
+                  <div key={update.id} className={styles.embedCard}>
+                    <blockquote className="twitter-tweet" data-theme="dark">
+                      <a href={update.url}></a>
+                    </blockquote>
+                  </div>
+                );
+              }
+              if (update.platform === "tiktok") {
+                // Extract video ID and username from URL
+                // e.g. https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280
+                const urlParts = update.url.split("/");
+                const videoId = urlParts[urlParts.length - 1];
+                const username = urlParts.find((p: string) => p.startsWith("@")) || "@jkt48.erine_";
+                return (
+                  <div key={update.id} className={styles.embedCard}>
+                    <blockquote
+                      className="tiktok-embed"
+                      cite={update.url}
+                      data-video-id={videoId}
+                      style={{ maxWidth: "100%", minWidth: 325 }}
+                    >
+                      <section>
+                        <a href={`https://www.tiktok.com/${username}`} rel="noopener noreferrer">{username}</a>
+                      </section>
+                    </blockquote>
+                  </div>
+                );
+              }
+              if (update.platform === "instagram") {
+                // URL should be the base URL without trailing slash, e.g. https://www.instagram.com/p/DXt1vRJEpuf
+                const igUrl = update.url.endsWith("/") ? update.url : `${update.url}/`;
+                return (
+                  <div key={update.id} className={styles.embedCard}>
+                    <iframe
+                      src={`${igUrl}embed`}
+                      width="100%"
+                      height="480"
+                      frameBorder="0"
+                      scrolling="no"
+                    />
+                  </div>
+                );
+              }
+              if (update.platform === "threads") {
+                // URL e.g. https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2
+                const threadsUrl = update.url.endsWith("/") ? update.url : `${update.url}/`;
+                return (
+                  <div key={update.id} className={styles.embedCard}>
+                    <iframe
+                      src={`${threadsUrl}embed`}
+                      width="100%"
+                      height="480"
+                      frameBorder="0"
+                      scrolling="no"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })}
           </div>
-          <div className={styles.embedCard}>
-            <iframe
-              src="https://www.instagram.com/p/DXt1vRJEpuf/embed"
-              width="100%"
-              height="480"
-              frameBorder="0"
-              scrolling="no"
-            />
-          </div>
-          <div className={styles.embedCard}>
-            <iframe
-              src="https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2/embed"
-              width="100%"
-              height="480"
-              frameBorder="0"
-              scrolling="no"
-            />
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Modal */}
