@@ -159,7 +159,7 @@ export default function Erine100ShowContent() {
         <div className="space-y-4">
           <p>Sebelum LAND.<br/>Sebelum SEA.<br/>Sebelum SKY.</p>
           <p>Ada satu perasaan yang lebih dulu hadir.<br/>Perasaan bahwa ada sesuatu yang berbeda.<br/>Namun belum bisa dijelaskan.</p>
-          <p className="mt-4">Dalam tahap awal pengembangan cerita, salah satu lirik yang cukup memengaruhi suasana emosional Prolog berasal dari lagu Dracula karya Tame Impala:<br/>
+          <p className="mt-4">Dalam tahap awal pengembangan cerita, salah satu lirik yang cukup memengaruhi suasana emosional Prolog berasal dari lagu <b>Dracula karya Tame Impala:</b><br/>
           <span className="italic font-medium" style={{ color: "var(--fg)" }}>"The morning light is turning blue, the feeling is bizarre."</span></p>
           <p>Bukan karena makna literal dari pagi yang berubah warna. Melainkan karena perasaan yang terkandung di dalamnya.<br/>Sebuah rasa asing yang datang tanpa alasan yang jelas.<br/>Tidak sepenuhnya buruk.<br/>Tidak pula sepenuhnya baik.<br/>Hanya terasa berbeda dari biasanya.</p>
           <p>Perasaan inilah yang menjadi titik awal The Path of Her Light.<br/>Pada Prolog, Erine belum mengetahui ke mana perjalanan ini akan membawanya.<br/>Ia belum memahami apa yang sedang berubah.<br/>Namun ada sesuatu yang perlahan memanggilnya untuk melangkah.</p>
