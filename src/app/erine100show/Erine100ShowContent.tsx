@@ -865,9 +865,7 @@ export default function Erine100ShowContent() {
     }
   };
 
-  if (!isClient) {
-    return null;
-  }
+
 
   if (!isUnlocked) {
     return (
