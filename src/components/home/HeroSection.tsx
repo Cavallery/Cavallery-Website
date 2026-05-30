@@ -98,9 +98,8 @@ export default function HeroSection() {
           </div>
 
           <p className={styles.desc}>
-            Selamat datang di Cavallery. barisan pelindung Erine, selalu siap
-            mendukungnya di setiap langkah perjuangannya. Bersama kita susun
-            strategi dukungan terbaik.
+            From first support to endless memories.<br />
+            Cavallery welcomes every supporter with the same warmth and spirit, creating beautiful memories in every chapter ahead.
           </p>
 
           <div className={styles.actions}>

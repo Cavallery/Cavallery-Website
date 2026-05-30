@@ -15,7 +15,7 @@ export default function Footer() {
             </Link>
 
             <p className={styles.tagline}>
-              Official Fanbase of Catherina Vallencia Kurniawan (Erine) JKT48.
+              Fanbase of Catherina Vallencia Kurniawan (Erine) JKT48.
             </p>
 
             <div className={styles.socials}>

@@ -27,6 +27,7 @@ const navLinks = [
   {
     label: "Project",
     children: [
+      { href: "/erine100show", label: "Erine 100 Show" },
       { href: "/erine-in-etherland", label: "Erine in Etherland" },
       { href: "/ssk", label: "SSK JKT48 2024" },
       { href: "/caterine17th", label: "#CatErine17th" },
