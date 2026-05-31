@@ -81,6 +81,7 @@
   align-items: center;
   gap: 8px;
   list-style: none;
+  overflow: visible; /* ← tambah ini */
 }
 
 .link {
@@ -140,12 +141,13 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 6px;
+  padding-top: 10px; /* ← tambah ini */
   list-style: none;
   animation: dropdownSlide .25s ease;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   margin-top: 4px;
+  overflow: visible; /* ← pastikan ini */
 }
-
 /* Invisible bridge to prevent dropdown from closing when moving mouse from toggle to menu */
 .dropdown::before {
   content: "";
