@@ -1,4 +1,4 @@
 .page {
-  padding-top: 0; /* Hero is full-screen */
-  overflow-x: hidden;
+  padding-top: 0;
+  overflow-x: clip; 
 }
