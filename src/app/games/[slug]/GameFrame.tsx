@@ -29,7 +29,7 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
   };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       {showMusicToggle && (
         <button
           onClick={toggleMusic}
