@@ -48,6 +48,16 @@ const games = [
     longDesc:
       "Game spesial untuk seluruh Cavallery! Masukkan namamu dan ukur seberapa besar cintamu untuk Erine. Bagikan hasilnya dan tag @cavallery.id!",
   },
+  {
+    title: "Game DressUp Erine",
+    desc: "Ayo dress up Erine sesukamu! Ganti baju, pilih wajah, dan tentukan lokasinya. Ciptakan look favoritmu dan bagikan ke semua orang!",
+    href: "/games/dress-up-erine",
+    icon: "bx-closet",
+    tag: "Fashion",
+    color: "#e879f9",
+    longDesc:
+      "Jadilah stylist pribadi Erine! Pilih busana dari berbagai koleksi kostum, atur ekspresi wajahnya, dan tentukan lokasi pemotretan impianmu. Setiap kombinasi menghasilkan tampilan unik — simpan hasilnya dan tunjukkan ke seluruh Cavallery siapa yang paling kreatif!",
+  },
 ];
 
 import Link from "next/link";

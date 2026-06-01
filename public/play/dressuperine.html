@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>The Path Of Her Light</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Varela+Round&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-dark: #08101f;
+    --bg-light: #1d2c4f;
+    --accent-silver: #b8d7ff;
+    --accent-gold: #e8d08d;
+    --accent-red: #9b2b38;
+    --cabinet-main: #1e2541;
+    --cabinet-border: #4a5580;
+}
+
+body {
+    font-family: 'Varela Round', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: linear-gradient(to bottom, #020510 0%, #0d1731 35%, #13264a 60%, #09111f 100%);
+    color: white;
+    position: relative;
+}
+
+#particle-container {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.particle {
+    position: absolute;
+    bottom: -10px;
+    opacity: 0;
+    animation: floatUp linear infinite;
+}
+
+.star {
+    color: var(--accent-silver);
+    text-shadow: 0 0 10px rgba(255,255,255,.8), 0 0 20px rgba(161,198,228,.8);
+}
+
+.p1 { left: 10%; animation-duration: 15s; font-size: 22px; }
+.p2 { left: 30%; animation-duration: 22s; font-size: 18px; }
+.p3 { left: 50%; animation-duration: 18s; font-size: 28px; }
+.p4 { left: 70%; animation-duration: 28s; font-size: 20px; }
+.p5 { left: 90%; animation-duration: 25s; font-size: 16px; }
+
+@keyframes floatUp {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    20% { opacity: .9; }
+    80% { opacity: .9; }
+    100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+}
+
+.shooting-star {
+    position: absolute;
+    top: -100px;
+    width: 3px;
+    height: 140px;
+    background: linear-gradient(to bottom, rgba(255,255,255,1), rgba(255,255,255,0));
+    border-radius: 50%;
+    opacity: .9;
+    transform: rotate(45deg);
+    filter: blur(.5px);
+    animation: shoot linear infinite;
+}
+
+.s1 { left: 15%; animation-duration: 5s; animation-delay: 0s; }
+.s2 { left: 45%; animation-duration: 7s; animation-delay: 2s; }
+.s3 { left: 70%; animation-duration: 6s; animation-delay: 4s; }
+.s4 { left: 85%; animation-duration: 8s; animation-delay: 1s; }
+
+@keyframes shoot {
+    0% { transform: translate(0,0) rotate(45deg); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translate(-600px,800px) rotate(45deg); opacity: 0; }
+}
+
+.glitter {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: white;
+    opacity: 0;
+    filter: blur(.3px);
+    box-shadow: 0 0 10px rgba(255,255,255,.9), 0 0 20px rgba(161,198,228,.8), 0 0 30px rgba(255,255,255,.7);
+    animation: glitterFloat linear infinite;
+}
+
+.g1 { left: 5%; animation-duration: 12s; animation-delay: 0s; }
+.g2 { left: 15%; animation-duration: 18s; animation-delay: 2s; }
+.g3 { left: 28%; animation-duration: 15s; animation-delay: 4s; }
+.g4 { left: 40%; animation-duration: 20s; animation-delay: 1s; }
+.g5 { left: 52%; animation-duration: 16s; animation-delay: 3s; }
+.g6 { left: 65%; animation-duration: 22s; animation-delay: 5s; }
+.g7 { left: 78%; animation-duration: 17s; animation-delay: 2s; }
+.g8 { left: 90%; animation-duration: 19s; animation-delay: 4s; }
+
+@keyframes glitterFloat {
+    0% { transform: translateY(100vh) translateX(0px) scale(.2); opacity: 0; }
+    20% { opacity: 1; }
+    50% { transform: translateY(40vh) translateX(20px) scale(1); }
+    100% { transform: translateY(-20vh) translateX(-20px) scale(.2); opacity: 0; }
+}
+
+.sea-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.sea-base {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(to bottom, rgba(30,80,180,.15), rgba(8,25,60,.95));
+}
+
+.wave {
+    position: absolute;
+    left: -50%;
+    width: 200%;
+    border-radius: 45%;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+.wave-a {
+    bottom: 70px;
+    height: 90px;
+    background: rgba(130,190,255,.22);
+    animation-name: waveMoveA;
+    animation-duration: 10s;
+    filter: blur(1px);
+}
+
+.wave-b {
+    bottom: 45px;
+    height: 110px;
+    background: rgba(90,150,255,.18);
+    animation-name: waveMoveB;
+    animation-duration: 14s;
+}
+
+.wave-c {
+    bottom: 20px;
+    height: 130px;
+    background: rgba(40,90,200,.28);
+    animation-name: waveMoveC;
+    animation-duration: 18s;
+}
+
+.wave-d {
+    bottom: -5px;
+    height: 150px;
+    background: rgba(15,45,120,.85);
+    animation-name: waveMoveD;
+    animation-duration: 22s;
+}
+
+.foam {
+    position: absolute;
+    width: 200%;
+    left: -50%;
+    height: 35px;
+    bottom: 78px;
+    background: radial-gradient(circle, rgba(255,255,255,.8) 0%, rgba(255,255,255,0) 70%);
+    background-size: 80px 30px;
+    opacity: .35;
+    animation: foamMove 8s linear infinite;
+    filter: blur(1px);
+}
+
+@keyframes waveMoveA {
+    0% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(-8%) translateY(8px); }
+    100% { transform: translateX(-16%) translateY(0); }
+}
+
+@keyframes waveMoveB {
+    0% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(6%) translateY(12px); }
+    100% { transform: translateX(12%) translateY(0); }
+}
+
+@keyframes waveMoveC {
+    0% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(-5%) translateY(10px); }
+    100% { transform: translateX(-10%) translateY(0); }
+}
+
+@keyframes waveMoveD {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-8%); }
+}
+
+@keyframes foamMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-10%); }
+}
+
+#title-screen-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    transition: .8s;
+}
+
+.fade-out-anim {
+    opacity: 0;
+    transform: scale(1.1);
+    pointer-events: none;
+}
+
+.title-content-wrapper {
+    background: rgba(15,20,45,.55);
+    padding: 40px 30px;
+    border-radius: 25px;
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.2);
+    text-align: center;
+    box-shadow: 0 0 60px rgba(161,198,228,.15), inset 0 0 20px rgba(255,255,255,.05);
+    margin: 0 15px;
+    animation: floating 4s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.title-top-banner {
+    color: var(--accent-silver);
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+    line-height: 1.5;
+}
+
+.main-title-text h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 3.8rem;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255,255,255,.5), 0 0 40px rgba(161,198,228,.4), 2px 2px 10px rgba(0,0,0,.9);
+}
+
+.main-title-text h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    color: var(--accent-silver);
+}
+
+.coin-btn-large {
+    margin-top: 35px;
+    padding: 15px 50px;
+    border: 2px solid var(--accent-gold);
+    background: rgba(255,255,255,.05);
+    color: var(--accent-gold);
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: .3s;
+    backdrop-filter: blur(10px);
+}
+
+.coin-btn-large:hover {
+    background: var(--accent-gold);
+    color: black;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(232,208,141,.6);
+}
+
+.copyright-text {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    opacity: .5;
+    font-size: .8rem;
+}
+
+#game-screen-container {
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    opacity: 0;
+    transition: .8s;
+    position: relative;
+    z-index: 5;
+}
+
+.game-fade-in {
+    opacity: 1 !important;
+}
+
+.arcade-cabinet {
+    width: 100%;
+    max-width: 430px;
+    background: linear-gradient(135deg, var(--cabinet-main), #111526);
+    border-radius: 20px;
+    border: 4px solid var(--cabinet-border);
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.8), inset 0 0 20px rgba(0,0,0,.5);
+}
+
+.arcade-marquee {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    background: rgba(0,0,0,.4);
+}
+
+.title-text {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px var(--accent-silver);
+}
+
+.title-sub {
+    color: var(--accent-gold);
+    letter-spacing: 2px;
+    font-size: .8rem;
+}
+
+.monitor-bezel {
+    background: black;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.crt-screen,
+.review-stage-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 320 / 460;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #000;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.8);
+    margin: 0 auto;
+}
+
+.layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    pointer-events: none;
+}
+
+#edit-bg,
+#res-bg {
+    z-index: 0;
+    object-fit: cover;
+}
+
+#edit-dress,
+#res-dress {
+    z-index: 1;
+}
+
+#edit-face,
+#res-face {
+    z-index: 2;
+}
+
+.control-deck {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #2b3b60, #1e2541);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.arcade-controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.control-unit:last-child {
+    grid-column: span 2;
+}
+
+.control-unit {
+    background: rgba(0,0,0,.3);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.control-label {
+    margin-bottom: 8px;
+    color: var(--accent-silver);
+    font-size: .8rem;
+    text-transform: uppercase;
+}
+
+.btn-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.arcade-btn {
+    width: 40px;
+    height: 35px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(to bottom, #3a4a75, #212c4d);
+    color: white;
+    cursor: pointer;
+}
+
+.btn-finish-arcade {
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(to bottom, var(--accent-red), #5e1620);
+    color: white;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#review-screen-container {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(18,24,43,.9);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.review-card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--cabinet-main);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.review-title {
+    font-family: 'Cinzel', serif;
+    margin-bottom: 20px;
+    color: var(--accent-gold);
+}
+
+.action-buttons-grid {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.top-action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.btn-action {
+    position: relative;
+    overflow: hidden;
+    padding: 14px 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: .9rem;
+    letter-spacing: .5px;
+    transition: .25s;
+    color: white;
+    font-family: 'Cinzel', serif;
+    box-shadow: 0 6px 15px rgba(0,0,0,.4), inset 0 0 10px rgba(255,255,255,.08);
+}
+
+.btn-share {
+    background: linear-gradient(145deg, #07111f, #102544, #1a3258);
+    border: 1px solid rgba(120,170,255,.35);
+    color: #d7e9ff;
+}
+
+.btn-share::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.2) 45%, transparent 100%);
+    transform: translateX(-120%);
+    animation: shineX 4s linear infinite;
+}
+
+.btn-share:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-save {
+    background: linear-gradient(145deg, #ff9b1d, #ffb347, #ffcf70);
+    color: white; 
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,.45);
+}
+
+.btn-save::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,.9) 0%, transparent 60%);
+    background-size: 20px 20px;
+    opacity: .45;
+    animation: glitterMove 8s linear infinite;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-replay {
+    background: linear-gradient(145deg, #202742, #2d3962);
+    border: 1px solid rgba(184,215,255,.35);
+    color: #dcecff;
+}
+
+.btn-replay:hover {
+    transform: translateY(-2px);
+}
+
+@keyframes shineX {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+
+@keyframes glitterMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 100px; }
+}
+
+@media(max-width:500px) {
+    .main-title-text h1 { font-size: 2.4rem; }
+    .main-title-text h2 { font-size: 1.4rem; }
+    .top-action-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgm" src="assets/ost.mp3" loop autoplay playsinline preload="auto"></audio>
+
+<div id="particle-container">
+    <div class="particle star p1">✦</div>
+    <div class="particle star p2">★</div>
+    <div class="particle star p3">✦</div>
+    <div class="particle star p4">★</div>
+    <div class="particle star p5">✦</div>
+
+    <div class="shooting-star s1"></div>
+    <div class="shooting-star s2"></div>
+    <div class="shooting-star s3"></div>
+    <div class="shooting-star s4"></div>
+
+    <div class="glitter g1"></div>
+    <div class="glitter g2"></div>
+    <div class="glitter g3"></div>
+    <div class="glitter g4"></div>
+    <div class="glitter g5"></div>
+    <div class="glitter g6"></div>
+    <div class="glitter g7"></div>
+    <div class="glitter g8"></div>
+</div>
+
+<div class="sea-container">
+    <div class="wave wave-a"></div>
+    <div class="wave wave-b"></div>
+    <div class="wave wave-c"></div>
+    <div class="wave wave-d"></div>
+    <div class="foam"></div>
+    <div class="sea-base"></div>
+</div>
+
+<div id="title-screen-container">
+    <div class="title-content-wrapper">
+        <div class="title-top-banner">
+            Dress Up Game Special<br>
+            <b>Catherina Vallencia's 100th Show</b>
+        </div>
+        <div class="main-title-text">
+            <h2>The Path Of</h2>
+            <h1>Her Light</h1>
+        </div>
+        <button class="coin-btn-large" onclick="startGame()">
+            Start Journey
+        </button>
+    </div>
+    <div class="copyright-text">
+        Copyright © 2026 Cavallery.id
+    </div>
+</div>
+
+<div id="game-screen-container">
+    <div class="arcade-cabinet">
+        <div class="arcade-marquee">
+            <div class="title-text">Dress Up Game</div>
+            <div class="title-sub">BEYOND THE STARS</div>
+        </div>
+        <div class="monitor-bezel">
+            <div class="crt-screen">
+                <img src="assets/background- (1).png" id="edit-bg" class="layer">
+                <img src="assets/outfit-(1).png" id="edit-dress" class="layer">
+                <img src="assets/wajah-(1).png" id="edit-face" class="layer">
+            </div>
+        </div>
+        <div class="control-deck">
+            <div class="arcade-controls-grid">
+                <div class="control-unit">
+                    <div class="control-label">Wajah</div>
+                    <div class="btn-group">
+                        <button class="arcade-btn" onclick="changeLayer('face',-1)"><</button>
+                        <button class="arcade-btn" onclick="changeLayer('face',1)">></button>
+                    </div>
+                </div>
+                <div class="control-unit">
+                    <div class="control-label">Lokasi</div>
+                    <div class="btn-group">
+                        <button class="arcade-btn" onclick="changeLayer('bg',-1)"><</button>
+                        <button class="arcade-btn" onclick="changeLayer('bg',1)">></button>
+                    </div>
+                </div>
+                <div class="control-unit">
+                    <div class="control-label">Outfit</div>
+                    <div class="btn-group">
+                        <button class="arcade-btn" onclick="changeLayer('dress',-1)"><</button>
+                        <button class="arcade-btn" onclick="changeLayer('dress',1)">></button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-finish-arcade" onclick="finishGame()">
+                It's My Style
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="review-screen-container">
+    <div class="review-card">
+        <div class="review-title">JOURNEY COMPLETED</div>
+        <div class="review-stage-wrapper">
+            <img src="" id="res-bg" class="layer">
+            <img src="" id="res-dress" class="layer">
+            <img src="" id="res-face" class="layer">
+        </div>
+        <div class="action-buttons-grid">
+            <div class="top-action-row">
+                <button class="btn-action btn-share" onclick="shareTwitter()">
+                     Share hasilku di X
+                </button>
+                <button class="btn-action btn-save" onclick="downloadImage()">
+                     Simpan Outfit Erine Versiku
+                </button>
+            </div>
+            <button class="btn-action btn-replay" onclick="resetGame()">
+                 Bermain Lagi?
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+window.addEventListener('load', () => {
+    const bgm = document.getElementById('bgm');
+    bgm.volume = 0.5;
+    const playPromise = bgm.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            document.body.addEventListener('click', () => {
+                bgm.play();
+            }, { once: true });
+        });
+    }
+});
+
+const ASSETS_DATA = {
+    bg: [
+        "assets/background- (1).png",
+        "assets/background- (2).png"
+    ],
+    dress: [
+        "assets/outfit-(1).png",
+        "assets/outfit-(2).png",
+        "assets/outfit-(3).png",
+        "assets/outfit-(4).png",
+        "assets/outfit-(5).png",
+        "assets/outfit-(6).png",
+        "assets/outfit-(7).png",
+        "assets/outfit-(8).png",
+        "assets/outfit-(9).png",
+        "assets/outfit-(10).png"
+    ],
+    face: [
+        "assets/wajah-(1).png",
+    ]
+};
+
+let state = {
+    bg: 0,
+    dress: 0,
+    face: 0
+};
+
+function startGame() {
+    const title = document.getElementById('title-screen-container');
+    const game = document.getElementById('game-screen-container');
+    
+    title.classList.add('fade-out-anim');
+    
+    setTimeout(() => {
+        title.style.display = 'none';
+        game.style.display = 'flex';
+        setTimeout(() => {
+            game.classList.add('game-fade-in');
+        }, 50);
+    }, 800);
+}
+
+function changeLayer(type, direction) {
+    state[type] += direction;
+    
+    if (state[type] < 0) {
+        state[type] = ASSETS_DATA[type].length - 1;
+    }
+    if (state[type] >= ASSETS_DATA[type].length) {
+        state[type] = 0;
+    }
+    
+    const url = ASSETS_DATA[type][state[type]];
+    document.getElementById(`edit-${type}`).src = url;
+}
+
+function finishGame() {
+    for (let key in state) {
+        const url = ASSETS_DATA[key][state[key]];
+        document.getElementById(`res-${key}`).src = url;
+    }
+    document.getElementById('review-screen-container').style.display = 'flex';
+}
+
+function resetGame() {
+    document.getElementById('review-screen-container').style.display = 'none';
+}
+
+function shareTwitter() {
+    const text = encodeURIComponent(
+        "Inilah Outfit Erine Favorituku untuk menyusun kenangan di The Path of Her Light , Mari coba di situs Cavallery.id✨ #ThePathOfHerLight #100Show #Beyond100th #JKT48Erine #CavalleryID"
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+}
+
+function downloadImage() {
+    const element = document.querySelector(".review-stage-wrapper");
+    html2canvas(element, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 4
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'my-dresserine-for-The-Path-Of-Her-Light.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+}
+</script>
+
+</body>
+</html>

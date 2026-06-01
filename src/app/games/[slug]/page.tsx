@@ -24,6 +24,11 @@ const gameData: Record<string, { title: string; url: string; description: string
     url: "/play/love-tester.html",
     description: "Ukur seberapa besar cintamu untuk Erine!",
   },
+  "dress-up-erine": {
+    title: "Dress Up Erine Outfit",
+    url: "/play/dressuperine.html",
+    description: "Ayo dress up Erine sesukamu! Ganti baju, pilih wajah, dan tentukan lokasinya. Ciptakan look favoritmu dan bagikan ke semua orang!",
+  },
 };
 
 type Props = {
