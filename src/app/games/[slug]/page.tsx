@@ -1,3 +1,4 @@
+"use client";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import styles from "./page.module.css";
