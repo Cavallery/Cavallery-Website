@@ -71,14 +71,22 @@ export default async function GamePlayPage({ params }: Props) {
         </div>
       </div>
      <div className={styles.frameWrapper} style={{ height: 'calc(100vh - 80px)' }}>
-  <iframe
-    src={game.url}
-    className={styles.iframe}
-    title={game.title}
-    allowFullScreen
-    sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-    style={{ width: '100%', height: '100%', border: 'none' }}
-  />
+<iframe
+  src={game.url}
+  className={styles.iframe}
+  title={game.title}
+  allowFullScreen
+  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+  onLoad={(e) => {
+    const iframe = e.currentTarget;
+    try {
+      const height = iframe.contentWindow?.document.body.scrollHeight;
+      if (height) iframe.style.height = height + "px";
+    } catch {
+      // cross-origin fallback, biarkan CSS handle
+    }
+  }}
+/>
 </div>
     </div>
   );
