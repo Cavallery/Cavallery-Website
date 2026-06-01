@@ -22,14 +22,13 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
         setMusicOn(!musicOn);
       }
     } catch {
-      // fallback postMessage
       iframe.contentWindow?.postMessage({ type: "TOGGLE_MUSIC" }, "*");
       setMusicOn(!musicOn);
     }
   };
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       {showMusicToggle && (
         <button
           onClick={toggleMusic}
@@ -61,11 +60,28 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
         title={title}
         allowFullScreen
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads"
-        style={{
-          width: "100%",
-          height: "100%",
-          border: "none",
-          display: "block",
+        style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
+        onLoad={(e) => {
+          const iframe = e.currentTarget;
+          setTimeout(() => {
+            try {
+              const body = iframe.contentWindow?.document.body;
+              const html = iframe.contentWindow?.document.documentElement;
+              if (body && html) {
+                const height = Math.max(
+                  body.scrollHeight,
+                  body.offsetHeight,
+                  html.scrollHeight,
+                  html.offsetHeight
+                );
+                if (height > window.innerHeight) {
+                  iframe.style.height = height + "px";
+                }
+              }
+            } catch {
+              // cross-origin fallback
+            }
+          }, 500);
         }}
       />
     </div>
