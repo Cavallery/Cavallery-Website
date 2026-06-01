@@ -648,9 +648,9 @@ body {
         </div>
         <div class="monitor-bezel">
             <div class="crt-screen">
-                <img src="assets/background- (1).png" id="edit-bg" class="layer">
-                <img src="assets/outfit-(1).png" id="edit-dress" class="layer">
-                <img src="assets/wajah-(1).png" id="edit-face" class="layer">
+               <img src="assets/background- (1).png" id="edit-bg" class="layer" crossorigin="anonymous">
+<img src="assets/outfit-(1).png" id="edit-dress" class="layer" crossorigin="anonymous">
+<img src="assets/wajah-(1).png" id="edit-face" class="layer" crossorigin="anonymous">
             </div>
         </div>
         <div class="control-deck">
@@ -799,18 +799,30 @@ function shareTwitter() {
 }
 
 function downloadImage() {
-    const element = document.querySelector(".review-stage-wrapper");
-    html2canvas(element, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        scale: 4
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'my-dresserine-for-The-Path-Of-Her-Light.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
+  const element = document.querySelector(".review-stage-wrapper");
+  html2canvas(element, {
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: "#000",
+    scale: 3,
+    logging: false,
+    imageTimeout: 0,
+    onclone: (clonedDoc) => {
+      // pastikan semua image sudah load di clone
+      const images = clonedDoc.querySelectorAll("img");
+      images.forEach(img => {
+        img.crossOrigin = "anonymous";
+      });
+    }
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "my-dresserine-outfit.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }).catch(err => {
+    console.error("Download failed:", err);
+    alert("Gagal menyimpan, coba refresh dan coba lagi!");
+  });
 }
 </script>
 
