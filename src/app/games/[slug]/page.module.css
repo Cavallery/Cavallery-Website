@@ -62,6 +62,8 @@
 .frameWrapper {
   flex: 1;
   width: 100%;
+  min-height: 0;
   overflow-y: auto;
   background-color: var(--bg);
+  height: 0; /* trick: flex:1 butuh ini agar min-height:0 bekerja */
 }
