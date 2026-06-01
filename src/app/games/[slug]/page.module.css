@@ -64,8 +64,9 @@
   background-color: var(--bg);
 }
 
-.iframe {
+.frameWrapper {
+  flex: 1;
   width: 100%;
-  border: none;
-  display: block;
+  overflow-y: auto;
+  background-color: var(--bg);
 }
