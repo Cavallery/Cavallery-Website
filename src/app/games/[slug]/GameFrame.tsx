@@ -70,28 +70,34 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
         allowFullScreen
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads"
         style={{ width: "100%", height: "100%", border: "none", display: "block", minHeight: "600px" }}
-        onLoad={(e) => {
-          const iframe = e.currentTarget;
-          setTimeout(() => {
-            try {
-              const body = iframe.contentWindow?.document.body;
-              const html = iframe.contentWindow?.document.documentElement;
-              if (body && html) {
-                const contentHeight = Math.max(
-                  body.scrollHeight,
-                  body.offsetHeight,
-                  html.scrollHeight,
-                  html.offsetHeight
-                );
-                const available = getAvailableHeight();
-                // Set ke mana yang lebih besar: konten game atau ruang yang tersedia
-                iframe.style.height = Math.max(contentHeight, available) + "px";
-              }
-            } catch {
-              // cross-origin fallback
-            }
-          }, 500);
-        }}
+       onLoad={(e) => {
+  const iframe = e.currentTarget;
+  
+  const resize = () => {
+    try {
+      const body = iframe.contentWindow?.document.body;
+      const html = iframe.contentWindow?.document.documentElement;
+      if (body && html) {
+        const contentHeight = Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          html.scrollHeight,
+          html.offsetHeight
+        );
+        const available = getAvailableHeight();
+        iframe.style.height = Math.max(contentHeight, available) + "px";
+      }
+    } catch {
+      // cross-origin fallback
+    }
+  };
+
+  // Coba beberapa kali karena game render bertahap
+  setTimeout(resize, 300);
+  setTimeout(resize, 800);
+  setTimeout(resize, 1500);
+  setTimeout(resize, 3000);
+}}
       />
     </div>
   );
