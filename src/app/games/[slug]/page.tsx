@@ -71,13 +71,13 @@ export default async function GamePlayPage({ params }: Props) {
         </div>
       </div>
       <div className={styles.frameWrapper}>
-        <iframe
-          src={game.url}
-          className={styles.iframe}
-          title={game.title}
-          allowFullScreen
-          sandbox="allow-scripts allow-same-origin"
-        />
+       <iframe
+  src={game.url}
+  className={styles.iframe}
+  title={game.title}
+  allowFullScreen
+  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+/>
       </div>
     </div>
   );
