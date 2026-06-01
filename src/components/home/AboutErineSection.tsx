@@ -564,7 +564,7 @@ export default function AboutErineSection() {
                 // Extract video ID and username from URL
                 // e.g. https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280
                 const urlParts = update.url.split("/");
-                const videoId = urlParts[urlParts.length - 1];
+                const videoId = urlParts[urlParts.length - 1].split("?")[0];
                 const username = urlParts.find((p: string) => p.startsWith("@")) || "@jkt48.erine_";
                 return (
                   <div key={update.id} className={styles.embedCard}>
