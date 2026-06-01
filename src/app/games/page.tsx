@@ -19,16 +19,6 @@ const games = [
       "Jadilah stylist pribadi Erine! Pilih busana dari berbagai koleksi kostum, atur ekspresi wajahnya, dan tentukan lokasi pemotretan impianmu. Setiap kombinasi menghasilkan tampilan unik — simpan hasilnya dan tunjukkan ke seluruh Cavallery siapa yang paling kreatif!",
   },
   {
-    title: "Game Belalang Yang Membangkang",
-    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
-    href: "/games/grasshopper-collector",
-    icon: "bx-bug",
-    tag: "Arcade",
-    color: "#4ade80",
-    longDesc:
-      "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
-  },
-  {
     title: "Game Erine In Etherland",
     desc: "Lari dari para zombie dan selamatkan diri! Bisakah kamu bertahan hidup?",
     href: "/games/zombie-escape",
@@ -37,6 +27,16 @@ const games = [
     color: "#f87171",
     longDesc:
       "Game survival menegangkan di mana kamu harus menghindari zombie yang terus mengejar. Seberapa jauh kamu bisa berlari? Buktikan kemampuanmu!",
+  },
+  {
+    title: "Game Belalang Yang Membangkang",
+    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
+    href: "/games/grasshopper-collector",
+    icon: "bx-bug",
+    tag: "Arcade",
+    color: "#4ade80",
+    longDesc:
+      "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
   },
   {
     title: "Jumping Adventure",
