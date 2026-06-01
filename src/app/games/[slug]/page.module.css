@@ -3,9 +3,10 @@
   flex-direction: column;
   height: 100vh;
   width: 100%;
-  overflow: hidden; /* tambah ini */
+  overflow: hidden;
   background-color: var(--bg);
-  padding-top: var(--nav-h);
+  padding-top: var(--nav-h); /* wajib untuk fixed nav */
+  box-sizing: border-box;   /* tambah ini biar 100vh sudah include padding */
 }
 
 .header {
