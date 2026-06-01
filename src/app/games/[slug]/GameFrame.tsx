@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface GameFrameProps {
   src: string;
@@ -10,7 +10,16 @@ interface GameFrameProps {
 
 export default function GameFrame({ src, title, showMusicToggle }: GameFrameProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [musicOn, setMusicOn] = useState(true);
+
+  const getAvailableHeight = () => {
+    if (wrapperRef.current) {
+      // Ambil tinggi wrapper yang sudah diperhitungkan flex
+      return wrapperRef.current.getBoundingClientRect().height;
+    }
+    return window.innerHeight;
+  };
 
   const toggleMusic = () => {
     const iframe = iframeRef.current;
@@ -28,7 +37,7 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
   };
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div ref={wrapperRef} style={{ position: "relative", width: "100%", height: "100%" }}>
       {showMusicToggle && (
         <button
           onClick={toggleMusic}
@@ -60,7 +69,7 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
         title={title}
         allowFullScreen
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads"
-        style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
+        style={{ width: "100%", height: "100%", border: "none", display: "block", minHeight: "600px" }}
         onLoad={(e) => {
           const iframe = e.currentTarget;
           setTimeout(() => {
@@ -68,15 +77,15 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
               const body = iframe.contentWindow?.document.body;
               const html = iframe.contentWindow?.document.documentElement;
               if (body && html) {
-                const height = Math.max(
+                const contentHeight = Math.max(
                   body.scrollHeight,
                   body.offsetHeight,
                   html.scrollHeight,
                   html.offsetHeight
                 );
-                if (height > window.innerHeight) {
-                  iframe.style.height = height + "px";
-                }
+                const available = getAvailableHeight();
+                // Set ke mana yang lebih besar: konten game atau ruang yang tersedia
+                iframe.style.height = Math.max(contentHeight, available) + "px";
               }
             } catch {
               // cross-origin fallback
