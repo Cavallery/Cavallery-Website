@@ -9,14 +9,14 @@ export const metadata: Metadata = {
 
 const games = [
   {
-    title: "Game Belalang Yang Membangkang",
-    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
-    href: "/games/grasshopper-collector",
-    icon: "bx-bug",
-    tag: "Arcade",
-    color: "#4ade80",
+    title: "Game DressUp Erine",
+    desc: "Ayo dress up Erine sesukamu! Ganti baju, pilih wajah, dan tentukan lokasinya. Ciptakan look favoritmu dan bagikan ke semua orang!",
+    href: "/games/dress-up-erine",
+    icon: "bx-closet",
+    tag: "Fashion",
+    color: "#e879f9",
     longDesc:
-      "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
+      "Jadilah stylist pribadi Erine! Pilih busana dari berbagai koleksi kostum, atur ekspresi wajahnya, dan tentukan lokasi pemotretan impianmu. Setiap kombinasi menghasilkan tampilan unik — simpan hasilnya dan tunjukkan ke seluruh Cavallery siapa yang paling kreatif!",
   },
   {
     title: "Game Erine In Etherland",
@@ -27,6 +27,16 @@ const games = [
     color: "#f87171",
     longDesc:
       "Game survival menegangkan di mana kamu harus menghindari zombie yang terus mengejar. Seberapa jauh kamu bisa berlari? Buktikan kemampuanmu!",
+  },
+  {
+    title: "Game Belalang Yang Membangkang",
+    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
+    href: "/games/grasshopper-collector",
+    icon: "bx-bug",
+    tag: "Arcade",
+    color: "#4ade80",
+    longDesc:
+      "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
   },
   {
     title: "Jumping Adventure",
@@ -47,16 +57,6 @@ const games = [
     color: "#f472b6",
     longDesc:
       "Game spesial untuk seluruh Cavallery! Masukkan namamu dan ukur seberapa besar cintamu untuk Erine. Bagikan hasilnya dan tag @cavallery.id!",
-  },
-  {
-    title: "Game DressUp Erine",
-    desc: "Ayo dress up Erine sesukamu! Ganti baju, pilih wajah, dan tentukan lokasinya. Ciptakan look favoritmu dan bagikan ke semua orang!",
-    href: "/games/dress-up-erine",
-    icon: "bx-closet",
-    tag: "Fashion",
-    color: "#e879f9",
-    longDesc:
-      "Jadilah stylist pribadi Erine! Pilih busana dari berbagai koleksi kostum, atur ekspresi wajahnya, dan tentukan lokasi pemotretan impianmu. Setiap kombinasi menghasilkan tampilan unik — simpan hasilnya dan tunjukkan ke seluruh Cavallery siapa yang paling kreatif!",
   },
 ];
 
