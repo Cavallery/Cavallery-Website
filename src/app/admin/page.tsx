@@ -865,12 +865,21 @@ function DiscordManager() {
     setSending(true);
     try {
       const time    = now();
+      let urlVal = url.trim() || "https://cavallery.id";
+      if (urlVal && !urlVal.startsWith("http")) urlVal = "https://" + urlVal;
+      
+      let imgVal = image.trim();
+      if (imgVal && !imgVal.startsWith("http")) imgVal = "https://" + imgVal;
+
       const payload = {
         title:       "📌 " + title.trim(),
         description: desc.trim() + "\n\n🕐 " + time,
-        url:         url.trim() || "https://cavallery.id",
+        url:         urlVal,
+        link:        urlVal,         // Just in case backend expects 'link'
         mention:     mention || "",
-        image:       image.trim() || "",
+        image:       imgVal,
+        image_url:   imgVal,         // Standard snake_case
+        imageUrl:    imgVal,         // Standard camelCase
       };
 
       const res = await fetch(DISCORD_API, {

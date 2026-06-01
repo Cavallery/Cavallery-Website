@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     "Cavallery adalah komunitas resmi penggemar Erine (Catherina Vallencia) JKT48. Jadwal, berita, games, dan proyek eksklusif.",
 };
 
+export const revalidate = 0; // Disable caching to fix Hostinger CDN cache issue
+
+
 export default function HomePage() {
   return (
     <div className={styles.page}>
