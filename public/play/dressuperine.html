@@ -583,10 +583,44 @@ body {
     .main-title-text h2 { font-size: 1.4rem; }
     .top-action-row { grid-template-columns: 1fr; }
 }
+
+#mute-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 8px 14px;
+    background: rgba(8,18,45,.65);
+    border: 1.5px solid rgba(120,190,255,.6);
+    border-radius: 12px;
+    color: #d8efff;
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    font-weight: bold;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: .3s;
+    box-shadow: 0 0 12px rgba(72,170,255,.45), inset 0 0 10px rgba(255,255,255,.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#mute-btn:hover {
+    transform: scale(1.05);
+    background: rgba(18,35,80,.8);
+    box-shadow: 0 0 18px rgba(72,170,255,.8), inset 0 0 12px rgba(255,255,255,.12);
+}
+#mute-icon { font-size: .95rem; }
+#mute-text { font-size: .7rem; }
 </style>
 </head>
 
 <body>
+
+<button id="mute-btn" onclick="toggleMute()">
+    <span id="mute-icon">♫</span>
+    <span id="mute-text">ON</span>
+</button>
 
 <audio id="bgm" src="assets/ost.mp3" loop autoplay playsinline preload="auto"></audio>
 
@@ -741,6 +775,8 @@ const ASSETS_DATA = {
     ],
     face: [
         "assets/wajah-(1).png",
+        "assets/wajah-(2).png",
+        "assets/wajah-(3).png"
     ]
 };
 
@@ -798,31 +834,64 @@ function shareTwitter() {
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
 }
 
-function downloadImage() {
-  const element = document.querySelector(".review-stage-wrapper");
-  html2canvas(element, {
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: "#000",
-    scale: 3,
-    logging: false,
-    imageTimeout: 0,
-    onclone: (clonedDoc) => {
-      // pastikan semua image sudah load di clone
-      const images = clonedDoc.querySelectorAll("img");
-      images.forEach(img => {
-        img.crossOrigin = "anonymous";
-      });
+let isMuted = false;
+
+function toggleMute() {
+    const bgm = document.getElementById('bgm');
+    const muteIcon = document.getElementById('mute-icon');
+    const muteText = document.getElementById('mute-text');
+    isMuted = !isMuted;
+    bgm.muted = isMuted;
+    muteIcon.textContent = isMuted ? '🔇' : '♫';
+    muteText.textContent = isMuted ? 'OFF' : 'ON';
+}
+
+async function downloadImage() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 460;
+    const ctx = canvas.getContext('2d');
+
+    const loadImg = (src) => new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+
+    try {
+        const [bgImg, dressImg, faceImg] = await Promise.all([
+            loadImg(ASSETS_DATA.bg[state.bg]),
+            loadImg(ASSETS_DATA.dress[state.dress]),
+            loadImg(ASSETS_DATA.face[state.face])
+        ]);
+
+        // Gambar background (mode cover)
+        const bAspect = bgImg.width / bgImg.height;
+        const cAspect = canvas.width / canvas.height;
+        let sx = 0, sy = 0, sw = bgImg.width, sh = bgImg.height;
+        if (bAspect > cAspect) {
+            sw = sh * cAspect;
+            sx = (bgImg.width - sw) / 2;
+        } else {
+            sh = sw / cAspect;
+            sy = (bgImg.height - sh) / 2;
+        }
+        ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+        // Gambar outfit dan wajah (contain)
+        ctx.drawImage(dressImg, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(faceImg, 0, 0, canvas.width, canvas.height);
+
+        const link = document.createElement('a');
+        link.download = 'my-dresserine-outfit.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (err) {
+        console.error('Download error:', err);
+        alert('Gagal menyimpan. Coba refresh dan ulangi!');
     }
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "my-dresserine-outfit.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  }).catch(err => {
-    console.error("Download failed:", err);
-    alert("Gagal menyimpan, coba refresh dan coba lagi!");
-  });
 }
 </script>
 

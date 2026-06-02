@@ -133,7 +133,7 @@ export default function Footer() {
 
         <div className={styles.bottom}>
           <p className={styles.copy}>
-            &copy; {currentYear} cavallery. All Rights Reserved.
+            &copy; {currentYear} Cavallery. All Rights Reserved.
           </p>
 
           <div className={styles.bottomLinks}>

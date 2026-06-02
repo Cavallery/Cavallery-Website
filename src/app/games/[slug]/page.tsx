@@ -69,7 +69,6 @@ export default async function GamePlayPage({ params }: Props) {
   <GameFrame
     src={game.url}
     title={game.title}
-    showMusicToggle={resolvedParams.slug === "dress-up-erine"}
   />
 </div>
     </div>
