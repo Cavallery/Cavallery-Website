@@ -828,10 +828,21 @@ function resetGame() {
 }
 
 function shareTwitter() {
-    const text = encodeURIComponent(
-        "Inilah Outfit Erine Favorituku untuk menyusun kenangan di The Path of Her Light , Mari coba di situs Cavallery.id✨ #ThePathOfHerLight #100Show #Beyond100th #JKT48Erine #CavalleryID"
-    );
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    const text = "Inilah Outfit Erine Favorituku untuk menyusun kenangan di The Path of Her Light , Mari coba di situs Cavallery.id✨ #ThePathOfHerLight #100Show #Beyond100th #JKT48Erine #CavalleryID";
+    const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    
+    if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+        navigator.share({
+            title: 'Dress Up Erine',
+            text: text,
+            url: 'https://cavallery.id/play/dressuperine.html'
+        }).catch((error) => {
+            console.log('Error sharing', error);
+            window.location.href = intentUrl;
+        });
+    } else {
+        window.open(intentUrl, '_blank') || (window.location.href = intentUrl);
+    }
 }
 
 let isMuted = false;
@@ -887,7 +898,9 @@ async function downloadImage() {
         const link = document.createElement('a');
         link.download = 'my-dresserine-outfit.png';
         link.href = canvas.toDataURL('image/png');
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     } catch (err) {
         console.error('Download error:', err);
         alert('Gagal menyimpan. Coba refresh dan ulangi!');
