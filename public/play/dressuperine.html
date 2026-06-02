@@ -857,53 +857,56 @@ function toggleMute() {
     muteText.textContent = isMuted ? 'OFF' : 'ON';
 }
 
-async function downloadImage() {
+function downloadImage() {
     const canvas = document.createElement('canvas');
     canvas.width = 320;
     canvas.height = 460;
     const ctx = canvas.getContext('2d');
-
-    const loadImg = (src) => new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = src;
-    });
-
+    
+    const bgImg = document.getElementById('res-bg');
+    const dressImg = document.getElementById('res-dress');
+    const faceImg = document.getElementById('res-face');
+    
     try {
-        const [bgImg, dressImg, faceImg] = await Promise.all([
-            loadImg(ASSETS_DATA.bg[state.bg]),
-            loadImg(ASSETS_DATA.dress[state.dress]),
-            loadImg(ASSETS_DATA.face[state.face])
-        ]);
-
-        // Gambar background (mode cover)
-        const bAspect = bgImg.width / bgImg.height;
+        const bAspect = bgImg.naturalWidth / bgImg.naturalHeight;
         const cAspect = canvas.width / canvas.height;
-        let sx = 0, sy = 0, sw = bgImg.width, sh = bgImg.height;
+        let sx = 0, sy = 0, sw = bgImg.naturalWidth, sh = bgImg.naturalHeight;
+        
         if (bAspect > cAspect) {
             sw = sh * cAspect;
-            sx = (bgImg.width - sw) / 2;
+            sx = (bgImg.naturalWidth - sw) / 2;
         } else {
             sh = sw / cAspect;
-            sy = (bgImg.height - sh) / 2;
+            sy = (bgImg.naturalHeight - sh) / 2;
         }
+        
         ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-        // Gambar outfit dan wajah (contain)
         ctx.drawImage(dressImg, 0, 0, canvas.width, canvas.height);
         ctx.drawImage(faceImg, 0, 0, canvas.width, canvas.height);
-
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        
         const link = document.createElement('a');
         link.download = 'my-dresserine-outfit.png';
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        // Safari/iOS Fallback
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+            alert('Jika gambar tidak terdownload, tekan tahan pada gambar yang muncul, lalu pilih "Save Image".');
+            const imgWindow = window.open("");
+            if(imgWindow) {
+                imgWindow.document.write(`<img src="${dataUrl}" style="width:100%; border-radius:10px;">`);
+            } else {
+                window.location.href = dataUrl;
+            }
+        }
     } catch (err) {
         console.error('Download error:', err);
-        alert('Gagal menyimpan. Coba refresh dan ulangi!');
+        alert('Gagal menyimpan gambar. Coba refresh dan ulangi!');
     }
 }
 </script>
