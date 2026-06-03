@@ -16,7 +16,8 @@ type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot"       | "tickets"  | "calendar" | "updates" | "vcschedule";
+  | "bot"       | "tickets"  | "calendar" | "updates" 
+  | "vcschedule" | "abouterine" | "anggotakota";
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -164,7 +165,7 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
 }) {
   return (
     <div className={styles.tableWrap}>
-      <table className={styles.table}>
+      <table className={`${styles.table} ${styles.responsiveTable}`}>
         <thead>
           <tr>{cols.map(c => <th key={c.key}>{c.label}</th>)}<th>Aksi</th></tr>
         </thead>
@@ -174,14 +175,14 @@ function DataTable({ cols, rows, onEdit, onDelete }: {
           ) : rows.map((row, i) => (
             <tr key={row.id ?? row.stat_key ?? i}>
               {cols.map(c => (
-                <td key={c.key}>{
+                <td key={c.key} data-label={c.label}>{
                   typeof row[c.key] === "boolean" ? (row[c.key] ? "✓" : "✗") :
                   c.key === "image_url" && row[c.key] ? <img src={row[c.key]} alt="" className={styles.thumb} /> :
                   Array.isArray(row[c.key]) ? row[c.key].join(", ").slice(0, 60) :
                   String(row[c.key] ?? "-").slice(0, 60)
                 }</td>
               ))}
-              <td>
+              <td data-label="Aksi">
                 <div className={styles.actionBtns}>
                   <button className={styles.btnEdit} onClick={() => onEdit(row)}><i className="bx bx-edit" /></button>
                   <button className={styles.btnDel}  onClick={() => onDelete(row)}><i className="bx bx-trash" /></button>
@@ -3242,7 +3243,173 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "calendar",  icon: "bx-calendar",       label: "Calendar"  },
   { key: "updates",   icon: "bx-refresh",        label: "Updates"   },
   { key: "vcschedule",icon: "bx-video",          label: "Video Call"},
+  { key: "abouterine",icon: "bx-image",          label: "About Erine"},
+  { key: "anggotakota",icon: "bx-map",           label: "Anggota Kota"},
 ];
+
+// ─── ABOUT ERINE MANAGER ─────────────────────────────────────────
+function AboutErineManager() {
+  const [slides, setSlides] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/about-erine");
+      const json = await res.json();
+      if (json.success) setSlides(json.data);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/about-erine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(slides),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: "Berhasil menyimpan foto About Erine", type: "success" });
+        load();
+      } else {
+        setToast({ msg: "Gagal menyimpan", type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Error jaringan", type: "error" });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-image" style={{ color: "#ec4899" }} /> About Erine Hero Photos
+        </h2>
+      </div>
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
+      ) : (
+        <div className={styles.formModal} style={{ position: "relative", maxWidth: 600 }}>
+          <form onSubmit={handleSave}>
+            <div className={styles.formBody}>
+              {slides.map((url, idx) => (
+                <div className={styles.field} key={idx}>
+                  <label>Foto {idx + 1}</label>
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => {
+                      const newSlides = [...slides];
+                      newSlides[idx] = e.target.value;
+                      setSlides(newSlides);
+                    }}
+                    placeholder="https://..."
+                  />
+                  {url && (
+                    <img src={url} alt={`Preview ${idx + 1}`} style={{ marginTop: 8, maxHeight: 150, borderRadius: 8, objectFit: "cover" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className={styles.formFooter} style={{ justifyContent: "flex-end", marginTop: 16 }}>
+              <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                {saving ? <><i className="bx bx-loader-alt bx-spin"/> Menyimpan...</> : <><i className="bx bx-save"/> Simpan</>}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ANGGOTA KOTA MANAGER ─────────────────────────────────────────
+function AnggotaKotaManager() {
+  const [cityData, setCityData] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/anggota-kota");
+      const json = await res.json();
+      if (json.success) setCityData(json.data);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/anggota-kota", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cityData),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: "Berhasil menyimpan Anggota Kota", type: "success" });
+        load();
+      } else {
+        setToast({ msg: "Gagal menyimpan", type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Error jaringan", type: "error" });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-map" style={{ color: "#3b82f6" }} /> Anggota Kota
+        </h2>
+      </div>
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
+      ) : (
+        <div className={styles.formModal} style={{ position: "relative", maxWidth: 800 }}>
+          <form onSubmit={handleSave}>
+            <div className={styles.formBody} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {Object.entries(cityData).map(([city, count]) => (
+                <div className={styles.field} key={city} style={{ marginBottom: 0 }}>
+                  <label>{city}</label>
+                  <input
+                    type="number"
+                    value={count}
+                    onChange={(e) => setCityData({ ...cityData, [city]: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className={styles.formFooter} style={{ justifyContent: "flex-end", marginTop: 16 }}>
+              <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                {saving ? <><i className="bx bx-loader-alt bx-spin"/> Menyimpan...</> : <><i className="bx bx-save"/> Simpan</>}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
@@ -3376,6 +3543,10 @@ export default function AdminPage() {
               <UpdatesManager />
             ) : active === "vcschedule" ? (
               <VcScheduleManager />
+            ) : active === "abouterine" ? (
+              <AboutErineManager />
+            ) : active === "anggotakota" ? (
+              <AnggotaKotaManager />
             ) : (
               <SectionManager section={active} />
             )}

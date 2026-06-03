@@ -166,7 +166,7 @@ export default function YoutubeSection() {
                     href={video.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles.card}
+                    className={`glassCard ${styles.card}`}
                   >
                     <div className={styles.thumbnailWrapper}>
                       <img

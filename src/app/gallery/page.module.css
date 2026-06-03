@@ -131,6 +131,20 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
-  .cardBody { padding: 10px 14px; }
-  .cardTitle { font-size: 0.8rem; }
+  .cardBody { 
+    padding: 10px 12px; 
+  }
+  .cardTitle { 
+    font-size: 0.85rem; 
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cardDate {
+    font-size: 0.7rem;
+    margin-top: 4px;
+  }
 }

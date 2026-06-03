@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import * as d3 from "d3";
 import styles from "./PetaDomisili.module.css";
 // Load the GeoJSON statically for instant, offline loading
@@ -143,13 +143,25 @@ const geoFeatures = (geoDataRaw as any).features || [];
 export default function PetaDomisili() {
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState({ show: false, text: "", x: 0, y: 0 });
+  const [cityData, setCityData] = useState<CityData>(rawData);
+
+  useEffect(() => {
+    fetch("/api/anggota-kota")
+      .then(res => res.json())
+      .then(json => {
+        if (json?.success && json.data) {
+          setCityData(json.data);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // Compute Sums per Region
   const regionData = useMemo(() => {
     const sums: Record<string, number> = {};
     let total = 0;
     Object.keys(regionMap).forEach((r) => {
-      const sum = regionMap[r].cities.reduce((s, c) => s + (rawData[c] || 0), 0);
+      const sum = regionMap[r].cities.reduce((s, c) => s + (cityData[c] || 0), 0);
       sums[r] = sum;
       total += sum;
     });
@@ -159,7 +171,7 @@ export default function PetaDomisili() {
       .sort((a, b) => sums[b] - sums[a]);
 
     return { sums, total, sortedRegions };
-  }, []);
+  }, [cityData]);
 
   const getRegionColor = (count: number) => {
     if (count === 0) return "";
@@ -215,7 +227,7 @@ export default function PetaDomisili() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
+      <div className={`glassCard ${styles.card}`}>
         <div className={styles.header}>
           <div className={styles.headerTitle}>
             <h2>Peta Sebaran Domisili</h2>
@@ -275,10 +287,10 @@ export default function PetaDomisili() {
                 </div>
                 <div className={styles.tags}>
                   {regionMap[region].cities
-                    .filter((c) => rawData[c] > 0)
+                    .filter((c) => (cityData[c] || 0) > 0)
                     .map((city) => (
                       <span key={city} className={styles.tag}>
-                        {city} <b>{rawData[city]}</b>
+                        {city} <b>{cityData[city]}</b>
                       </span>
                     ))}
                 </div>

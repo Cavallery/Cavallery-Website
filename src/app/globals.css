@@ -195,9 +195,21 @@ button { cursor: pointer; font-family: var(--sans); }
   box-shadow: 0 10px 40px rgba(15, 23, 42, 0.05);
 }
 
+[data-theme="dark"] .glassCard,
+[data-theme="dark"] .card,
+[data-theme="dark"] [class*="Card"],
+[data-theme="dark"] [class*="card"],
+[data-theme="dark"] .profileContainer,
+[data-theme="dark"] .ewIntro,
+[data-theme="dark"] .ewBio,
+[data-theme="dark"] .ewHt,
+[data-theme="dark"] .ewFf,
+[data-theme="dark"] .thumbItem {
+  border-color: var(--gold) !important;
+}
+
 [data-theme="dark"] .glassCard {
   background: rgba(23, 23, 23, 0.7);
-  border-color: var(--gold);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }

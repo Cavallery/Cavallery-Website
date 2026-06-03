@@ -56,6 +56,59 @@ function writeUpdates(data: any[]) {
   fs.writeFileSync(UPDATES_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
 
+// ─── TikTok URL Resolver ─────────────────────────────────────
+// Resolves any TikTok short/mobile URL to the canonical desktop URL
+// Supports: vt.tiktok.com, vm.tiktok.com, tiktok.com/t/xxxxx, etc.
+async function resolveTiktokUrl(inputUrl: string): Promise<string> {
+  // Already a standard URL with video ID? return as-is
+  const standardMatch = inputUrl.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
+  if (standardMatch) return inputUrl;
+
+  try {
+    // Step 1: Follow redirects to get the canonical URL
+    const redirectRes = await fetch(inputUrl, { redirect: "follow" });
+    const resolvedUrl = redirectRes.url;
+
+    const resolvedMatch = resolvedUrl.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
+    if (resolvedMatch) return resolvedUrl.split("?")[0];
+  } catch (e) {
+    console.error("Redirect follow failed:", e);
+  }
+
+  try {
+    // Step 2: Fallback to oEmbed API
+    const oembedRes = await fetch(
+      `https://www.tiktok.com/oembed?url=${encodeURIComponent(inputUrl)}`
+    );
+    const oembed = await oembedRes.json();
+
+    const htmlStr = oembed.html || "";
+    const idMatch = htmlStr.match(/data-video-id="(\d+)"/);
+    const authorUrl = oembed.author_url || "";
+    const userMatch = authorUrl.match(/\/@([\w.]+)/);
+    const username = userMatch ? userMatch[1] : "jkt48.erine_";
+
+    if (idMatch && idMatch[1]) {
+      return `https://www.tiktok.com/@${username}/video/${idMatch[1]}`;
+    }
+  } catch (e) {
+    console.error("oEmbed fallback failed:", e);
+  }
+
+  return inputUrl;
+}
+
+function isTiktokShortUrl(url: string): boolean {
+  return (
+    url.includes("vt.tiktok.com") ||
+    url.includes("vm.tiktok.com") ||
+    url.includes("tiktok.com/t/") ||
+    (url.includes("tiktok.com") && !/\/video\/\d+/.test(url))
+  );
+}
+
+// ─── API Routes ──────────────────────────────────────────────
+
 export async function GET() {
   const data = readUpdates();
   return NextResponse.json({ success: true, data });
@@ -68,30 +121,44 @@ export async function POST(request: Request) {
       writeUpdates(body);
       return NextResponse.json({ success: true, data: body });
     }
-    
-    if (body.action === 'add') {
+
+    if (body.action === "add") {
+      let finalUrl = body.url;
+      const platform = body.platform;
+
+      if (platform === "tiktok" && isTiktokShortUrl(finalUrl)) {
+        finalUrl = await resolveTiktokUrl(finalUrl);
+      }
+
       const data = readUpdates();
       data.push({
         id: body.id || Date.now().toString(),
-        platform: body.platform,
-        url: body.url
+        platform: platform,
+        url: finalUrl
       });
       writeUpdates(data);
       return NextResponse.json({ success: true, data });
-    } else if (body.action === 'delete') {
+    } else if (body.action === "delete") {
       let data = readUpdates();
       data = data.filter((item: any) => item.id !== body.id);
       writeUpdates(data);
       return NextResponse.json({ success: true, data });
-    } else if (body.action === 'update') {
+    } else if (body.action === "update") {
       let data = readUpdates();
       const index = data.findIndex((item: any) => item.id === body.id);
       if (index !== -1) {
-        data[index] = { ...data[index], ...body.item };
+        let finalUrl = body.item.url || data[index].url;
+        const platform = body.item.platform || data[index].platform;
+
+        if (platform === "tiktok" && isTiktokShortUrl(finalUrl)) {
+          finalUrl = await resolveTiktokUrl(finalUrl);
+        }
+
+        data[index] = { ...data[index], ...body.item, url: finalUrl, platform: platform };
         writeUpdates(data);
       }
       return NextResponse.json({ success: true, data });
-    } else if (body.action === 'saveAll') {
+    } else if (body.action === "saveAll") {
       writeUpdates(body.data);
       return NextResponse.json({ success: true, data: body.data });
     }

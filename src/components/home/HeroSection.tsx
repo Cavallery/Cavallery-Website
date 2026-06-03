@@ -86,7 +86,7 @@ export default function HeroSection() {
       <div className={styles.container}>
         <div className={styles.content}>
           <div className="badge">
-            <i className="bx bxs-chess" /> Official Fanbase Erine JKT48
+            <i className="fa-solid fa-chess-knight" /> Official Fanbase Erine JKT48
           </div>
           <h1 className={styles.title}>
             Welcome to <span className="textGold">Cavallery!</span>
@@ -142,14 +142,14 @@ export default function HeroSection() {
           </div>
 
           <div className={styles.knightWrapper}>
-            <i className={`bx bxs-chess ${styles.knightIcon}`} />
+            <i className={`fa-solid fa-chess-knight ${styles.knightIcon}`} />
           </div>
         </div>
       </div>
 
       {/* Decorative Chess Knight in background */}
       <div className={styles.bgKnight}>
-        <i className="bx bxs-chess" />
+        <i className="fa-solid fa-chess-knight" />
       </div>
     </section>
   );

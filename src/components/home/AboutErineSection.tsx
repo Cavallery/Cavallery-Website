@@ -22,11 +22,6 @@ function calculateAge() {
   return age;
 }
 
-const SLIDES = [
-  "/images/gallery/erine-gallery-1.jpg",
-  "/images/gallery/erine-gallery-2.jpg",
-  "/images/gallery/erine-gallery-3.jpg",
-];
 
 interface SetlistData {
   title: string;
@@ -96,11 +91,30 @@ export default function AboutErineSection() {
   const [updates, setUpdates] = useState<any[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const [slides, setSlides] = useState<string[]>([]);
+
   useEffect(() => {
+    // Fetch slides from API
+    fetch("/api/about-erine")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json?.success && json.data) {
+          setSlides(json.data);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (slides.length === 0) return;
     const slideTimer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % SLIDES.length);
+      setActiveSlide((prev) => (prev + 1) % slides.length);
     }, 8000);
 
+    return () => clearInterval(slideTimer);
+  }, [slides]);
+
+  useEffect(() => {
     fetch("/api/pm-statistik")
       .then((r) => r.json())
       .then((json) => { if (json.success) setPmStats(json.data); })
@@ -127,19 +141,33 @@ export default function AboutErineSection() {
     twScript.async = true;
     document.body.appendChild(twScript);
 
-    const tkScript = document.createElement("script");
-    tkScript.src = "https://www.tiktok.com/embed.js";
-    tkScript.async = true;
-    document.body.appendChild(tkScript);
-
-    return () => { clearInterval(slideTimer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (updates.length > 0) {
-      if (typeof window !== "undefined" && (window as any).twttr) {
-        (window as any).twttr.widgets.load();
+      if (typeof window !== "undefined") {
+        if ((window as any).twttr) {
+          (window as any).twttr.widgets.load();
+        }
+        
+        // Delay to ensure React has rendered the blockquotes into the DOM
+        const timer = setTimeout(() => {
+          // Remove old tiktok script to force full re-init
+          const oldScript = document.getElementById("tiktok-embed-script");
+          if (oldScript) oldScript.remove();
+          
+          // Also remove TikTok's internal state so it re-processes blockquotes
+          delete (window as any).__tiktokEmbed;
+          
+          const tkScript = document.createElement("script");
+          tkScript.id = "tiktok-embed-script";
+          tkScript.src = "https://www.tiktok.com/embed.js";
+          tkScript.async = true;
+          document.body.appendChild(tkScript);
+        }, 500);
+        
+        return () => clearTimeout(timer);
       }
     }
   }, [updates]);
@@ -167,7 +195,7 @@ export default function AboutErineSection() {
   return (
     <section className={styles.wrapper}>
       {/* 1. Wiki Style Profile Card */}
-      <div className={styles.profileContainer}>
+      <div className={`glassCard ${styles.profileContainer}`}>
         <div className={styles.leftCol}>
           <div className={styles.headerSection}>
             <div className={styles.titleBox}>
@@ -278,7 +306,7 @@ export default function AboutErineSection() {
 
         <div className={styles.rightCol}>
           <div className={styles.mainPhotoFrame}>
-            {SLIDES.map((src, idx) => (
+            {slides.map((src, idx) => (
               <img
                 key={src}
                 src={src}
@@ -289,8 +317,8 @@ export default function AboutErineSection() {
           </div>
           <div className={styles.galleryStrip}>
             <div className={styles.thumbsGrid}>
-              {SLIDES.slice(1, 4).map((src) => (
-                <div key={src} className={styles.thumbItem}>
+              {slides.slice(1, 4).map((src) => (
+                <div key={src} className={`glassCard ${styles.thumbItem}`}>
                   <img src={src} alt="Thumb" />
                 </div>
               ))}
@@ -561,21 +589,29 @@ export default function AboutErineSection() {
                 );
               }
               if (update.platform === "tiktok") {
-                // Extract video ID and username from URL
-                // e.g. https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280
+                // Extract video ID from URL like https://www.tiktok.com/@user/video/123456
                 const urlParts = update.url.split("/");
                 const videoId = urlParts[urlParts.length - 1].split("?")[0];
                 const username = urlParts.find((p: string) => p.startsWith("@")) || "@jkt48.erine_";
+                const isNumericId = /^\d+$/.test(videoId);
+
                 return (
                   <div key={update.id} className={styles.embedCard}>
                     <blockquote
                       className="tiktok-embed"
                       cite={update.url}
-                      data-video-id={videoId}
-                      style={{ maxWidth: "100%", minWidth: 325 }}
+                      data-video-id={isNumericId ? videoId : undefined}
+                      style={{ maxWidth: 605, minWidth: 325 }}
                     >
                       <section>
-                        <a href={`https://www.tiktok.com/${username}`} rel="noopener noreferrer">{username}</a>
+                        <a
+                          target="_blank"
+                          title={username}
+                          href={`https://www.tiktok.com/${username}?refer=embed`}
+                          rel="noopener noreferrer"
+                        >
+                          {username}
+                        </a>
                       </section>
                     </blockquote>
                   </div>

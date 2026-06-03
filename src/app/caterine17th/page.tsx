@@ -48,7 +48,7 @@ export default function CatErine17Page() {
           </p>
 
           <div className={styles.galleryGrid}>
-            <div className={styles.card}>
+            <div className={`glassCard ${styles.card}`}>
               <div className={styles.imageWrapper}>
                 <Image 
                   src="/images/caterine17th-poster.jpg" 
@@ -61,7 +61,7 @@ export default function CatErine17Page() {
               <h3>Princess CatErine Poster</h3>
             </div>
             
-            <div className={styles.card}>
+            <div className={`glassCard ${styles.card}`}>
               <div className={styles.imageWrapper}>
                 <Image 
                   src="/images/caterine17th-freebies.jpg" 
@@ -74,7 +74,7 @@ export default function CatErine17Page() {
               <h3>Princess CatErine Freebies</h3>
             </div>
 
-            <div className={styles.card}>
+            <div className={`glassCard ${styles.card}`}>
               <div className={styles.imageWrapper}>
                 <Image 
                   src="/images/caterine17th-encore.png" 

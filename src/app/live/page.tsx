@@ -58,7 +58,7 @@ export default function LivePage() {
     }
 
     return (
-      <div className={`${styles.card} ${highlight ? styles.cardErine : ""}`}>
+      <div className={`glassCard ${styles.card} ${highlight ? styles.cardErine : ""}`}>
         {highlight && (
           <div className={styles.erineBadge}><i className="bx bxs-star" /> Erine sedang LIVE!</div>
         )}
