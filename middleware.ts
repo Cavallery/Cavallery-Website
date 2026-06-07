@@ -29,7 +29,6 @@ export async function middleware(req: NextRequest) {
       method: "POST",
       headers: {
         "Authorization":  `Bearer ${token}`,
-        "x-internal-key": INTERNAL_KEY,
         "user-agent":     req.headers.get("user-agent") || "",
         "x-forwarded-for": req.headers.get("x-forwarded-for") || "",
       },
