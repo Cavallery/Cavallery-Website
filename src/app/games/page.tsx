@@ -20,33 +20,33 @@ const games = [
   },
   {
     title: "Game Erine In Etherland",
-    desc: "Lari dari para zombie dan selamatkan diri! Bisakah kamu bertahan hidup?",
+    desc: "Bantu Ratu Erine melarikan diri dari para zombie dan bawa ia kembali ke Istana Cavallery!",
     href: "/games/zombie-escape",
     icon: "bx-run",
     tag: "Survival",
     color: "#f87171",
     longDesc:
-      "Game survival menegangkan di mana kamu harus menghindari zombie yang terus mengejar. Seberapa jauh kamu bisa berlari? Buktikan kemampuanmu!",
+      "Game survival menegangkan! Misi utama kamu adalah membawa Ratu Erine ke Istana Cavallery dengan selamat sambil menghindari kejaran zombie yang tiada henti. Seberapa jauh kamu bisa memandu sang Ratu? Buktikan ketangkasanmu sekarang!",
   },
   {
     title: "Game Belalang Yang Membangkang",
-    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
+    desc: "Bantu Erine mengumpulkan belalang sebanyak mungkin sebelum waktu habis!",
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
     tag: "Arcade",
     color: "#4ade80",
     longDesc:
-      "Tantang dirimu mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi!",
+      "Tantang dirimu membantu Erine mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter Erine ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi di leaderboard Cavallery!",
   },
   {
-    title: "Jumping Adventure",
-    desc: "Lompati rintangan dan raih skor tertinggi dalam petualangan seru ini.",
+    title: "Game Bibir Yang Telah Dicuri",
+    desc: "Bantu Erine melompati rintangan dan raih skor tertinggi dalam petualangan seru untuk merebut kembali bibir yang dicuri!",
     href: "/games/jumping-adventure",
     icon: "bx-up-arrow-circle",
     tag: "Adventure",
     color: "#60a5fa",
     longDesc:
-      "Petualangan tanpa akhir yang mengujji refleks dan ketangkasanmu. Lompati semua rintangan dan jadilah yang terbaik di papan skor Cavallery!",
+      "Sebuah petualangan tanpa akhir bersama Erine! Uji refleks dan ketangkasanmu memandu Erine melompati semua rintangan. Jadilah yang terbaik di papan skor Cavallery dan bantu Erine menyelesaikan misinya!",
   },
   {
     title: "Love Erine Meter",

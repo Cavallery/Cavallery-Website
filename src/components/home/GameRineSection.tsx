@@ -6,7 +6,7 @@ import styles from "./GameRineSection.module.css";
 const games = [
   {
     title: "Game Belalang Yang Membangkang",
-    desc: "Kumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
+    desc: "Bantu Erine mengumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
     tag: "Arcade",
@@ -14,15 +14,15 @@ const games = [
   },
   {
     title: "Game Erine In Etherland",
-    desc: "Lari dari para zombie dan selamatkan diri! Bisakah kamu bertahan hidup?",
+    desc: "Bantu Ratu Erine lari dari kejaran zombie dan bawa ia dengan selamat menuju Istana Cavallery!",
     href: "/games/zombie-escape",
     icon: "bx-run",
     tag: "Survival",
     color: "#f87171",
   },
   {
-    title: "Jumping Adventure",
-    desc: "Lompati rintangan dan raih skor tertinggi dalam petualangan seru ini.",
+    title: "Game Bibir Yang Telah Dicuri",
+    desc: "Bantu Erine melompati rintangan dan raih skor tertinggi untuk merebut kembali bibir yang telah dicuri!",
     href: "/games/jumping-adventure",
     icon: "bx-up-arrow-circle",
     tag: "Adventure",

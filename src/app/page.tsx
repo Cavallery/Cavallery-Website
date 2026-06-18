@@ -1,6 +1,5 @@
 import styles from "./page.module.css";
 import HeroSection from "@/components/home/HeroSection";
-import BlueRoseCountdown from "@/components/home/BlueRoseCountdown";
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
@@ -24,8 +23,6 @@ export default function HomePage() {
       <HeroSection />
       <SectionDivider />
       <VideoSection />
-      <SectionDivider />
-      <BlueRoseCountdown />
       <SectionDivider />
       <CalendarSection />
       <SectionDivider />
