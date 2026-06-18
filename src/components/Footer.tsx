@@ -74,7 +74,7 @@ export default function Footer() {
                 </li>
 
                 <li>
-                  <Link href="/live">Live Status</Link>
+                  <a href="https://www.showroom-live.com/r/JKT48_Erine" target="_blank" rel="noopener noreferrer">Live Status</a>
                 </li>
 
                 <li>
@@ -92,11 +92,23 @@ export default function Footer() {
 
               <ul className={styles.links}>
                 <li>
+                  <Link href="/request-hour-2026">Request Hour 2026</Link>
+                </li>
+
+                <li>
                   <Link href="/caterine17th">#CatErine17th</Link>
                 </li>
 
                 <li>
                   <Link href="/erine-in-etherland">Erine in Etherland</Link>
+                </li>
+
+                <li>
+                  <Link href="/erine100show">Erine 100 Show</Link>
+                </li>
+
+                <li>
+                  <Link href="/ssk">SSK JKT48 2024</Link>
                 </li>
               </ul>
             </div>
@@ -125,6 +137,10 @@ export default function Footer() {
 
                 <li>
                   <Link href="/games/love-erine-meter">Love Erine Meter</Link>
+                </li>
+                
+                <li>
+                  <Link href="/games/dress-up">Dressup Erine</Link>
                 </li>
               </ul>
             </div>

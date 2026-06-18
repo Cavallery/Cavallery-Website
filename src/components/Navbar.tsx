@@ -20,6 +20,7 @@ const navLinks = [
       { href: "/about/erine", label: "About Erine" },
       { href: "/about/cavallery", label: "About Cavallery" },
       { href: "/gallery", label: "Gallery Erine" },
+      { href: "/journal", label: "MemoRine (Journal)" },
     ],
   },
   { href: "/schedule", label: "Schedule" },
@@ -27,12 +28,27 @@ const navLinks = [
   {
     label: "Project",
     children: [
-      { href: "/erine100show", label: "Erine 100 Show" },
-      { href: "/erine-in-etherland", label: "Erine in Etherland" },
-      { href: "/ssk", label: "SSK JKT48 2024" },
-      { href: "/caterine17th", label: "#CatErine17th" },
-      { href: "/journal", label: "MemoRine (Journal)" },
-      { href: "/kaleidoskop", label: "Kaleidoskop Cavallery" },
+      {
+        label: "2026",
+        children: [
+          { href: "/request-hour-2026", label: "Request Hour 2026" },
+          { href: "/erine100show", label: "Erine 100 Show" },
+        ],
+      },
+      {
+        label: "2025",
+        children: [
+          { href: "/erine-in-etherland", label: "Erine in Etherland" },
+          { href: "/kaleidoskop", label: "Kaleidoskop Cavallery" },
+        ],
+      },
+      {
+        label: "2024",
+        children: [
+          { href: "/ssk", label: "SSK JKT48 2024" },
+          { href: "/caterine17th", label: "#CatErine17th" },
+        ],
+      },
     ],
   },
   {
@@ -96,14 +112,36 @@ export default function Navbar() {
                 </button>
                 {openDropdown === link.label && (
                   <ul className={styles.dropdown}>
-                    {link.children.map((child) => (
-                      <li key={child.href}>
-                        <Link
-                          href={child.href}
-                          className={`${styles.dropdownLink} ${pathname === child.href ? styles.active : ""}`}
-                        >
-                          {child.label}
-                        </Link>
+                    {link.children.map((child: any) => (
+                      <li key={child.label || child.href} className={child.children ? styles.nestedDropdownItem : ""}>
+                        {child.children ? (
+                          <>
+                            <div className={styles.nestedToggle}>
+                              {child.label} <i className="bx bx-chevron-right" />
+                            </div>
+                            <ul className={styles.nestedDropdown}>
+                              {child.children.map((sub: any) => (
+                                <li key={sub.href}>
+                                  <Link
+                                    href={sub.href}
+                                    className={`${styles.dropdownLink} ${pathname === sub.href ? styles.active : ""}`}
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : child.isHeader ? (
+                          <div className={styles.dropdownHeader}>{child.label}</div>
+                        ) : (
+                          <Link
+                            href={child.href}
+                            className={`${styles.dropdownLink} ${pathname === child.href ? styles.active : ""}`}
+                          >
+                            {child.label}
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -143,14 +181,31 @@ export default function Navbar() {
             link.children ? (
               <div key={link.label}>
                 <div className={styles.mobileGroupLabel}>{link.label}</div>
-                {link.children.map((child) => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={`${styles.mobileLink} ${pathname === child.href ? styles.active : ""}`}
-                  >
-                    {child.label}
-                  </Link>
+                {link.children.map((child: any) => (
+                  child.children ? (
+                    <div key={child.label}>
+                      <div className={styles.mobileSubHeader}>{child.label}</div>
+                      {child.children.map((sub: any) => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className={`${styles.mobileLink} ${styles.mobileNestedLink} ${pathname === sub.href ? styles.active : ""}`}
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : child.isHeader ? (
+                    <div key={child.href || child.label} className={styles.mobileSubHeader}>{child.label}</div>
+                  ) : (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={`${styles.mobileLink} ${pathname === child.href ? styles.active : ""}`}
+                    >
+                      {child.label}
+                    </Link>
+                  )
                 ))}
               </div>
             ) : (
