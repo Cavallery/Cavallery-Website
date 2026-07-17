@@ -187,7 +187,7 @@ export default function BirthdayCountdown() {
         </div>
 
         <div className={styles.memorineActions}>
-          <Link href="http://localhost:3001/journal" className={styles.memorineLink}>
+          <Link href="/journal" className={styles.memorineLink}>
             <i className="bx bx-book-heart" /> Lihat di pesan Memorine
           </Link>
         </div>
