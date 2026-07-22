@@ -31,9 +31,9 @@ const navLinks = [
       {
         label: "2026",
         children: [
+          { href: "/2026/sts-19-erine", label: "STS 19 Erine" },
           { href: "/request-hour-2026", label: "Request Hour 2026" },
           { href: "/erine100show", label: "Erine 100 Show" },
-          { href: "/2026/sts-19-erine", label: "STS 19 Erine" },
         ],
       },
       {
