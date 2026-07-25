@@ -13,6 +13,7 @@ interface LiveItem {
   image?: string; img?: string; avatar?: string;
   platform?: string; type?: string;
   url?: string; idn_url?: string; showroom_url?: string;
+  url_key?: string;
   title?: string; started_at?: string; live_at?: string;
   view_count?: number; total_views?: number;
 }
@@ -49,11 +50,19 @@ export default function LivePage() {
     const platform = live.platform ?? live.type ?? "IDN";
     
     let url = live.url ?? live.idn_url ?? live.showroom_url ?? "#";
+    const key = live.url_key || "";
+    
     if (highlight || isErine(name)) {
       if (platform.toLowerCase().includes("idn") || url.includes("idn.app")) {
         url = "https://www.idn.app/jkt48_erine";
       } else {
         url = "https://www.showroom-live.com/r/JKT48_Erine";
+      }
+    } else {
+      if (platform.toLowerCase().includes("idn")) {
+        url = key ? `https://www.idn.app/${key}` : "#";
+      } else if (platform.toLowerCase().includes("showroom")) {
+        url = key ? `https://www.showroom-live.com/r/${key}` : "#";
       }
     }
 
