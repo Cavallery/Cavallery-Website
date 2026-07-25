@@ -125,6 +125,7 @@ interface LiveItem {
   image?: string; img?: string; avatar?: string;
   platform?: string; type?: string;
   url?: string; idn_url?: string; showroom_url?: string;
+  url_key?: string;
   title?: string;
 }
 
@@ -156,8 +157,18 @@ export function LiveSection() {
         {lives.map((l, i) => {
           const name = l.name ?? l.member_name ?? "Unknown";
           const img = l.image ?? l.img ?? l.avatar ?? "";
-          const url = l.url ?? l.idn_url ?? l.showroom_url ?? "#";
           const highlight = isErine(name);
+
+          // Construct correct live URL
+          const platform = (l.platform ?? l.type ?? "").toLowerCase();
+          const key = l.url_key || "";
+          let url = l.url ?? l.idn_url ?? l.showroom_url ?? "#";
+          
+          if (platform.includes("idn")) {
+            url = key ? `https://www.idn.app/${key}` : "https://www.idn.app/jkt48_erine";
+          } else if (platform.includes("showroom")) {
+            url = key ? `https://www.showroom-live.com/r/${key}` : "https://www.showroom-live.com/r/JKT48_Erine";
+          }
 
           return (
             <div key={l.id ?? i} className={`${styles.liveCard} ${highlight ? styles.liveErine : ""}`}>

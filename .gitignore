@@ -43,4 +43,10 @@ next-env.d.ts
 # local data
 src/data/bot_config.json
 src/data/journal.json
+src/data/calendar.json
+src/data/tickets.json
+src/data/updates.json
+src/data/vcschedule.json
+src/data/about-erine.json
+src/data/anggota-kota.json
 
