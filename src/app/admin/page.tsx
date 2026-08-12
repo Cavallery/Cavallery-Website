@@ -1921,10 +1921,20 @@ function MerchProductsTab() {
 }
 
 // ── Modal Varian Produk ─────────────────────────────────────────
+// ── Modal Varian Produk (VERSI FIX) ─────────────────────────────
+// Bug sebelumnya: form state pakai key `name`, tapi backend endpoint
+//   POST /admin/products/:id/variants  dan  PUT /admin/variants/:id
+// expect body { size_label, stock } — bukan `name`. Akibatnya size_label
+// tidak pernah terkirim (selalu undefined) -> backend selalu balas
+// "size_label wajib diisi", dan kolom NAMA di tabel juga kosong karena
+// data dari server balik sebagai `size_label`, bukan `name`.
+//
+// Fix: samakan key form & tabel jadi `size_label` di semua tempat.
+
 function MerchVariantsModal({ product, onClose }: { product: any; onClose: () => void }) {
   const [variants, setVariants] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
-  const [form, setForm]         = useState<Record<string, any>>({ name: "", sku: "", price_adjustment: 0, stock: 0, is_active: true });
+  const [form, setForm]         = useState<Record<string, any>>({ size_label: "", sku: "", price_adjustment: 0, stock: 0, is_active: true });
   const [editId, setEditId]     = useState<string | null>(null);
   const [saving, setSaving]     = useState(false);
   const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -1943,9 +1953,10 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
 
   useEffect(() => { load(); }, [load]);
 
-  const resetForm = () => { setForm({ name: "", sku: "", price_adjustment: 0, stock: 0, is_active: true }); setEditId(null); };
+  const resetForm = () => { setForm({ size_label: "", sku: "", price_adjustment: 0, stock: 0, is_active: true }); setEditId(null); };
 
   const save = async () => {
+    if (!form.size_label?.trim()) { showToast("Nama varian (ukuran) wajib diisi", "error"); return; }
     setSaving(true);
     try {
       const isEdit = !!editId;
@@ -1953,7 +1964,12 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
       const res    = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          size_label: form.size_label.trim(),
+          sku: form.sku,
+          price_adjustment: form.price_adjustment,
+          stock: form.stock,
+        }),
       });
       const json = await res.json();
       if (json.status) { showToast("Varian disimpan!", "success"); resetForm(); load(); }
@@ -1963,7 +1979,7 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
   };
 
   const del = async (v: any) => {
-    if (!confirm(`Hapus varian "${v.name}"?`)) return;
+    if (!confirm(`Hapus varian "${v.size_label}"?`)) return;
     try {
       const res  = await fetch(merchApi(`/admin/variants/${v.id}`), { method: "DELETE" });
       const json = await res.json();
@@ -1984,7 +2000,7 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "flex-end" }}>
             <div className={styles.field} style={{ flex: 1, minWidth: 100, marginBottom: 0 }}>
               <label>Nama Varian</label>
-              <input value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} placeholder="cth: Size L" />
+              <input value={form.size_label} onChange={e => setForm((p: any) => ({ ...p, size_label: e.target.value }))} placeholder="cth: Size L" />
             </div>
             <div className={styles.field} style={{ flex: 1, minWidth: 100, marginBottom: 0 }}>
               <label>SKU</label>
@@ -1998,7 +2014,7 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
               <label>Stok</label>
               <input type="number" value={form.stock} onChange={e => setForm((p: any) => ({ ...p, stock: e.target.value }))} />
             </div>
-            <button className={styles.btnPrimary} onClick={save} disabled={saving || !form.name}>
+            <button className={styles.btnPrimary} onClick={save} disabled={saving || !form.size_label?.trim()}>
               {saving ? <i className="bx bx-loader-alt bx-spin" /> : editId ? "Simpan" : <><i className="bx bx-plus" /> Tambah</>}
             </button>
             {editId && <button className={styles.btnGhost} onClick={resetForm}>Batal</button>}
@@ -2013,12 +2029,25 @@ function MerchVariantsModal({ product, onClose }: { product: any; onClose: () =>
                     <tr><td colSpan={5} className={styles.empty}>Belum ada varian</td></tr>
                   ) : variants.map(v => (
                     <tr key={v.id}>
-                      <td>{v.name}</td><td>{v.sku}</td>
+                      <td>{v.size_label}</td><td>{v.sku || "-"}</td>
                       <td>{Number(v.price_adjustment ?? 0).toLocaleString("id-ID")}</td>
                       <td>{v.stock}</td>
                       <td>
                         <div className={styles.actionBtns}>
-                          <button className={styles.btnEdit} onClick={() => { setForm({ ...v }); setEditId(v.id); }}><i className="bx bx-edit" /></button>
+                          <button
+                            className={styles.btnEdit}
+                            onClick={() => {
+                              setForm({
+                                size_label: v.size_label ?? "",
+                                sku: v.sku ?? "",
+                                price_adjustment: v.price_adjustment ?? 0,
+                                stock: v.stock ?? 0,
+                              });
+                              setEditId(v.id);
+                            }}
+                          >
+                            <i className="bx bx-edit" />
+                          </button>
                           <button className={styles.btnDel} onClick={() => del(v)}><i className="bx bx-trash" /></button>
                         </div>
                       </td>
