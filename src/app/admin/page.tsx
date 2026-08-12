@@ -8,6 +8,9 @@ const API_BASE    = "https://v5.jkt48connect.com/api/cavallery";
 const API_KEY     = "JKTCONNECT";
 const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
 
+const MERCH_API_BASE = "https://v5.jkt48connect.com/api/merch";
+const merchApi = (path: string) => `${MERCH_API_BASE}${path}`;
+
 const DISCORD_API   = "/api/discord";
 const JOURNAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiiUkBqWpRrYSDkC-6RKZ_mFxPAWB2uydW_hxaYWL0tr-o_GwrJ6b4zt_Goj9gFeen/exec";
 
@@ -16,7 +19,8 @@ type Section =
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
   | "bot"       | "tickets"  | "calendar" | "updates" 
-  | "vcschedule" | "abouterine" | "anggotakota";
+  | "vcschedule" | "abouterine" | "anggotakota" | "merch";
+
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -1392,6 +1396,646 @@ function BotManager() {
   );
 }
 
+
+// ─── MERCHANDISE MANAGER ──────────────────────────────────────
+type MerchTab = "products" | "categories" | "discounts" | "orders";
+
+function MerchandiseManager() {
+  const [tab, setTab] = useState<MerchTab>("products");
+
+  return (
+    <div className={styles.sectionWrap}>
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-store" style={{ color: "#f59e0b" }} /> Merchandise
+        </h2>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "1px solid var(--adm-border)", paddingBottom: 8, flexWrap: "wrap" }}>
+        {([
+          ["products",   "bx-package",  "Produk"],
+          ["categories", "bx-category", "Kategori"],
+          ["discounts",  "bx-purchase-tag", "Kode Diskon"],
+          ["orders",     "bx-receipt",  "Pesanan"],
+        ] as [MerchTab, string, string][]).map(([key, icon, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={styles.btnGhost}
+            style={{
+              borderColor: tab === key ? "#f59e0b" : "var(--adm-border)",
+              color: tab === key ? "#f59e0b" : "var(--adm-text)",
+              fontWeight: tab === key ? 700 : 500,
+            }}
+          >
+            <i className={`bx ${icon}`} /> {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "products"   && <MerchProductsTab />}
+      {tab === "categories" && <MerchCategoriesTab />}
+      {tab === "discounts"  && <MerchDiscountsTab />}
+      {tab === "orders"     && <MerchOrdersTab />}
+    </div>
+  );
+}
+
+// ── Sub-tab: KATEGORI ──────────────────────────────────────────
+function MerchCategoriesTab() {
+  const [rows, setRows]     = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal]   = useState<"add" | "edit" | null>(null);
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [saving, setSaving] = useState(false);
+  const [confirm, setConfirm] = useState<any>(null);
+  const [toast, setToast]   = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res  = await fetch(merchApi("/categories"));
+      const json = await res.json();
+      setRows(Array.isArray(json?.data) ? json.data : []);
+    } catch { setRows([]); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openAdd  = () => { setFormData({ is_active: true, sort_order: 0 }); setModal("add"); };
+  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const isEdit = modal === "edit";
+      const url    = isEdit ? merchApi(`/admin/categories/${formData.id}`) : merchApi("/admin/categories");
+      const res    = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (json.status) { showToast(isEdit ? "Kategori diperbarui!" : "Kategori ditambahkan!", "success"); setModal(null); load(); }
+      else showToast(json.message || "Gagal menyimpan", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    setSaving(false);
+  };
+
+  const del = async (row: any) => {
+    setConfirm(null);
+    try {
+      const res  = await fetch(merchApi(`/admin/categories/${row.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) { showToast("Kategori dihapus!", "success"); load(); }
+      else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+  };
+
+  const fields = [
+    { key: "name", label: "Nama Kategori" },
+    { key: "slug", label: "Slug" },
+    { key: "description", label: "Deskripsi", type: "textarea", rows: 2 },
+    { key: "sort_order", label: "Urutan", type: "number" },
+    { key: "is_active", label: "Aktif", type: "checkbox" },
+  ];
+
+  const cols = [
+    { key: "name", label: "Nama" },
+    { key: "slug", label: "Slug" },
+    { key: "is_active", label: "Aktif" },
+  ];
+
+  return (
+    <div>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && <ConfirmModal msg={`Hapus kategori "${confirm.name}"?`} onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+      {modal && (
+        <FormModal
+          title={modal === "add" ? "Tambah Kategori" : "Edit Kategori"}
+          fields={fields}
+          data={formData}
+          onChange={(k, v) => setFormData((p: any) => ({ ...p, [k]: v }))}
+          onSave={save}
+          onClose={() => setModal(null)}
+          saving={saving}
+        />
+      )}
+      <div className={styles.sectionHeader}>
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>Kategori Produk <span className={styles.count}>{rows.length}</span></h3>
+        <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah</button>
+      </div>
+      {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat...</div>
+        : <DataTable cols={cols} rows={rows} onEdit={openEdit} onDelete={row => setConfirm(row)} />}
+    </div>
+  );
+}
+
+// ── Sub-tab: PRODUK + VARIAN ───────────────────────────────────
+function MerchProductsTab() {
+  const [rows, setRows]       = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal]     = useState<"add" | "edit" | null>(null);
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [saving, setSaving]   = useState(false);
+  const [confirm, setConfirm] = useState<any>(null);
+  const [toast, setToast]     = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [variantProduct, setVariantProduct] = useState<any>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [pRes, cRes] = await Promise.all([
+        fetch(merchApi("/products?limit=200")),
+        fetch(merchApi("/categories")),
+      ]);
+      const pJson = await pRes.json();
+      const cJson = await cRes.json();
+      const data = pJson?.data;
+      setRows(Array.isArray(data) ? data : data?.items ?? data?.products ?? []);
+      setCategories(Array.isArray(cJson?.data) ? cJson.data : []);
+    } catch { setRows([]); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openAdd  = () => { setFormData({ is_active: true, sort_order: 0 }); setModal("add"); };
+  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const isEdit = modal === "edit";
+      const url    = isEdit ? merchApi(`/admin/products/${formData.id}`) : merchApi("/admin/products");
+      const res    = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (json.status) { showToast(isEdit ? "Produk diperbarui!" : "Produk ditambahkan!", "success"); setModal(null); load(); }
+      else showToast(json.message || "Gagal menyimpan", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    setSaving(false);
+  };
+
+  const del = async (row: any) => {
+    setConfirm(null);
+    try {
+      const res  = await fetch(merchApi(`/admin/products/${row.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) { showToast("Produk dihapus!", "success"); load(); }
+      else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+  };
+
+  const fields = [
+    { key: "name", label: "Nama Produk" },
+    { key: "slug", label: "Slug" },
+    { key: "category_id", label: "ID Kategori", hint: "lihat tab Kategori" },
+    { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
+    { key: "price", label: "Harga (Rp)", type: "number" },
+    { key: "image_url", label: "URL Gambar Utama" },
+    { key: "sort_order", label: "Urutan", type: "number" },
+    { key: "is_active", label: "Aktif", type: "checkbox" },
+  ];
+
+  const cols = [
+    { key: "image_url", label: "Gambar" },
+    { key: "name", label: "Nama" },
+    { key: "price", label: "Harga" },
+    { key: "is_active", label: "Aktif" },
+  ];
+
+  return (
+    <div>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && <ConfirmModal msg={`Hapus produk "${confirm.name}"?`} onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+      {modal && (
+        <FormModal
+          title={modal === "add" ? "Tambah Produk" : "Edit Produk"}
+          fields={fields}
+          data={formData}
+          onChange={(k, v) => setFormData((p: any) => ({ ...p, [k]: v }))}
+          onSave={save}
+          onClose={() => setModal(null)}
+          saving={saving}
+        />
+      )}
+      {variantProduct && (
+        <MerchVariantsModal product={variantProduct} onClose={() => { setVariantProduct(null); load(); }} />
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>Produk <span className={styles.count}>{rows.length}</span></h3>
+        <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah Produk</button>
+      </div>
+
+      {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat...</div> : (
+        <div className={styles.tableWrap}>
+          <table className={`${styles.table} ${styles.responsiveTable}`}>
+            <thead><tr><th>Gambar</th><th>Nama</th><th>Harga</th><th>Aktif</th><th>Aksi</th></tr></thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr><td colSpan={5} className={styles.empty}><i className="bx bx-inbox" /> Belum ada produk</td></tr>
+              ) : rows.map(row => (
+                <tr key={row.id}>
+                  <td data-label="Gambar">{row.image_url ? <img src={row.image_url} alt="" className={styles.thumb} /> : "-"}</td>
+                  <td data-label="Nama">{row.name}</td>
+                  <td data-label="Harga">Rp{Number(row.price ?? 0).toLocaleString("id-ID")}</td>
+                  <td data-label="Aktif">{row.is_active ? "✓" : "✗"}</td>
+                  <td data-label="Aksi">
+                    <div className={styles.actionBtns}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => setVariantProduct(row)}><i className="bx bx-list-ul" /> Varian</button>
+                      <button className={styles.btnEdit} onClick={() => openEdit(row)}><i className="bx bx-edit" /></button>
+                      <button className={styles.btnDel} onClick={() => setConfirm(row)}><i className="bx bx-trash" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Modal Varian Produk ─────────────────────────────────────────
+function MerchVariantsModal({ product, onClose }: { product: any; onClose: () => void }) {
+  const [variants, setVariants] = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [form, setForm]         = useState<Record<string, any>>({ name: "", sku: "", price_adjustment: 0, stock: 0, is_active: true });
+  const [editId, setEditId]     = useState<string | null>(null);
+  const [saving, setSaving]     = useState(false);
+  const [toast, setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res  = await fetch(merchApi(`/products/${product.slug || product.id}`));
+      const json = await res.json();
+      setVariants(json?.data?.variants ?? []);
+    } catch { setVariants([]); }
+    setLoading(false);
+  }, [product]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const resetForm = () => { setForm({ name: "", sku: "", price_adjustment: 0, stock: 0, is_active: true }); setEditId(null); };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const isEdit = !!editId;
+      const url    = isEdit ? merchApi(`/admin/variants/${editId}`) : merchApi(`/admin/products/${product.id}/variants`);
+      const res    = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (json.status) { showToast("Varian disimpan!", "success"); resetForm(); load(); }
+      else showToast(json.message || "Gagal menyimpan varian", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    setSaving(false);
+  };
+
+  const del = async (v: any) => {
+    if (!confirm(`Hapus varian "${v.name}"?`)) return;
+    try {
+      const res  = await fetch(merchApi(`/admin/variants/${v.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) { showToast("Varian dihapus!", "success"); load(); }
+      else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.formModal} style={{ maxWidth: 620 }} onClick={e => e.stopPropagation()}>
+        <div className={styles.formModalHeader}>
+          <h3><i className="bx bx-list-ul" /> Varian — {product.name}</h3>
+          <button className={styles.closeX} onClick={onClose}><i className="bx bx-x" /></button>
+        </div>
+        <div className={styles.formBody}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "flex-end" }}>
+            <div className={styles.field} style={{ flex: 1, minWidth: 100, marginBottom: 0 }}>
+              <label>Nama Varian</label>
+              <input value={form.name} onChange={e => setForm((p: any) => ({ ...p, name: e.target.value }))} placeholder="cth: Size L" />
+            </div>
+            <div className={styles.field} style={{ flex: 1, minWidth: 100, marginBottom: 0 }}>
+              <label>SKU</label>
+              <input value={form.sku} onChange={e => setForm((p: any) => ({ ...p, sku: e.target.value }))} />
+            </div>
+            <div className={styles.field} style={{ width: 100, marginBottom: 0 }}>
+              <label>+/- Harga</label>
+              <input type="number" value={form.price_adjustment} onChange={e => setForm((p: any) => ({ ...p, price_adjustment: e.target.value }))} />
+            </div>
+            <div className={styles.field} style={{ width: 90, marginBottom: 0 }}>
+              <label>Stok</label>
+              <input type="number" value={form.stock} onChange={e => setForm((p: any) => ({ ...p, stock: e.target.value }))} />
+            </div>
+            <button className={styles.btnPrimary} onClick={save} disabled={saving || !form.name}>
+              {saving ? <i className="bx bx-loader-alt bx-spin" /> : editId ? "Simpan" : <><i className="bx bx-plus" /> Tambah</>}
+            </button>
+            {editId && <button className={styles.btnGhost} onClick={resetForm}>Batal</button>}
+          </div>
+
+          {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat varian...</div> : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>Nama</th><th>SKU</th><th>+/- Harga</th><th>Stok</th><th>Aksi</th></tr></thead>
+                <tbody>
+                  {variants.length === 0 ? (
+                    <tr><td colSpan={5} className={styles.empty}>Belum ada varian</td></tr>
+                  ) : variants.map(v => (
+                    <tr key={v.id}>
+                      <td>{v.name}</td><td>{v.sku}</td>
+                      <td>{Number(v.price_adjustment ?? 0).toLocaleString("id-ID")}</td>
+                      <td>{v.stock}</td>
+                      <td>
+                        <div className={styles.actionBtns}>
+                          <button className={styles.btnEdit} onClick={() => { setForm({ ...v }); setEditId(v.id); }}><i className="bx bx-edit" /></button>
+                          <button className={styles.btnDel} onClick={() => del(v)}><i className="bx bx-trash" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+        <div className={styles.formFooter}>
+          <button className={styles.btnGhost} onClick={onClose}>Tutup</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Sub-tab: KODE DISKON ────────────────────────────────────────
+function MerchDiscountsTab() {
+  const [rows, setRows]     = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal]   = useState<"add" | "edit" | null>(null);
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [saving, setSaving] = useState(false);
+  const [confirm, setConfirm] = useState<any>(null);
+  const [toast, setToast]   = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res  = await fetch(merchApi("/admin/discount-codes?include_inactive=true"));
+      const json = await res.json();
+      setRows(Array.isArray(json?.data) ? json.data : []);
+    } catch { setRows([]); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openAdd  = () => { setFormData({ is_active: true }); setModal("add"); };
+  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const isEdit = modal === "edit";
+      const url    = isEdit ? merchApi(`/admin/discount-codes/${formData.id}`) : merchApi("/admin/discount-codes");
+      const res    = await fetch(url, {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const json = await res.json();
+      if (json.status) { showToast(isEdit ? "Kode diskon diperbarui!" : "Kode diskon ditambahkan!", "success"); setModal(null); load(); }
+      else showToast(json.message || "Gagal menyimpan", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    setSaving(false);
+  };
+
+  const del = async (row: any) => {
+    setConfirm(null);
+    try {
+      const res  = await fetch(merchApi(`/admin/discount-codes/${row.id}`), { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) { showToast("Kode diskon dihapus!", "success"); load(); }
+      else showToast(json.message || "Gagal menghapus", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+  };
+
+  const fields = [
+    { key: "code", label: "Kode (cth: JKT48FANS)" },
+    { key: "discount_percent", label: "Diskon (%)", type: "number" },
+    { key: "max_uses", label: "Maks Pemakaian", hint: "kosongkan = tanpa batas", type: "number" },
+    { key: "expires_at", label: "Kedaluwarsa", type: "datetime-local" },
+    { key: "is_active", label: "Aktif", type: "checkbox" },
+  ];
+
+  const cols = [
+    { key: "code", label: "Kode" },
+    { key: "discount_percent", label: "Diskon %" },
+    { key: "used_count", label: "Terpakai" },
+    { key: "max_uses", label: "Maks" },
+    { key: "is_active", label: "Aktif" },
+  ];
+
+  return (
+    <div>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && <ConfirmModal msg={`Hapus kode diskon "${confirm.code}"?`} onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+      {modal && (
+        <FormModal
+          title={modal === "add" ? "Tambah Kode Diskon" : "Edit Kode Diskon"}
+          fields={fields}
+          data={formData}
+          onChange={(k, v) => setFormData((p: any) => ({ ...p, [k]: v }))}
+          onSave={save}
+          onClose={() => setModal(null)}
+          saving={saving}
+        />
+      )}
+      <div className={styles.sectionHeader}>
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>Kode Diskon <span className={styles.count}>{rows.length}</span></h3>
+        <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah</button>
+      </div>
+      {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat...</div>
+        : <DataTable cols={cols} rows={rows} onEdit={openEdit} onDelete={row => setConfirm(row)} />}
+    </div>
+  );
+}
+
+// ── Sub-tab: PESANAN ────────────────────────────────────────────
+function MerchOrdersTab() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [detail, setDetail] = useState<any>(null);
+  const [tracking, setTracking] = useState("");
+  const [savingTracking, setSavingTracking] = useState(false);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
+      const res  = await fetch(merchApi(`/admin/orders?${params}`));
+      const json = await res.json();
+      setOrders(Array.isArray(json?.data) ? json.data : json?.data?.items ?? []);
+    } catch { setOrders([]); }
+    setLoading(false);
+  }, [statusFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const updateStatus = async (order: any, status: string) => {
+    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status } : o));
+    try {
+      const res  = await fetch(merchApi(`/admin/orders/${order.id}/status`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const json = await res.json();
+      if (!json.status) { showToast(json.message || "Gagal update status", "error"); load(); }
+      else showToast("Status pesanan diperbarui", "success");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); load(); }
+  };
+
+  const saveTracking = async () => {
+    if (!detail || !tracking.trim()) return;
+    setSavingTracking(true);
+    try {
+      const res  = await fetch(merchApi(`/admin/orders/${detail.id}/tracking`), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tracking_number: tracking.trim() }),
+      });
+      const json = await res.json();
+      if (json.status) { showToast("Resi disimpan & email terkirim ke customer!", "success"); setDetail(null); load(); }
+      else showToast(json.message || "Gagal menyimpan resi", "error");
+    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+    setSavingTracking(false);
+  };
+
+  const filtered = orders.filter(o =>
+    (o.order_code || "").toLowerCase().includes(search.toLowerCase()) ||
+    (o.customer_name || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const statusColor = (s: string) => ({
+    pending:   { bg: "rgba(156,163,175,0.2)", fg: "#9ca3af" },
+    paid:      { bg: "rgba(59,130,246,0.2)",  fg: "#3b82f6" },
+    processing:{ bg: "rgba(245,158,11,0.2)",  fg: "#f59e0b" },
+    shipped:   { bg: "rgba(139,92,246,0.2)",  fg: "#8b5cf6" },
+    completed: { bg: "rgba(16,185,129,0.2)",  fg: "#10b981" },
+    cancelled: { bg: "rgba(239,68,68,0.2)",   fg: "#ef4444" },
+  }[s] || { bg: "rgba(156,163,175,0.2)", fg: "#9ca3af" });
+
+  return (
+    <div>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      {detail && (
+        <div className={styles.modalOverlay} onClick={() => setDetail(null)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>Pesanan {detail.order_code}</h3>
+              <button className={styles.closeX} onClick={() => setDetail(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <p><strong>Customer:</strong> {detail.customer_name}</p>
+              <p><strong>Email:</strong> {detail.customer_email}</p>
+              <p><strong>No HP:</strong> {detail.customer_phone}</p>
+              <p><strong>Alamat:</strong> {detail.shipping_address}</p>
+              <p><strong>Total:</strong> Rp{Number(detail.total_amount ?? 0).toLocaleString("id-ID")}</p>
+              <div className={styles.field}>
+                <label>Nomor Resi</label>
+                <input value={tracking} onChange={e => setTracking(e.target.value)} placeholder="Masukkan nomor resi..." />
+                <small style={{ opacity: 0.6 }}>Menyimpan resi akan otomatis mengirim email ke customer.</small>
+              </div>
+            </div>
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setDetail(null)}>Tutup</button>
+              <button className={styles.btnPrimary} onClick={saveTracking} disabled={savingTracking || !tracking.trim()}>
+                {savingTracking ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan Resi</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h3 style={{ margin: 0, fontSize: "1rem" }}>Pesanan <span className={styles.count}>{orders.length}</span></h3>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <input placeholder="Cari kode pesanan / nama customer..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 200, background: "var(--adm-surface)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px" }} />
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ background: "var(--adm-surface)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px" }}>
+          <option value="">Semua Status</option>
+          {["pending","paid","processing","shipped","completed","cancelled"].map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button className={styles.btnGhost} onClick={load}><i className="bx bx-refresh" /> Refresh</button>
+      </div>
+
+      {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat pesanan...</div> : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}><i className="bx bx-inbox" style={{ fontSize: "3rem" }} /><p>Tidak ada pesanan</p></div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={`${styles.table} ${styles.responsiveTable}`}>
+            <thead><tr><th>Kode</th><th>Customer</th><th>Total</th><th>Status</th><th style={{ textAlign: "center" }}>Aksi</th></tr></thead>
+            <tbody>
+              {filtered.map(o => {
+                const sc = statusColor(o.status);
+                return (
+                  <tr key={o.id}>
+                    <td data-label="Kode" style={{ fontWeight: 600 }}>{o.order_code}</td>
+                    <td data-label="Customer">{o.customer_name}</td>
+                    <td data-label="Total">Rp{Number(o.total_amount ?? 0).toLocaleString("id-ID")}</td>
+                    <td data-label="Status">
+                      <select
+                        value={o.status}
+                        onChange={e => updateStatus(o, e.target.value)}
+                        style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600, border: "none", outline: "none", background: sc.bg, color: sc.fg }}
+                      >
+                        {["pending","paid","processing","shipped","completed","cancelled"].map(s => <option key={s} value={s} style={{ background: "#242424", color: "#fff" }}>{s}</option>)}
+                      </select>
+                    </td>
+                    <td data-label="Aksi" style={{ textAlign: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", fontSize: 12 }} onClick={() => { setDetail(o); setTracking(o.tracking_number || ""); }}>
+                        <i className="bx bx-detail" /> Detail / Resi
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── SECTION MANAGER ──────────────────────────────────────────
 function SectionManager({ section }: { section: Section }) {
   const [rows, setRows]         = useState<any[]>([]);
@@ -2082,6 +2726,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "discord",    icon: "bxl-discord-alt", label: "Discord",   color: "#5865f2" },
     { key: "journal",    icon: "bx-book-open",    label: "MemoRine",  color: "#db2777" },
     { key: "bot",        icon: "bx-bot",          label: "Bot",       color: "#f59e0b" },
+    { key: "merch", icon: "bx-store", label: "Merchandise", color: "#f59e0b" },
     { key: "tickets",    icon: "bx-receipt",      label: "Tickets",   color: "#10b981" },
     { key: "calendar",   icon: "bx-calendar",     label: "Calendar",  color: "#3b82f6" },
     { key: "updates",    icon: "bx-refresh",      label: "Updates",   color: "#10b981" },
@@ -2115,6 +2760,7 @@ const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "gallery",     icon: "bx-image-alt",    label: "Gallery"    },
   { key: "setlists",    icon: "bx-music",        label: "Setlists"   },
   { key: "youtube",     icon: "bxl-youtube",     label: "YouTube"    },
+  { key: "merch", icon: "bx-store", label: "Merchandise" },
   { key: "funfacts",    icon: "bx-laugh",        label: "Funfacts"   },
   { key: "kabesha",     icon: "bx-star",         label: "Kabesha"    },
   { key: "stats",       icon: "bx-bar-chart",    label: "Stats"      },
@@ -2137,6 +2783,7 @@ export default function AdminPage() {
 
   const [active,     setActive]     = useState<Section>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  
 
   if (checking) return (
     <div className={styles.fullCenter}>
@@ -2230,6 +2877,7 @@ export default function AdminPage() {
             : active === "vcschedule" ? <VcScheduleManager />
             : active === "abouterine" ? <AboutErineManager />
             : active === "anggotakota"? <AnggotaKotaManager />
+            : active === "merch"      ? <MerchandiseManager />
             : <SectionManager section={active} />}
           </div>
         </div>
