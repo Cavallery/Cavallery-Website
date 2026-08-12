@@ -1535,12 +1535,27 @@ function MerchCategoriesTab() {
 }
 
 // ── Sub-tab: PRODUK + VARIAN ───────────────────────────────────
+// ── Sub-tab: PRODUK + VARIAN (VERSI UPDATE) ───────────────────
+// Perubahan dari versi lama:
+// 1. category_id sekarang dropdown <select> dari hasil fetch /categories,
+//    bukan input teks manual (tidak perlu copy-paste UUID lagi).
+// 2. Ada toggle "Produk punya ukuran/varian?" di form tambah/edit.
+//    - Kalau OFF  -> field "Stok" biasa muncul, dikirim sebagai `stock`
+//      (backend otomatis bikin 1 varian ONE_SIZE).
+//    - Kalau ON   -> muncul builder daftar ukuran (size_label + stock),
+//      dikirim sebagai array `variants: [{ size_label, stock }]`.
+// 3. Kalau kategori yang dipilih sudah has_size = true di database,
+//    toggle otomatis ON dan tidak bisa dimatikan (mengikuti field
+//    `category_has_size` yang dikembalikan API kategori), supaya konsisten
+//    dengan logic backend (`effectiveHasSize = has_size || cat.has_size`).
+
 function MerchProductsTab() {
   const [rows, setRows]       = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal]     = useState<"add" | "edit" | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [sizeVariants, setSizeVariants] = useState<{ size_label: string; stock: number }[]>([{ size_label: "", stock: 0 }]);
   const [saving, setSaving]   = useState(false);
   const [confirm, setConfirm] = useState<any>(null);
   const [toast, setToast]     = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -1552,8 +1567,8 @@ function MerchProductsTab() {
     setLoading(true);
     try {
       const [pRes, cRes] = await Promise.all([
-        fetch(merchApi("/products?limit=200")),
-        fetch(merchApi("/categories")),
+        fetch(merchApi("/products?limit=200&include_inactive=true")),
+        fetch(merchApi("/categories?include_inactive=true")),
       ]);
       const pJson = await pRes.json();
       const cJson = await cRes.json();
@@ -1566,22 +1581,73 @@ function MerchProductsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd  = () => { setFormData({ is_active: true, sort_order: 0 }); setModal("add"); };
-  const openEdit = (row: any) => { setFormData({ ...row }); setModal("edit"); };
+  // Kategori yang sedang dipilih di form (untuk cek has_size dari kategori)
+  const selectedCategory = categories.find(cat => cat.id === formData.category_id);
+  const categoryForcesSize = !!selectedCategory?.has_size;
+  const hasSize = categoryForcesSize || !!formData.has_size;
+
+  const openAdd = () => {
+    setFormData({ is_active: true, sort_order: 0, has_size: false, status: "open", weight_grams: 1000, stock: 0 });
+    setSizeVariants([{ size_label: "", stock: 0 }]);
+    setModal("add");
+  };
+
+  const openEdit = (row: any) => {
+    setFormData({ ...row });
+    // kalau produk sudah ada, isi builder varian dari data varian yang sudah ada (kalau ada di row.variants)
+    if (Array.isArray(row.variants) && row.variants.length > 0) {
+      setSizeVariants(row.variants.map((v: any) => ({ size_label: v.size_label, stock: v.stock })));
+    } else {
+      setSizeVariants([{ size_label: "", stock: 0 }]);
+    }
+    setModal("edit");
+  };
+
+  const addSizeRow = () => setSizeVariants(prev => [...prev, { size_label: "", stock: 0 }]);
+  const removeSizeRow = (idx: number) => setSizeVariants(prev => prev.filter((_, i) => i !== idx));
+  const updateSizeRow = (idx: number, key: "size_label" | "stock", val: string) => {
+    setSizeVariants(prev => prev.map((row, i) => i === idx ? { ...row, [key]: key === "stock" ? Number(val) || 0 : val } : row));
+  };
 
   const save = async () => {
+    // Validasi ringan di sisi form
+    if (!formData.category_id) { showToast("Pilih kategori terlebih dahulu", "error"); return; }
+    if (!formData.name?.trim()) { showToast("Nama produk wajib diisi", "error"); return; }
+    if (!formData.price || Number(formData.price) <= 0) { showToast("Harga wajib diisi dan lebih dari 0", "error"); return; }
+
+    if (hasSize) {
+      const validRows = sizeVariants.filter(v => v.size_label.trim());
+      if (validRows.length === 0) { showToast("Tambahkan minimal satu ukuran", "error"); return; }
+    }
+
     setSaving(true);
     try {
       const isEdit = modal === "edit";
-      const url    = isEdit ? merchApi(`/admin/products/${formData.id}`) : merchApi("/admin/products");
-      const res    = await fetch(url, {
+      const url = isEdit ? merchApi(`/admin/products/${formData.id}`) : merchApi("/admin/products");
+
+      const payload: Record<string, any> = { ...formData, has_size: hasSize };
+      if (hasSize) {
+        payload.variants = sizeVariants
+          .filter(v => v.size_label.trim())
+          .map(v => ({ size_label: v.size_label.trim(), stock: v.stock }));
+      } else {
+        // tanpa ukuran -> backend otomatis bikin varian ONE_SIZE dari field `stock`
+        delete payload.variants;
+      }
+
+      const res = await fetch(url, {
         method: isEdit ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
-      if (json.status) { showToast(isEdit ? "Produk diperbarui!" : "Produk ditambahkan!", "success"); setModal(null); load(); }
-      else showToast(json.message || "Gagal menyimpan", "error");
+      if (json.status) {
+        showToast(isEdit ? "Produk diperbarui!" : "Produk ditambahkan!", "success");
+        setModal(null);
+        load();
+      } else {
+        showToast(json.message || "Gagal menyimpan", "error");
+      }
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
     setSaving(false);
   };
@@ -1596,17 +1662,6 @@ function MerchProductsTab() {
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
 
-  const fields = [
-    { key: "name", label: "Nama Produk" },
-    { key: "slug", label: "Slug" },
-    { key: "category_id", label: "ID Kategori", hint: "lihat tab Kategori" },
-    { key: "description", label: "Deskripsi", type: "textarea", rows: 3 },
-    { key: "price", label: "Harga (Rp)", type: "number" },
-    { key: "image_url", label: "URL Gambar Utama" },
-    { key: "sort_order", label: "Urutan", type: "number" },
-    { key: "is_active", label: "Aktif", type: "checkbox" },
-  ];
-
   const cols = [
     { key: "image_url", label: "Gambar" },
     { key: "name", label: "Nama" },
@@ -1618,17 +1673,213 @@ function MerchProductsTab() {
     <div>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       {confirm && <ConfirmModal msg={`Hapus produk "${confirm.name}"?`} onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+
       {modal && (
-        <FormModal
-          title={modal === "add" ? "Tambah Produk" : "Edit Produk"}
-          fields={fields}
-          data={formData}
-          onChange={(k, v) => setFormData((p: any) => ({ ...p, [k]: v }))}
-          onSave={save}
-          onClose={() => setModal(null)}
-          saving={saving}
-        />
+        <div className={styles.modalOverlay} onClick={() => setModal(null)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>{modal === "add" ? "Tambah Produk" : "Edit Produk"}</h3>
+              <button className={styles.closeX} onClick={() => setModal(null)}><i className="bx bx-x" /></button>
+            </div>
+
+            <div className={styles.formBody}>
+              <div className={styles.field}>
+                <label>Nama Produk</label>
+                <input
+                  type="text"
+                  value={formData.name ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, name: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Slug <span className={styles.fieldHint}> — kosongkan untuk auto dari nama</span></label>
+                <input
+                  type="text"
+                  value={formData.slug ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, slug: e.target.value }))}
+                />
+              </div>
+
+              {/* ── DROPDOWN KATEGORI (bukan input teks lagi) ── */}
+              <div className={styles.field}>
+                <label>Kategori</label>
+                <select
+                  value={formData.category_id ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, category_id: e.target.value }))}
+                  style={{
+                    width: "100%",
+                    background: "var(--adm-surface)", color: "var(--adm-text)",
+                    border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+                  }}
+                >
+                  <option value="">— Pilih kategori —</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}{cat.has_size ? " (punya ukuran)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {categories.length === 0 && (
+                  <small style={{ color: "var(--adm-danger)" }}>
+                    Belum ada kategori. Tambahkan kategori dulu di tab Kategori.
+                  </small>
+                )}
+              </div>
+
+              <div className={styles.field}>
+                <label>Deskripsi</label>
+                <textarea
+                  rows={3}
+                  value={formData.description ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, description: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Harga (Rp)</label>
+                <input
+                  type="number"
+                  value={formData.price ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, price: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>URL Gambar Utama</label>
+                <input
+                  type="text"
+                  value={formData.image_url ?? ""}
+                  onChange={e => setFormData((p: any) => ({ ...p, image_url: e.target.value }))}
+                  placeholder="URL gambar..."
+                />
+                {formData.image_url && (
+                  <img
+                    src={formData.image_url}
+                    alt="preview"
+                    style={{ marginTop: 6, maxHeight: 100, borderRadius: 6, objectFit: "cover", border: "1px solid var(--adm-border)" }}
+                    onError={e => (e.currentTarget.style.display = "none")}
+                  />
+                )}
+              </div>
+
+              <div className={styles.field}>
+                <label>Urutan</label>
+                <input
+                  type="number"
+                  value={formData.sort_order ?? 0}
+                  onChange={e => setFormData((p: any) => ({ ...p, sort_order: e.target.value }))}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.toggle}>
+                  <input
+                    type="checkbox"
+                    checked={!!formData.is_active}
+                    onChange={e => setFormData((p: any) => ({ ...p, is_active: e.target.checked }))}
+                  />
+                  <span>{formData.is_active ? "Aktif" : "Nonaktif"}</span>
+                </label>
+              </div>
+
+              {/* ── TOGGLE PUNYA UKURAN / VARIAN ── */}
+              <div className={styles.field} style={{ borderTop: "1px solid var(--adm-border)", paddingTop: 16, marginTop: 8 }}>
+                <label className={styles.toggle}>
+                  <input
+                    type="checkbox"
+                    checked={hasSize}
+                    disabled={categoryForcesSize}
+                    onChange={e => setFormData((p: any) => ({ ...p, has_size: e.target.checked }))}
+                  />
+                  <span>
+                    Produk punya ukuran / varian?
+                    {categoryForcesSize && (
+                      <span style={{ opacity: 0.6, fontWeight: 400 }}> — otomatis aktif (kategori ini selalu pakai ukuran)</span>
+                    )}
+                  </span>
+                </label>
+              </div>
+
+              {!hasSize ? (
+                // Tanpa ukuran: satu field stok saja, dikirim sebagai body.stock
+                <div className={styles.field}>
+                  <label>Stok</label>
+                  <input
+                    type="number"
+                    value={formData.stock ?? 0}
+                    onChange={e => setFormData((p: any) => ({ ...p, stock: e.target.value }))}
+                  />
+                </div>
+              ) : (
+                // Dengan ukuran: builder dinamis size_label + stock
+                <div className={styles.field}>
+                  <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Daftar Ukuran & Stok</span>
+                    <button
+                      type="button"
+                      className={styles.btnGhost}
+                      style={{ padding: "4px 8px", fontSize: "0.75rem" }}
+                      onClick={addSizeRow}
+                    >
+                      <i className="bx bx-plus" /> Tambah Ukuran
+                    </button>
+                  </label>
+                  {sizeVariants.map((row, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+                      <input
+                        type="text"
+                        value={row.size_label}
+                        onChange={e => updateSizeRow(idx, "size_label", e.target.value)}
+                        placeholder="cth: S, M, L, XL"
+                        style={{
+                          flex: 2,
+                          background: "var(--adm-surface)", color: "var(--adm-text)",
+                          border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+                        }}
+                      />
+                      <input
+                        type="number"
+                        value={row.stock}
+                        onChange={e => updateSizeRow(idx, "stock", e.target.value)}
+                        placeholder="Stok"
+                        style={{
+                          flex: 1,
+                          background: "var(--adm-surface)", color: "var(--adm-text)",
+                          border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px",
+                        }}
+                      />
+                      {sizeVariants.length > 1 && (
+                        <button
+                          type="button"
+                          style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "none", borderRadius: 6, padding: 8, cursor: "pointer" }}
+                          onClick={() => removeSizeRow(idx)}
+                        >
+                          <i className="bx bx-trash" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <small style={{ opacity: 0.6 }}>
+                    Kalau ini produk baru, ukuran akan langsung dibuat sebagai varian. Untuk edit ukuran satu-satu setelah produk dibuat, gunakan tombol "Varian" di tabel produk.
+                  </small>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setModal(null)}>Batal</button>
+              <button className={styles.btnPrimary} onClick={save} disabled={saving}>
+                {saving
+                  ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                  : <><i className="bx bx-save" /> Simpan</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
       {variantProduct && (
         <MerchVariantsModal product={variantProduct} onClose={() => { setVariantProduct(null); load(); }} />
       )}
@@ -1641,14 +1892,15 @@ function MerchProductsTab() {
       {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat...</div> : (
         <div className={styles.tableWrap}>
           <table className={`${styles.table} ${styles.responsiveTable}`}>
-            <thead><tr><th>Gambar</th><th>Nama</th><th>Harga</th><th>Aktif</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>Gambar</th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Aktif</th><th>Aksi</th></tr></thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={5} className={styles.empty}><i className="bx bx-inbox" /> Belum ada produk</td></tr>
+                <tr><td colSpan={6} className={styles.empty}><i className="bx bx-inbox" /> Belum ada produk</td></tr>
               ) : rows.map(row => (
                 <tr key={row.id}>
                   <td data-label="Gambar">{row.image_url ? <img src={row.image_url} alt="" className={styles.thumb} /> : "-"}</td>
                   <td data-label="Nama">{row.name}</td>
+                  <td data-label="Kategori">{row.category_name ?? "-"}</td>
                   <td data-label="Harga">Rp{Number(row.price ?? 0).toLocaleString("id-ID")}</td>
                   <td data-label="Aktif">{row.is_active ? "✓" : "✗"}</td>
                   <td data-label="Aksi">
