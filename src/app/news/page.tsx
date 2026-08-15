@@ -34,17 +34,18 @@ export default function NewsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/news?v=${new Date().getTime()}`)
+    fetch("https://v5.jkt48connect.com/api/jkt48/news?priority_token=sJbpVqLinYlp")
       .then((r) => r.json())
       .then((d) => {
-        if (d.success && d.data?.news) {
-          const items: NewsItem[] = d.data.news.map((n: any) => ({
+        const rawNews = d.data?.news || d.data || d.news || [];
+        if (Array.isArray(rawNews)) {
+          const items: NewsItem[] = rawNews.map((n: any) => ({
             id: n.id,
             title: n.title,
-            label: n.category,
-            date: n.date,
-            link_url: n.url,
-            image_url: n.background_image,
+            label: n.category || n.label || "News",
+            date: n.date || n.published_at || "",
+            link_url: n.url || n.link || "#",
+            image_url: n.background_image || n.image_url,
             description: undefined,
           }));
 

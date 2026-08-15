@@ -11,10 +11,24 @@ export default function TicketingPage() {
     setStatus("loading");
     
     const formData = new FormData(e.currentTarget);
-    const scriptURL = "/api/tickets";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbw62qxU5a7zGuNSpOHfVwX6mPb3DWNo94GvLSMNsitkx-YJJIQG_5QcDhhrfaXHHeMGnA/exec";
 
     try {
-      await fetch(scriptURL, { method: "POST", body: formData });
+      const params = new URLSearchParams();
+      params.append("action", "create");
+      params.append("Nama", (formData.get("Nama") as string) || "Anonymous");
+      params.append("no_anggota", (formData.get("no_anggota") as string) || "-");
+      params.append("kategori", (formData.get("kategori") as string) || "Lainnya");
+      params.append("pesan", (formData.get("pesan") as string) || "");
+
+      await fetch(scriptURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: params,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
       setStatus("success");
     } catch (error) {
       console.error("Error!", error);

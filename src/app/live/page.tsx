@@ -27,9 +27,16 @@ export default function LivePage() {
   const load = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const res = await fetch("/api/live", { cache: "no-store" });
+      const res = await fetch("https://v5.jkt48connect.com/api/jkt48/live?priority_token=sJbpVqLinYlp");
       const json = await res.json();
-      setLives(Array.isArray(json.data) ? json.data : []);
+      const rawStreams = json.data || json || [];
+      const erineStreams = Array.isArray(rawStreams)
+        ? rawStreams.filter((stream: any) => {
+            const name = (stream.member_name || stream.name || stream.username || stream.room_name || "").toLowerCase();
+            return name.includes("erine") || name.includes("catherina") || name.includes("catherine") || name.includes("valencia") || name.includes("vallencia");
+          })
+        : [];
+      setLives(erineStreams.length > 0 ? erineStreams : (Array.isArray(rawStreams) ? rawStreams : []));
       setLastUpdate(new Date());
     } catch (e) { setError(String(e)); }
     finally { setLoading(false); }
