@@ -53,6 +53,28 @@ function renderContent(content: string) {
   ));
 }
 
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(
+      "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT",
+      {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+        },
+      }
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    const list = json?.data || [];
+    return list.map((item: any) => ({
+      slug: String(item.slug || item.id),
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const news = await getNewsDetail(slug);
