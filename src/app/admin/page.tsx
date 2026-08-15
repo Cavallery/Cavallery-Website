@@ -2763,9 +2763,16 @@ function CalendarManager() {
   );
 }
 
+const DEFAULT_UPDATES = [
+  { id: "1", platform: "twitter", url: "https://x.com/CErine_JKT48/status/2080953550021308492" },
+  { id: "2", platform: "tiktok", url: "https://www.tiktok.com/@jkt48.erine_/video/7646420621764627719" },
+  { id: "3", platform: "instagram", url: "https://www.tiktok.com/@jkt48.erine_/video/7663816612352396552?q=erine&t=1785000002666" },
+  { id: "4", platform: "threads", url: "https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2" }
+];
+
 // ─── UPDATES MANAGER ──────────────────────────────────────────
 function UpdatesManager() {
-  const [updates, setUpdates] = useState<any[]>([]);
+  const [updates, setUpdates] = useState<any[]>(DEFAULT_UPDATES);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -2777,37 +2784,49 @@ function UpdatesManager() {
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     setLoading(true);
-    try { const res = await fetch("/api/updates"); const json = await res.json(); if (json.success) setUpdates(json.data); else showToast("Gagal memuat updates", "error"); }
-    catch { showToast("Error jaringan", "error"); }
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_updates") : null;
+      if (saved) setUpdates(JSON.parse(saved));
+      else setUpdates(DEFAULT_UPDATES);
+    } catch {
+      setUpdates(DEFAULT_UPDATES);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return showToast("URL wajib diisi", "error");
     setSaving(true);
     try {
-      const payload = editId ? { action: "update", id: editId, item: { platform, url: url.trim() } } : { action: "add", platform, url: url.trim() };
-      const res = await fetch("/api/updates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const json = await res.json();
-      if (json.success) { showToast("Berhasil disimpan", "success"); setShowModal(false); load(); }
-      else showToast("Gagal menyimpan", "error");
-    } catch { showToast("Error jaringan", "error"); }
+      const newUpdates = editId
+        ? updates.map(u => u.id === editId ? { ...u, platform, url: url.trim() } : u)
+        : [...updates, { id: Date.now().toString(), platform, url: url.trim() }];
+      setUpdates(newUpdates);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_updates", JSON.stringify(newUpdates));
+      }
+      showToast("Berhasil disimpan", "success");
+      setShowModal(false);
+    } catch {
+      showToast("Gagal menyimpan", "error");
+    }
     setSaving(false);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!confirmDelete) return;
-    try {
-      const res = await fetch("/api/updates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id: confirmDelete.id }) });
-      const json = await res.json();
-      if (json.success) { showToast("Berhasil dihapus", "success"); setConfirmDelete(null); load(); }
-      else showToast("Gagal menghapus", "error");
-    } catch { showToast("Error jaringan", "error"); }
+    const newUpdates = updates.filter(u => u.id !== confirmDelete.id);
+    setUpdates(newUpdates);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cavallery_updates", JSON.stringify(newUpdates));
+    }
+    showToast("Berhasil dihapus", "success");
+    setConfirmDelete(null);
   };
 
   const openAdd = () => { setEditId(null); setPlatform("twitter"); setUrl(""); setShowModal(true); };
@@ -2873,31 +2892,47 @@ function UpdatesManager() {
   );
 }
 
+const DEFAULT_VCSCHEDULE = {
+  date: "Rabu, 11 Maret 2026",
+  session1: "Sesi 1: 16.30 – 17.30",
+  session2: "Sesi 2: 17.00 – 18.00",
+  session3: "Sesi 3: 19.30 – 20.30",
+  session4: "",
+  imageUrl: "https://cavallery.id/wp-content/uploads/2026/04/VC_Maret.jpg"
+};
+
 // ─── VC SCHEDULE MANAGER ───────────────────────────────────────
 function VcScheduleManager() {
-  const [data, setData] = useState<any>({ date: "", session1: "", session2: "", session3: "", session4: "", imageUrl: "" });
+  const [data, setData] = useState<any>(DEFAULT_VCSCHEDULE);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     setLoading(true);
-    try { const res = await fetch("/api/vcschedule"); const json = await res.json(); if (json.success && json.data) setData(json.data); }
-    catch {}
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_vcschedule") : null;
+      if (saved) setData(JSON.parse(saved));
+      else setData(DEFAULT_VCSCHEDULE);
+    } catch {
+      setData(DEFAULT_VCSCHEDULE);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch("/api/vcschedule", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      const json = await res.json();
-      if (json.success) { setToast({ msg: "Jadwal VC berhasil disimpan", type: "success" }); load(); }
-      else setToast({ msg: "Gagal menyimpan", type: "error" });
-    } catch { setToast({ msg: "Error jaringan", type: "error" }); }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_vcschedule", JSON.stringify(data));
+      }
+      setToast({ msg: "Jadwal VC berhasil disimpan", type: "success" });
+    } catch {
+      setToast({ msg: "Gagal menyimpan", type: "error" });
+    }
     setSaving(false);
   };
 
