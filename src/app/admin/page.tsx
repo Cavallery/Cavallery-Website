@@ -84,28 +84,20 @@ function AdminPortal({ children }: { children: React.ReactNode }) {
   return createPortal(children, document.body);
 }
 
-// ─── AUTH HOOK (Client-side verified via Hono backend) ──────────────
+// ─── AUTH HOOK (PENGGANTI sessionStorage — server-side verified) ──────────────
 function useAdminAuth() {
   const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("cava_session") : null;
-    if (!token) {
-      setAuthed(false);
-      setChecking(false);
-      return;
-    }
-
-    fetch("https://v5.jkt48connect.com/api/admin-auth/verify", {
-      method: "POST",
-      headers: {
-        "Content-Type":  "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
+    // Verifikasi session ke server saat mount
+    // httpOnly cookie dikirim otomatis oleh browser — tidak bisa dimanipulasi dari console
+    fetch("/api/admin/verify", {
+      method:      "GET",
+      credentials: "same-origin",
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setAuthed(data.status === true && data.valid === true);
       })
       .catch(() => {
@@ -117,26 +109,19 @@ function useAdminAuth() {
   }, []);
 
   const logout = async () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("cava_session") : null;
-    if (token) {
-      try {
-        await fetch("https://v5.jkt48connect.com/api/admin-auth/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type":  "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-      } catch {}
-      localStorage.removeItem("cava_session");
-    }
+    try {
+      await fetch("/api/admin/logout", {
+        method:      "POST",
+        credentials: "same-origin",
+      });
+    } catch {}
     setAuthed(false);
   };
 
   return { authed, checking, setAuthed, logout };
 }
 
-// ─── LOGIN PAGE (auth via Hono API) ──────────────
+// ─── LOGIN PAGE (auth via API → httpOnly cookie) ──────────────
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [user, setUser]       = useState("");
   const [pass, setPass]       = useState("");
@@ -152,16 +137,18 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     setErr("");
 
     try {
-      const res = await fetch("https://v5.jkt48connect.com/api/admin-auth/login", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ username: user, password: pass }),
+      const res = await fetch("/api/admin/login", {
+        method:      "POST",
+        headers:     { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body:        JSON.stringify({ username: user, password: pass }),
       });
 
       const data = await res.json();
 
-      if (data.status && data.token) {
-        localStorage.setItem("cava_session", data.token);
+      if (data.status) {
+        // Token disimpan di httpOnly cookie oleh server
+        // Tidak ada yang bisa dimanipulasi dari browser console
         onLogin();
       } else {
         if (res.status === 429) {
@@ -2488,6 +2475,8 @@ function SectionManager({ section }: { section: Section }) {
   );
 }
 
+const TICKET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw62qxU5a7zGuNSpOHfVwX6mPb3DWNo94GvLSMNsitkx-YJJIQG_5QcDhhrfaXHHeMGnA/exec";
+
 // ─── TICKETS MANAGER ──────────────────────────────────────────
 function TicketsManager() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -2501,32 +2490,101 @@ function TicketsManager() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/tickets");
-      const data = await res.json();
-      setTickets(data.map((item: any) => ({ ...item, formattedDate: item.date ? new Date(item.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-" })).reverse());
-    } catch { showToast("Gagal memuat data tiket", "error"); setTickets([]); }
+      const res = await fetch(TICKET_SCRIPT_URL);
+      const rawData = await res.json();
+      const formatted = Array.isArray(rawData)
+        ? rawData
+            .map((row: any, index: number) => {
+              if (index === 0 && (row[1] === "Nama" || typeof row[0] === "string")) return null;
+              return {
+                id: parseInt(row[0]) || index + 1,
+                date: row[5] || new Date().toISOString(),
+                name: row[1] || "Anonymous",
+                no_anggota: row[2] || "-",
+                kategori: row[3] || "Lainnya",
+                pesan: row[4] || "",
+                divisi: row[6] || "-",
+                status: row[7] || "Pending",
+              };
+            })
+            .filter(Boolean)
+        : [];
+
+      setTickets(
+        formatted
+          .map((item: any) => ({
+            ...item,
+            formattedDate: item.date
+              ? new Date(item.date).toLocaleString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "-",
+          }))
+          .reverse()
+      );
+    } catch {
+      showToast("Gagal memuat data tiket", "error");
+      setTickets([]);
+    }
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
     try {
-      const res = await fetch(`/api/tickets?id=${confirmDelete.id}`, { method: "DELETE" });
-      const json = await res.json();
-      if (json.status) { showToast("Tiket berhasil dihapus secara permanen!", "success"); setConfirmDelete(null); load(); }
-      else showToast(json.message || "Gagal menghapus tiket", "error");
-    } catch { showToast("Gagal menghapus tiket", "error"); }
+      const params = new URLSearchParams();
+      params.append("action", "delete");
+      params.append("id", confirmDelete.id.toString());
+
+      await fetch(TICKET_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: params,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+
+      showToast("Tiket berhasil dihapus!", "success");
+      setConfirmDelete(null);
+      setTickets(prev => prev.filter(t => t.id !== confirmDelete.id));
+    } catch {
+      showToast("Gagal menghapus tiket", "error");
+    }
   };
 
   const handleUpdate = async (id: number, field: "divisi" | "status", value: string) => {
-    setTickets(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
+    setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
     try {
-      const res = await fetch("/api/tickets", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, [field]: value }) });
-      const json = await res.json();
-      if (!json.status) { showToast("Gagal update: " + json.message, "error"); load(); }
-    } catch { showToast("Gagal update", "error"); load(); }
+      const current = tickets.find((t) => t.id === id);
+      const params = new URLSearchParams();
+      params.append("action", "update");
+      params.append("id", id.toString());
+      if (field === "divisi") params.append("divisi", value);
+      if (field === "status") params.append("status", value);
+      if (current) {
+        if (field !== "divisi") params.append("divisi", current.divisi);
+        if (field !== "status") params.append("status", current.status);
+      }
+
+      await fetch(TICKET_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: params,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+
+      showToast("Status tiket diperbarui!", "success");
+    } catch {
+      showToast("Gagal update", "error");
+      load();
+    }
   };
 
   const filtered = tickets.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.kategori.toLowerCase().includes(search.toLowerCase()) || t.pesan.toLowerCase().includes(search.toLowerCase()));
@@ -2596,36 +2654,49 @@ function CalendarManager() {
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     setLoading(true);
-    try { const res = await fetch("/api/calendar"); const json = await res.json(); setEvents(json.data || []); }
-    catch { showToast("Gagal memuat jadwal", "error"); }
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_calendar") : null;
+      if (saved) setEvents(JSON.parse(saved));
+      else setEvents([]);
+    } catch {
+      setEvents([]);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !date) { showToast("Judul dan Tanggal wajib diisi", "error"); return; }
     setSaving(true);
     try {
-      const res = await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: isEdit ? "update" : "add", id: editId, title, date, startTime, url, imageUrl, item: { title, date, startTime, url, imageUrl } }) });
-      const json = await res.json();
-      if (json.success) { showToast(isEdit ? "Jadwal diperbarui" : "Jadwal ditambahkan", "success"); setShowModal(false); load(); }
-      else showToast("Gagal menyimpan jadwal", "error");
-    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+      const newEvents = isEdit
+        ? events.map(ev => ev.id === editId ? { ...ev, title, date, startTime, url, imageUrl } : ev)
+        : [...events, { id: Date.now().toString(), title, date, startTime, url, imageUrl }];
+      setEvents(newEvents);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_calendar", JSON.stringify(newEvents));
+      }
+      showToast(isEdit ? "Jadwal diperbarui" : "Jadwal ditambahkan", "success");
+      setShowModal(false);
+    } catch {
+      showToast("Gagal menyimpan jadwal", "error");
+    }
     setSaving(false);
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!confirmDelete) return;
-    try {
-      const res = await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id: confirmDelete.id }) });
-      const json = await res.json();
-      if (json.success) { showToast("Jadwal dihapus", "success"); setConfirmDelete(null); load(); }
-      else showToast("Gagal menghapus", "error");
-    } catch { showToast("Terjadi kesalahan", "error"); }
+    const newEvents = events.filter(ev => ev.id !== confirmDelete.id);
+    setEvents(newEvents);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cavallery_calendar", JSON.stringify(newEvents));
+    }
+    showToast("Jadwal dihapus", "success");
+    setConfirmDelete(null);
   };
 
   const openAdd = () => { setIsEdit(false); setEditId(""); setTitle(""); setDate(""); setStartTime("19:00"); setUrl(""); setImageUrl(""); setShowModal(true); };
@@ -2678,8 +2749,8 @@ function CalendarManager() {
                   <td>{ev.url ? <a href={ev.url} target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>{ev.url.length > 40 ? ev.url.slice(0, 40) + "…" : ev.url}</a> : "-"}</td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(ev)}><i className="bx bx-edit" /></button>
-                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(ev)}><i className="bx bx-trash" /></button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(ev)} title="Edit"><i className="bx bx-edit" /></button>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => setConfirmDelete(ev)} title="Hapus"><i className="bx bx-trash" /></button>
                     </div>
                   </td>
                 </tr>
@@ -2859,31 +2930,44 @@ function VcScheduleManager() {
   );
 }
 
-// ─── ABOUT ERINE MANAGER ─────────────────────────────────────────
+const DEFAULT_ABOUT_ERINE = [
+  "https://pbs.twimg.com/media/HOEIOQbaYAA44IQ?format=jpg&name=large",
+  "https://pbs.twimg.com/media/HMcKFbHboAEdwxl?format=jpg&name=large",
+  "https://pbs.twimg.com/media/HJpGaCTaAAAZoVt?format=jpg&name=large"
+];
+
+// ─── ABOUT ERINE MANAGER ──────────────────────────────────────────
 function AboutErineManager() {
-  const [slides, setSlides] = useState<string[]>([]);
+  const [slides, setSlides] = useState<string[]>(DEFAULT_ABOUT_ERINE);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     setLoading(true);
-    try { const res = await fetch("/api/about-erine"); const json = await res.json(); if (json.success) setSlides(json.data); }
-    catch {}
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_about_erine") : null;
+      if (saved) setSlides(JSON.parse(saved));
+      else setSlides(DEFAULT_ABOUT_ERINE);
+    } catch {
+      setSlides(DEFAULT_ABOUT_ERINE);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch("/api/about-erine", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(slides) });
-      const json = await res.json();
-      if (json.success) { setToast({ msg: "Berhasil menyimpan foto About Erine", type: "success" }); load(); }
-      else setToast({ msg: "Gagal menyimpan", type: "error" });
-    } catch { setToast({ msg: "Error jaringan", type: "error" }); }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_about_erine", JSON.stringify(slides));
+      }
+      setToast({ msg: "Berhasil menyimpan foto About Erine", type: "success" });
+    } catch {
+      setToast({ msg: "Gagal menyimpan", type: "error" });
+    }
     setSaving(false);
   };
 
@@ -2913,38 +2997,59 @@ function AboutErineManager() {
   );
 }
 
+const DEFAULT_CITIES: Record<string, number> = {
+  "Jakarta": 92, "Bekasi": 64, "Tangerang": 58, "Bogor": 52, "Depok": 28, "Bandung": 26,
+  "Surabaya": 24, "Semarang": 20, "Yogyakarta": 18, "Malang": 17, "Lampung": 12, "Medan": 11,
+  "Padang": 9, "Balikpapan": 8, "Samarinda": 10, "Pekalongan": 7, "Banyumas": 6, "Kediri": 7,
+  "Jember": 5, "Sidoarjo": 7, "Magelang": 5, "Kebumen": 5, "Kudus": 5, "Palembang": 5,
+  "Makassar": 5, "Bengkulu": 6, "Denpasar": 2, "Banjar": 2, "Ponorogo": 3, "Nganjuk": 2,
+  "Batam": 2, "Solo": 3, "Purwakarta": 2, "Pontianak": 2, "Pemalang": 3, "Pasuruan": 2,
+  "Tasikmalaya": 2, "Sragen": 2, "Binjai": 2, "Jambi": 2, "Indramayu": 2, "Tegal": 3,
+  "Purworejo": 2, "Cilegon": 2, "Sukabumi": 3, "Blitar": 2, "Boyolali": 2, "Karawang": 3,
+  "Mojokerto": 2, "Pangkal Pinang": 2, "Palu": 2, "Kuningan": 3, "Manado": 3, "Probolinggo": 2,
+  "Tuban": 2, "Kendari": 2, "Wonosobo": 2, "Garut": 2, "Majalengka": 2, "Lumajang": 2,
+  "Serang": 2, "Pandeglang": 2, "Lubuklinggau": 1
+};
+
 // ─── ANGGOTA KOTA MANAGER ─────────────────────────────────────────
 function AnggotaKotaManager() {
-  const [cityData, setCityData] = useState<Record<string, number>>({});
+  const [cityData, setCityData] = useState<Record<string, number>>(DEFAULT_CITIES);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     setLoading(true);
-    try { const res = await fetch("/api/anggota-kota"); const json = await res.json(); if (json.success) setCityData(json.data); }
-    catch {}
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_anggota_kota") : null;
+      if (saved) setCityData(JSON.parse(saved));
+      else setCityData(DEFAULT_CITIES);
+    } catch {
+      setCityData(DEFAULT_CITIES);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch("/api/anggota-kota", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cityData) });
-      const json = await res.json();
-      if (json.success) { setToast({ msg: "Berhasil menyimpan Anggota Kota", type: "success" }); load(); }
-      else setToast({ msg: "Gagal menyimpan", type: "error" });
-    } catch { setToast({ msg: "Error jaringan", type: "error" }); }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_anggota_kota", JSON.stringify(cityData));
+      }
+      setToast({ msg: "Berhasil menyimpan Anggota Kota", type: "success" });
+    } catch {
+      setToast({ msg: "Gagal menyimpan", type: "error" });
+    }
     setSaving(false);
   };
 
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-map" style={{ color: "#3b82f6" }} /> Anggota Kota</h2></div>
+      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-map" style={{ color: "#3b82f6" }} /> Anggota Kota ({Object.keys(cityData).length} Kota)</h2></div>
       {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div> : (
         <div className={styles.formModal} style={{ position: "relative", maxWidth: 800 }}>
           <form onSubmit={handleSave}>
@@ -2987,21 +3092,38 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "updates",  path: ""          },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        const url = key === "journal" ? JOURNAL_SCRIPT_URL : key === "tickets" ? "/api/tickets" : key === "calendar" ? "/api/calendar" : key === "updates" ? "/api/updates" : api(path);
-        const res  = await fetch(url);
+        if (key === "tickets") {
+          const res = await fetch(TICKET_SCRIPT_URL);
+          const raw = await res.json();
+          const count = Array.isArray(raw) ? Math.max(0, raw.length - 1) : 0;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "journal") {
+          const res = await fetch(JOURNAL_SCRIPT_URL);
+          const raw = await res.json();
+          const count = Array.isArray(raw) ? raw.length : 0;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "calendar") {
+          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_calendar") : null;
+          const count = saved ? JSON.parse(saved).length : 0;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+
+        const url = api(path);
+        const res = await fetch(url);
         const json = await res.json();
         let count = 0;
-        if (["journal","tickets","calendar","updates"].includes(key)) {
-          count = Array.isArray(json) ? json.length : Array.isArray(json.data) ? json.data.length : 0;
-        } else {
-          const data = json?.data;
-          if      (Array.isArray(data))       count = data.length;
-          else if (data?.total !== undefined) count = data.total;
-          else if (data?.news)                count = data.news.length;
-          else if (data?.items)               count = data.items.length;
-          else if (data?.videos)              count = data.videos.length;
-          else if (data?.events)              count = data.events.length;
-        }
+        const data = json?.data;
+        if      (Array.isArray(data))       count = data.length;
+        else if (data?.total !== undefined) count = data.total;
+        else if (data?.news)                count = data.news.length;
+        else if (data?.items)               count = data.items.length;
+        else if (data?.videos)              count = data.videos.length;
+        else if (data?.events)              count = data.events.length;
         setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
@@ -3025,6 +3147,8 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "calendar",   icon: "bx-calendar",     label: "Calendar",  color: "#3b82f6" },
     { key: "updates",    icon: "bx-refresh",      label: "Updates",   color: "#10b981" },
     { key: "vcschedule", icon: "bx-video",        label: "Video Call",color: "#ec4899" },
+    { key: "abouterine", icon: "bx-image",        label: "About Erine",color: "#ec4899" },
+    { key: "anggotakota",icon: "bx-map",          label: "Anggota Kota",color: "#3b82f6" },
   ];
 
   return (

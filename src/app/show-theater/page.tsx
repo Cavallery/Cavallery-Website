@@ -34,7 +34,7 @@ export default function ShowTheaterPage() {
   const load = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const res = await fetch("https://v5.jkt48connect.com/api/jkt48/theater?priority_token=sJbpVqLinYlp");
+      const res = await fetch("/api/theater", { cache: "no-store" });
       const json = await res.json();
       setShows(Array.isArray(json.data) ? json.data : []);
     } catch (e) { setError(String(e)); }
