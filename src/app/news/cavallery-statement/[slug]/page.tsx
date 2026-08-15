@@ -53,6 +53,8 @@ function renderContent(content: string) {
   ));
 }
 
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   try {
     const res = await fetch(
@@ -64,14 +66,15 @@ export async function generateStaticParams() {
         },
       }
     );
-    if (!res.ok) return [];
+    if (!res.ok) return [{ slug: "detail" }];
     const json = await res.json();
-    const list = json?.data || [];
-    return list.map((item: any) => ({
+    const list = json?.data?.news || (Array.isArray(json?.data) ? json.data : []);
+    const slugs = list.map((item: any) => ({
       slug: String(item.slug || item.id),
     }));
+    return slugs.length > 0 ? slugs : [{ slug: "detail" }];
   } catch {
-    return [];
+    return [{ slug: "detail" }];
   }
 }
 
