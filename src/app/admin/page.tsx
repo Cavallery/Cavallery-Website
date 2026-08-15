@@ -84,20 +84,28 @@ function AdminPortal({ children }: { children: React.ReactNode }) {
   return createPortal(children, document.body);
 }
 
-// ─── AUTH HOOK (PENGGANTI sessionStorage — server-side verified) ──────────────
+// ─── AUTH HOOK (Client-side verified via Hono backend) ──────────────
 function useAdminAuth() {
   const [authed,   setAuthed]   = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Verifikasi session ke server saat mount
-    // httpOnly cookie dikirim otomatis oleh browser — tidak bisa dimanipulasi dari console
-    fetch("/api/admin/verify", {
-      method:      "GET",
-      credentials: "same-origin",
+    const token = typeof window !== "undefined" ? localStorage.getItem("cava_session") : null;
+    if (!token) {
+      setAuthed(false);
+      setChecking(false);
+      return;
+    }
+
+    fetch("https://v5.jkt48connect.com/api/admin-auth/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setAuthed(data.status === true && data.valid === true);
       })
       .catch(() => {
@@ -109,19 +117,26 @@ function useAdminAuth() {
   }, []);
 
   const logout = async () => {
-    try {
-      await fetch("/api/admin/logout", {
-        method:      "POST",
-        credentials: "same-origin",
-      });
-    } catch {}
+    const token = typeof window !== "undefined" ? localStorage.getItem("cava_session") : null;
+    if (token) {
+      try {
+        await fetch("https://v5.jkt48connect.com/api/admin-auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+      } catch {}
+      localStorage.removeItem("cava_session");
+    }
     setAuthed(false);
   };
 
   return { authed, checking, setAuthed, logout };
 }
 
-// ─── LOGIN PAGE (auth via API → httpOnly cookie) ──────────────
+// ─── LOGIN PAGE (auth via Hono API) ──────────────
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [user, setUser]       = useState("");
   const [pass, setPass]       = useState("");
@@ -137,18 +152,16 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     setErr("");
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method:      "POST",
-        headers:     { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body:        JSON.stringify({ username: user, password: pass }),
+      const res = await fetch("https://v5.jkt48connect.com/api/admin-auth/login", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ username: user, password: pass }),
       });
 
       const data = await res.json();
 
-      if (data.status) {
-        // Token disimpan di httpOnly cookie oleh server
-        // Tidak ada yang bisa dimanipulasi dari browser console
+      if (data.status && data.token) {
+        localStorage.setItem("cava_session", data.token);
         onLogin();
       } else {
         if (res.status === 429) {
