@@ -202,7 +202,7 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       // Row 2: Lokasi
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 24px Montserrat, sans-serif";
-      ctx.fillText("FX Sudirman — Lantai F7", contentX, by + 245);
+      ctx.fillText("CGV FX Sudirman — Lantai F7", contentX, by + 245);
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 17px Montserrat, sans-serif";
@@ -340,7 +340,7 @@ export default function WayfinderInvitation({
                 <i className="bx bx-map-pin" />
               </div>
               <div className={styles.detailInfo}>
-                <div className={styles.detailTitle}>FX Sudirman — Lantai F7</div>
+                <div className={styles.detailTitle}>CGV FX Sudirman — Lantai F7</div>
                 <div className={styles.detailSub}>Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan</div>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function WayfinderInvitation({
           <div className={styles.actionArea}>
             <a
               className={styles.mapBtn}
-              href="https://maps.google.com/?q=FX+Sudirman+Jakarta"
+              href="https://maps.google.com/?q=CGV+FX+Sudirman"
               target="_blank"
               rel="noopener noreferrer"
             >
