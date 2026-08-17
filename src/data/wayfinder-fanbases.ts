@@ -39,7 +39,7 @@ const RAW_FANBASES = [
   "Sahabat Gendis",
   "Wargavi48",
   "Nayrakuen",
-  "Arariel",
+  "Aranika",
   "Hillaryours",
   "Delynessence",
   "Olinara",
@@ -54,7 +54,7 @@ const RAW_FANBASES = [
   "GROVY",
   "Jevolante",
   "Humainiora",
-  "Intanium",
+  "Iris",
   "Aprillivels",
   "AuLavana",
   "BerbahaGIA.ID",
@@ -97,6 +97,11 @@ export const FANBASES: FanbaseEntry[] = RAW_FANBASES.map((name) => ({
   slug: toSlug(name),
   name,
 }));
+
+// slug -> name lookup
+export const SLUG_TO_NAME: Record<string, string> = Object.fromEntries(
+  FANBASES.map((f) => [f.slug, f.name])
+);
 
 // Helper to resolve fanbase flexibly (handles case-insensitivity, spaces, dashes, dots, and encoding)
 export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
