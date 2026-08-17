@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, use } from "react";
-import { SLUG_TO_NAME } from "@/data/wayfinder-fanbases";
+import { getFanbaseByNameOrSlug } from "@/data/wayfinder-fanbases";
 import styles from "./page.module.css";
 
-const EVENT_DATE = "2026-08-22T19:00:00+07:00";
+const EVENT_DATE = "2026-08-22T15:00:00+07:00";
 const BG_IMAGE = "/images/wayfinder-bg.png";
 
 /* ============================================================
@@ -190,7 +190,7 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 17px Montserrat, sans-serif";
-      ctx.fillText("Pukul 19.00 WIB — selesai", contentX, by + 155);
+      ctx.fillText("Pukul 15.00 — 20.30 WIB", contentX, by + 155);
 
       // Separator
       ctx.strokeStyle = "rgba(255,255,255,0.1)";
@@ -277,7 +277,7 @@ export default function WayfinderInvitation({
   params: Promise<{ code: string }>;
 }) {
   const { code } = use(params);
-  const fanbase = SLUG_TO_NAME[code];
+  const fanbase = getFanbaseByNameOrSlug(code);
 
   if (!fanbase) {
     return (
@@ -331,7 +331,7 @@ export default function WayfinderInvitation({
               </div>
               <div className={styles.detailInfo}>
                 <div className={styles.detailTitle}>Jumat, 22 Agustus 2026</div>
-                <div className={styles.detailSub}>Pukul 19.00 WIB — selesai</div>
+                <div className={styles.detailSub}>Pukul 15.00 — 20.30 WIB</div>
               </div>
             </div>
 
