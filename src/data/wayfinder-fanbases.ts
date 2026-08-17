@@ -71,6 +71,19 @@ const RAW_FANBASES = [
   "RaraLand",
   "TerpeSona",
   "TheaFeria",
+  "Cipuyyy",
+  "William Santoso",
+  "Angga",
+  "RFDorable",
+  "Vend.",
+  "Lucky Arasyah",
+  "Indyraaa",
+  "Roni Eriyanto",
+  "Rifqi Annafi",
+  "ForLovelist",
+  "Expose Right Noise",
+  "Tumpul Vallencia",
+  "Point Of View",
 ];
 
 function toSlug(name: string): string {
@@ -85,10 +98,44 @@ export const FANBASES: FanbaseEntry[] = RAW_FANBASES.map((name) => ({
   name,
 }));
 
-// slug → display name lookup
-export const SLUG_TO_NAME: Record<string, string> = Object.fromEntries(
-  FANBASES.map((f) => [f.slug, f.name])
-);
+// Helper to resolve fanbase flexibly (handles case-insensitivity, spaces, dashes, dots, and encoding)
+export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
+  if (!rawInput) return undefined;
+  
+  let decoded = rawInput;
+  try {
+    decoded = decodeURIComponent(rawInput).trim();
+  } catch {
+    decoded = rawInput.trim();
+  }
+
+  // 1. Direct slug match
+  if (SLUG_TO_NAME[decoded]) {
+    return SLUG_TO_NAME[decoded];
+  }
+
+  // 2. Direct name match (e.g. /the-wayfinder/Olla The Miracle)
+  const directNameMatch = FANBASES.find(
+    (f) => f.name.toLowerCase() === decoded.toLowerCase()
+  );
+  if (directNameMatch) {
+    return directNameMatch.name;
+  }
+
+  // 3. Flexible normalized match (removes spaces, dashes, dots, underscores, case)
+  const normalize = (str: string) =>
+    str.toLowerCase().replace(/[^a-z0-9]/g, "");
+  
+  const targetNorm = normalize(decoded);
+  if (!targetNorm) return undefined;
+
+  const flexibleMatch = FANBASES.find(
+    (f) =>
+      normalize(f.slug) === targetNorm || normalize(f.name) === targetNorm
+  );
+
+  return flexibleMatch?.name;
+}
 
 // All valid slugs (for generateStaticParams)
 export const ALL_SLUGS = FANBASES.map((f) => f.slug);
