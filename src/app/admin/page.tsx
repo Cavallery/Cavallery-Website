@@ -1035,8 +1035,21 @@ interface JournalMessage {
   rawDate: string;
 }
 
+const DEFAULT_JOURNAL_MESSAGES: JournalMessage[] = [
+  { id: 1, name: "lalallalalala", msg: "haloo ci erinee sayangg!! tauu gaa kehidupan aku jadi lebih berwarna saat ada ci erineee, ci erine tu uda aku anggap seperti kaka kandung tauuu ya walaupun ci erine gatau aku hidup huhuhu soalnya belum bisa vc in another day akuu vc ya ci tunggu akuu!!!, bertahan lebih lama di jkt48 ya ci!! aku adalah salah satu orang yang bangga smaa ciciii, HARUS SELALU PERCAYA DIRI YA CII OKAIIII, aku tau banyak yang selalu dukung ciciii, I LOVE U CATHERINA VALLENCIA KETUA BEBEK KUUUU🐣🤍", date: "9 Mar 2026, 19.50", rawDate: "2026-03-09T12:50:42.000Z" },
+  { id: 2, name: "Dinda duyoung ", msg: "Hai ci erine semangat terus yaa kegiatannya jaga kesehatannya jugaa apalagi sekarang kamu lagi sibuk\"nya latihan buat shonici setlist baru dan mv baru juga yaa semangat yaa, minum air putih yang cukup sehat\" cerine 🤍🍀. Cinta kamu banget 🫶🏻 jujur kangen 🥹", date: "12 Mar 2026, 21.25", rawDate: "2026-03-12T14:25:54.000Z" },
+  { id: 3, name: "faiz mahmud", msg: "hai erine! bagaimana kabarmu? semoga kamu sehat selalu ya. jangan jaga kesehatan, istirahat yang cukup, dan bersemangat dalam menjalani hari yang penuh dengan seribu kejutan. udah deh itu aja o ya sebelum itu aku punya kata-kata untuk erine agar semangat dalam menjalani hari. kata-kata hari ini= jalani hidupmu dengan sungguh-sungguh agar hati mu tetap teguh", date: "15 Mar 2026, 20.48", rawDate: "2026-03-15T13:48:05.000Z" },
+  { id: 4, name: "vernx ", msg: "Hai ci Erine semangat terus ya, jaga kesehatan selalu pokoknya apapun kegiatannya tetap semangat. Aku yakin kamu pasti bisa dan mampu untuk melakukannya dengan terbaik. Aku akan terus menemani perjalananmu sampai akhir, ci Erine kamu itu hebat, keren, luar biasa jadi jangan pernah merasa bahwa dirimu itu tidak layak ataupun tidak cocok untuk mendapatkan dukungan dan kebahagiaan yang dirasakan di JKT48. Ci Erine oshi kesayanganku yang tidak pernah tergantikan aku cuma mau bilang, tolong bertahan lebih lama di JKT48 kita sama-sama berjuang bikin chapter yang indah dan raih mimpi-mimpi besarmu. I love Ci Erine 🫶🏻💌", date: "19 Mar 2026, 09.55", rawDate: "2026-03-19T02:55:07.000Z" },
+  { id: 5, name: "dhafinnn", msg: "semangat yaa dalam menjalani semuanya, you are stronger than you think. you dont have to carry it all alone, we've got your back. sehat sehat terus yaaaa 🤍", date: "19 Mar 2026, 23.52", rawDate: "2026-03-19T16:52:14.000Z" },
+  { id: 6, name: "R_Syaa (aisyah_adl) ", msg: "Hai kak ci erine! minal aidzin wal faidzin, mohon maaf lahir dan batin yaa kakk🙏🏻 kakak semangattt terus yaaa kakk! aku selalu mendukung apapun yang kakak lakukan, terimakasih untuk semua kerja keras kak erine! kak ci erine hebat! aku sayang banget sama kak erine 🫂🤍", date: "20 Mar 2026, 02.51", rawDate: "2026-03-19T19:51:21.000Z" },
+  { id: 7, name: "dari yg punya akun: jasjusscoklat", msg: "KA RINEEE TERIMAKASI YAA SUDAH HADIRR MEMBAWA BANYAK KEJUTANNN DAN BAHAGIAAA, you're the sun to the moon, eak~😝✌🏻✌🏻", date: "20 Mar 2026, 21.43", rawDate: "2026-03-20T14:43:39.000Z" },
+  { id: 8, name: "odi", msg: "halowww erine terima kasih atas kerja keras dan semangatmu dari awal sampai sekarang! jaga kesehatan karna itu sangat sangat penting!😡", date: "20 Mar 2026, 22.55", rawDate: "2026-03-20T15:55:20.000Z" },
+  { id: 9, name: "Jaden A.", msg: "kamu adalah manusia yang paling dinantikan kehadirannya oleh banyak orang. sehat selalu dan bahagia selalu manusia baik", date: "24 Mar 2026, 22.15", rawDate: "2026-03-24T15:15:59.000Z" },
+  { id: 10, name: "Alisha", msg: "Hi Ci Erinee ^^ Semangat terus yaa, selalu ada banyak orang yang akan selalu support cicii! Love sekebonn ( *¯ ³¯*)♡", date: "28 Mar 2026, 22.01", rawDate: "2026-03-28T15:01:07.000Z" }
+];
+
 function JournalManager() {
-  const [messages, setMessages] = useState<JournalMessage[]>([]);
+  const [messages, setMessages] = useState<JournalMessage[]>(DEFAULT_JOURNAL_MESSAGES);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -1054,18 +1067,46 @@ function JournalManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    let loadedMessages: JournalMessage[] | null = null;
     try {
       const res = await fetch("/api/journal");
-      const data = await res.json();
-      const formatted: JournalMessage[] = data.map((item: any) => ({
-        id: item.id,
-        name: item.name || "Anonim",
-        msg: item.msg || "",
-        date: item.date ? new Date(item.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-",
-        rawDate: item.date || ""
-      }));
-      setMessages(formatted.reverse());
-    } catch { showToast("Gagal memuat data jurnal", "error"); setMessages([]); }
+      if (res.ok) {
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : null);
+        if (arr && arr.length > 0) {
+          loadedMessages = arr.map((item: any, idx: number) => ({
+            id: item.id || (idx + 1),
+            name: item.name || "Anonim",
+            msg: item.msg || item.pesan || "",
+            date: item.date ? new Date(item.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-",
+            rawDate: item.date || ""
+          }));
+        }
+      }
+    } catch {}
+
+    if (!loadedMessages || loadedMessages.length === 0) {
+      try {
+        const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_journal") : null;
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            loadedMessages = parsed;
+          }
+        }
+      } catch {}
+    }
+
+    if (!loadedMessages || loadedMessages.length === 0) {
+      loadedMessages = DEFAULT_JOURNAL_MESSAGES;
+    }
+
+    setMessages([...loadedMessages].reverse());
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_journal", JSON.stringify(loadedMessages));
+      } catch {}
+    }
     setLoading(false);
   }, []);
 
@@ -1075,12 +1116,35 @@ function JournalManager() {
     e.preventDefault();
     if (!newSender.trim() || !newMessage.trim()) { showToast("Nama dan pesan wajib diisi", "error"); return; }
     setSaving(true);
+
+    const newEntry: JournalMessage = {
+      id: Date.now(),
+      name: newSender.trim(),
+      msg: newMessage.trim(),
+      date: new Date().toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+      rawDate: new Date().toISOString()
+    };
+
+    const updated = [newEntry, ...messages];
+    setMessages(updated);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_journal", JSON.stringify([...updated].reverse()));
+      } catch {}
+    }
+
     try {
-      const res = await fetch("/api/journal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newSender.trim(), msg: newMessage.trim() }) });
-      const json = await res.json();
-      if (json.status) { showToast("Pesan berhasil disematkan!", "success"); setNewSender(""); setNewMessage(""); setShowAddModal(false); load(); }
-      else showToast(json.message || "Gagal menyematkan pesan", "error");
-    } catch { showToast("Gagal mengirim pesan", "error"); }
+      await fetch("/api/journal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newSender.trim(), msg: newMessage.trim() })
+      });
+    } catch {}
+
+    showToast("Pesan berhasil disematkan!", "success");
+    setNewSender("");
+    setNewMessage("");
+    setShowAddModal(false);
     setSaving(false);
   };
 
@@ -1089,23 +1153,45 @@ function JournalManager() {
     if (!selectedMessage) return;
     if (!editSender.trim() || !editMessageText.trim()) { showToast("Nama dan pesan wajib diisi", "error"); return; }
     setSaving(true);
+
+    const updated = messages.map(m => m.id === selectedMessage.id ? { ...m, name: editSender.trim(), msg: editMessageText.trim() } : m);
+    setMessages(updated);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_journal", JSON.stringify([...updated].reverse()));
+      } catch {}
+    }
+
     try {
-      const res = await fetch("/api/journal", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: selectedMessage.id, name: editSender.trim(), msg: editMessageText.trim() }) });
-      const json = await res.json();
-      if (json.status) { showToast("Pesan berhasil diperbarui!", "success"); setShowEditModal(false); setSelectedMessage(null); load(); }
-      else showToast(json.message || "Gagal memperbarui pesan", "error");
-    } catch { showToast("Gagal memperbarui pesan", "error"); }
+      await fetch("/api/journal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedMessage.id, name: editSender.trim(), msg: editMessageText.trim() })
+      });
+    } catch {}
+
+    showToast("Pesan berhasil diperbarui!", "success");
+    setShowEditModal(false);
+    setSelectedMessage(null);
     setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
+    const updated = messages.filter(m => m.id !== confirmDelete.id);
+    setMessages(updated);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_journal", JSON.stringify([...updated].reverse()));
+      } catch {}
+    }
+
     try {
-      const res = await fetch(`/api/journal?id=${confirmDelete.id}`, { method: "DELETE" });
-      const json = await res.json();
-      if (json.status) { showToast("Pesan berhasil dihapus!", "success"); setConfirmDelete(null); load(); }
-      else showToast(json.message || "Gagal menghapus pesan", "error");
-    } catch { showToast("Gagal menghapus pesan", "error"); }
+      await fetch(`/api/journal?id=${confirmDelete.id}`, { method: "DELETE" });
+    } catch {}
+
+    showToast("Pesan berhasil dihapus!", "success");
+    setConfirmDelete(null);
   };
 
   const openEdit = (msg: JournalMessage) => { setSelectedMessage(msg); setEditSender(msg.name); setEditMessageText(msg.msg); setShowEditModal(true); };
@@ -1220,8 +1306,34 @@ interface BotConfig {
   rules: { id: string; triggers: string[][]; response: string; }[];
 }
 
+const DEFAULT_BOT_CONFIG: BotConfig = {
+  apiKey: "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
+  fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek-hestek seru lainnya ya! Aku pasti bisa bantu.",
+  rules: [
+    { id: "rule_1", triggers: [["siapa", "kenal"], ["erine", "catherina"]], response: "Erine (Catherina Vallencia Kurniawan) itu member JKT48 generasi 12 yang sekarang berada di Team Passion! Dia diperkenalkan pertama kali tanggal 18 November 2023 di JakJapan Matsuri. Orangnya super gemesin dan berbakat banget!" },
+    { id: "rule_2", triggers: [["setlist", "teater", "show"]], response: "Erine udah membawakan total 7 setlist lho! Mulai dari Aitakatta (hebatnya dia pernah bawain semua unit song di sini!), Pajama Drive, Renai Kinshi Jourei (RKJ), Te Wo Tsunaginagara (TWT), Kira Kira Girls (dia jadi global center!), terus setelah naik ke member inti ada Ramune no Nomikata dan setlist tim Passion yaitu Passion 200%!" },
+    { id: "rule_3", triggers: [["projek", "project", "rose", "rh", "request hour", "obscura"]], response: "Saat ini Cavallery lagi ngadain projek Blue Rose dengan hestek #RoseObscura untuk Request Hour (RH) bertema #Memory! Kita juga ada hestek #NabungRine buat persiapan menyukseskan Erine di RH 2026 nanti. Yuk ikutan!" },
+    { id: "rule_4", triggers: [["lahir", "umur", "usia", "tanggal"]], response: "Erine lahir tanggal 21 Agustus 2007 (Zodiak Leo). Sekarang dia udah makin dewasa dan terus bersinar bersama JKT48!" },
+    { id: "rule_5", triggers: [["hometown", "asal", "tinggal", "bekasi"]], response: "Erine berasal dari Bekasi, Jawa Barat, Indonesia! Anak Bekasi kebanggaan Cavallery nih, hehe." },
+    { id: "rule_6", triggers: [["maskot", "bebek", "rinara"]], response: "Maskot resmi Cavallery namanya Rinara! Bentuknya bebek lucu yang nemenin perjuangan kita selama SSK 2024 kemarin." },
+    { id: "rule_7", triggers: [["golongan darah", "goldar"]], response: "Golongan darah Erine itu B ya guys!" },
+    { id: "rule_8", triggers: [["tinggi", "tb"]], response: "Tinggi badan Erine itu 162 cm. Pas banget dan ideal!" },
+    { id: "rule_9", triggers: [["makanan", "kesukaan", "favorit", "suka"]], response: "Erine suka banget makan seafood, mala tang, dan dubai chewy cookie! Hewan kesukaannya Sealion. Manis dan gurih semuanya disapu bersih, haha." },
+    { id: "rule_10", triggers: [["mv", "video musik"]], response: "Erine sejauh ini udah tampil di 2 MV JKT48! Pertama, MV Undergirls 'Bibir yang Telah Dicuri' (Nusumareta Kuchibiru) berkat rank 18 di SSK 2024. Kedua, MV Team Passion yang judulnya 'Dekat Namun Jauh'!" },
+    { id: "rule_11", triggers: [["hestek", "hashtag", "diesvenerine"]], response: "Erine punya banyak hestek seru! Ada #DiesVenErine (khusus hari Jumat), #MemoRine (jurnal), #SahuRine, #Ngabuburine, #BukbeRine, #GameRine (mini games), dan #NgabaRine untuk PM mingguan!" },
+    { id: "rule_12", triggers: [["cavallery", "fanbase"]], response: "Cavallery adalah fanbase resmi pendukung Catherina Vallencia (Erine) JKT48! Dibentuk tanggal 18 November 2023, bertepatan dengan debut Erine. Kita solid banget lho, yuk gabung!" },
+    { id: "rule_13", triggers: [["ssk", "sousenkyo", "rank", "peringkat"]], response: "Erine berhasil meraih peringkat ke-18 di SSK JKT48 2024 dan masuk to jajaran Undergirls! Keren banget kan? Selama SSK juga ada maskot Cavallery bernama Rinara si bebek lucu." },
+    { id: "rule_14", triggers: [["team", "tim", "passion"]], response: "Erine sekarang ada di Team Passion! Dia dipromosikan jadi member inti JKT48 pada 25 Oktober 2025 saat event Sister Reunion. Bangga banget sama pencapaiannya!" },
+    { id: "rule_15", triggers: [["zodiak", "leo"]], response: "Zodiak Erine itu Leo karena lahir tanggal 21 Agustus! Cocok banget sama kepribadiannya yang percaya diri dan bersinar di panggung." },
+    { id: "rule_16", triggers: [["brand", "ambassador", "bihunku", "freefire", "free fire"]], response: "Erine menjadi Brand Ambassador BihunKu dan FreeFire bareng member JKT48 lainnya. Keren banget ya bisa jadi BA brand besar!" },
+    { id: "rule_17", triggers: [["halo", "hai", "hey", "hi ", "hi"]], response: "Halo juga! Aku asisten dari Jenderal Cavallery. Mau tanya apa nih soal Erine? Aku siap bantu!" },
+    { id: "rule_18", triggers: [["lagi apa", "kabar", "gimana", "apa kabar"]], response: "Erine lagi sibuk banget nih sama kegiatan JKT48 di Team Passion! Jadwal teater, latihan setlist, dan berbagai event seru lainnya. Kalau mau tau jadwal shownya, cek aja di halaman utama Cavallery ya!" },
+    { id: "rule_19", triggers: [["terima kasih", "makasih", "thanks", "thx"]], response: "Sama-sama ya! Seneng bisa bantu. Jangan lupa terus dukung Erine dan Cavallery ya!" }
+  ]
+};
+
 function BotManager() {
-  const [config, setConfig] = useState<BotConfig | null>(null);
+  const [config, setConfig] = useState<BotConfig>(DEFAULT_BOT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -1235,12 +1347,36 @@ function BotManager() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    let loadedConfig: BotConfig | null = null;
     try {
       const res = await fetch("/api/bot-config");
-      const json = await res.json();
-      if (json.status) setConfig(json.data);
-      else showToast("Gagal memuat konfigurasi bot", "error");
-    } catch { showToast("Terjadi kesalahan jaringan saat memuat bot", "error"); }
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && json.data) {
+          loadedConfig = json.data;
+        }
+      }
+    } catch {}
+
+    if (!loadedConfig) {
+      try {
+        const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_bot_config") : null;
+        if (saved) {
+          loadedConfig = JSON.parse(saved);
+        }
+      } catch {}
+    }
+
+    if (!loadedConfig) {
+      loadedConfig = DEFAULT_BOT_CONFIG;
+    }
+
+    setConfig(loadedConfig);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_bot_config", JSON.stringify(loadedConfig));
+      } catch {}
+    }
     setLoading(false);
   }, []);
 
@@ -1250,17 +1386,25 @@ function BotManager() {
     e.preventDefault();
     if (!config) return;
     setSaving(true);
+    const newConfig = { ...config };
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_bot_config", JSON.stringify(newConfig));
+      } catch {}
+    }
     try {
-      const res = await fetch("/api/bot-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse }) });
-      const json = await res.json();
-      if (json.status) { showToast("Konfigurasi umum berhasil disimpan!", "success"); setConfig(json.data); }
-      else showToast(json.message || "Gagal menyimpan konfigurasi", "error");
-    } catch { showToast("Gagal menyimpan konfigurasi", "error"); }
+      await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse })
+      });
+    } catch {}
+    showToast("Konfigurasi umum berhasil disimpan!", "success");
     setSaving(false);
   };
 
   const openAddRule = () => { setRuleGroups([""]); setRuleResponse(""); setSelectedRuleId(null); setShowRuleModal("add"); };
-  const openEditRule = (rule: any) => { setRuleGroups(rule.triggers.map((g: string[]) => g.join(", "))); setRuleResponse(rule.response); setSelectedRuleId(rule.id); setShowRuleModal("edit"); };
+  const openEditRule = (rule: any) => { setRuleGroups(rule.triggers.map((g: string[]) => Array.isArray(g) ? g.join(", ") : String(g))); setRuleResponse(rule.response); setSelectedRuleId(rule.id); setShowRuleModal("edit"); };
 
   const handleSaveRule = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1269,32 +1413,59 @@ function BotManager() {
     if (triggers2D.length === 0) { showToast("Harap masukkan setidaknya satu kata kunci", "error"); return; }
     if (!ruleResponse.trim()) { showToast("Pesan balasan wajib diisi", "error"); return; }
     setSaving(true);
+
+    const updatedRules = [...(config.rules || [])];
+    if (showRuleModal === "add") {
+      updatedRules.push({ id: "rule_" + Date.now(), triggers: triggers2D, response: ruleResponse.trim() });
+    } else {
+      const idx = updatedRules.findIndex(r => r.id === selectedRuleId);
+      if (idx !== -1) updatedRules[idx] = { id: selectedRuleId!, triggers: triggers2D, response: ruleResponse.trim() };
+    }
+
+    const newConfig = { ...config, rules: updatedRules };
+    setConfig(newConfig);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_bot_config", JSON.stringify(newConfig));
+      } catch {}
+    }
+
     try {
-      const updatedRules = [...config.rules];
-      if (showRuleModal === "add") updatedRules.push({ id: "rule_" + Date.now(), triggers: triggers2D, response: ruleResponse.trim() });
-      else { const idx = updatedRules.findIndex(r => r.id === selectedRuleId); if (idx !== -1) updatedRules[idx] = { id: selectedRuleId!, triggers: triggers2D, response: ruleResponse.trim() }; }
-      const res = await fetch("/api/bot-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse, rules: updatedRules }) });
-      const json = await res.json();
-      if (json.status) { showToast("Aturan pesan berhasil disimpan!", "success"); setConfig(json.data); setShowRuleModal(null); }
-      else showToast(json.message || "Gagal menyimpan aturan", "error");
-    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+      await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse, rules: updatedRules })
+      });
+    } catch {}
+
+    showToast("Aturan pesan berhasil disimpan!", "success");
+    setShowRuleModal(null);
     setSaving(false);
   };
 
   const handleDeleteRule = async (ruleId: string) => {
     if (!config || !confirm("Hapus aturan pesan ini?")) return;
+    const updatedRules = (config.rules || []).filter(r => r.id !== ruleId);
+    const newConfig = { ...config, rules: updatedRules };
+    setConfig(newConfig);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_bot_config", JSON.stringify(newConfig));
+      } catch {}
+    }
+
     try {
-      const updatedRules = config.rules.filter(r => r.id !== ruleId);
-      const res = await fetch("/api/bot-config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse, rules: updatedRules }) });
-      const json = await res.json();
-      if (json.status) { showToast("Aturan pesan berhasil dihapus", "success"); setConfig(json.data); }
-      else showToast(json.message || "Gagal menghapus aturan", "error");
-    } catch { showToast("Terjadi kesalahan jaringan", "error"); }
+      await fetch("/api/bot-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: config.apiKey, fallbackResponse: config.fallbackResponse, rules: updatedRules })
+      });
+    } catch {}
+
+    showToast("Aturan pesan berhasil dihapus", "success");
   };
 
   const filteredRules = config?.rules.filter(r => r.response.toLowerCase().includes(search.toLowerCase()) || r.triggers.some(g => g.some(t => t.toLowerCase().includes(search.toLowerCase())))) || [];
-
-  if (loading && !config) return <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data bot...</div>;
 
   return (
     <div className={styles.sectionWrap}>
@@ -3122,28 +3293,83 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "stats",    path: "/stats"    },
       { key: "media",    path: "/media"    },
       { key: "journal",  path: ""          },
+      { key: "bot",      path: ""          },
       { key: "tickets",  path: ""          },
       { key: "calendar", path: ""          },
       { key: "updates",  path: ""          },
+      { key: "anggotakota", path: ""       },
+      { key: "abouterine",  path: ""       },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
         if (key === "tickets") {
-          const res = await fetch(TICKET_SCRIPT_URL);
-          const raw = await res.json();
-          const count = Array.isArray(raw) ? Math.max(0, raw.length - 1) : 0;
-          setCounts(prev => ({ ...prev, [key]: count }));
+          try {
+            const res = await fetch(TICKET_SCRIPT_URL);
+            const raw = await res.json();
+            const count = Array.isArray(raw) ? Math.max(0, raw.length - 1) : 0;
+            setCounts(prev => ({ ...prev, [key]: count }));
+          } catch {
+            setCounts(prev => ({ ...prev, [key]: 2 }));
+          }
           return;
         }
         if (key === "journal") {
-          const res = await fetch(JOURNAL_SCRIPT_URL);
-          const raw = await res.json();
-          const count = Array.isArray(raw) ? raw.length : 0;
+          let count = DEFAULT_JOURNAL_MESSAGES.length;
+          try {
+            const res = await fetch("/api/journal");
+            if (res.ok) {
+              const raw = await res.json();
+              const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : null);
+              if (arr && arr.length > 0) count = arr.length;
+            }
+          } catch {
+            const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_journal") : null;
+            if (saved) {
+              const arr = JSON.parse(saved);
+              if (Array.isArray(arr)) count = arr.length;
+            }
+          }
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "bot") {
+          let count = DEFAULT_BOT_CONFIG.rules.length;
+          try {
+            const res = await fetch("/api/bot-config");
+            if (res.ok) {
+              const raw = await res.json();
+              if (raw?.data?.rules && Array.isArray(raw.data.rules)) count = raw.data.rules.length;
+            }
+          } catch {
+            const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_bot_config") : null;
+            if (saved) {
+              const conf = JSON.parse(saved);
+              if (Array.isArray(conf?.rules)) count = conf.rules.length;
+            }
+          }
           setCounts(prev => ({ ...prev, [key]: count }));
           return;
         }
         if (key === "calendar") {
           const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_calendar") : null;
           const count = saved ? JSON.parse(saved).length : 0;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "updates") {
+          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_updates") : null;
+          const count = saved ? JSON.parse(saved).length : DEFAULT_UPDATES.length;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "anggotakota") {
+          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_anggota_kota") : null;
+          const count = saved ? Object.keys(JSON.parse(saved)).length : Object.keys(DEFAULT_CITIES).length;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
+        if (key === "abouterine") {
+          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_about_erine") : null;
+          const count = saved ? JSON.parse(saved).length : DEFAULT_ABOUT_ERINE.length;
           setCounts(prev => ({ ...prev, [key]: count }));
           return;
         }

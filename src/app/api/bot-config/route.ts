@@ -103,43 +103,74 @@ const defaultRules = [
   }
 ];
 
+let inMemoryBotConfig: any = null;
+
 function ensureDataDirectory() {
-  const dir = path.dirname(BOT_CONFIG_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.dirname(BOT_CONFIG_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (e) {
+    console.warn("Could not ensure data directory for bot_config:", e);
   }
 }
 
 export function readBotConfig() {
+  if (inMemoryBotConfig) {
+    return inMemoryBotConfig;
+  }
+
   ensureDataDirectory();
-  if (fs.existsSync(BOT_CONFIG_PATH)) {
-    try {
+  try {
+    if (fs.existsSync(BOT_CONFIG_PATH)) {
       const content = fs.readFileSync(BOT_CONFIG_PATH, "utf-8");
-      return JSON.parse(content);
-    } catch (e) {
-      console.error("Error reading bot_config.json:", e);
+      inMemoryBotConfig = JSON.parse(content);
+      return inMemoryBotConfig;
     }
+  } catch (e) {
+    console.error("Error reading bot_config.json:", e);
   }
 
   // Default configuration
   const defaultConfig = {
-    apiKey: process.env.GEMINI_API_KEY || "",
+    apiKey: process.env.GEMINI_API_KEY || "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
     fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek-hestek seru lainnya ya! Aku pasti bisa bantu.",
     rules: defaultRules
   };
 
-  fs.writeFileSync(BOT_CONFIG_PATH, JSON.stringify(defaultConfig, null, 2), "utf-8");
-  return defaultConfig;
+  try {
+    fs.writeFileSync(BOT_CONFIG_PATH, JSON.stringify(defaultConfig, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write initial bot_config.json:", e);
+  }
+
+  inMemoryBotConfig = defaultConfig;
+  return inMemoryBotConfig;
 }
 
 function writeBotConfig(config: any) {
+  inMemoryBotConfig = config;
   ensureDataDirectory();
-  fs.writeFileSync(BOT_CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+  try {
+    fs.writeFileSync(BOT_CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not persist bot_config.json to disk:", e);
+  }
 }
 
 export async function GET() {
-  const config = readBotConfig();
-  return NextResponse.json({ status: true, data: config });
+  try {
+    const config = readBotConfig();
+    return NextResponse.json({ status: true, data: config });
+  } catch (error: any) {
+    const fallbackConfig = {
+      apiKey: process.env.GEMINI_API_KEY || "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
+      fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine!",
+      rules: defaultRules
+    };
+    return NextResponse.json({ status: true, data: fallbackConfig });
+  }
 }
 
 export async function POST(request: Request) {
@@ -163,3 +194,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }
 }
+

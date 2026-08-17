@@ -9,8 +9,17 @@ interface Message {
   date: string;
 }
 
+const DEFAULT_PUBLIC_JOURNAL: Message[] = [
+  { name: "lalallalalala", msg: "haloo ci erinee sayangg!! tauu gaa kehidupan aku jadi lebih berwarna saat ada ci erineee, ci erine tu uda aku anggap seperti kaka kandung tauuu ya walaupun ci erine gatau aku hidup huhuhu soalnya belum bisa vc in another day akuu vc ya ci tunggu akuu!!!, bertahan lebih lama di jkt48 ya ci!! aku adalah salah satu orang yang bangga smaa ciciii, HARUS SELALU PERCAYA DIRI YA CII OKAIIII, aku tau banyak yang selalu dukung ciciii, I LOVE U CATHERINA VALLENCIA KETUA BEBEK KUUUU🐣🤍", date: "9/3/2026" },
+  { name: "Dinda duyoung ", msg: "Hai ci erine semangat terus yaa kegiatannya jaga kesehatannya jugaa apalagi sekarang kamu lagi sibuk\"nya latihan buat shonici setlist baru dan mv baru juga yaa semangat yaa, minum air putih yang cukup sehat\" cerine 🤍🍀. Cinta kamu banget 🫶🏻 jujur kangen 🥹", date: "12/3/2026" },
+  { name: "faiz mahmud", msg: "hai erine! bagaimana kabarmu? semoga kamu sehat selalu ya. jangan jaga kesehatan, istirahat yang cukup, dan bersemangat dalam menjalani hari yang penuh dengan seribu kejutan. udah deh itu aja o ya sebelum itu aku punya kata-kata untuk erine agar semangat dalam menjalani hari. kata-kata hari ini= jalani hidupmu dengan sungguh-sungguh agar hati mu tetap teguh", date: "15/3/2026" },
+  { name: "vernx ", msg: "Hai ci Erine semangat terus ya, jaga kesehatan selalu pokoknya apapun kegiatannya tetap semangat. Aku yakin kamu pasti bisa dan mampu untuk melakukannya dengan terbaik. Aku akan terus menemani perjalananmu sampai akhir, ci Erine kamu itu hebat, keren, luar biasa jadi jangan pernah merasa bahwa dirimu itu tidak layak ataupun tidak cocok untuk mendapatkan dukungan dan kebahagiaan yang dirasakan di JKT48. Ci Erine oshi kesayanganku yang tidak pernah tergantikan aku cuma mau bilang, tolong bertahan lebih lama di JKT48 kita sama-sama berjuang bikin chapter yang indah dan raih mimpi-mimpi besarmu. I love Ci Erine 🫶🏻💌", date: "19/3/2026" },
+  { name: "dhafinnn", msg: "semangat yaa dalam menjalani semuanya, you are stronger than you think. you dont have to carry it all alone, we've got your back. sehat sehat terus yaaaa 🤍", date: "19/3/2026" },
+  { name: "R_Syaa (aisyah_adl) ", msg: "Hai kak ci erine! minal aidzin wal faidzin, mohon maaf lahir dan batin yaa kakk🙏🏻 kakak semangattt terus yaaa kakk! aku selalu mendukung apapun yang kakak lakukan, terimakasih untuk semua kerja keras kak erine! kak ci erine hebat! aku sayang banget sama kak erine 🫂🤍", date: "20/3/2026" }
+];
+
 export default function JournalSection() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(DEFAULT_PUBLIC_JOURNAL);
   const [loading, setLoading] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -23,33 +32,75 @@ export default function JournalSection() {
   }, []);
 
   const loadMessages = async () => {
+    let formatted: Message[] | null = null;
     try {
       const res = await fetch("/api/journal");
-      const data = await res.json();
-      const formatted = data.map((item: any) => ({
-        name: item.name,
-        msg: item.msg,
-        date: item.date ? new Date(item.date).toLocaleDateString("id-ID") : ""
-      }));
-      setMessages(formatted);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+      if (res.ok) {
+        const data = await res.json();
+        const arr = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : null);
+        if (arr && arr.length > 0) {
+          formatted = arr.map((item: any) => ({
+            name: item.name || "Anonim",
+            msg: item.msg || item.pesan || "",
+            date: item.date ? new Date(item.date).toLocaleDateString("id-ID") : ""
+          }));
+        }
+      }
+    } catch {}
+
+    if (!formatted || formatted.length === 0) {
+      try {
+        const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_journal") : null;
+        if (saved) {
+          const arr = JSON.parse(saved);
+          if (Array.isArray(arr) && arr.length > 0) {
+            formatted = arr.map((item: any) => ({
+              name: item.name || "Anonim",
+              msg: item.msg || item.pesan || "",
+              date: item.date ? (item.date.includes("/") ? item.date : new Date(item.date).toLocaleDateString("id-ID")) : ""
+            }));
+          }
+        }
+      } catch {}
     }
+
+    if (formatted && formatted.length > 0) {
+      setMessages(formatted);
+    } else {
+      setMessages(DEFAULT_PUBLIC_JOURNAL);
+    }
+    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formRef.current) return;
 
-    try {
-      await fetch("/api/journal", { method: "POST", body: new FormData(formRef.current) });
-      setIsSubmitted(true);
-      loadMessages();
-    } catch (e) {
-      console.error(e);
+    const fd = new FormData(formRef.current);
+    const name = (fd.get("Nama") as string) || "Anonim";
+    const msg = (fd.get("pesan") as string) || "";
+
+    if (!msg.trim()) return;
+
+    const newMsg: Message = {
+      name: name.trim() || "Anonim",
+      msg: msg.trim(),
+      date: new Date().toLocaleDateString("id-ID")
+    };
+
+    const updated = [newMsg, ...messages];
+    setMessages(updated);
+    setIsSubmitted(true);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("cavallery_journal", JSON.stringify(updated));
+      } catch {}
     }
+
+    try {
+      await fetch("/api/journal", { method: "POST", body: fd });
+    } catch {}
   };
 
   return (
