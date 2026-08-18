@@ -184,7 +184,7 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
 
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 24px Montserrat, sans-serif";
-      ctx.fillText("Jumat, 22 Agustus 2026", contentX, by + 120);
+      ctx.fillText("Sabtu, 22 Agustus 2026", contentX, by + 120);
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 17px Montserrat, sans-serif";
@@ -321,7 +321,7 @@ export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
                 <i className="bx bx-calendar" />
               </div>
               <div className={styles.detailInfo}>
-                <div className={styles.detailTitle}>Jumat, 22 Agustus 2026</div>
+                <div className={styles.detailTitle}>Sabtu, 22 Agustus 2026</div>
                 <div className={styles.detailSub}>Pukul 15.00 — 20.30 WIB</div>
               </div>
             </div>
