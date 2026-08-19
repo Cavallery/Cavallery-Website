@@ -1,12 +1,15 @@
 // Fanbase list with slug → display name mapping
 // URL format: /the-wayfinder/[slug]
+import fs from "fs";
+import path from "path";
 
 export interface FanbaseEntry {
+  id?: string;
   slug: string;
   name: string;
 }
 
-const RAW_FANBASES = [
+export const RAW_FANBASES = [
   "Fenidelity",
   "Gitroops",
   "Christyzer",
@@ -84,19 +87,50 @@ const RAW_FANBASES = [
   "Expose Right Noise",
   "Tumpul Vallencia",
   "Point Of View",
+  "Nabil Rasyaaa",
+  "Ashlii Palsu",
+  "Isnia",
 ];
 
-function toSlug(name: string): string {
+export function toSlug(name: string): string {
   return name
+    .trim()
     .replace(/\s+/g, "-")
     .replace(/\./g, "")
     .replace(/[^a-zA-Z0-9\-]/g, "");
 }
 
-export const FANBASES: FanbaseEntry[] = RAW_FANBASES.map((name) => ({
+export const DEFAULT_FANBASES: FanbaseEntry[] = RAW_FANBASES.map((name, i) => ({
+  id: String(i + 1),
   slug: toSlug(name),
   name,
 }));
+
+export function getFanbases(): FanbaseEntry[] {
+  try {
+    const isVercel = process.env.VERCEL === "1";
+    const dataDir = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+    const jsonPath = path.join(dataDir, "wayfinder-invitations.json");
+    const staticPath = path.join(process.cwd(), "src", "data", "wayfinder-invitations.json");
+
+    const targetPath = fs.existsSync(jsonPath) ? jsonPath : (fs.existsSync(staticPath) ? staticPath : null);
+    if (targetPath) {
+      const content = fs.readFileSync(targetPath, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((item: any, i: number) => ({
+          id: item.id || String(i + 1),
+          name: item.name,
+          slug: item.slug || toSlug(item.name),
+        }));
+      }
+    }
+  } catch {}
+
+  return DEFAULT_FANBASES;
+}
+
+export const FANBASES: FanbaseEntry[] = DEFAULT_FANBASES;
 
 // slug -> name lookup
 export const SLUG_TO_NAME: Record<string, string> = Object.fromEntries(
@@ -106,7 +140,7 @@ export const SLUG_TO_NAME: Record<string, string> = Object.fromEntries(
 // Helper to resolve fanbase flexibly (handles case-insensitivity, spaces, dashes, dots, and encoding)
 export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
   if (!rawInput) return undefined;
-  
+
   let decoded = rawInput;
   try {
     decoded = decodeURIComponent(rawInput).trim();
@@ -114,13 +148,14 @@ export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
     decoded = rawInput.trim();
   }
 
-  // 1. Direct slug match
-  if (SLUG_TO_NAME[decoded]) {
-    return SLUG_TO_NAME[decoded];
-  }
+  const allEntries = getFanbases();
 
-  // 2. Direct name match (e.g. /the-wayfinder/Olla The Miracle)
-  const directNameMatch = FANBASES.find(
+  // 1. Direct slug match
+  const slugMatch = allEntries.find((f) => f.slug === decoded);
+  if (slugMatch) return slugMatch.name;
+
+  // 2. Direct name match (case-insensitive)
+  const directNameMatch = allEntries.find(
     (f) => f.name.toLowerCase() === decoded.toLowerCase()
   );
   if (directNameMatch) {
@@ -130,11 +165,11 @@ export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
   // 3. Flexible normalized match (removes spaces, dashes, dots, underscores, case)
   const normalize = (str: string) =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "");
-  
+
   const targetNorm = normalize(decoded);
   if (!targetNorm) return undefined;
 
-  const flexibleMatch = FANBASES.find(
+  const flexibleMatch = allEntries.find(
     (f) =>
       normalize(f.slug) === targetNorm || normalize(f.name) === targetNorm
   );
@@ -143,4 +178,4 @@ export function getFanbaseByNameOrSlug(rawInput: string): string | undefined {
 }
 
 // All valid slugs (for generateStaticParams)
-export const ALL_SLUGS = FANBASES.map((f) => f.slug);
+export const ALL_SLUGS = DEFAULT_FANBASES.map((f) => f.slug);
