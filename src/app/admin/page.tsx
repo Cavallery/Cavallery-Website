@@ -19,7 +19,7 @@ type Section =
   | "setlists"  | "stats"    | "youtube"  | "funfacts"
   | "kabesha"   | "media"    | "discord"  | "journal"
   | "bot"       | "tickets"  | "calendar" | "updates" 
-  | "vcschedule" | "abouterine" | "anggotakota" | "merch";
+  | "vcschedule" | "abouterine" | "anggotakota" | "merch" | "invitations";
 
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -3277,6 +3277,546 @@ function AnggotaKotaManager() {
   );
 }
 
+// ─── INVITATIONS (THE WAYFINDER) ──────────────────────────────────
+const DEFAULT_INVITATIONS = [
+  { id: "1", name: "Fenidelity", slug: "Fenidelity" },
+  { id: "2", name: "Gitroops", slug: "Gitroops" },
+  { id: "3", name: "Christyzer", slug: "Christyzer" },
+  { id: "4", name: "Freyanation", slug: "Freyanation" },
+  { id: "5", name: "Helismiley", slug: "Helismiley" },
+  { id: "6", name: "Jessination", slug: "Jessination" },
+  { id: "7", name: "MUFFIN", slug: "MUFFIN" },
+  { id: "8", name: "Olla The Miracle", slug: "Olla-The-Miracle" },
+  { id: "9", name: "Lunarian", slug: "Lunarian" },
+  { id: "10", name: "Onielity", slug: "Onielity" },
+  { id: "11", name: "Symfiony", slug: "Symfiony" },
+  { id: "12", name: "Interindah", slug: "Interindah" },
+  { id: "13", name: "Kath. Inc", slug: "Kath-Inc" },
+  { id: "14", name: "MarshaOshi", slug: "MarshaOshi" },
+  { id: "15", name: "Ellatheria", slug: "Ellatheria" },
+  { id: "16", name: "Liamelior", slug: "Liamelior" },
+  { id: "17", name: "Lynear", slug: "Lynear" },
+  { id: "18", name: "Raishanrise", slug: "Raishanrise" },
+  { id: "19", name: "Alamanda", slug: "Alamanda" },
+  { id: "20", name: "Aninimous", slug: "Aninimous" },
+  { id: "21", name: "Cathleenexus", slug: "Cathleenexus" },
+  { id: "22", name: "Cellineyours", slug: "Cellineyours" },
+  { id: "23", name: "Chelsealand", slug: "Chelsealand" },
+  { id: "24", name: "Cynthiaction", slug: "Cynthiaction" },
+  { id: "25", name: "Daisyne", slug: "Daisyne" },
+  { id: "26", name: "DEGREES", slug: "DEGREES" },
+  { id: "27", name: "Denalize", slug: "Denalize" },
+  { id: "28", name: "Gracieluv", slug: "Gracieluv" },
+  { id: "29", name: "Michiban", slug: "Michiban" },
+  { id: "30", name: "Sahabat Gendis", slug: "Sahabat-Gendis" },
+  { id: "31", name: "Wargavi48", slug: "Wargavi48" },
+  { id: "32", name: "Nayrakuen", slug: "Nayrakuen" },
+  { id: "33", name: "Aranika", slug: "Aranika" },
+  { id: "34", name: "Hillaryours", slug: "Hillaryours" },
+  { id: "35", name: "Delynessence", slug: "Delynessence" },
+  { id: "36", "name": "Olinara", slug: "Olinara" },
+  { id: "37", name: "TACT", slug: "TACT" },
+  { id: "38", name: "Nalania", slug: "Nalania" },
+  { id: "39", name: "RIBCALLS", slug: "RIBCALLS" },
+  { id: "40", name: "Lanautica", slug: "Lanautica" },
+  { id: "41", name: "YokiNachia", slug: "YokiNachia" },
+  { id: "42", name: "Fritzy Force", slug: "Fritzy-Force" },
+  { id: "43", name: "Le Viosa", slug: "Le-Viosa" },
+  { id: "44", name: "Cavallery", slug: "Cavallery" },
+  { id: "45", name: "GROVY", slug: "GROVY" },
+  { id: "46", name: "Jevolante", slug: "Jevolante" },
+  { id: "47", name: "Humainiora", slug: "Humainiora" },
+  { id: "48", name: "Iris", slug: "Iris" },
+  { id: "49", name: "Aprillivels", slug: "Aprillivels" },
+  { id: "50", name: "AuLavana", slug: "AuLavana" },
+  { id: "51", name: "BerbahaGIA.ID", slug: "BerbahaGIAID" },
+  { id: "52", name: "CINEMIKA", slug: "CINEMIKA" },
+  { id: "53", name: "EKINAIR", slug: "EKINAIR" },
+  { id: "54", name: "ASTRALUX", slug: "ASTRALUX" },
+  { id: "55", name: "Carissera", slug: "Carissera" },
+  { id: "56", name: "Heippy", slug: "Heippy" },
+  { id: "57", name: "HIRAKIRA", slug: "HIRAKIRA" },
+  { id: "58", name: "JazLune", slug: "JazLune" },
+  { id: "59", name: "Jogo Bonita", slug: "Jogo-Bonita" },
+  { id: "60", name: "Maxineiu", slug: "Maxineiu" },
+  { id: "61", name: "Ralvandra", slug: "Ralvandra" },
+  { id: "62", name: "RaraLand", slug: "RaraLand" },
+  { id: "63", name: "TerpeSona", slug: "TerpeSona" },
+  { id: "64", name: "TheaFeria", slug: "TheaFeria" },
+  { id: "65", name: "Cipuyyy", slug: "Cipuyyy" },
+  { id: "66", name: "William Santoso", slug: "William-Santoso" },
+  { id: "67", name: "Angga", slug: "Angga" },
+  { id: "68", name: "RFDorable", slug: "RFDorable" },
+  { id: "69", name: "Vend.", slug: "Vend" },
+  { id: "70", name: "Lucky Arasyah", slug: "Lucky-Arasyah" },
+  { id: "71", name: "Indyraaa", slug: "Indyraaa" },
+  { id: "72", name: "Roni Eriyanto", slug: "Roni-Eriyanto" },
+  { id: "73", name: "Rifqi Annafi", slug: "Rifqi-Annafi" },
+  { id: "74", name: "ForLovelist", slug: "ForLovelist" },
+  { id: "75", name: "Expose Right Noise", slug: "Expose-Right-Noise" },
+  { id: "76", name: "Tumpul Vallencia", slug: "Tumpul-Vallencia" },
+  { id: "77", name: "Point Of View", slug: "Point-Of-View" },
+  { id: "78", name: "Nabil Rasyaaa", slug: "Nabil-Rasyaaa" },
+  { id: "79", name: "Ashlii Palsu", slug: "Ashlii-Palsu" },
+  { id: "80", name: "Isnia", slug: "Isnia" },
+];
+
+function InvitationsManager() {
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState("");
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [isCustomSlug, setIsCustomSlug] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/invitations");
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+          setInvitations(json.data);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+          }
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {}
+
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_invitations") : null;
+      if (saved) {
+        setInvitations(JSON.parse(saved));
+      } else {
+        setInvitations(DEFAULT_INVITATIONS);
+      }
+    } catch {
+      setInvitations(DEFAULT_INVITATIONS);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const cleanToSlug = (text: string) =>
+    text
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/\./g, "")
+      .replace(/[^a-zA-Z0-9\-]/g, "");
+
+  const handleNameChange = (val: string) => {
+    setName(val);
+    if (!isCustomSlug && !isEdit) {
+      setSlug(cleanToSlug(val));
+    }
+  };
+
+  const openAdd = () => {
+    setIsEdit(false);
+    setEditId("");
+    setName("");
+    setSlug("");
+    setIsCustomSlug(false);
+    setShowModal(true);
+  };
+
+  const openEdit = (item: any) => {
+    setIsEdit(true);
+    setEditId(item.id);
+    setName(item.name);
+    setSlug(item.slug);
+    setIsCustomSlug(true);
+    setShowModal(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = name.trim();
+    if (!cleanName) {
+      showToast("Nama penerima undangan wajib diisi", "error");
+      return;
+    }
+    let formattedSlug = cleanToSlug(slug || cleanName);
+    if (!formattedSlug) formattedSlug = "undangan-" + Date.now();
+
+    setSaving(true);
+    try {
+      const payload = isEdit
+        ? { action: "update", id: editId, item: { name: cleanName, slug: formattedSlug } }
+        : { action: "add", name: cleanName, slug: formattedSlug };
+
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data)) {
+          setInvitations(json.data);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+          }
+          showToast(isEdit ? "Undangan berhasil diperbarui" : "Undangan baru berhasil ditambahkan", "success");
+          setShowModal(false);
+          setSaving(false);
+          return;
+        }
+      }
+
+      // Local fallback
+      const updated = isEdit
+        ? invitations.map((item) => (item.id === editId ? { ...item, name: cleanName, slug: formattedSlug } : item))
+        : [...invitations, { id: Date.now().toString(), name: cleanName, slug: formattedSlug }];
+      setInvitations(updated);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_invitations", JSON.stringify(updated));
+      }
+      showToast(isEdit ? "Undangan berhasil diperbarui" : "Undangan baru berhasil ditambahkan", "success");
+      setShowModal(false);
+    } catch {
+      showToast("Gagal menyimpan undangan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: confirmDelete.id }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data)) {
+          setInvitations(json.data);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+          }
+          showToast("Undangan berhasil dihapus", "success");
+          setConfirmDelete(null);
+          return;
+        }
+      }
+    } catch {}
+
+    const updated = invitations.filter((item) => item.id !== confirmDelete.id && item.slug !== confirmDelete.slug);
+    setInvitations(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cavallery_invitations", JSON.stringify(updated));
+    }
+    showToast("Undangan berhasil dihapus", "success");
+    setConfirmDelete(null);
+  };
+
+  const handleCopyLink = (item: any) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://cavallery.id";
+    const url = `${origin}/the-wayfinder/${item.slug}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedId(item.id || item.slug);
+        showToast(`Link untuk ${item.name} berhasil disalin!`, "success");
+        setTimeout(() => setCopiedId(null), 2000);
+      });
+    }
+  };
+
+  const filtered = invitations.filter((item) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (item.name && item.name.toLowerCase().includes(q)) ||
+      (item.slug && item.slug.toLowerCase().includes(q))
+    );
+  });
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Hapus undangan untuk "${confirmDelete.name}"? Halaman /the-wayfinder/${confirmDelete.slug} tidak akan dapat diakses lagi.`}
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.formModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className={styles.formModalHeader}>
+              <h3>{isEdit ? "Edit Undangan" : "Tambah Undangan Baru"}</h3>
+              <button className={styles.closeX} onClick={() => setShowModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handleSave}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>
+                    Nama Penerima / Fanbase <span style={{ color: "#e05252" }}>*</span>
+                  </label>
+                  <input
+                    value={name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    required
+                    placeholder="Contoh: Nabil Rasyaaa / Kath. Inc"
+                    autoFocus
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <label>
+                      Slug URL <span style={{ color: "#e05252" }}>*</span>
+                    </label>
+                    {!isEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomSlug(!isCustomSlug)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#c9a84c",
+                          fontSize: 12,
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        {isCustomSlug ? "Auto slug dari nama" : "Kustomisasi slug"}
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    value={slug}
+                    onChange={(e) => {
+                      setIsCustomSlug(true);
+                      setSlug(e.target.value);
+                    }}
+                    required
+                    placeholder="Contoh: Nabil-Rasyaaa"
+                  />
+                  <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>
+                    URL: <span style={{ color: "#c9a84c" }}>/the-wayfinder/{slug || "slug-url"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-save" /> Simpan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Header Section */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-envelope" style={{ color: "#c9a84c" }} /> Undangan (The Wayfinder)
+          <span className={styles.count}>{invitations.length} Undangan</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <a
+            href="/the-wayfinder/links"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.btnGhost}
+            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <i className="bx bx-link-external" /> Link Generator
+          </a>
+          <button className={styles.btnPrimary} onClick={openAdd}>
+            <i className="bx bx-plus" /> Tambah Undangan
+          </button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div style={{ marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
+          <i
+            className="bx bx-search"
+            style={{
+              position: "absolute",
+              left: 12,
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#777",
+              fontSize: "1.1rem",
+            }}
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari nama atau slug..."
+            style={{
+              width: "100%",
+              padding: "9px 12px 9px 36px",
+              background: "var(--adm-surface)",
+              color: "var(--adm-text)",
+              border: "1px solid var(--adm-border)",
+              borderRadius: 8,
+              fontSize: "0.88rem",
+            }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                color: "#999",
+                cursor: "pointer",
+              }}
+            >
+              <i className="bx bx-x" />
+            </button>
+          )}
+        </div>
+        {search && (
+          <span style={{ fontSize: 13, color: "#888" }}>
+            Ditemukan {filtered.length} dari {invitations.length}
+          </span>
+        )}
+      </div>
+
+      {/* Content Table */}
+      {loading ? (
+        <div className={styles.loadingState}>
+          <i className="bx bx-loader-alt bx-spin" /> Memuat daftar undangan...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+          <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
+          <p>{search ? "Tidak ada undangan yang cocok dengan pencarian" : "Belum ada undangan"}</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 45, textAlign: "center" }}>#</th>
+                <th>Penerima / Fanbase</th>
+                <th>Slug Link</th>
+                <th style={{ width: 220, textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item, idx) => (
+                <tr key={item.id || item.slug || idx}>
+                  <td style={{ textAlign: "center", color: "#888", fontVariantNumeric: "tabular-nums" }}>
+                    {idx + 1}
+                  </td>
+                  <td style={{ fontWeight: 600, color: "#f0f0f0" }}>
+                    {item.name}
+                  </td>
+                  <td>
+                    <code
+                      style={{
+                        fontSize: 12,
+                        color: "#c9a84c",
+                        background: "rgba(201,168,76,0.09)",
+                        padding: "3px 8px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      /the-wayfinder/{item.slug}
+                    </code>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                      {/* Copy Link Button */}
+                      <button
+                        className={styles.btnGhost}
+                        style={{
+                          padding: "5px 9px",
+                          color: copiedId === (item.id || item.slug) ? "#10b981" : "var(--adm-text)",
+                          fontSize: 13,
+                        }}
+                        onClick={() => handleCopyLink(item)}
+                        title="Salin Link Undangan"
+                      >
+                        <i className={`bx ${copiedId === (item.id || item.slug) ? "bx-check" : "bx-copy"}`} />
+                      </button>
+
+                      {/* Open Link Button */}
+                      <a
+                        href={`/the-wayfinder/${item.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.btnGhost}
+                        style={{ padding: "5px 9px", color: "#3b82f6", textDecoration: "none", fontSize: 13 }}
+                        title="Buka Halaman Undangan"
+                      >
+                        <i className="bx bx-link-external" />
+                      </a>
+
+                      {/* Edit Button */}
+                      <button
+                        className={styles.btnGhost}
+                        style={{ padding: "5px 9px", fontSize: 13 }}
+                        onClick={() => openEdit(item)}
+                        title="Edit Undangan"
+                      >
+                        <i className="bx bx-edit" />
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        className={styles.btnGhost}
+                        style={{ padding: "5px 9px", color: "#ef4444", fontSize: 13 }}
+                        onClick={() => setConfirmDelete(item)}
+                        title="Hapus Undangan"
+                      >
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -3299,6 +3839,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "updates",  path: ""          },
       { key: "anggotakota", path: ""       },
       { key: "abouterine",  path: ""       },
+      { key: "invitations", path: ""       },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
         if (key === "tickets") {
@@ -3373,6 +3914,22 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
           setCounts(prev => ({ ...prev, [key]: count }));
           return;
         }
+        if (key === "invitations") {
+          try {
+            const res = await fetch("/api/invitations");
+            if (res.ok) {
+              const json = await res.json();
+              if (json?.data && Array.isArray(json.data)) {
+                setCounts(prev => ({ ...prev, [key]: json.data.length }));
+                return;
+              }
+            }
+          } catch {}
+          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_invitations") : null;
+          const count = saved ? JSON.parse(saved).length : DEFAULT_INVITATIONS.length;
+          setCounts(prev => ({ ...prev, [key]: count }));
+          return;
+        }
 
         const url = api(path);
         const res = await fetch(url);
@@ -3391,11 +3948,13 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   }, []);
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
+    { key: "invitations",icon: "bx-envelope",     label: "Undangan",  color: "#c9a84c" },
     { key: "news",       icon: "bx-news",         label: "News",      color: "#b45309" },
     { key: "timeline",   icon: "bx-history",      label: "Timeline",  color: "#047857" },
     { key: "gallery",    icon: "bx-image-alt",    label: "Gallery",   color: "#7c3aed" },
     { key: "setlists",   icon: "bx-music",        label: "Setlists",  color: "#0369a1" },
     { key: "youtube",    icon: "bxl-youtube",     label: "YouTube",   color: "#dc2626" },
+    { key: "merch",      icon: "bx-store",        label: "Merchandise", color: "#f59e0b" },
     { key: "funfacts",   icon: "bx-laugh",        label: "Funfacts",  color: "#059669" },
     { key: "kabesha",    icon: "bx-star",         label: "Kabesha",   color: "#d97706" },
     { key: "stats",      icon: "bx-bar-chart",    label: "Stats",     color: "#9333ea" },
@@ -3403,7 +3962,6 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "discord",    icon: "bxl-discord-alt", label: "Discord",   color: "#5865f2" },
     { key: "journal",    icon: "bx-book-open",    label: "MemoRine",  color: "#db2777" },
     { key: "bot",        icon: "bx-bot",          label: "Bot",       color: "#f59e0b" },
-    { key: "merch", icon: "bx-store", label: "Merchandise", color: "#f59e0b" },
     { key: "tickets",    icon: "bx-receipt",      label: "Tickets",   color: "#10b981" },
     { key: "calendar",   icon: "bx-calendar",     label: "Calendar",  color: "#3b82f6" },
     { key: "updates",    icon: "bx-refresh",      label: "Updates",   color: "#10b981" },
@@ -3434,12 +3992,13 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 // ─── NAV ITEMS ────────────────────────────────────────────────
 const navItems: { key: Section; icon: string; label: string }[] = [
   { key: "dashboard",   icon: "bx-home-alt",     label: "Dashboard"  },
+  { key: "invitations", icon: "bx-envelope",     label: "Undangan"   },
   { key: "news",        icon: "bx-news",         label: "News"       },
   { key: "timeline",    icon: "bx-history",      label: "Timeline"   },
   { key: "gallery",     icon: "bx-image-alt",    label: "Gallery"    },
   { key: "setlists",    icon: "bx-music",        label: "Setlists"   },
   { key: "youtube",     icon: "bxl-youtube",     label: "YouTube"    },
-  { key: "merch", icon: "bx-store", label: "Merchandise" },
+  { key: "merch",       icon: "bx-store",        label: "Merchandise"},
   { key: "funfacts",    icon: "bx-laugh",        label: "Funfacts"   },
   { key: "kabesha",     icon: "bx-star",         label: "Kabesha"    },
   { key: "stats",       icon: "bx-bar-chart",    label: "Stats"      },
@@ -3546,6 +4105,7 @@ export default function AdminPage() {
 
           <div className={styles.content}>
             {active === "dashboard"   ? <DashboardHome onNav={setActive} />
+            : active === "invitations"? <InvitationsManager />
             : active === "media"      ? <MediaManager />
             : active === "discord"    ? <DiscordManager />
             : active === "journal"    ? <JournalManager />

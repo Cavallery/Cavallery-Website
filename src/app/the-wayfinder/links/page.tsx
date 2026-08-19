@@ -1,4 +1,6 @@
-import { FANBASES } from "@/data/wayfinder-fanbases";
+import { getFanbases } from "@/data/wayfinder-fanbases";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Link Generator — The Wayfinder | Cavallery",
@@ -6,6 +8,8 @@ export const metadata = {
 };
 
 export default function LinksPage() {
+  const fanbases = getFanbases();
+
   return (
     <div
       style={{
@@ -30,8 +34,8 @@ export default function LinksPage() {
         The Wayfinder — Link Generator
       </h1>
       <p style={{ fontSize: 12, color: "#a09882", marginBottom: 32 }}>
-        Salin link undangan untuk masing-masing fanbase. Total:{" "}
-        {FANBASES.length} fanbase.
+        Salin link undangan untuk masing-masing penerima. Total:{" "}
+        {fanbases.length} undangan.
       </p>
 
       <table
@@ -45,14 +49,14 @@ export default function LinksPage() {
             }}
           >
             <th style={{ padding: "10px 8px", color: "#c9a84c", fontWeight: 600 }}>#</th>
-            <th style={{ padding: "10px 8px", color: "#c9a84c", fontWeight: 600 }}>Fanbase</th>
+            <th style={{ padding: "10px 8px", color: "#c9a84c", fontWeight: 600 }}>Penerima / Fanbase</th>
             <th style={{ padding: "10px 8px", color: "#c9a84c", fontWeight: 600 }}>Link</th>
           </tr>
         </thead>
         <tbody>
-          {FANBASES.map((fb, i) => (
+          {fanbases.map((fb, i) => (
             <tr
-              key={fb.slug}
+              key={fb.slug || fb.id || i}
               style={{ borderBottom: "1px solid rgba(236,227,208,0.06)" }}
             >
               <td
@@ -68,17 +72,25 @@ export default function LinksPage() {
                 {fb.name}
               </td>
               <td style={{ padding: "10px 8px" }}>
-                <code
-                  style={{
-                    fontSize: 12,
-                    color: "#c9a84c",
-                    background: "rgba(201,168,76,0.08)",
-                    padding: "3px 8px",
-                    wordBreak: "break-all",
-                  }}
+                <a
+                  href={`/the-wayfinder/${fb.slug}`}
+                  style={{ textDecoration: "none" }}
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  /the-wayfinder/{fb.slug}
-                </code>
+                  <code
+                    style={{
+                      fontSize: 12,
+                      color: "#c9a84c",
+                      background: "rgba(201,168,76,0.08)",
+                      padding: "3px 8px",
+                      wordBreak: "break-all",
+                      borderRadius: 4,
+                    }}
+                  >
+                    /the-wayfinder/{fb.slug}
+                  </code>
+                </a>
               </td>
             </tr>
           ))}
