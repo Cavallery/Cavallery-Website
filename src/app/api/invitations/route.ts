@@ -7,11 +7,50 @@ const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
 const INVITATIONS_PATH = path.join(DATA_DIR, "wayfinder-invitations.json");
 const ORIGINAL_DATA_PATH = path.join(process.cwd(), "src", "data", "wayfinder-invitations.json");
 
+const CONFIG_PATH = path.join(DATA_DIR, "wayfinder-config.json");
+const ORIGINAL_CONFIG_PATH = path.join(process.cwd(), "src", "data", "wayfinder-config.json");
+
 export interface InvitationItem {
   id: string;
   name: string;
   slug: string;
 }
+
+export interface WayfinderConfig {
+  bgImage: string;
+  eventDate: string;
+  badgeText: string;
+  eyebrow: string;
+  heroName: string;
+  heroTitle: string;
+  invitedLabel: string;
+  dateTitle: string;
+  dateSub: string;
+  locationTitle: string;
+  locationSub: string;
+  mapUrl: string;
+  dressCodeTitle: string;
+  dressCodeSub: string;
+  footerText: string;
+}
+
+export const DEFAULT_WAYFINDER_CONFIG: WayfinderConfig = {
+  bgImage: "/images/wayfinder-bg.png",
+  eventDate: "2026-08-22T15:00:00+07:00",
+  badgeText: "Seitansai Project 2026",
+  eyebrow: "Catherina Vallencia",
+  heroName: "Erine",
+  heroTitle: "The Wayfinder",
+  invitedLabel: "Mengundang",
+  dateTitle: "Sabtu, 22 Agustus 2026",
+  dateSub: "Pukul 15.00 — 20.30 WIB",
+  locationTitle: "CGV FX Sudirman — Lantai F7",
+  locationSub: "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan",
+  mapUrl: "https://maps.google.com/?q=CGV+FX+Sudirman",
+  dressCodeTitle: "Dress Code: Birthday T-shirt Erine",
+  dressCodeSub: "atau pakaian sopan & rapih",
+  footerText: "Cavallery ©2026",
+};
 
 export function toSlug(name: string): string {
   return name
@@ -31,7 +70,6 @@ function ensureDataDirectory() {
 export function readInvitations(): InvitationItem[] {
   ensureDataDirectory();
 
-  // Try reading from runtime path
   if (fs.existsSync(INVITATIONS_PATH)) {
     try {
       const content = fs.readFileSync(INVITATIONS_PATH, "utf-8");
@@ -44,7 +82,6 @@ export function readInvitations(): InvitationItem[] {
     }
   }
 
-  // Fallback to original static data if in Vercel /tmp is empty
   if (isVercel && fs.existsSync(ORIGINAL_DATA_PATH)) {
     try {
       const content = fs.readFileSync(ORIGINAL_DATA_PATH, "utf-8");
@@ -72,9 +109,49 @@ export function writeInvitations(data: InvitationItem[]) {
   }
 }
 
+export function readConfig(): WayfinderConfig {
+  ensureDataDirectory();
+
+  if (fs.existsSync(CONFIG_PATH)) {
+    try {
+      const content = fs.readFileSync(CONFIG_PATH, "utf-8");
+      return { ...DEFAULT_WAYFINDER_CONFIG, ...JSON.parse(content) };
+    } catch (e) {
+      console.error("Error reading wayfinder-config.json:", e);
+    }
+  }
+
+  if (fs.existsSync(ORIGINAL_CONFIG_PATH)) {
+    try {
+      const content = fs.readFileSync(ORIGINAL_CONFIG_PATH, "utf-8");
+      const parsed = JSON.parse(content);
+      if (isVercel) {
+        fs.writeFileSync(CONFIG_PATH, content, "utf-8");
+      }
+      return { ...DEFAULT_WAYFINDER_CONFIG, ...parsed };
+    } catch (e) {
+      console.error("Error reading original wayfinder-config.json:", e);
+    }
+  }
+
+  return DEFAULT_WAYFINDER_CONFIG;
+}
+
+export function writeConfig(config: WayfinderConfig) {
+  ensureDataDirectory();
+  const formatted = JSON.stringify(config, null, 2);
+  fs.writeFileSync(CONFIG_PATH, formatted, "utf-8");
+  if (!isVercel && ORIGINAL_CONFIG_PATH !== CONFIG_PATH) {
+    try {
+      fs.writeFileSync(ORIGINAL_CONFIG_PATH, formatted, "utf-8");
+    } catch {}
+  }
+}
+
 export async function GET() {
   const data = readInvitations();
-  return NextResponse.json({ success: true, data });
+  const config = readConfig();
+  return NextResponse.json({ success: true, data, config });
 }
 
 export async function POST(request: Request) {
@@ -84,6 +161,13 @@ export async function POST(request: Request) {
     if (Array.isArray(body)) {
       writeInvitations(body);
       return NextResponse.json({ success: true, data: body });
+    }
+
+    if (body.action === "updateConfig") {
+      const current = readConfig();
+      const updated = { ...current, ...(body.config || {}) };
+      writeConfig(updated);
+      return NextResponse.json({ success: true, config: updated });
     }
 
     if (body.action === "add") {

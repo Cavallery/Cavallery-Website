@@ -9,6 +9,42 @@ export interface FanbaseEntry {
   name: string;
 }
 
+export interface WayfinderConfig {
+  bgImage: string;
+  eventDate: string;
+  badgeText: string;
+  eyebrow: string;
+  heroName: string;
+  heroTitle: string;
+  invitedLabel: string;
+  dateTitle: string;
+  dateSub: string;
+  locationTitle: string;
+  locationSub: string;
+  mapUrl: string;
+  dressCodeTitle: string;
+  dressCodeSub: string;
+  footerText: string;
+}
+
+export const DEFAULT_WAYFINDER_CONFIG: WayfinderConfig = {
+  bgImage: "/images/wayfinder-bg.png",
+  eventDate: "2026-08-22T15:00:00+07:00",
+  badgeText: "Seitansai Project 2026",
+  eyebrow: "Catherina Vallencia",
+  heroName: "Erine",
+  heroTitle: "The Wayfinder",
+  invitedLabel: "Mengundang",
+  dateTitle: "Sabtu, 22 Agustus 2026",
+  dateSub: "Pukul 15.00 — 20.30 WIB",
+  locationTitle: "CGV FX Sudirman — Lantai F7",
+  locationSub: "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan",
+  mapUrl: "https://maps.google.com/?q=CGV+FX+Sudirman",
+  dressCodeTitle: "Dress Code: Birthday T-shirt Erine",
+  dressCodeSub: "atau pakaian sopan & rapih",
+  footerText: "Cavallery ©2026",
+};
+
 export const RAW_FANBASES = [
   "Fenidelity",
   "Gitroops",
@@ -30,7 +66,6 @@ export const RAW_FANBASES = [
   "Raishanrise",
   "Alamanda",
   "Aninimous",
-  "Cathleenexus",
   "Cellineyours",
   "Chelsealand",
   "Cynthiaction",
@@ -39,7 +74,6 @@ export const RAW_FANBASES = [
   "Denalize",
   "Gracieluv",
   "Michiban",
-  "Sahabat Gendis",
   "Wargavi48",
   "Nayrakuen",
   "Aranika",
@@ -128,6 +162,24 @@ export function getFanbases(): FanbaseEntry[] {
   } catch {}
 
   return DEFAULT_FANBASES;
+}
+
+export function getWayfinderConfig(): WayfinderConfig {
+  try {
+    const isVercel = process.env.VERCEL === "1";
+    const dataDir = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+    const jsonPath = path.join(dataDir, "wayfinder-config.json");
+    const staticPath = path.join(process.cwd(), "src", "data", "wayfinder-config.json");
+
+    const targetPath = fs.existsSync(jsonPath) ? jsonPath : (fs.existsSync(staticPath) ? staticPath : null);
+    if (targetPath) {
+      const content = fs.readFileSync(targetPath, "utf-8");
+      const parsed = JSON.parse(content);
+      return { ...DEFAULT_WAYFINDER_CONFIG, ...parsed };
+    }
+  } catch {}
+
+  return DEFAULT_WAYFINDER_CONFIG;
 }
 
 export const FANBASES: FanbaseEntry[] = DEFAULT_FANBASES;
