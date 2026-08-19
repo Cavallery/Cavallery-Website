@@ -90,11 +90,14 @@ function useAdminAuth() {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Verifikasi session ke server saat mount
-    // httpOnly cookie dikirim otomatis oleh browser — tidak bisa dimanipulasi dari console
+    // Verifikasi session ke server saat mount dengan timeout 3.5 detik
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
     fetch("/api/admin/verify", {
       method:      "GET",
       credentials: "same-origin",
+      signal:      controller.signal,
     })
       .then(res => res.json())
       .then(data => {
@@ -104,8 +107,14 @@ function useAdminAuth() {
         setAuthed(false);
       })
       .finally(() => {
+        clearTimeout(timeoutId);
         setChecking(false);
       });
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, []);
 
   const logout = async () => {
@@ -4476,9 +4485,14 @@ export default function AdminPage() {
   
 
   if (checking) return (
-    <div className={styles.fullCenter}>
-      <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem" }} />
-    </div>
+    <AdminPortal>
+      <div className={styles.adminRoot} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center", color: "#c9a84c" }}>
+          <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2.5rem", marginBottom: 12 }} />
+          <div style={{ fontSize: "0.9rem", color: "#aaa" }}>Memuat Cavallery Admin...</div>
+        </div>
+      </div>
+    </AdminPortal>
   );
 
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
