@@ -1,13 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import styles from "./SplashScreen.module.css";
 
 export default function SplashScreen() {
-  const [visible, setVisible] = useState(true);
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith("/admin");
+
+  const [visible, setVisible] = useState(!isAdmin);
   const [fadeOut, setFadeOut] = useState(false);
   const [desktopError, setDesktopError] = useState(false);
 
   useEffect(() => {
+    // Don't run splash logic on admin routes
+    if (isAdmin) return;
+
     let mainTimer: NodeJS.Timeout;
     let fadeTimer: NodeJS.Timeout;
 
@@ -45,7 +52,10 @@ export default function SplashScreen() {
       clearTimeout(fadeTimer);
       window.removeEventListener("trigger-splash", handleTrigger);
     };
-  }, []);
+  }, [isAdmin]);
+
+  // Don't render splash on admin routes
+  if (isAdmin) return null;
 
   if (!visible) return null;
 
