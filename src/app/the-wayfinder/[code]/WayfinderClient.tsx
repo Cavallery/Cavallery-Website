@@ -2,23 +2,39 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import styles from "./page.module.css";
+import type { WayfinderConfig } from "@/data/wayfinder-fanbases";
 
-const EVENT_DATE = "2026-08-22T15:00:00+07:00";
-const BG_IMAGE = "/images/wayfinder-bg.png";
+const DEFAULT_CONFIG: WayfinderConfig = {
+  bgImage: "/images/wayfinder-bg.png",
+  eventDate: "2026-08-22T15:00:00+07:00",
+  badgeText: "Seitansai Project 2026",
+  eyebrow: "Catherina Vallencia",
+  heroName: "Erine",
+  heroTitle: "The Wayfinder",
+  invitedLabel: "Mengundang",
+  dateTitle: "Sabtu, 22 Agustus 2026",
+  dateSub: "Pukul 15.00 — 20.30 WIB",
+  locationTitle: "CGV FX Sudirman — Lantai F7",
+  locationSub: "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan",
+  mapUrl: "https://maps.google.com/?q=CGV+FX+Sudirman",
+  dressCodeTitle: "Dress Code: Birthday T-shirt Erine",
+  dressCodeSub: "atau pakaian sopan & rapih",
+  footerText: "Cavallery ©2026",
+};
 
 /* ============================================================
    Countdown Component
    ============================================================ */
-function Countdown() {
+function Countdown({ targetDate }: { targetDate: string }) {
   const [diff, setDiff] = useState<number | null>(null);
 
   useEffect(() => {
-    const target = new Date(EVENT_DATE).getTime();
+    const target = new Date(targetDate || DEFAULT_CONFIG.eventDate).getTime();
     const tick = () => setDiff(Math.max(0, target - Date.now()));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [targetDate]);
 
   if (diff === null) return null;
 
@@ -47,7 +63,7 @@ function Countdown() {
 /* ============================================================
    Download Card (Canvas Render)
    ============================================================ */
-function DownloadCard({ fanbase }: { fanbase: string }) {
+function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -64,6 +80,7 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
     canvas.height = H;
 
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.onload = () => {
       // Background Image
       const scale = Math.max(W / img.width, H / img.height);
@@ -88,11 +105,11 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       ctx.lineWidth = 4;
       ctx.strokeRect(10, 10, W - 20, H - 20);
 
-      // Badge: SEITANSAI PROJECT 2026
+      // Badge: SEITANSAI PROJECT
       ctx.fillStyle = "rgba(0,0,0,0.6)";
       ctx.strokeStyle = "rgba(240,190,83,0.35)";
       ctx.lineWidth = 1.5;
-      const badgeW = 280;
+      const badgeW = 300;
       const badgeH = 34;
       const badgeX = (W - badgeW) / 2;
       const badgeY = 60;
@@ -104,22 +121,23 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       ctx.fillStyle = "#f0be53";
       ctx.font = "700 13px Montserrat, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("SEITANSAI PROJECT 2026", W / 2, badgeY + 22);
+      ctx.fillText((cfg.badgeText || "SEITANSAI PROJECT 2026").toUpperCase(), W / 2, badgeY + 22);
 
-      // Eyebrow: CATHERINA VALLENCIA
+      // Eyebrow
       ctx.fillStyle = "#d6cebf";
       ctx.font = "600 15px Montserrat, sans-serif";
-      ctx.fillText("CATHERINA VALLENCIA", W / 2, 145);
+      ctx.fillText((cfg.eyebrow || "CATHERINA VALLENCIA").toUpperCase(), W / 2, 145);
 
-      // Title: Erine
+      // Title
       ctx.fillStyle = "#ffffff";
       ctx.font = "italic 700 92px Playfair Display, Georgia, serif";
-      ctx.fillText("Erine", W / 2, 235);
+      ctx.fillText(cfg.heroName || "Erine", W / 2, 235);
 
-      // Subtitle: THE WAYFINDER
+      // Subtitle
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 18px Montserrat, sans-serif";
-      ctx.fillText("T H E   W A Y F I N D E R", W / 2, 280);
+      const spacedTitle = (cfg.heroTitle || "THE WAYFINDER").split("").join(" ").toUpperCase();
+      ctx.fillText(spacedTitle, W / 2, 280);
 
       // Gold Divider Line
       ctx.strokeStyle = "#f0be53";
@@ -144,7 +162,8 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "600 13px Montserrat, sans-serif";
-      ctx.fillText("M E N G U N D A N G", W / 2, iby + 35);
+      const spacedInvited = (cfg.invitedLabel || "MENGUNDANG").split("").join(" ").toUpperCase();
+      ctx.fillText(spacedInvited, W / 2, iby + 35);
 
       ctx.fillStyle = "#ffd778";
       const fnSize = fanbase.length > 18 ? 38 : fanbase.length > 12 ? 46 : 54;
@@ -184,11 +203,11 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
 
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 24px Montserrat, sans-serif";
-      ctx.fillText("Sabtu, 22 Agustus 2026", contentX, by + 120);
+      ctx.fillText(cfg.dateTitle || "Sabtu, 22 Agustus 2026", contentX, by + 120);
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 17px Montserrat, sans-serif";
-      ctx.fillText("Pukul 15.00 — 20.30 WIB", contentX, by + 155);
+      ctx.fillText(cfg.dateSub || "Pukul 15.00 — 20.30 WIB", contentX, by + 155);
 
       // Separator
       ctx.strokeStyle = "rgba(255,255,255,0.1)";
@@ -200,12 +219,22 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       // Row 2: Lokasi
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 24px Montserrat, sans-serif";
-      ctx.fillText("CGV FX Sudirman — Lantai F7", contentX, by + 245);
+      ctx.fillText(cfg.locationTitle || "CGV FX Sudirman — Lantai F7", contentX, by + 245);
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 17px Montserrat, sans-serif";
-      ctx.fillText("Jl. Jend. Sudirman, Pintu Satu Senayan", contentX, by + 280);
-      ctx.fillText("Jakarta Selatan", contentX, by + 308);
+      const locSub = cfg.locationSub || "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan";
+      if (locSub.length > 38) {
+        const parts = locSub.split(",");
+        if (parts.length > 1) {
+          ctx.fillText(parts.slice(0, parts.length - 1).join(","), contentX, by + 280);
+          ctx.fillText(parts[parts.length - 1].trim(), contentX, by + 308);
+        } else {
+          ctx.fillText(locSub, contentX, by + 280);
+        }
+      } else {
+        ctx.fillText(locSub, contentX, by + 280);
+      }
 
       // Separator
       ctx.beginPath();
@@ -216,17 +245,17 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       // Row 3: Dress Code
       ctx.fillStyle = "#ffd778";
       ctx.font = "700 20px Montserrat, sans-serif";
-      ctx.fillText("Dress Code: Birthday T-Shirt Erine", contentX, by + 395);
+      ctx.fillText(cfg.dressCodeTitle || "Dress Code: Birthday T-shirt Erine", contentX, by + 395);
 
       ctx.fillStyle = "#d6cebf";
       ctx.font = "500 16px Montserrat, sans-serif";
-      ctx.fillText("atau pakaian sopan & rapih", contentX, by + 428);
+      ctx.fillText(cfg.dressCodeSub || "atau pakaian sopan & rapih", contentX, by + 428);
 
       // Footer brand
       ctx.textAlign = "center";
       ctx.fillStyle = "#a09882";
       ctx.font = "600 13px Montserrat, sans-serif";
-      ctx.fillText("CAVALLERY ©2026", W / 2, H - 55);
+      ctx.fillText(cfg.footerText || "CAVALLERY ©2026", W / 2, H - 55);
 
       setReady(true);
     };
@@ -237,8 +266,8 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
       setReady(true);
     };
 
-    img.src = BG_IMAGE;
-  }, [fanbase]);
+    img.src = cfg.bgImage || DEFAULT_CONFIG.bgImage;
+  }, [fanbase, cfg]);
 
   useEffect(() => {
     drawCard();
@@ -248,7 +277,7 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = `Undangan-TheWayfinder-${fanbase.replace(/[\s.]+/g, "_")}.png`;
+    link.download = `Undangan-${(cfg.heroTitle || "Wayfinder").replace(/\s+/g, "_")}-${fanbase.replace(/[\s.]+/g, "_")}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   };
@@ -269,7 +298,15 @@ function DownloadCard({ fanbase }: { fanbase: string }) {
 /* ============================================================
    Wayfinder Client View
    ============================================================ */
-export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
+export default function WayfinderClient({
+  fanbase,
+  config,
+}: {
+  fanbase?: string;
+  config?: WayfinderConfig;
+}) {
+  const cfg = config || DEFAULT_CONFIG;
+
   if (!fanbase) {
     return (
       <div className={styles.wayfinderPage}>
@@ -287,28 +324,28 @@ export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
       <div className={styles.card}>
         <div
           className={styles.cardBg}
-          style={{ backgroundImage: `url(${BG_IMAGE})` }}
+          style={{ backgroundImage: `url(${cfg.bgImage || DEFAULT_CONFIG.bgImage})` }}
         />
         <div className={styles.cardOverlay} />
 
         <div className={styles.cardContent}>
           {/* Top Badge */}
           <div className={styles.badgeHeader}>
-            <span>Seitansai Project 2026</span>
+            <span>{cfg.badgeText || "Seitansai Project 2026"}</span>
           </div>
 
           {/* Hero Identity */}
           <div className={styles.hero}>
-            <span className={styles.eyebrow}>Catherina Vallencia</span>
-            <h1 className={styles.heroName}>Erine</h1>
-            <p className={styles.heroTitle}>The Wayfinder</p>
+            <span className={styles.eyebrow}>{cfg.eyebrow || "Catherina Vallencia"}</span>
+            <h1 className={styles.heroName}>{cfg.heroName || "Erine"}</h1>
+            <p className={styles.heroTitle}>{cfg.heroTitle || "The Wayfinder"}</p>
           </div>
 
           <div className={styles.divider} />
 
           {/* Invited Fanbase Box */}
           <div className={styles.invitedBox}>
-            <span className={styles.invitedLabel}>Mengundang</span>
+            <span className={styles.invitedLabel}>{cfg.invitedLabel || "Mengundang"}</span>
             <h2 className={styles.invitedName}>{fanbase}</h2>
           </div>
 
@@ -321,8 +358,8 @@ export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
                 <i className="bx bx-calendar" />
               </div>
               <div className={styles.detailInfo}>
-                <div className={styles.detailTitle}>Sabtu, 22 Agustus 2026</div>
-                <div className={styles.detailSub}>Pukul 15.00 — 20.30 WIB</div>
+                <div className={styles.detailTitle}>{cfg.dateTitle || "Sabtu, 22 Agustus 2026"}</div>
+                <div className={styles.detailSub}>{cfg.dateSub || "Pukul 15.00 — 20.30 WIB"}</div>
               </div>
             </div>
 
@@ -331,8 +368,8 @@ export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
                 <i className="bx bx-map-pin" />
               </div>
               <div className={styles.detailInfo}>
-                <div className={styles.detailTitle}>CGV FX Sudirman — Lantai F7</div>
-                <div className={styles.detailSub}>Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan</div>
+                <div className={styles.detailTitle}>{cfg.locationTitle || "CGV FX Sudirman — Lantai F7"}</div>
+                <div className={styles.detailSub}>{cfg.locationSub || "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan"}</div>
               </div>
             </div>
 
@@ -341,35 +378,37 @@ export default function WayfinderClient({ fanbase }: { fanbase?: string }) {
                 <i className="bx bx-closet" />
               </div>
               <div className={styles.detailInfo}>
-                <div className={styles.detailTitle}>Dress Code: Birthday T-shirt Erine</div>
-                <div className={styles.detailSub}>atau pakaian sopan & rapih</div>
+                <div className={styles.detailTitle}>{cfg.dressCodeTitle || "Dress Code: Birthday T-shirt Erine"}</div>
+                <div className={styles.detailSub}>{cfg.dressCodeSub || "atau pakaian sopan & rapih"}</div>
               </div>
             </div>
 
-            <Countdown />
+            <Countdown targetDate={cfg.eventDate || DEFAULT_CONFIG.eventDate} />
           </div>
 
           {/* Map Action Button */}
-          <div className={styles.actionArea}>
-            <a
-              className={styles.mapBtn}
-              href="https://maps.google.com/?q=CGV+FX+Sudirman"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <i className="bx bx-navigation" /> Buka Lokasi di Google Maps
-            </a>
-          </div>
+          {cfg.mapUrl && (
+            <div className={styles.actionArea}>
+              <a
+                className={styles.mapBtn}
+                href={cfg.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="bx bx-navigation" /> Buka Lokasi di Google Maps
+              </a>
+            </div>
+          )}
 
           {/* Footer in Card */}
           <div className={styles.cardFooter}>
-            <span className={styles.footerBrand}>Cavallery ©2026</span>
+            <span className={styles.footerBrand}>{cfg.footerText || "Cavallery ©2026"}</span>
           </div>
         </div>
       </div>
 
       {/* ---- Download Card Button ---- */}
-      <DownloadCard fanbase={fanbase} />
+      <DownloadCard fanbase={fanbase} cfg={cfg} />
     </div>
   );
 }

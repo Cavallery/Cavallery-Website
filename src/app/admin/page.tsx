@@ -3299,70 +3299,88 @@ const DEFAULT_INVITATIONS = [
   { id: "18", name: "Raishanrise", slug: "Raishanrise" },
   { id: "19", name: "Alamanda", slug: "Alamanda" },
   { id: "20", name: "Aninimous", slug: "Aninimous" },
-  { id: "21", name: "Cathleenexus", slug: "Cathleenexus" },
-  { id: "22", name: "Cellineyours", slug: "Cellineyours" },
-  { id: "23", name: "Chelsealand", slug: "Chelsealand" },
-  { id: "24", name: "Cynthiaction", slug: "Cynthiaction" },
-  { id: "25", name: "Daisyne", slug: "Daisyne" },
-  { id: "26", name: "DEGREES", slug: "DEGREES" },
-  { id: "27", name: "Denalize", slug: "Denalize" },
-  { id: "28", name: "Gracieluv", slug: "Gracieluv" },
-  { id: "29", name: "Michiban", slug: "Michiban" },
-  { id: "30", name: "Sahabat Gendis", slug: "Sahabat-Gendis" },
-  { id: "31", name: "Wargavi48", slug: "Wargavi48" },
-  { id: "32", name: "Nayrakuen", slug: "Nayrakuen" },
-  { id: "33", name: "Aranika", slug: "Aranika" },
-  { id: "34", name: "Hillaryours", slug: "Hillaryours" },
-  { id: "35", name: "Delynessence", slug: "Delynessence" },
-  { id: "36", "name": "Olinara", slug: "Olinara" },
-  { id: "37", name: "TACT", slug: "TACT" },
-  { id: "38", name: "Nalania", slug: "Nalania" },
-  { id: "39", name: "RIBCALLS", slug: "RIBCALLS" },
-  { id: "40", name: "Lanautica", slug: "Lanautica" },
-  { id: "41", name: "YokiNachia", slug: "YokiNachia" },
-  { id: "42", name: "Fritzy Force", slug: "Fritzy-Force" },
-  { id: "43", name: "Le Viosa", slug: "Le-Viosa" },
-  { id: "44", name: "Cavallery", slug: "Cavallery" },
-  { id: "45", name: "GROVY", slug: "GROVY" },
-  { id: "46", name: "Jevolante", slug: "Jevolante" },
-  { id: "47", name: "Humainiora", slug: "Humainiora" },
-  { id: "48", name: "Iris", slug: "Iris" },
-  { id: "49", name: "Aprillivels", slug: "Aprillivels" },
-  { id: "50", name: "AuLavana", slug: "AuLavana" },
-  { id: "51", name: "BerbahaGIA.ID", slug: "BerbahaGIAID" },
-  { id: "52", name: "CINEMIKA", slug: "CINEMIKA" },
-  { id: "53", name: "EKINAIR", slug: "EKINAIR" },
-  { id: "54", name: "ASTRALUX", slug: "ASTRALUX" },
-  { id: "55", name: "Carissera", slug: "Carissera" },
-  { id: "56", name: "Heippy", slug: "Heippy" },
-  { id: "57", name: "HIRAKIRA", slug: "HIRAKIRA" },
-  { id: "58", name: "JazLune", slug: "JazLune" },
-  { id: "59", name: "Jogo Bonita", slug: "Jogo-Bonita" },
-  { id: "60", name: "Maxineiu", slug: "Maxineiu" },
-  { id: "61", name: "Ralvandra", slug: "Ralvandra" },
-  { id: "62", name: "RaraLand", slug: "RaraLand" },
-  { id: "63", name: "TerpeSona", slug: "TerpeSona" },
-  { id: "64", name: "TheaFeria", slug: "TheaFeria" },
-  { id: "65", name: "Cipuyyy", slug: "Cipuyyy" },
-  { id: "66", name: "William Santoso", slug: "William-Santoso" },
-  { id: "67", name: "Angga", slug: "Angga" },
-  { id: "68", name: "RFDorable", slug: "RFDorable" },
-  { id: "69", name: "Vend.", slug: "Vend" },
-  { id: "70", name: "Lucky Arasyah", slug: "Lucky-Arasyah" },
-  { id: "71", name: "Indyraaa", slug: "Indyraaa" },
-  { id: "72", name: "Roni Eriyanto", slug: "Roni-Eriyanto" },
-  { id: "73", name: "Rifqi Annafi", slug: "Rifqi-Annafi" },
-  { id: "74", name: "ForLovelist", slug: "ForLovelist" },
-  { id: "75", name: "Expose Right Noise", slug: "Expose-Right-Noise" },
-  { id: "76", name: "Tumpul Vallencia", slug: "Tumpul-Vallencia" },
-  { id: "77", name: "Point Of View", slug: "Point-Of-View" },
-  { id: "78", name: "Nabil Rasyaaa", slug: "Nabil-Rasyaaa" },
-  { id: "79", name: "Ashlii Palsu", slug: "Ashlii-Palsu" },
-  { id: "80", name: "Isnia", slug: "Isnia" },
+  { id: "21", name: "Cellineyours", slug: "Cellineyours" },
+  { id: "22", name: "Chelsealand", slug: "Chelsealand" },
+  { id: "23", name: "Cynthiaction", slug: "Cynthiaction" },
+  { id: "24", name: "Daisyne", slug: "Daisyne" },
+  { id: "25", name: "DEGREES", slug: "DEGREES" },
+  { id: "26", name: "Denalize", slug: "Denalize" },
+  { id: "27", name: "Gracieluv", slug: "Gracieluv" },
+  { id: "28", name: "Michiban", slug: "Michiban" },
+  { id: "29", name: "Wargavi48", slug: "Wargavi48" },
+  { id: "30", name: "Nayrakuen", slug: "Nayrakuen" },
+  { id: "31", name: "Aranika", slug: "Aranika" },
+  { id: "32", name: "Hillaryours", slug: "Hillaryours" },
+  { id: "33", name: "Delynessence", slug: "Delynessence" },
+  { id: "34", name: "Olinara", slug: "Olinara" },
+  { id: "35", name: "TACT", slug: "TACT" },
+  { id: "36", name: "Nalania", slug: "Nalania" },
+  { id: "37", name: "RIBCALLS", slug: "RIBCALLS" },
+  { id: "38", name: "Lanautica", slug: "Lanautica" },
+  { id: "39", "name": "YokiNachia", slug: "YokiNachia" },
+  { id: "40", name: "Fritzy Force", slug: "Fritzy-Force" },
+  { id: "41", name: "Le Viosa", slug: "Le-Viosa" },
+  { id: "42", name: "Cavallery", slug: "Cavallery" },
+  { id: "43", name: "GROVY", slug: "GROVY" },
+  { id: "44", name: "Jevolante", slug: "Jevolante" },
+  { id: "45", name: "Humainiora", slug: "Humainiora" },
+  { id: "46", name: "Iris", slug: "Iris" },
+  { id: "47", name: "Aprillivels", slug: "Aprillivels" },
+  { id: "48", name: "AuLavana", slug: "AuLavana" },
+  { id: "49", name: "BerbahaGIA.ID", slug: "BerbahaGIAID" },
+  { id: "50", name: "CINEMIKA", slug: "CINEMIKA" },
+  { id: "51", name: "EKINAIR", slug: "EKINAIR" },
+  { id: "52", name: "ASTRALUX", slug: "ASTRALUX" },
+  { id: "53", name: "Carissera", slug: "Carissera" },
+  { id: "54", name: "Heippy", slug: "Heippy" },
+  { id: "55", name: "HIRAKIRA", slug: "HIRAKIRA" },
+  { id: "56", name: "JazLune", slug: "JazLune" },
+  { id: "57", name: "Jogo Bonita", slug: "Jogo-Bonita" },
+  { id: "58", name: "Maxineiu", slug: "Maxineiu" },
+  { id: "59", name: "Ralvandra", slug: "Ralvandra" },
+  { id: "60", name: "RaraLand", slug: "RaraLand" },
+  { id: "61", name: "TerpeSona", slug: "TerpeSona" },
+  { id: "62", name: "TheaFeria", slug: "TheaFeria" },
+  { id: "63", name: "Cipuyyy", slug: "Cipuyyy" },
+  { id: "64", name: "William Santoso", slug: "William-Santoso" },
+  { id: "65", name: "Angga", slug: "Angga" },
+  { id: "66", name: "RFDorable", slug: "RFDorable" },
+  { id: "67", name: "Vend.", slug: "Vend" },
+  { id: "68", name: "Lucky Arasyah", slug: "Lucky-Arasyah" },
+  { id: "69", name: "Indyraaa", slug: "Indyraaa" },
+  { id: "70", name: "Roni Eriyanto", slug: "Roni-Eriyanto" },
+  { id: "71", name: "Rifqi Annafi", slug: "Rifqi-Annafi" },
+  { id: "72", name: "ForLovelist", slug: "ForLovelist" },
+  { id: "73", name: "Expose Right Noise", slug: "Expose-Right-Noise" },
+  { id: "74", name: "Tumpul Vallencia", slug: "Tumpul-Vallencia" },
+  { id: "75", name: "Point Of View", slug: "Point-Of-View" },
+  { id: "76", name: "Nabil Rasyaaa", slug: "Nabil-Rasyaaa" },
+  { id: "77", name: "Ashlii Palsu", slug: "Ashlii-Palsu" },
+  { id: "78", name: "Isnia", slug: "Isnia" },
 ];
+
+const DEFAULT_CARD_CONFIG = {
+  bgImage: "/images/wayfinder-bg.png",
+  eventDate: "2026-08-22T15:00:00+07:00",
+  badgeText: "Seitansai Project 2026",
+  eyebrow: "Catherina Vallencia",
+  heroName: "Erine",
+  heroTitle: "The Wayfinder",
+  invitedLabel: "Mengundang",
+  dateTitle: "Sabtu, 22 Agustus 2026",
+  dateSub: "Pukul 15.00 — 20.30 WIB",
+  locationTitle: "CGV FX Sudirman — Lantai F7",
+  locationSub: "Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan",
+  mapUrl: "https://maps.google.com/?q=CGV+FX+Sudirman",
+  dressCodeTitle: "Dress Code: Birthday T-shirt Erine",
+  dressCodeSub: "atau pakaian sopan & rapih",
+  footerText: "Cavallery ©2026",
+};
 
 function InvitationsManager() {
   const [invitations, setInvitations] = useState<any[]>([]);
+  const [cardConfig, setCardConfig] = useState<any>(DEFAULT_CARD_CONFIG);
+  const [activeTab, setActiveTab] = useState<"list" | "config">("list");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -3384,10 +3402,18 @@ function InvitationsManager() {
       const res = await fetch("/api/invitations");
       if (res.ok) {
         const json = await res.json();
-        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
-          setInvitations(json.data);
-          if (typeof window !== "undefined") {
-            localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+        if (json?.success) {
+          if (Array.isArray(json?.data) && json.data.length > 0) {
+            setInvitations(json.data);
+            if (typeof window !== "undefined") {
+              localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+            }
+          }
+          if (json?.config) {
+            setCardConfig({ ...DEFAULT_CARD_CONFIG, ...json.config });
+            if (typeof window !== "undefined") {
+              localStorage.setItem("cavallery_wayfinder_config", JSON.stringify(json.config));
+            }
           }
           setLoading(false);
           return;
@@ -3402,8 +3428,15 @@ function InvitationsManager() {
       } else {
         setInvitations(DEFAULT_INVITATIONS);
       }
+      const savedCfg = typeof window !== "undefined" ? localStorage.getItem("cavallery_wayfinder_config") : null;
+      if (savedCfg) {
+        setCardConfig(JSON.parse(savedCfg));
+      } else {
+        setCardConfig(DEFAULT_CARD_CONFIG);
+      }
     } catch {
       setInvitations(DEFAULT_INVITATIONS);
+      setCardConfig(DEFAULT_CARD_CONFIG);
     }
     setLoading(false);
   }, []);
@@ -3537,6 +3570,41 @@ function InvitationsManager() {
     }
   };
 
+  const handleSaveCardConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateConfig", config: cardConfig }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.config) {
+          setCardConfig(json.config);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cavallery_wayfinder_config", JSON.stringify(json.config));
+          }
+          showToast("Teks & Background kartu undangan berhasil disimpan!", "success");
+          setSaving(false);
+          return;
+        }
+      }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_wayfinder_config", JSON.stringify(cardConfig));
+      }
+      showToast("Teks & Background kartu undangan berhasil disimpan!", "success");
+    } catch {
+      showToast("Gagal menyimpan konfigurasi kartu", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleConfigChange = (key: string, val: string) => {
+    setCardConfig((prev: any) => ({ ...prev, [key]: val }));
+  };
+
   const filtered = invitations.filter((item) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -3639,13 +3707,13 @@ function InvitationsManager() {
         </div>
       )}
 
-      {/* Header Section */}
+      {/* Header Section with Subtabs */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
           <i className="bx bx-envelope" style={{ color: "#c9a84c" }} /> Undangan (The Wayfinder)
           <span className={styles.count}>{invitations.length} Undangan</span>
         </h2>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <a
             href="/the-wayfinder/links"
             target="_blank"
@@ -3655,162 +3723,546 @@ function InvitationsManager() {
           >
             <i className="bx bx-link-external" /> Link Generator
           </a>
-          <button className={styles.btnPrimary} onClick={openAdd}>
-            <i className="bx bx-plus" /> Tambah Undangan
-          </button>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div style={{ marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
-        <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
-          <i
-            className="bx bx-search"
-            style={{
-              position: "absolute",
-              left: 12,
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#777",
-              fontSize: "1.1rem",
-            }}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama atau slug..."
-            style={{
-              width: "100%",
-              padding: "9px 12px 9px 36px",
-              background: "var(--adm-surface)",
-              color: "var(--adm-text)",
-              border: "1px solid var(--adm-border)",
-              borderRadius: 8,
-              fontSize: "0.88rem",
-            }}
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              style={{
-                position: "absolute",
-                right: 10,
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                color: "#999",
-                cursor: "pointer",
-              }}
-            >
-              <i className="bx bx-x" />
+          {activeTab === "list" && (
+            <button className={styles.btnPrimary} onClick={openAdd}>
+              <i className="bx bx-plus" /> Tambah Undangan
             </button>
           )}
         </div>
-        {search && (
-          <span style={{ fontSize: 13, color: "#888" }}>
-            Ditemukan {filtered.length} dari {invitations.length}
-          </span>
-        )}
       </div>
 
-      {/* Content Table */}
-      {loading ? (
-        <div className={styles.loadingState}>
-          <i className="bx bx-loader-alt bx-spin" /> Memuat daftar undangan...
-        </div>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
-          <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
-          <p>{search ? "Tidak ada undangan yang cocok dengan pencarian" : "Belum ada undangan"}</p>
-        </div>
-      ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th style={{ width: 45, textAlign: "center" }}>#</th>
-                <th>Penerima / Fanbase</th>
-                <th>Slug Link</th>
-                <th style={{ width: 220, textAlign: "center" }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((item, idx) => (
-                <tr key={item.id || item.slug || idx}>
-                  <td style={{ textAlign: "center", color: "#888", fontVariantNumeric: "tabular-nums" }}>
-                    {idx + 1}
-                  </td>
-                  <td style={{ fontWeight: 600, color: "#f0f0f0" }}>
-                    {item.name}
-                  </td>
-                  <td>
-                    <code
-                      style={{
-                        fontSize: 12,
-                        color: "#c9a84c",
-                        background: "rgba(201,168,76,0.09)",
-                        padding: "3px 8px",
-                        borderRadius: 4,
-                      }}
-                    >
-                      /the-wayfinder/{item.slug}
-                    </code>
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
-                      {/* Copy Link Button */}
-                      <button
-                        className={styles.btnGhost}
-                        style={{
-                          padding: "5px 9px",
-                          color: copiedId === (item.id || item.slug) ? "#10b981" : "var(--adm-text)",
-                          fontSize: 13,
-                        }}
-                        onClick={() => handleCopyLink(item)}
-                        title="Salin Link Undangan"
-                      >
-                        <i className={`bx ${copiedId === (item.id || item.slug) ? "bx-check" : "bx-copy"}`} />
-                      </button>
+      {/* Navigation Sub-Tabs */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "1px solid var(--adm-border)", paddingBottom: 10 }}>
+        <button
+          onClick={() => setActiveTab("list")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            border: "none",
+            background: activeTab === "list" ? "#2a2410" : "transparent",
+            color: activeTab === "list" ? "#c9a84c" : "var(--adm-muted)",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <i className="bx bx-list-ul" /> Daftar Penerima ({invitations.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("config")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            border: "none",
+            background: activeTab === "config" ? "#2a2410" : "transparent",
+            color: activeTab === "config" ? "#c9a84c" : "var(--adm-muted)",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          <i className="bx bx-slider-alt" /> Desain Teks & Background Card
+        </button>
+      </div>
 
-                      {/* Open Link Button */}
-                      <a
-                        href={`/the-wayfinder/${item.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.btnGhost}
-                        style={{ padding: "5px 9px", color: "#3b82f6", textDecoration: "none", fontSize: 13 }}
-                        title="Buka Halaman Undangan"
-                      >
-                        <i className="bx bx-link-external" />
-                      </a>
+      {/* TAB 1: DAFTAR PENERIMA */}
+      {activeTab === "list" && (
+        <>
+          {/* Search Bar */}
+          <div style={{ marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
+              <i
+                className="bx bx-search"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#777",
+                  fontSize: "1.1rem",
+                }}
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari nama atau slug..."
+                style={{
+                  width: "100%",
+                  padding: "9px 12px 9px 36px",
+                  background: "var(--adm-surface)",
+                  color: "var(--adm-text)",
+                  border: "1px solid var(--adm-border)",
+                  borderRadius: 8,
+                  fontSize: "0.88rem",
+                }}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    color: "#999",
+                    cursor: "pointer",
+                  }}
+                >
+                  <i className="bx bx-x" />
+                </button>
+              )}
+            </div>
+            {search && (
+              <span style={{ fontSize: 13, color: "#888" }}>
+                Ditemukan {filtered.length} dari {invitations.length}
+              </span>
+            )}
+          </div>
 
-                      {/* Edit Button */}
-                      <button
-                        className={styles.btnGhost}
-                        style={{ padding: "5px 9px", fontSize: 13 }}
-                        onClick={() => openEdit(item)}
-                        title="Edit Undangan"
-                      >
-                        <i className="bx bx-edit" />
-                      </button>
+          {/* Content Table */}
+          {loading ? (
+            <div className={styles.loadingState}>
+              <i className="bx bx-loader-alt bx-spin" /> Memuat daftar undangan...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0", opacity: 0.4 }}>
+              <i className="bx bx-inbox" style={{ fontSize: "3rem" }} />
+              <p>{search ? "Tidak ada undangan yang cocok dengan pencarian" : "Belum ada undangan"}</p>
+            </div>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 45, textAlign: "center" }}>#</th>
+                    <th>Penerima / Fanbase</th>
+                    <th>Slug Link</th>
+                    <th style={{ width: 220, textAlign: "center" }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((item, idx) => (
+                    <tr key={item.id || item.slug || idx}>
+                      <td style={{ textAlign: "center", color: "#888", fontVariantNumeric: "tabular-nums" }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ fontWeight: 600, color: "#f0f0f0" }}>
+                        {item.name}
+                      </td>
+                      <td>
+                        <code
+                          style={{
+                            fontSize: 12,
+                            color: "#c9a84c",
+                            background: "rgba(201,168,76,0.09)",
+                            padding: "3px 8px",
+                            borderRadius: 4,
+                          }}
+                        >
+                          /the-wayfinder/{item.slug}
+                        </code>
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                          {/* Copy Link Button */}
+                          <button
+                            className={styles.btnGhost}
+                            style={{
+                              padding: "5px 9px",
+                              color: copiedId === (item.id || item.slug) ? "#10b981" : "var(--adm-text)",
+                              fontSize: 13,
+                            }}
+                            onClick={() => handleCopyLink(item)}
+                            title="Salin Link Undangan"
+                          >
+                            <i className={`bx ${copiedId === (item.id || item.slug) ? "bx-check" : "bx-copy"}`} />
+                          </button>
 
-                      {/* Delete Button */}
-                      <button
-                        className={styles.btnGhost}
-                        style={{ padding: "5px 9px", color: "#ef4444", fontSize: 13 }}
-                        onClick={() => setConfirmDelete(item)}
-                        title="Hapus Undangan"
-                      >
-                        <i className="bx bx-trash" />
-                      </button>
+                          {/* Open Link Button */}
+                          <a
+                            href={`/the-wayfinder/${item.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={styles.btnGhost}
+                            style={{ padding: "5px 9px", color: "#3b82f6", textDecoration: "none", fontSize: 13 }}
+                            title="Buka Halaman Undangan"
+                          >
+                            <i className="bx bx-link-external" />
+                          </a>
+
+                          {/* Edit Button */}
+                          <button
+                            className={styles.btnGhost}
+                            style={{ padding: "5px 9px", fontSize: 13 }}
+                            onClick={() => openEdit(item)}
+                            title="Edit Undangan"
+                          >
+                            <i className="bx bx-edit" />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            className={styles.btnGhost}
+                            style={{ padding: "5px 9px", color: "#ef4444", fontSize: 13 }}
+                            onClick={() => setConfirmDelete(item)}
+                            title="Hapus Undangan"
+                          >
+                            <i className="bx bx-trash" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* TAB 2: EDIT TEKS & BACKGROUND CARD */}
+      {activeTab === "config" && (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 640px) 1fr", gap: 24, alignItems: "start" }}>
+          {/* Form Settings */}
+          <div className={styles.formModal} style={{ position: "relative", maxWidth: "100%", padding: "20px 24px" }}>
+            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.05rem", color: "#c9a84c", display: "flex", alignItems: "center", gap: 8 }}>
+              <i className="bx bx-palette" /> Edit Teks & Background Kartu
+            </h3>
+            <form onSubmit={handleSaveCardConfig}>
+              <div className={styles.formBody}>
+                {/* Background Image */}
+                <div className={styles.field}>
+                  <label style={{ fontWeight: 600 }}>URL Gambar Background Card</label>
+                  <input
+                    type="text"
+                    value={cardConfig.bgImage || ""}
+                    onChange={(e) => handleConfigChange("bgImage", e.target.value)}
+                    placeholder="/images/wayfinder-bg.png atau https://..."
+                  />
+                  <small style={{ color: "#888" }}>
+                    Bisa berupa path lokal e.g. <code>/images/wayfinder-bg.png</code> atau link URL gambar online.
+                  </small>
+                </div>
+
+                {/* Hero Texts */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className={styles.field}>
+                    <label>Badge Atas</label>
+                    <input
+                      value={cardConfig.badgeText || ""}
+                      onChange={(e) => handleConfigChange("badgeText", e.target.value)}
+                      placeholder="Seitansai Project 2026"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Nama Member (Eyebrow)</label>
+                    <input
+                      value={cardConfig.eyebrow || ""}
+                      onChange={(e) => handleConfigChange("eyebrow", e.target.value)}
+                      placeholder="Catherina Vallencia"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className={styles.field}>
+                    <label>Nama Utama (Hero Title)</label>
+                    <input
+                      value={cardConfig.heroName || ""}
+                      onChange={(e) => handleConfigChange("heroName", e.target.value)}
+                      placeholder="Erine"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Judul Sub (Theme)</label>
+                    <input
+                      value={cardConfig.heroTitle || ""}
+                      onChange={(e) => handleConfigChange("heroTitle", e.target.value)}
+                      placeholder="The Wayfinder"
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label>Label Mengundang</label>
+                  <input
+                    value={cardConfig.invitedLabel || ""}
+                    onChange={(e) => handleConfigChange("invitedLabel", e.target.value)}
+                    placeholder="Mengundang"
+                  />
+                </div>
+
+                {/* Event Details */}
+                <div style={{ borderTop: "1px solid var(--adm-border)", paddingTop: 16, marginTop: 4 }}>
+                  <div style={{ fontWeight: 600, color: "#c9a84c", marginBottom: 12, fontSize: "0.9rem" }}>
+                    <i className="bx bx-calendar" /> Detail Jadwal & Lokasi Acara
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className={styles.field}>
+                      <label>Hari & Tanggal</label>
+                      <input
+                        value={cardConfig.dateTitle || ""}
+                        onChange={(e) => handleConfigChange("dateTitle", e.target.value)}
+                        placeholder="Sabtu, 22 Agustus 2026"
+                      />
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className={styles.field}>
+                      <label>Waktu Acara (WIB)</label>
+                      <input
+                        value={cardConfig.dateSub || ""}
+                        onChange={(e) => handleConfigChange("dateSub", e.target.value)}
+                        placeholder="Pukul 15.00 — 20.30 WIB"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Countdown Target (ISO / Date string)</label>
+                    <input
+                      value={cardConfig.eventDate || ""}
+                      onChange={(e) => handleConfigChange("eventDate", e.target.value)}
+                      placeholder="2026-08-22T15:00:00+07:00"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Nama Lokasi / Tempat</label>
+                    <input
+                      value={cardConfig.locationTitle || ""}
+                      onChange={(e) => handleConfigChange("locationTitle", e.target.value)}
+                      placeholder="CGV FX Sudirman — Lantai F7"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Alamat Lengkap Lokasi</label>
+                    <input
+                      value={cardConfig.locationSub || ""}
+                      onChange={(e) => handleConfigChange("locationSub", e.target.value)}
+                      placeholder="Jl. Jend. Sudirman, Pintu Satu Senayan, Jakarta Selatan"
+                    />
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>URL Link Google Maps</label>
+                    <input
+                      type="url"
+                      value={cardConfig.mapUrl || ""}
+                      onChange={(e) => handleConfigChange("mapUrl", e.target.value)}
+                      placeholder="https://maps.google.com/?q=CGV+FX+Sudirman"
+                    />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className={styles.field}>
+                      <label>Dress Code Judul</label>
+                      <input
+                        value={cardConfig.dressCodeTitle || ""}
+                        onChange={(e) => handleConfigChange("dressCodeTitle", e.target.value)}
+                        placeholder="Dress Code: Birthday T-shirt Erine"
+                      />
+                    </div>
+                    <div className={styles.field}>
+                      <label>Dress Code Keterangan</label>
+                      <input
+                        value={cardConfig.dressCodeSub || ""}
+                        onChange={(e) => handleConfigChange("dressCodeSub", e.target.value)}
+                        placeholder="atau pakaian sopan & rapih"
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.field}>
+                    <label>Footer Brand Copyright</label>
+                    <input
+                      value={cardConfig.footerText || ""}
+                      onChange={(e) => handleConfigChange("footerText", e.target.value)}
+                      placeholder="Cavallery ©2026"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.formFooter} style={{ justifyContent: "space-between", marginTop: 20 }}>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => setCardConfig(DEFAULT_CARD_CONFIG)}
+                >
+                  <i className="bx bx-reset" /> Reset Default
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-save" /> Simpan Kustomisasi
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Live Preview Box */}
+          <div
+            style={{
+              background: "#111",
+              border: "1px solid var(--adm-border)",
+              borderRadius: 12,
+              padding: 20,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              position: "sticky",
+              top: 20,
+            }}
+          >
+            <div style={{ fontSize: "0.85rem", color: "#c9a84c", fontWeight: 600, marginBottom: 14, alignSelf: "flex-start" }}>
+              <i className="bx bx-show" /> Live Preview Card
+            </div>
+
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 320,
+                borderRadius: 14,
+                border: "2px solid rgba(240,190,83,0.4)",
+                padding: "24px 18px",
+                position: "relative",
+                overflow: "hidden",
+                background: "#0b0f0d",
+                backgroundImage: `linear-gradient(rgba(10,15,12,0.82), rgba(10,15,12,0.98)), url(${cardConfig.bgImage || DEFAULT_CARD_CONFIG.bgImage})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                textAlign: "center",
+                color: "#ece3d0",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              }}
+            >
+              {/* Badge */}
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "4px 12px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(240,190,83,0.35)",
+                  background: "rgba(0,0,0,0.6)",
+                  color: "#f0be53",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  marginBottom: 12,
+                }}
+              >
+                {(cardConfig.badgeText || "SEITANSAI PROJECT 2026").toUpperCase()}
+              </div>
+
+              {/* Eyebrow */}
+              <div style={{ fontSize: 11, color: "#d6cebf", fontWeight: 600, letterSpacing: "0.06em" }}>
+                {(cardConfig.eyebrow || "CATHERINA VALLENCIA").toUpperCase()}
+              </div>
+
+              {/* Hero Title */}
+              <div
+                style={{
+                  fontSize: 32,
+                  fontFamily: "Playfair Display, Georgia, serif",
+                  fontStyle: "italic",
+                  fontWeight: 700,
+                  color: "#fff",
+                  margin: "4px 0 0 0",
+                }}
+              >
+                {cardConfig.heroName || "Erine"}
+              </div>
+
+              {/* Subtitle */}
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#ffd778",
+                  fontWeight: 700,
+                  letterSpacing: "0.2em",
+                  marginBottom: 12,
+                }}
+              >
+                {(cardConfig.heroTitle || "THE WAYFINDER").toUpperCase()}
+              </div>
+
+              {/* Mengundang Box */}
+              <div
+                style={{
+                  background: "rgba(240,190,83,0.09)",
+                  border: "1px solid rgba(240,190,83,0.35)",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ fontSize: 9, color: "#d6cebf", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                  {cardConfig.invitedLabel || "MENGUNDANG"}
+                </div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontFamily: "Playfair Display, Georgia, serif",
+                    fontStyle: "italic",
+                    fontWeight: 700,
+                    color: "#ffd778",
+                    marginTop: 2,
+                  }}
+                >
+                  Nama Fanbase
+                </div>
+              </div>
+
+              {/* Detail Box */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 11,
+                  textAlign: "left",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 11 }}>
+                  {cardConfig.dateTitle || "Sabtu, 22 Agustus 2026"}
+                </div>
+                <div style={{ color: "#d6cebf", fontSize: 10, marginBottom: 8 }}>
+                  {cardConfig.dateSub || "Pukul 15.00 — 20.30 WIB"}
+                </div>
+
+                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 11 }}>
+                  {cardConfig.locationTitle || "CGV FX Sudirman — Lantai F7"}
+                </div>
+                <div style={{ color: "#d6cebf", fontSize: 10, marginBottom: 8 }}>
+                  {cardConfig.locationSub || "Jl. Jend. Sudirman, Jakarta Selatan"}
+                </div>
+
+                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 10 }}>
+                  {cardConfig.dressCodeTitle || "Dress Code: Birthday T-shirt Erine"}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 10, color: "#a09882", fontWeight: 600 }}>
+                {cardConfig.footerText || "CAVALLERY ©2026"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
