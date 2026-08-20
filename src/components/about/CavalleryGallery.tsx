@@ -74,15 +74,29 @@ export default function CavalleryGallery() {
       try {
         setLoading(true);
         setError(null);
+
+        let publishedSet = new Set<string>();
+        try {
+          const pubRes = await fetch("/api/published-media");
+          if (pubRes.ok) {
+            const pubJson = await pubRes.json();
+            if (Array.isArray(pubJson?.publishedIds)) {
+              publishedSet = new Set(pubJson.publishedIds);
+            }
+          }
+        } catch {}
+
         const res = await fetch(API_URL);
         if (!res.ok) throw new Error("Gagal mengambil data media");
         const json = await res.json();
         if (!json.status) throw new Error(json.message || "Response tidak valid");
 
+        // Hanya tampilkan media yang secara eksplisit diterbitkan di dashboard
         const filtered: MediaItem[] = (json.data.items as MediaItem[]).filter(
           (item) =>
             item.deleted_at === null &&
-            (item.folder === "cavallery/images" || item.folder === "cavallery/videos")
+            (item.folder === "cavallery/images" || item.folder === "cavallery/videos") &&
+            (publishedSet.has(item.id) || publishedSet.has(item.public_url) || publishedSet.has(item.file_name))
         );
 
         setMediaItems(filtered);
