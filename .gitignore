@@ -30,8 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (strict private)
 .env*
+!.env.example
+
+# database & private SQL dumps (STRICT PRIVATE)
+*.sql
+schema.sql
+*.sqlite
+*.db
+*.dump
 
 # vercel
 .vercel
@@ -40,7 +48,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local data
+# local data & backups
 src/data/bot_config.json
 src/data/journal.json
 src/data/calendar.json
@@ -49,4 +57,9 @@ src/data/updates.json
 src/data/vcschedule.json
 src/data/about-erine.json
 src/data/anggota-kota.json
-
+src/data/published-media.json
+package-lockBAK*
+theater_res.json
+theater_test.json
+test-*.mjs
+test-*.js
