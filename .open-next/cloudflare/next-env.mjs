@@ -1,0 +1,3 @@
+export const production = {"DB_HOST":"153.92.15.44","DB_PORT":"3306","DB_NAME":"u410588002_Cavallery","DB_USER":"u410588002_Cavallery","DB_PASSWORD":"@Cavallery21","DB_SSL":"false","SESSION_SECRET":"cava-secret-key-2026-vallencia-secure","GEMINI_API_KEY":"AIzaSyAXDOhoKxQa011Q1ubkTwJs03Yt7lX8i9s"};
+export const development = {"DB_HOST":"153.92.15.44","DB_PORT":"3306","DB_NAME":"u410588002_Cavallery","DB_USER":"u410588002_Cavallery","DB_PASSWORD":"@Cavallery21","DB_SSL":"false","SESSION_SECRET":"cava-secret-key-2026-vallencia-secure","GEMINI_API_KEY":"AIzaSyAXDOhoKxQa011Q1ubkTwJs03Yt7lX8i9s"};
+export const test = {};
