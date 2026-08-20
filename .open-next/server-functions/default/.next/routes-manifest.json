@@ -1,0 +1,478 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/funfacts/[id]",
+      "regex": "^/api/funfacts/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/funfacts/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/gallery/[id]",
+      "regex": "^/api/gallery/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/gallery/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/kabesha/[id]",
+      "regex": "^/api/kabesha/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/kabesha/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/merch/[id]",
+      "regex": "^/api/merch/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/merch/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/news/[id]",
+      "regex": "^/api/news/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/news/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/setlists/[id]",
+      "regex": "^/api/setlists/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/setlists/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/stats/[id]",
+      "regex": "^/api/stats/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/stats/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/timeline/[id]",
+      "regex": "^/api/timeline/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/timeline/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/youtube/[id]",
+      "regex": "^/api/youtube/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/youtube/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/games/[slug]",
+      "regex": "^/games/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/games/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/news/cavallery-statement/[slug]",
+      "regex": "^/news/cavallery\\-statement/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/news/cavallery\\-statement/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/the-wayfinder/[code]",
+      "regex": "^/the\\-wayfinder/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/the\\-wayfinder/(?<nxtPcode>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/2026/sts-19-erine",
+      "regex": "^/2026/sts\\-19\\-erine(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/2026/sts\\-19\\-erine(?:/)?$"
+    },
+    {
+      "page": "/2026/the-wayfinder",
+      "regex": "^/2026/the\\-wayfinder(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/2026/the\\-wayfinder(?:/)?$"
+    },
+    {
+      "page": "/about/cavallery",
+      "regex": "^/about/cavallery(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about/cavallery(?:/)?$"
+    },
+    {
+      "page": "/about/erine",
+      "regex": "^/about/erine(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about/erine(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/api/about-erine",
+      "regex": "^/api/about\\-erine(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/about\\-erine(?:/)?$"
+    },
+    {
+      "page": "/api/admin/login",
+      "regex": "^/api/admin/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/login(?:/)?$"
+    },
+    {
+      "page": "/api/admin/logout",
+      "regex": "^/api/admin/logout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/logout(?:/)?$"
+    },
+    {
+      "page": "/api/admin/verify",
+      "regex": "^/api/admin/verify(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin/verify(?:/)?$"
+    },
+    {
+      "page": "/api/anggota-kota",
+      "regex": "^/api/anggota\\-kota(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/anggota\\-kota(?:/)?$"
+    },
+    {
+      "page": "/api/birthday",
+      "regex": "^/api/birthday(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/birthday(?:/)?$"
+    },
+    {
+      "page": "/api/birthday-messages",
+      "regex": "^/api/birthday\\-messages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/birthday\\-messages(?:/)?$"
+    },
+    {
+      "page": "/api/bot-config",
+      "regex": "^/api/bot\\-config(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/bot\\-config(?:/)?$"
+    },
+    {
+      "page": "/api/calendar",
+      "regex": "^/api/calendar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/calendar(?:/)?$"
+    },
+    {
+      "page": "/api/chat",
+      "regex": "^/api/chat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/chat(?:/)?$"
+    },
+    {
+      "page": "/api/discord",
+      "regex": "^/api/discord(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/discord(?:/)?$"
+    },
+    {
+      "page": "/api/funfacts",
+      "regex": "^/api/funfacts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/funfacts(?:/)?$"
+    },
+    {
+      "page": "/api/gallery",
+      "regex": "^/api/gallery(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/gallery(?:/)?$"
+    },
+    {
+      "page": "/api/invitations",
+      "regex": "^/api/invitations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/invitations(?:/)?$"
+    },
+    {
+      "page": "/api/journal",
+      "regex": "^/api/journal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/journal(?:/)?$"
+    },
+    {
+      "page": "/api/kabesha",
+      "regex": "^/api/kabesha(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/kabesha(?:/)?$"
+    },
+    {
+      "page": "/api/live",
+      "regex": "^/api/live(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/live(?:/)?$"
+    },
+    {
+      "page": "/api/merch",
+      "regex": "^/api/merch(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/merch(?:/)?$"
+    },
+    {
+      "page": "/api/news",
+      "regex": "^/api/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/news(?:/)?$"
+    },
+    {
+      "page": "/api/pm-statistik",
+      "regex": "^/api/pm\\-statistik(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/pm\\-statistik(?:/)?$"
+    },
+    {
+      "page": "/api/published-media",
+      "regex": "^/api/published\\-media(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/published\\-media(?:/)?$"
+    },
+    {
+      "page": "/api/riwayat",
+      "regex": "^/api/riwayat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/riwayat(?:/)?$"
+    },
+    {
+      "page": "/api/setlists",
+      "regex": "^/api/setlists(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/setlists(?:/)?$"
+    },
+    {
+      "page": "/api/stats",
+      "regex": "^/api/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stats(?:/)?$"
+    },
+    {
+      "page": "/api/theater",
+      "regex": "^/api/theater(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/theater(?:/)?$"
+    },
+    {
+      "page": "/api/tickets",
+      "regex": "^/api/tickets(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tickets(?:/)?$"
+    },
+    {
+      "page": "/api/timeline",
+      "regex": "^/api/timeline(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/timeline(?:/)?$"
+    },
+    {
+      "page": "/api/updates",
+      "regex": "^/api/updates(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/updates(?:/)?$"
+    },
+    {
+      "page": "/api/vcschedule",
+      "regex": "^/api/vcschedule(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/vcschedule(?:/)?$"
+    },
+    {
+      "page": "/api/youtube",
+      "regex": "^/api/youtube(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/youtube(?:/)?$"
+    },
+    {
+      "page": "/caterine17th",
+      "regex": "^/caterine17th(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/caterine17th(?:/)?$"
+    },
+    {
+      "page": "/erine-in-etherland",
+      "regex": "^/erine\\-in\\-etherland(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erine\\-in\\-etherland(?:/)?$"
+    },
+    {
+      "page": "/erine100show",
+      "regex": "^/erine100show(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/erine100show(?:/)?$"
+    },
+    {
+      "page": "/gallery",
+      "regex": "^/gallery(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/gallery(?:/)?$"
+    },
+    {
+      "page": "/games",
+      "regex": "^/games(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/games(?:/)?$"
+    },
+    {
+      "page": "/journal",
+      "regex": "^/journal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/journal(?:/)?$"
+    },
+    {
+      "page": "/kaleidoskop",
+      "regex": "^/kaleidoskop(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kaleidoskop(?:/)?$"
+    },
+    {
+      "page": "/live",
+      "regex": "^/live(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/live(?:/)?$"
+    },
+    {
+      "page": "/merchandise",
+      "regex": "^/merchandise(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/merchandise(?:/)?$"
+    },
+    {
+      "page": "/news",
+      "regex": "^/news(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/news(?:/)?$"
+    },
+    {
+      "page": "/news/cavallery-statement",
+      "regex": "^/news/cavallery\\-statement(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/news/cavallery\\-statement(?:/)?$"
+    },
+    {
+      "page": "/photobooth",
+      "regex": "^/photobooth(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/photobooth(?:/)?$"
+    },
+    {
+      "page": "/request-hour-2026",
+      "regex": "^/request\\-hour\\-2026(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/request\\-hour\\-2026(?:/)?$"
+    },
+    {
+      "page": "/schedule",
+      "regex": "^/schedule(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/schedule(?:/)?$"
+    },
+    {
+      "page": "/show-theater",
+      "regex": "^/show\\-theater(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/show\\-theater(?:/)?$"
+    },
+    {
+      "page": "/ssk",
+      "regex": "^/ssk(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ssk(?:/)?$"
+    },
+    {
+      "page": "/the-wayfinder/links",
+      "regex": "^/the\\-wayfinder/links(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/the\\-wayfinder/links(?:/)?$"
+    },
+    {
+      "page": "/tickets",
+      "regex": "^/tickets(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/tickets(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
