@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 const isVercel = process.env.VERCEL === "1";
 const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
@@ -149,8 +150,34 @@ export function writeConfig(config: WayfinderConfig) {
 }
 
 export async function GET() {
-  const data = readInvitations();
-  const config = readConfig();
+  let data = readInvitations();
+  let config = readConfig();
+
+  // If MySQL is configured, fetch live data from MySQL
+  if (isMySqlConfigured()) {
+    try {
+      const rows = await query<any[]>("SELECT id, fanbase_name, slug FROM wayfinder_invitations WHERE is_active = 1 ORDER BY id ASC");
+      if (rows && rows.length > 0) {
+        data = rows.map((r) => ({
+          id: String(r.id),
+          name: r.fanbase_name,
+          slug: r.slug,
+        }));
+      }
+
+      const cfgRows = await query<any[]>("SELECT config_key, config_value FROM wayfinder_config");
+      if (cfgRows && cfgRows.length > 0) {
+        const loadedCfg: any = {};
+        for (const row of cfgRows) {
+          loadedCfg[row.config_key] = row.config_value;
+        }
+        config = { ...DEFAULT_WAYFINDER_CONFIG, ...loadedCfg };
+      }
+    } catch (err: any) {
+      console.error("MySQL fetch error in invitations:", err.message);
+    }
+  }
+
   return NextResponse.json({ success: true, data, config });
 }
 
@@ -167,6 +194,16 @@ export async function POST(request: Request) {
       const current = readConfig();
       const updated = { ...current, ...(body.config || {}) };
       writeConfig(updated);
+
+      if (isMySqlConfigured()) {
+        for (const [k, v] of Object.entries(updated)) {
+          await query(
+            "INSERT INTO wayfinder_config (config_key, config_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE config_value = ?",
+            [k, String(v), String(v)]
+          );
+        }
+      }
+
       return NextResponse.json({ success: true, config: updated });
     }
 
@@ -188,6 +225,14 @@ export async function POST(request: Request) {
 
       data.push(newItem);
       writeInvitations(data);
+
+      if (isMySqlConfigured()) {
+        await query(
+          "INSERT INTO wayfinder_invitations (fanbase_name, slug, is_active) VALUES (?, ?, 1) ON DUPLICATE KEY UPDATE fanbase_name = VALUES(fanbase_name)",
+          [name, slug]
+        );
+      }
+
       return NextResponse.json({ success: true, data, item: newItem });
     }
 
@@ -205,6 +250,14 @@ export async function POST(request: Request) {
           slug,
         };
         writeInvitations(data);
+
+        if (isMySqlConfigured()) {
+          await query(
+            "UPDATE wayfinder_invitations SET fanbase_name = ?, slug = ? WHERE id = ? OR slug = ?",
+            [name, slug, body.id, body.id]
+          );
+        }
+
         return NextResponse.json({ success: true, data, item: data[index] });
       }
       return NextResponse.json({ success: false, message: "Item tidak ditemukan" }, { status: 404 });
@@ -212,8 +265,18 @@ export async function POST(request: Request) {
 
     if (body.action === "delete") {
       let data = readInvitations();
-      data = data.filter((item) => item.id !== body.id && item.slug !== body.id);
+      const targetId = body.id;
+      data = data.filter((item) => item.id !== targetId && item.slug !== targetId && item.name !== targetId);
       writeInvitations(data);
+
+      // Execute SQL DELETE directly on Hostinger MySQL
+      if (isMySqlConfigured()) {
+        await query(
+          "DELETE FROM wayfinder_invitations WHERE id = ? OR slug = ? OR fanbase_name = ?",
+          [targetId, targetId, targetId]
+        );
+      }
+
       return NextResponse.json({ success: true, data });
     }
 
