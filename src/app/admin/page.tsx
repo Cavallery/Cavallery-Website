@@ -4,15 +4,16 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "./page.module.css";
 
-const API_BASE    = "https://v5.jkt48connect.com/api/cavallery";
-const API_KEY     = "JKTCONNECT";
-const api = (path: string) => `${API_BASE}${path}?apikey=${API_KEY}`;
+const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 
 const MERCH_API_BASE = "https://v5.jkt48connect.com/api/merch";
 const merchApi = (path: string) => `${MERCH_API_BASE}${path}`;
 
-const DISCORD_API   = "/api/discord";
-const JOURNAL_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxiiUkBqWpRrYSDkC-6RKZ_mFxPAWB2uydW_hxaYWL0tr-o_GwrJ6b4zt_Goj9gFeen/exec";
+const MEDIA_API_BASE = "https://v5.jkt48connect.com/api/cavallery";
+const MEDIA_API_KEY  = "JKTCONNECT";
+const mediaApi = (path: string) => `${MEDIA_API_BASE}${path}${path.includes("?") ? "&" : "?"}apikey=${MEDIA_API_KEY}`;
+
+const DISCORD_API = "/api/discord";
 
 type Section =
   | "dashboard" | "news"     | "timeline" | "gallery"
@@ -315,7 +316,7 @@ function MediaUploadModal({
       fd.append("folder", folder);
       fd.append("alt_text", files[0].name);
       try {
-        const res  = await fetch(api("/media/upload"), { method: "POST", body: fd });
+        const res  = await fetch(mediaApi("/media/upload"), { method: "POST", body: fd });
         const json = await res.json();
         if (json.status) {
           setProgress([`✓ ${files[0].name} — berhasil`]);
@@ -331,7 +332,7 @@ function MediaUploadModal({
       files.forEach(f => fd.append("files[]", f));
       fd.append("folder", folder);
       try {
-        const res  = await fetch(api("/media/upload-multiple"), { method: "POST", body: fd });
+        const res  = await fetch(mediaApi("/media/upload-multiple"), { method: "POST", body: fd });
         const json = await res.json();
         const logs: string[] = [];
         (json.data?.uploaded ?? []).forEach((u: any) => logs.push(`✓ ${u.original_name}`));
@@ -444,7 +445,7 @@ function MediaPickerModal({
       if (folder) params.set("folder", folder);
       if (type !== "all") params.set("type", type);
       params.set("limit", "100");
-      const res  = await fetch(`${api("/media")}&${params}`);
+      const res  = await fetch(`${mediaApi("/media")}&${params}`);
       const json = await res.json();
       setItems(json?.data?.items ?? []);
     } catch { setItems([]); }
@@ -713,7 +714,7 @@ function MediaManager() {
       if (folder)     params.set("folder", folder);
       if (filterType) params.set("type",   filterType);
       params.set("limit", "100");
-      const res  = await fetch(`${api("/media")}&${params}`);
+      const res  = await fetch(`${mediaApi("/media")}&${params}`);
       const json = await res.json();
       setItems(json?.data?.items ?? []);
       setTotal(json?.data?.total ?? 0);
@@ -767,7 +768,7 @@ function MediaManager() {
   const deleteOne = async (item: any) => {
     setConfirm(null);
     try {
-      const res  = await fetch(api(`/media/${item.id}`), { method: "DELETE" });
+      const res  = await fetch(mediaApi(`/media/${item.id}`), { method: "DELETE" });
       const json = await res.json();
       if (json.status) {
         showToast("Media berhasil dihapus", "success");
@@ -787,7 +788,7 @@ function MediaManager() {
   const deleteBulk = async () => {
     setConfirm(null);
     try {
-      const res  = await fetch(api("/media/bulk"), {
+      const res  = await fetch(mediaApi("/media/bulk"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: Array.from(selected) }),
@@ -4524,126 +4525,37 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
   useEffect(() => {
     ([
-      { key: "news",     path: "/news"     },
-      { key: "timeline", path: "/timeline" },
-      { key: "gallery",  path: "/gallery"  },
-      { key: "setlists", path: "/setlists" },
-      { key: "youtube",  path: "/youtube"  },
-      { key: "funfacts", path: "/funfacts" },
-      { key: "kabesha",  path: "/kabesha"  },
-      { key: "stats",    path: "/stats"    },
-      { key: "media",    path: "/media"    },
-      { key: "journal",  path: ""          },
-      { key: "bot",      path: ""          },
-      { key: "tickets",  path: ""          },
-      { key: "calendar", path: ""          },
-      { key: "updates",  path: ""          },
-      { key: "anggotakota", path: ""       },
-      { key: "abouterine",  path: ""       },
-      { key: "invitations", path: ""       },
+      { key: "news",        path: "/api/news"        },
+      { key: "timeline",    path: "/api/timeline"    },
+      { key: "gallery",     path: "/api/gallery"     },
+      { key: "setlists",    path: "/api/setlists"    },
+      { key: "youtube",     path: "/api/youtube"     },
+      { key: "merch",       path: "/api/merch"       },
+      { key: "funfacts",    path: "/api/funfacts"    },
+      { key: "kabesha",     path: "/api/kabesha"     },
+      { key: "stats",       path: "/api/stats"       },
+      { key: "media",       path: mediaApi("/media") },
+      { key: "journal",     path: "/api/journal"     },
+      { key: "bot",         path: "/api/bot-config"  },
+      { key: "tickets",     path: "/api/tickets"     },
+      { key: "calendar",    path: "/api/calendar"    },
+      { key: "updates",     path: "/api/updates"     },
+      { key: "anggotakota", path: "/api/anggota-kota" },
+      { key: "abouterine",  path: "/api/about-erine"  },
+      { key: "invitations", path: "/api/invitations" },
+      { key: "vcschedule",  path: "/api/vcschedule"  },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
-        if (key === "tickets") {
-          try {
-            const res = await fetch(TICKET_SCRIPT_URL);
-            const raw = await res.json();
-            const count = Array.isArray(raw) ? Math.max(0, raw.length - 1) : 0;
-            setCounts(prev => ({ ...prev, [key]: count }));
-          } catch {
-            setCounts(prev => ({ ...prev, [key]: 2 }));
-          }
-          return;
-        }
-        if (key === "journal") {
-          let count = DEFAULT_JOURNAL_MESSAGES.length;
-          try {
-            const res = await fetch("/api/journal");
-            if (res.ok) {
-              const raw = await res.json();
-              const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : null);
-              if (arr && arr.length > 0) count = arr.length;
-            }
-          } catch {
-            const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_journal") : null;
-            if (saved) {
-              const arr = JSON.parse(saved);
-              if (Array.isArray(arr)) count = arr.length;
-            }
-          }
+        const res = await fetch(path, { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          let count = 0;
+          const data = json?.data !== undefined ? json.data : (Array.isArray(json) ? json : json?.items);
+          if (Array.isArray(data)) count = data.length;
+          else if (data?.total !== undefined) count = data.total;
+          else if (typeof data === "object" && data !== null) count = Object.keys(data).length;
           setCounts(prev => ({ ...prev, [key]: count }));
-          return;
         }
-        if (key === "bot") {
-          let count = DEFAULT_BOT_CONFIG.rules.length;
-          try {
-            const res = await fetch("/api/bot-config");
-            if (res.ok) {
-              const raw = await res.json();
-              if (raw?.data?.rules && Array.isArray(raw.data.rules)) count = raw.data.rules.length;
-            }
-          } catch {
-            const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_bot_config") : null;
-            if (saved) {
-              const conf = JSON.parse(saved);
-              if (Array.isArray(conf?.rules)) count = conf.rules.length;
-            }
-          }
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-        if (key === "calendar") {
-          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_calendar") : null;
-          const count = saved ? JSON.parse(saved).length : 0;
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-        if (key === "updates") {
-          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_updates") : null;
-          const count = saved ? JSON.parse(saved).length : DEFAULT_UPDATES.length;
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-        if (key === "anggotakota") {
-          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_anggota_kota") : null;
-          const count = saved ? Object.keys(JSON.parse(saved)).length : Object.keys(DEFAULT_CITIES).length;
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-        if (key === "abouterine") {
-          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_about_erine") : null;
-          const count = saved ? JSON.parse(saved).length : DEFAULT_ABOUT_ERINE.length;
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-        if (key === "invitations") {
-          try {
-            const res = await fetch("/api/invitations");
-            if (res.ok) {
-              const json = await res.json();
-              if (json?.data && Array.isArray(json.data)) {
-                setCounts(prev => ({ ...prev, [key]: json.data.length }));
-                return;
-              }
-            }
-          } catch {}
-          const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_invitations") : null;
-          const count = saved ? JSON.parse(saved).length : DEFAULT_INVITATIONS.length;
-          setCounts(prev => ({ ...prev, [key]: count }));
-          return;
-        }
-
-        const url = api(path);
-        const res = await fetch(url);
-        const json = await res.json();
-        let count = 0;
-        const data = json?.data;
-        if      (Array.isArray(data))       count = data.length;
-        else if (data?.total !== undefined) count = data.total;
-        else if (data?.news)                count = data.news.length;
-        else if (data?.items)               count = data.items.length;
-        else if (data?.videos)              count = data.videos.length;
-        else if (data?.events)              count = data.events.length;
-        setCounts(prev => ({ ...prev, [key]: count }));
       } catch {}
     });
   }, []);
