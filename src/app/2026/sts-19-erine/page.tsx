@@ -389,34 +389,6 @@ export default function ErineTheWayfinderPage() {
         </div>
       </section>
 
-      {/* Birthday Cake Visualization (Bagian Ucapan Ulang Tahun) */}
-      <section className={styles.cakeSection} aria-label="Birthday Cake">
-        <div className={styles.cakeWrapper}>
-          <div className={styles.plate}></div>
-          <div className={`${styles.cakeLayer} ${styles.layerBottom}`}></div>
-          <div className={`${styles.cakeLayer} ${styles.layerMiddle}`}></div>
-          <div className={`${styles.cakeLayer} ${styles.layerTop}`}></div>
-          <div className={styles.icing}></div>
-          <div className={`${styles.drip} ${styles.drip1}`}></div>
-          <div className={`${styles.drip} ${styles.drip2}`}></div>
-          <div className={`${styles.drip} ${styles.drip3}`}></div>
-          <div className={styles.candles}>
-            <div className={`${styles.digit} ${styles.digit1}`}>
-              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <text x="62" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7B020B">1</text>
-              </svg>
-              <div className={`${styles.flame} ${styles.digit1Flame}`}></div>
-            </div>
-            <div className={`${styles.digit} ${styles.digit9}`}>
-              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <text x="38" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7B020B">9</text>
-              </svg>
-              <div className={`${styles.flame} ${styles.digit9Flame}`}></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Birthday Wishes Board Form */}
       <WayfinderMessages />
 
