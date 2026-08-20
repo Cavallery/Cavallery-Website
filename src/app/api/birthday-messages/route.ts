@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 export const dynamic = "force-dynamic";
 
 const isVercel = process.env.VERCEL === "1";
 const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
 const MESSAGES_FILE_PATH = path.join(DATA_DIR, "birthday-messages.json");
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz00qZ_yw_AgKUpHVIxRzENqFvgYHntwMgjlA2MvvgoORZQFm2MQwb2IlV2JVNmST95/exec";
 
 function ensureDataDirectory() {
   try {
@@ -20,91 +20,50 @@ function ensureDataDirectory() {
   }
 }
 
-function parseGoogleData(rawData: any): any[] {
-  if (!Array.isArray(rawData)) return [];
-  const list: any[] = [];
-
-  rawData.forEach((row: any, index: number) => {
-    if (!row) return;
-
-    if (Array.isArray(row)) {
-      const col0 = String(row[0] || "").toLowerCase();
-      const col1 = String(row[1] || "").toLowerCase();
-      if (col0.includes("timestamp") || col1.includes("nama") || col1 === "name") {
-        return; // skip header row
-      }
-
-      const name = String(row[1] || row[0] || "").trim();
-      const msg = String(row[2] || "").trim();
-      const date = row[0] && !col0.includes("timestamp") ? row[0] : (row[3] || new Date().toISOString());
-
-      if (name && msg) {
-        list.push({
-          id: index + 1,
-          name,
-          msg,
-          date: String(date),
-        });
-      }
-    } else if (typeof row === "object") {
-      const name = String(row.Nama || row.nama || row.name || "").trim();
-      const msg = String(row.pesan || row.Pesan || row.msg || row.message || "").trim();
-      const date = row.Timestamp || row.timestamp || row.date || row.Date || new Date().toISOString();
-
-      if (name && msg) {
-        list.push({
-          id: index + 1,
-          name,
-          msg,
-          date: String(date),
-        });
-      }
+function readBirthdayLocal(): any[] {
+  ensureDataDirectory();
+  try {
+    if (fs.existsSync(MESSAGES_FILE_PATH)) {
+      const content = fs.readFileSync(MESSAGES_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
     }
-  });
+  } catch (e) {
+    console.error("Error reading birthday-messages.json:", e);
+  }
+  return [];
+}
 
-  return list;
+function writeBirthdayLocal(data: any[]) {
+  ensureDataDirectory();
+  try {
+    fs.writeFileSync(MESSAGES_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write birthday-messages.json:", e);
+  }
 }
 
 export async function GET() {
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-      redirect: "follow",
-      signal: AbortSignal.timeout(6000),
-    });
-
-    if (res.ok) {
-      const rawData = await res.json();
-      const parsed = parseGoogleData(rawData);
-
-      // Save exact mirror to local json
-      ensureDataDirectory();
-      try {
-        fs.writeFileSync(MESSAGES_FILE_PATH, JSON.stringify(parsed, null, 2), "utf-8");
-      } catch {}
-
-      return NextResponse.json(parsed, {
-        headers: { "Cache-Control": "no-store, max-age=0" },
-      });
-    }
-  } catch (err) {
-    console.error("Fetch from Google Apps Script failed, reading local mirror:", err);
-  }
-
-  // Fallback to local mirror
-  try {
-    ensureDataDirectory();
-    if (fs.existsSync(MESSAGES_FILE_PATH)) {
-      const content = fs.readFileSync(MESSAGES_FILE_PATH, "utf-8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        return NextResponse.json(parsed);
+    if (isMySqlConfigured()) {
+      const rows = await query<any[]>("SELECT * FROM `birthday_messages` WHERE `is_approved`=1 ORDER BY `id` DESC");
+      if (rows && Array.isArray(rows)) {
+        const formatted = rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          msg: r.msg,
+          date: r.date_label || r.created_at,
+        }));
+        return NextResponse.json(formatted, {
+          headers: { "Cache-Control": "no-store, max-age=0" },
+        });
       }
     }
-  } catch {}
-
-  return NextResponse.json([]);
+    return NextResponse.json(readBirthdayLocal());
+  } catch (e) {
+    console.error("Error fetching birthday messages:", e);
+    return NextResponse.json(readBirthdayLocal());
+  }
 }
 
 export async function POST(request: Request) {
@@ -127,29 +86,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: false, message: "Pesan tidak boleh kosong" }, { status: 400 });
     }
 
-    const newEntry = {
-      id: Date.now(),
-      name: name.trim(),
-      msg: msg.trim(),
-      date: new Date().toISOString(),
-    };
+    const now = new Date().toISOString();
+    const dateLabel = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
-    // Forward to Google Script
-    try {
-      const googleFormData = new FormData();
-      googleFormData.append("Nama", newEntry.name);
-      googleFormData.append("pesan", newEntry.msg);
+    let insertedId = Date.now();
 
-      fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        body: googleFormData,
-        redirect: "follow",
-      }).catch((err) => console.error("Google sheet sync failed:", err));
-    } catch (e) {
-      console.error("Google sheet sync background setup error:", e);
+    if (isMySqlConfigured()) {
+      const res = await query<any>(
+        "INSERT INTO `birthday_messages` (`name`, `msg`, `date_label`, `is_approved`) VALUES (?, ?, ?, 1)",
+        [name.trim(), msg.trim(), dateLabel]
+      );
+      if (res && res.insertId) insertedId = res.insertId;
     }
 
+    const newEntry = {
+      id: insertedId,
+      name: name.trim(),
+      msg: msg.trim(),
+      date: now,
+    };
+
+    const data = readBirthdayLocal();
+    data.unshift(newEntry);
+    writeBirthdayLocal(data);
+
     return NextResponse.json({ status: true, data: newEntry });
+  } catch (error: any) {
+    return NextResponse.json({ status: false, message: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) return NextResponse.json({ status: false, message: "ID required" }, { status: 400 });
+
+    if (isMySqlConfigured()) {
+      await query("DELETE FROM `birthday_messages` WHERE `id`=?", [id]);
+    }
+
+    const data = readBirthdayLocal();
+    const filtered = data.filter((item: any) => item.id !== Number(id));
+    writeBirthdayLocal(filtered);
+
+    return NextResponse.json({ status: true, message: "Deleted" });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
   }

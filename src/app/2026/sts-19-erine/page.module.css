@@ -534,7 +534,39 @@
   color: #ffd778;
 }
 
-/* ── OTHER GIFTERS (RANK 4-13) ───────────────────────────────── */
+.podiumAmount {
+  display: inline-block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--gold-dim);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+:global([data-theme="dark"]) .podiumAmount {
+  color: #c9a84c;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+}
+
+.podiumAmountGold {
+  font-size: 1.05rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, rgba(240, 190, 83, 0.22), rgba(184, 134, 11, 0.15));
+  color: #b8860b;
+  border: 1px solid rgba(240, 190, 83, 0.4);
+}
+
+:global([data-theme="dark"]) .podiumAmountGold {
+  color: #ffd778;
+  background: rgba(240, 190, 83, 0.2);
+  border: 1px solid rgba(240, 190, 83, 0.5);
+}
+
+/* ── OTHER GIFTERS (RANK 4-15) ───────────────────────────────── */
 .gifterListGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -608,4 +640,15 @@
 
 :global([data-theme="dark"]) .listName {
   color: #f0f0f0;
+}
+
+.listAmount {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+:global([data-theme="dark"]) .listAmount {
+  color: #ffd778;
 }

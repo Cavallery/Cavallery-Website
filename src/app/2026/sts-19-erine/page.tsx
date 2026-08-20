@@ -16,22 +16,30 @@ export const metadata: Metadata = {
 interface Gifter {
   rank: number;
   name: string;
+  amount: string;
 }
 
 const TOP_GIFTERS: Gifter[] = [
-  { rank: 1, name: "William Santoso" },
-  { rank: 2, name: "Firstarisa" },
-  { rank: 3, name: "Rifqi Annafi" },
-  { rank: 4, name: "Lucky Arasyah" },
-  { rank: 5, name: "Indyraaa" },
-  { rank: 6, name: "NabilRasyaaaa" },
-  { rank: 7, name: "Cipuyyy" },
-  { rank: 8, name: "Angga" },
-  { rank: 9, name: "RFDorable" },
-  { rank: 10, name: "Vend." },
-  { rank: 11, name: "Roni Eriyanto" },
-  { rank: 12, name: "🐝🐥" },
-  { rank: 13, name: "Nugroho Susanto" },
+  // Tier 2.500 (Rp 2.500.000)
+  { rank: 1, name: "MPK", amount: "Rp 2.500.000" },
+  { rank: 2, name: "William Santoso", amount: "Rp 2.500.000" },
+  { rank: 3, name: "Rifqi Annafi", amount: "Rp 2.500.000" },
+  { rank: 4, name: "Firstarisa", amount: "Rp 2.500.000" },
+
+  // Tier 1.000 (Rp 1.000.000)
+  { rank: 5, name: "Lucky Arasyah", amount: "Rp 1.000.000" },
+  { rank: 6, name: "Indyraaa", amount: "Rp 1.000.000" },
+  { rank: 7, name: "NabilRasyaaaa", amount: "Rp 1.000.000" },
+  { rank: 8, name: "Salma Nada", amount: "Rp 1.000.000" },
+
+  // Tier 500 (Rp 500.000)
+  { rank: 9, name: "Cipuyyy/@cpydermant", amount: "Rp 500.000" },
+  { rank: 10, name: "Angga", amount: "Rp 500.000" },
+  { rank: 11, name: "RFDorable", amount: "Rp 500.000" },
+  { rank: 12, name: "Vend.", amount: "Rp 500.000" },
+  { rank: 13, name: "Roni Eriyanto", amount: "Rp 500.000" },
+  { rank: 14, name: "🐝🐥", amount: "Rp 500.000" },
+  { rank: 15, name: "Nugo", amount: "Rp 500.000" },
 ];
 
 export default function ErineTheWayfinderPage() {
@@ -135,6 +143,7 @@ export default function ErineTheWayfinderPage() {
           <div className={`${styles.podiumCard} ${styles.rank2}`}>
             <span className={`${styles.rankBadge} ${styles.rankBadgeSilver}`}>2</span>
             <h3 className={styles.gifterName}>{rank2.name}</h3>
+            <div className={styles.podiumAmount}>{rank2.amount}</div>
           </div>
 
           {/* Rank 1 - Gold */}
@@ -142,22 +151,25 @@ export default function ErineTheWayfinderPage() {
             <div className={styles.crownBadge}>👑</div>
             <span className={`${styles.rankBadge} ${styles.rankBadgeGold}`}>1</span>
             <h3 className={styles.gifterName}>{rank1.name}</h3>
+            <div className={`${styles.podiumAmount} ${styles.podiumAmountGold}`}>{rank1.amount}</div>
           </div>
 
           {/* Rank 3 - Bronze */}
           <div className={`${styles.podiumCard} ${styles.rank3}`}>
             <span className={`${styles.rankBadge} ${styles.rankBadgeBronze}`}>3</span>
             <h3 className={styles.gifterName}>{rank3.name}</h3>
+            <div className={styles.podiumAmount}>{rank3.amount}</div>
           </div>
         </div>
 
-        {/* Remaining Gifters (Rank 4 to 12) */}
+        {/* Remaining Gifters (Rank 4 to 15) */}
         <div className={styles.gifterListGrid}>
           {remainingGifters.map((gifter) => (
             <div key={gifter.rank} className={styles.listCard}>
               <div className={styles.listRank}>{gifter.rank}</div>
               <div className={styles.listInfo}>
                 <div className={styles.listName}>{gifter.name}</div>
+                <div className={styles.listAmount}>{gifter.amount}</div>
               </div>
             </div>
           ))}

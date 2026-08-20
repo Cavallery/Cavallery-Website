@@ -1,42 +1,61 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw62qxU5a7zGuNSpOHfVwX6mPb3DWNo94GvLSMNsitkx-YJJIQG_5QcDhhrfaXHHeMGnA/exec";
+const isVercel = process.env.VERCEL === "1";
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+const TICKETS_PATH = path.join(DATA_DIR, "tickets.json");
+
+function ensureDataDirectory() {
+  const dir = path.dirname(TICKETS_PATH);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+function readTicketsLocal(): any[] {
+  ensureDataDirectory();
+  if (fs.existsSync(TICKETS_PATH)) {
+    try {
+      const content = fs.readFileSync(TICKETS_PATH, "utf-8");
+      return JSON.parse(content);
+    } catch (e) {
+      console.error("Error reading tickets.json:", e);
+    }
+  }
+  return [];
+}
+
+function writeTicketsLocal(data: any[]) {
+  ensureDataDirectory();
+  fs.writeFileSync(TICKETS_PATH, JSON.stringify(data, null, 2), "utf-8");
+}
 
 export async function GET() {
   try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, { 
-      cache: "no-store",
-      headers: {
-        "Pragma": "no-cache"
+    if (isMySqlConfigured()) {
+      const rows = await query<any[]>("SELECT * FROM `tickets` ORDER BY `id` DESC");
+      if (rows && Array.isArray(rows)) {
+        const formatted = rows.map((r) => ({
+          id: r.id,
+          date: r.date_label || r.created_at,
+          name: r.name,
+          no_anggota: r.no_anggota || "-",
+          kategori: r.kategori || "Lainnya",
+          pesan: r.pesan,
+          divisi: r.divisi || "-",
+          status: r.status || "Pending",
+        }));
+        return NextResponse.json(formatted);
       }
-    });
-    if (!res.ok) return NextResponse.json([]);
-    
-    const text = await res.text();
-    if (text.startsWith("<")) return NextResponse.json([]);
-    
-    const rawData = JSON.parse(text);
-    
-    // Berdasarkan Apps Script: [0] nextNumber, [1] Nama, [2] no_anggota, [3] kategori, [4] pesan, [5] Date, [6] Divisi, [7] Status
-    const formatted = rawData.map((row: any, index: number) => {
-      if (index === 0 && (row[1] === "Nama" || typeof row[0] === "string")) return null;
-      
-      return {
-        id: parseInt(row[0]) || index + 1,
-        date: row[5] || new Date().toISOString(),
-        name: row[1] || "Anonymous",
-        no_anggota: row[2] || "-",
-        kategori: row[3] || "Lainnya",
-        pesan: row[4] || "",
-        divisi: row[6] || "-",
-        status: row[7] || "Pending"
-      };
-    }).filter(Boolean);
-    
-    return NextResponse.json(formatted);
+    }
+
+    const localData = readTicketsLocal();
+    return NextResponse.json(localData);
   } catch (e) {
-    console.error("Error fetching tickets from Google Sheet:", e);
-    return NextResponse.json([]);
+    console.error("Error fetching tickets:", e);
+    return NextResponse.json(readTicketsLocal());
   }
 }
 
@@ -46,12 +65,12 @@ export async function POST(request: Request) {
     let no_anggota = "";
     let kategori = "";
     let pesan = "";
-    
+
     const contentType = request.headers.get("content-type") || "";
 
     if (contentType.includes("form-data") || contentType.includes("multipart")) {
       const formData = await request.formData();
-      name = (formData.get("Nama") as string) || "Anonymous";
+      name = (formData.get("Nama") as string) || (formData.get("name") as string) || "Anonymous";
       no_anggota = (formData.get("no_anggota") as string) || "-";
       kategori = (formData.get("kategori") as string) || "Lainnya";
       pesan = (formData.get("pesan") as string) || "";
@@ -67,27 +86,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ status: false, message: "Pesan tidak boleh kosong" }, { status: 400 });
     }
 
-    // Gunakan URLSearchParams agar lebih mudah diterima oleh Google Apps Script doPost(e.parameter)
-    const params = new URLSearchParams();
-    params.append("action", "create");
-    params.append("Nama", name.trim());
-    params.append("no_anggota", no_anggota.trim());
-    params.append("kategori", kategori.trim());
-    params.append("pesan", pesan.trim());
-    
-    const googleRes = await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      body: params,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      }
+    const now = new Date().toISOString();
+    const dateLabel = new Date().toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
 
-    if (!googleRes.ok) {
-      throw new Error("Failed to post to Google Sheets");
+    if (isMySqlConfigured()) {
+      await query(
+        "INSERT INTO `tickets` (`date_label`, `name`, `no_anggota`, `kategori`, `pesan`, `is_active`) VALUES (?, ?, ?, ?, ?, 1)",
+        [dateLabel, name.trim(), no_anggota.trim(), kategori.trim(), pesan.trim()]
+      );
     }
 
-    return NextResponse.json({ status: true, message: "Ticket sent to Google Sheets" });
+    // Also update local JSON
+    const data = readTicketsLocal();
+    const newEntry = {
+      id: data.length > 0 ? Math.max(...data.map((d: any) => d.id || 0)) + 1 : 1,
+      date: now,
+      name: name.trim(),
+      no_anggota: no_anggota.trim(),
+      kategori: kategori.trim(),
+      pesan: pesan.trim(),
+    };
+    data.unshift(newEntry);
+    writeTicketsLocal(data);
+
+    return NextResponse.json({ status: true, message: "Ticket saved successfully", data: newEntry });
   } catch (error: any) {
     console.error("POST Ticket Error:", error);
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
@@ -97,22 +123,24 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const json = await request.json();
-    const { id, divisi, status } = json;
-    
+    const { id, divisi, status, name, pesan, kategori, no_anggota } = json;
+
     if (!id) return NextResponse.json({ status: false, message: "ID required" }, { status: 400 });
 
-    const params = new URLSearchParams();
-    params.append("action", "update");
-    params.append("id", id.toString());
-    if (divisi) params.append("divisi", divisi);
-    if (status) params.append("status", status);
-    
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      body: params,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    });
-    
+    if (isMySqlConfigured()) {
+      await query(
+        "UPDATE `tickets` SET `name`=COALESCE(?, `name`), `no_anggota`=COALESCE(?, `no_anggota`), `kategori`=COALESCE(?, `kategori`), `pesan`=COALESCE(?, `pesan`) WHERE `id`=?",
+        [name, no_anggota, kategori, pesan, id]
+      );
+    }
+
+    const data = readTicketsLocal();
+    const index = data.findIndex((item: any) => item.id === Number(id));
+    if (index !== -1) {
+      data[index] = { ...data[index], ...json };
+      writeTicketsLocal(data);
+    }
+
     return NextResponse.json({ status: true, message: "Updated" });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });
@@ -123,19 +151,17 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
-    
+
     if (!id) return NextResponse.json({ status: false, message: "ID required" }, { status: 400 });
 
-    const params = new URLSearchParams();
-    params.append("action", "delete");
-    params.append("id", id);
-    
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: "POST",
-      body: params,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    });
-    
+    if (isMySqlConfigured()) {
+      await query("DELETE FROM `tickets` WHERE `id`=?", [id]);
+    }
+
+    const data = readTicketsLocal();
+    const filtered = data.filter((item: any) => item.id !== Number(id));
+    writeTicketsLocal(filtered);
+
     return NextResponse.json({ status: true, message: "Deleted" });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: error.message }, { status: 500 });

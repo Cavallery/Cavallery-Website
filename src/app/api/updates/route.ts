@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 const isVercel = process.env.VERCEL === "1";
 const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
@@ -13,7 +14,7 @@ function ensureDataDirectory() {
   }
 }
 
-export function readUpdates() {
+function readUpdatesLocal() {
   ensureDataDirectory();
   if (fs.existsSync(UPDATES_PATH)) {
     try {
@@ -24,51 +25,28 @@ export function readUpdates() {
     }
   }
 
-  // Default updates based on previous hardcoded values
   const defaultUpdates = [
-    {
-      id: "1",
-      platform: "twitter",
-      url: "https://twitter.com/CErine_JKT48/status/2056685755616104632"
-    },
-    {
-      id: "2",
-      platform: "tiktok",
-      url: "https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280"
-    },
-    {
-      id: "3",
-      platform: "instagram",
-      url: "https://www.instagram.com/p/DXt1vRJEpuf"
-    },
-    {
-      id: "4",
-      platform: "threads",
-      url: "https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2"
-    }
+    { id: "1", platform: "twitter", url: "https://twitter.com/CErine_JKT48/status/2056685755616104632" },
+    { id: "2", platform: "tiktok", url: "https://www.tiktok.com/@jkt48.erine_/video/7640445924992470280" },
+    { id: "3", platform: "instagram", url: "https://www.instagram.com/p/DXt1vRJEpuf" },
+    { id: "4", platform: "threads", url: "https://www.threads.net/@jkt48.erine/post/DXt1wb4EjK2" },
   ];
   fs.writeFileSync(UPDATES_PATH, JSON.stringify(defaultUpdates, null, 2), "utf-8");
   return defaultUpdates;
 }
 
-function writeUpdates(data: any[]) {
+function writeUpdatesLocal(data: any[]) {
   ensureDataDirectory();
   fs.writeFileSync(UPDATES_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
 
-// ─── TikTok URL Resolver ─────────────────────────────────────
-// Resolves any TikTok short/mobile URL to the canonical desktop URL
-// Supports: vt.tiktok.com, vm.tiktok.com, tiktok.com/t/xxxxx, etc.
 async function resolveTiktokUrl(inputUrl: string): Promise<string> {
-  // Already a standard URL with video ID? return as-is
   const standardMatch = inputUrl.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
   if (standardMatch) return inputUrl;
 
   try {
-    // Step 1: Follow redirects to get the canonical URL
     const redirectRes = await fetch(inputUrl, { redirect: "follow" });
     const resolvedUrl = redirectRes.url;
-
     const resolvedMatch = resolvedUrl.match(/tiktok\.com\/@[\w.]+\/video\/(\d+)/);
     if (resolvedMatch) return resolvedUrl.split("?")[0];
   } catch (e) {
@@ -76,12 +54,8 @@ async function resolveTiktokUrl(inputUrl: string): Promise<string> {
   }
 
   try {
-    // Step 2: Fallback to oEmbed API
-    const oembedRes = await fetch(
-      `https://www.tiktok.com/oembed?url=${encodeURIComponent(inputUrl)}`
-    );
+    const oembedRes = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(inputUrl)}`);
     const oembed = await oembedRes.json();
-
     const htmlStr = oembed.html || "";
     const idMatch = htmlStr.match(/data-video-id="(\d+)"/);
     const authorUrl = oembed.author_url || "";
@@ -107,18 +81,42 @@ function isTiktokShortUrl(url: string): boolean {
   );
 }
 
-// ─── API Routes ──────────────────────────────────────────────
-
 export async function GET() {
-  const data = readUpdates();
-  return NextResponse.json({ success: true, data });
+  try {
+    if (isMySqlConfigured()) {
+      const rows = await query<any[]>("SELECT * FROM `updates` WHERE `is_active`=1 ORDER BY `id` ASC");
+      if (rows && Array.isArray(rows)) {
+        const mapped = rows.map((r) => ({
+          id: String(r.id),
+          platform: r.platform,
+          url: r.url,
+          title: r.title,
+        }));
+        return NextResponse.json({ success: true, data: mapped });
+      }
+    }
+    const data = readUpdatesLocal();
+    return NextResponse.json({ success: true, data });
+  } catch (e) {
+    return NextResponse.json({ success: true, data: readUpdatesLocal() });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
     if (Array.isArray(body)) {
-      writeUpdates(body);
+      if (isMySqlConfigured()) {
+        await query("DELETE FROM `updates`");
+        for (const item of body) {
+          await query(
+            "INSERT INTO `updates` (`platform`, `url`, `is_active`) VALUES (?, ?, 1)",
+            [item.platform, item.url]
+          );
+        }
+      }
+      writeUpdatesLocal(body);
       return NextResponse.json({ success: true, data: body });
     }
 
@@ -130,21 +128,32 @@ export async function POST(request: Request) {
         finalUrl = await resolveTiktokUrl(finalUrl);
       }
 
-      const data = readUpdates();
+      if (isMySqlConfigured()) {
+        await query(
+          "INSERT INTO `updates` (`platform`, `url`, `is_active`) VALUES (?, ?, 1)",
+          [platform, finalUrl]
+        );
+      }
+
+      const data = readUpdatesLocal();
       data.push({
         id: body.id || Date.now().toString(),
-        platform: platform,
-        url: finalUrl
+        platform,
+        url: finalUrl,
       });
-      writeUpdates(data);
+      writeUpdatesLocal(data);
       return NextResponse.json({ success: true, data });
     } else if (body.action === "delete") {
-      let data = readUpdates();
+      if (isMySqlConfigured()) {
+        await query("DELETE FROM `updates` WHERE `id`=? OR `url`=?", [body.id, body.url || ""]);
+      }
+
+      let data = readUpdatesLocal();
       data = data.filter((item: any) => item.id !== body.id);
-      writeUpdates(data);
+      writeUpdatesLocal(data);
       return NextResponse.json({ success: true, data });
     } else if (body.action === "update") {
-      let data = readUpdates();
+      let data = readUpdatesLocal();
       const index = data.findIndex((item: any) => item.id === body.id);
       if (index !== -1) {
         let finalUrl = body.item.url || data[index].url;
@@ -154,12 +163,25 @@ export async function POST(request: Request) {
           finalUrl = await resolveTiktokUrl(finalUrl);
         }
 
-        data[index] = { ...data[index], ...body.item, url: finalUrl, platform: platform };
-        writeUpdates(data);
+        if (isMySqlConfigured()) {
+          await query("UPDATE `updates` SET `platform`=?, `url`=? WHERE `id`=?", [platform, finalUrl, body.id]);
+        }
+
+        data[index] = { ...data[index], ...body.item, url: finalUrl, platform };
+        writeUpdatesLocal(data);
       }
       return NextResponse.json({ success: true, data });
     } else if (body.action === "saveAll") {
-      writeUpdates(body.data);
+      if (isMySqlConfigured()) {
+        await query("DELETE FROM `updates`");
+        for (const item of (body.data || [])) {
+          await query(
+            "INSERT INTO `updates` (`platform`, `url`, `is_active`) VALUES (?, ?, 1)",
+            [item.platform, item.url]
+          );
+        }
+      }
+      writeUpdatesLocal(body.data);
       return NextResponse.json({ success: true, data: body.data });
     }
 

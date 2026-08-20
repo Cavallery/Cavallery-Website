@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 const isVercel = process.env.VERCEL === "1";
 const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
@@ -13,7 +14,7 @@ function ensureDataDirectory() {
   }
 }
 
-export function readAnggotaKota() {
+function readAnggotaKotaLocal(): Record<string, number> {
   ensureDataDirectory();
   if (fs.existsSync(ANGGOTA_KOTA_PATH)) {
     try {
@@ -24,8 +25,7 @@ export function readAnggotaKota() {
     }
   }
 
-  // Default CityData
-  const defaultData = {
+  const defaultData: Record<string, number> = {
     Jakarta: 92, Bekasi: 64, Tangerang: 58, Bogor: 52, Depok: 28,
     Bandung: 26, Surabaya: 24, Semarang: 20, Yogyakarta: 18, Malang: 17,
     Lampung: 12, Medan: 11, Padang: 9, Balikpapan: 8, Samarinda: 10,
@@ -44,21 +44,43 @@ export function readAnggotaKota() {
   return defaultData;
 }
 
-function writeAnggotaKota(data: Record<string, number>) {
+function writeAnggotaKotaLocal(data: Record<string, number>) {
   ensureDataDirectory();
   fs.writeFileSync(ANGGOTA_KOTA_PATH, JSON.stringify(data, null, 2), "utf-8");
 }
 
 export async function GET() {
-  const data = readAnggotaKota();
-  return NextResponse.json({ success: true, data });
+  try {
+    if (isMySqlConfigured()) {
+      const rows = await query<any[]>("SELECT `city`, `member_count` FROM `anggota_kota` ORDER BY `member_count` DESC");
+      if (rows && rows.length > 0) {
+        const result: Record<string, number> = {};
+        rows.forEach((r) => {
+          result[r.city] = Number(r.member_count) || 0;
+        });
+        return NextResponse.json({ success: true, data: result });
+      }
+    }
+    const data = readAnggotaKotaLocal();
+    return NextResponse.json({ success: true, data });
+  } catch (e) {
+    return NextResponse.json({ success: true, data: readAnggotaKotaLocal() });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    if (typeof body === 'object' && body !== null && !Array.isArray(body)) {
-      writeAnggotaKota(body);
+    if (typeof body === "object" && body !== null && !Array.isArray(body)) {
+      if (isMySqlConfigured()) {
+        for (const [city, count] of Object.entries(body)) {
+          await query(
+            "INSERT INTO `anggota_kota` (`city`, `member_count`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `member_count`=VALUES(`member_count`)",
+            [city, Number(count) || 0]
+          );
+        }
+      }
+      writeAnggotaKotaLocal(body);
       return NextResponse.json({ success: true, data: body });
     }
     return NextResponse.json({ success: false, message: "Invalid payload, object expected" }, { status: 400 });
