@@ -75,6 +75,51 @@ const GIFTER_BOARD_GROUPS: GifterGroup[] = [
   },
 ];
 
+const STORYLINE_CHAPTERS = [
+  {
+    badge: "🌅 PROLOG",
+    title: "The End of The Path",
+    quote: "Kadang jalan berakhir, untuk membawa kita ke jalan yang baru.",
+    paragraphs: [
+      "Hari itu, Erine mengikuti seekor kucing.",
+      "Sebuah pertanda membawanya ke tempat yang telah lama terlupakan.",
+    ],
+    image: "https://pbs.twimg.com/media/HQFkSnFaIAEAEAe?format=jpg&name=4096x4096",
+  },
+  {
+    badge: "🌅 CHAPTER I",
+    title: "The Forgotten Observatory",
+    quote: "Tempat yang lama ditinggalkan, masih menyimpan cerita.",
+    paragraphs: [
+      "Di dalam observatorium, Erine menemukan berbagai benda.",
+      "Salah satunya, sebuah jurnal bertuliskan—",
+      "A World Beyond The Horizon.",
+    ],
+    image: "https://pbs.twimg.com/media/HQFkTaHbEAAC1Vs?format=jpg&name=medium",
+  },
+  {
+    badge: "🌅 CHAPTER II",
+    title: "The Hidden Horizon",
+    quote: "Di balik kabut, ada sesuatu yang menunggu.",
+    paragraphs: [
+      "Erine melihat sebuah kapal di kejauhan, perlahan muncul dari balik kabut.",
+      "Apa yang ada di balik sana?",
+    ],
+    image: "https://pbs.twimg.com/media/HQFkUVwbEAAGnUj?format=jpg&name=medium",
+  },
+  {
+    badge: "🌅 CHAPTER III",
+    title: "The Legacy",
+    quote: "Membayangkan apa yang menunggu di balik tembok, menjadi kekuatan 'tuk mau mencoba.",
+    paragraphs: [
+      "Erine melangkah lebih jauh, melewati kabut dan awan.",
+      "Di hadapannya, pulau-pulau terapung terlihat.",
+      "Kini, ia memilih mengejar horizon.",
+    ],
+    image: "https://pbs.twimg.com/media/HQJitRqbAAAq2cT?format=jpg&name=medium",
+  },
+];
+
 export default function ErineTheWayfinderPage() {
   return (
     <main className={styles.page}>
@@ -125,6 +170,54 @@ export default function ErineTheWayfinderPage() {
           Perayaan hari ulang tahun Catherina Vallencia Kurniawan. Terima kasih atas dedikasi dan cinta dari seluruh Cavallers!
         </p>
       </div>
+
+      {/* Storyline Section — The Wayfinder Journey */}
+      <section className={styles.storylineSection}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTag}>Official Storyline</span>
+          <h2 className={styles.sectionTitle}>📖 The Wayfinder Journey</h2>
+          <p className={styles.sectionDesc}>
+            Kisah perjalanan Erine dalam mencari jejak dan membuka cakrawala baru di luar batas horizon.
+          </p>
+        </div>
+
+        <div className={styles.storylineTimeline}>
+          {STORYLINE_CHAPTERS.map((item, index) => (
+            <article
+              key={index}
+              className={`${styles.storyCard} ${index % 2 === 1 ? styles.storyCardReverse : ""}`}
+            >
+              {/* Image Frame */}
+              <div className={styles.storyImageWrap}>
+                <div className={styles.storyImageGlow}></div>
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className={styles.storyImage}
+                  loading="lazy"
+                />
+                <div className={styles.imageOverlayBadge}>{item.badge}</div>
+              </div>
+
+              {/* Story Content */}
+              <div className={styles.storyContent}>
+                <div className={styles.storyBadge}>{item.badge}</div>
+                <h3 className={styles.storyTitle}>{item.title}</h3>
+                <blockquote className={styles.storyQuote}>
+                  <span className={styles.quoteMark}>“</span>
+                  {item.quote}
+                  <span className={styles.quoteMark}>”</span>
+                </blockquote>
+                <div className={styles.storyParagraphs}>
+                  {item.paragraphs.map((p, pIdx) => (
+                    <p key={pIdx}>{p}</p>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {/* Cake Visualization */}
       <section className={styles.cakeSection} aria-label="Birthday Cake">

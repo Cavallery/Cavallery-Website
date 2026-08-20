@@ -609,3 +609,200 @@
     padding: 8px 12px;
   }
 }
+
+/* ── STORYLINE SECTION (VISUAL NOVEL TIMELINE) ───────────────── */
+.storylineSection {
+  width: 100%;
+  max-width: 1080px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.storylineTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  width: 100%;
+  position: relative;
+}
+
+.storyCard {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 36px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+:global([data-theme="dark"]) .storyCard {
+  background: rgba(20, 26, 22, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 168, 76, 0.22);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.45);
+}
+
+.storyCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  box-shadow: 0 20px 50px rgba(123, 2, 11, 0.12);
+}
+
+:global([data-theme="dark"]) .storyCard:hover {
+  border-color: rgba(240, 190, 83, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(201, 168, 76, 0.15);
+}
+
+.storyCardReverse {
+  grid-template-columns: 1fr 1.15fr;
+}
+
+.storyCardReverse .storyImageWrap {
+  order: 2;
+}
+
+.storyCardReverse .storyContent {
+  order: 1;
+}
+
+/* Image Wrap */
+.storyImageWrap {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid rgba(201, 168, 76, 0.3);
+}
+
+.storyImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.storyCard:hover .storyImage {
+  transform: scale(1.04);
+}
+
+.imageOverlayBadge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(123, 2, 11, 0.88);
+  color: #ffd778;
+  backdrop-filter: blur(8px);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(240, 190, 83, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Content */
+.storyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 4px;
+}
+
+.storyBadge {
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+:global([data-theme="dark"]) .storyBadge {
+  color: #ffd778;
+}
+
+.storyTitle {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  font-weight: 800;
+  color: var(--fg);
+  line-height: 1.25;
+  margin: 0;
+}
+
+:global([data-theme="dark"]) .storyTitle {
+  color: #ffffff;
+}
+
+.storyQuote {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--primary);
+  line-height: 1.5;
+  margin: 4px 0 8px 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--primary);
+  background: var(--gold-dim);
+  border-radius: 0 10px 10px 0;
+  position: relative;
+}
+
+:global([data-theme="dark"]) .storyQuote {
+  color: #ffe6a0;
+  border-left-color: #f0be53;
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.quoteMark {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  padding: 0 2px;
+}
+
+.storyParagraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.storyParagraphs p {
+  color: var(--fg-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+:global([data-theme="dark"]) .storyParagraphs p {
+  color: #c4baa5;
+}
+
+@media (max-width: 860px) {
+  .storyCard, .storyCardReverse {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 20px;
+  }
+  .storyCardReverse .storyImageWrap {
+    order: 1;
+  }
+  .storyCardReverse .storyContent {
+    order: 2;
+  }
+  .storylineTimeline {
+    gap: 32px;
+  }
+}
