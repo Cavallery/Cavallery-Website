@@ -394,261 +394,218 @@
   color: #a09882;
 }
 
-/* ── PODIUM (TOP 3) ─────────────────────────────────────────── */
-.podiumGrid {
-  display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr;
-  gap: 16px;
+/* ── EXHIBITION APPRECIATION BOARD (CAVALLERY SIGNATURE THEME) ─── */
+.appreciationBoard {
   width: 100%;
-  margin-bottom: 28px;
-  align-items: flex-end;
+  background: #fdfcf9;
+  border: 2px solid rgba(201, 168, 76, 0.35);
+  border-radius: 24px;
+  padding: 36px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  box-shadow: 0 14px 40px rgba(123, 2, 11, 0.06), 0 4px 14px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
 }
 
-@media (max-width: 768px) {
-  .podiumGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+:global([data-theme="dark"]) .appreciationBoard {
+  background: #141a16;
+  border: 2px solid rgba(201, 168, 76, 0.3);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(201, 168, 76, 0.08);
 }
 
-.podiumCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px 20px;
-  text-align: center;
+.boardTierSection {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  gap: 16px;
+  padding-bottom: 22px;
+  border-bottom: 1px dashed rgba(201, 168, 76, 0.35);
 }
 
-:global([data-theme="dark"]) .podiumCard {
-  background: rgba(22, 28, 24, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(236, 227, 208, 0.1);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+:global([data-theme="dark"]) .boardTierSection {
+  border-bottom: 1px dashed rgba(201, 168, 76, 0.25);
 }
 
-.podiumCard:hover {
-  transform: translateY(-4px);
+.boardTierSection:last-of-type {
+  border-bottom: none;
+  padding-bottom: 8px;
 }
 
-.rank1 {
-  background: linear-gradient(180deg, var(--gold-dim) 0%, var(--surface) 100%);
-  border: 2px solid var(--gold);
-  box-shadow: 0 10px 30px var(--gold-glow);
-  padding: 36px 20px;
-  order: 2;
+/* ── TIER RIBBON HEADERS (CAVALLERY THEME) ───────────────────── */
+.tierRibbon {
+  display: inline-block;
+  padding: 5px 22px;
+  border-radius: 6px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.88rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  transform: rotate(-0.5deg);
 }
 
-:global([data-theme="dark"]) .rank1 {
-  background: linear-gradient(180deg, rgba(201, 168, 76, 0.16) 0%, rgba(20, 26, 22, 0.85) 100%);
-  border: 2px solid #f0be53;
-  box-shadow: 0 10px 30px rgba(240, 190, 83, 0.18);
+/* PATHFINDER: Deep Burgundy with Gold text */
+.pathfinder .tierRibbon {
+  background: linear-gradient(135deg, #7b020b, #590007);
+  color: #ffd778;
+  border: 1px solid #c9a84c;
 }
 
-@media (max-width: 768px) {
-  .rank1 { order: 1; }
+/* NAVIGATOR: Gold Metallic with Dark Velvet text */
+.navigator .tierRibbon {
+  background: linear-gradient(135deg, #f0be53, #b8860b);
+  color: #2a0508;
+  border: 1px solid #e0ad38;
 }
 
-.rank2 {
-  background: linear-gradient(180deg, rgba(192, 192, 192, 0.12) 0%, var(--surface) 100%);
-  border: 1px solid rgba(192, 192, 192, 0.5);
-  order: 1;
+/* EXPLORER: Emerald / Slate with Cream text */
+.explorer .tierRibbon {
+  background: linear-gradient(135deg, #1e3a2b, #12241b);
+  color: #f3efe6;
+  border: 1px solid #2d553f;
 }
 
-:global([data-theme="dark"]) .rank2 {
-  background: linear-gradient(180deg, rgba(192, 192, 192, 0.12) 0%, rgba(20, 26, 22, 0.8) 100%);
-  border: 1px solid rgba(220, 220, 220, 0.4);
-}
-
-@media (max-width: 768px) {
-  .rank2 { order: 2; }
-}
-
-.rank3 {
-  background: linear-gradient(180deg, rgba(205, 127, 50, 0.12) 0%, var(--surface) 100%);
-  border: 1px solid rgba(205, 127, 50, 0.4);
-  order: 3;
-}
-
-:global([data-theme="dark"]) .rank3 {
-  background: linear-gradient(180deg, rgba(205, 127, 50, 0.12) 0%, rgba(20, 26, 22, 0.8) 100%);
-}
-
-.crownBadge {
-  font-size: 2.2rem;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 4px 8px rgba(240, 190, 83, 0.4));
-}
-
-.rankBadge {
-  display: inline-flex;
+/* ── STAGGERED STICKERS FLOW & ROWS (TIDAK SEJAJAR) ─────────── */
+.stickersFlow {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-weight: 800;
-  font-size: 0.95rem;
-  margin-bottom: 12px;
+  gap: 16px;
+  width: 100%;
+  padding: 6px 4px;
 }
 
-.rankBadgeGold {
-  background: linear-gradient(135deg, #f0be53, #b8860b);
-  color: #1a1a1a;
-  box-shadow: 0 4px 12px rgba(240, 190, 83, 0.4);
-}
-
-.rankBadgeSilver {
-  background: linear-gradient(135deg, #e0e0e0, #9e9e9e);
-  color: #1a1a1a;
-}
-
-.rankBadgeBronze {
-  background: linear-gradient(135deg, #cd7f32, #8b4513);
-  color: #ffffff;
-}
-
-.gifterName {
-  font-family: var(--serif, "Playfair Display", Georgia, serif);
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--fg);
-  margin: 0 0 6px 0;
-}
-
-:global([data-theme="dark"]) .gifterName {
-  color: #ffffff;
-}
-
-.rank1 .gifterName {
-  font-size: 1.6rem;
-  color: var(--primary);
-}
-
-:global([data-theme="dark"]) .rank1 .gifterName {
-  color: #ffd778;
-}
-
-.podiumAmount {
-  display: inline-block;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--primary);
-  background: var(--gold-dim);
-  padding: 4px 14px;
-  border-radius: 20px;
-  margin-top: 4px;
-  letter-spacing: 0.02em;
-}
-
-:global([data-theme="dark"]) .podiumAmount {
-  color: #c9a84c;
-  background: rgba(201, 168, 76, 0.12);
-  border: 1px solid rgba(201, 168, 76, 0.25);
-}
-
-.podiumAmountGold {
-  font-size: 1.05rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, rgba(240, 190, 83, 0.22), rgba(184, 134, 11, 0.15));
-  color: #b8860b;
-  border: 1px solid rgba(240, 190, 83, 0.4);
-}
-
-:global([data-theme="dark"]) .podiumAmountGold {
-  color: #ffd778;
-  background: rgba(240, 190, 83, 0.2);
-  border: 1px solid rgba(240, 190, 83, 0.5);
-}
-
-/* ── OTHER GIFTERS (RANK 4-15) ───────────────────────────────── */
-.gifterListGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+.stickersRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 18px;
   width: 100%;
 }
 
-.listCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-}
-
-:global([data-theme="dark"]) .listCard {
-  background: rgba(22, 28, 24, 0.5);
-  border: 1px solid rgba(236, 227, 208, 0.08);
-  box-shadow: none;
-}
-
-.listCard:hover {
-  background: var(--surface-2);
-  border-color: var(--primary);
-  transform: translateX(4px);
-}
-
-:global([data-theme="dark"]) .listCard:hover {
-  background: rgba(22, 28, 24, 0.8);
-  border-color: rgba(201, 168, 76, 0.3);
-}
-
-.listRank {
-  font-weight: 800;
-  font-size: 0.9rem;
-  color: var(--primary);
-  background: var(--gold-dim);
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
+.stickerTag {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-:global([data-theme="dark"]) .listRank {
-  color: #c9a84c;
-  background: rgba(201, 168, 76, 0.1);
-}
-
-.listInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.listName {
-  font-weight: 600;
-  font-size: 0.98rem;
-  color: var(--fg);
-  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: -0.01em;
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  user-select: none;
+  cursor: default;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-:global([data-theme="dark"]) .listName {
-  color: #f0f0f0;
+.stickerTag:hover {
+  transform: scale(1.08) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+  z-index: 5;
 }
 
-.listAmount {
+/* 1. PATHFINDER (Gede / Besar, Deep Burgundy & Gold Rim) */
+.pathfinderTag {
+  background: linear-gradient(135deg, #7b020b, #590007);
+  color: #ffffff;
+  font-size: clamp(1.2rem, 2.7vw, 1.5rem);
+  font-weight: 900;
+  padding: 10px 22px;
+  border: 1.5px solid #c9a84c;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+:global([data-theme="dark"]) .pathfinderTag {
+  background: linear-gradient(135deg, #8b0c16, #5c0208);
+  color: #fff4d4;
+  border: 1.5px solid #e5b955;
+  box-shadow: 0 4px 14px rgba(123, 2, 11, 0.4);
+}
+
+/* LEAD TAG: MPK & William Santoso Paling Atas & Menonjol */
+.leadTag {
+  font-size: clamp(1.4rem, 3.2vw, 1.85rem) !important;
+  padding: 13px 30px !important;
+  border: 2px solid #ffd778 !important;
+  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+:global([data-theme="dark"]) .leadTag {
+  border: 2px solid #ffd778 !important;
+  box-shadow: 0 6px 20px rgba(240, 190, 83, 0.4) !important;
+}
+
+/* 2. NAVIGATOR (Sedang / Medium, Royal Gold Label Tape) */
+.navigatorTag {
+  background: linear-gradient(135deg, #f0be53, #b8860b);
+  color: #240406;
+  font-size: clamp(1rem, 2.3vw, 1.22rem);
+  font-weight: 800;
+  padding: 9px 20px;
+  border: 1px solid #d4a034;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+:global([data-theme="dark"]) .navigatorTag {
+  background: linear-gradient(135deg, #e5b955, #a37400);
+  color: #1a0305;
+  border: 1px solid #ffd778;
+}
+
+/* 3. EXPLORER (Kecil / Compact, Cream & Burgundy Accents) */
+.explorerTag {
+  background: #fdf8f0;
+  color: #7b020b;
+  font-size: clamp(0.82rem, 1.9vw, 0.96rem);
+  font-weight: 700;
+  padding: 7px 15px;
+  border: 1px solid #dfcfb2;
+}
+
+:global([data-theme="dark"]) .explorerTag {
+  background: rgba(201, 168, 76, 0.12);
+  color: #ffd778;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
+/* ── BOTTOM FOOTER TAPE STRIP (CAVALLERY THEME) ──────────────── */
+.boardFooterStrip {
+  background: linear-gradient(135deg, #7b020b, #4a0106);
+  color: #ffd778;
+  padding: 11px 20px;
+  border-radius: 6px;
+  text-align: center;
   font-size: 0.84rem;
   font-weight: 700;
-  color: var(--primary);
-  margin-top: 2px;
+  letter-spacing: 0.02em;
+  margin-top: 6px;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transform: rotate(-0.3deg);
+  line-height: 1.5;
 }
 
-:global([data-theme="dark"]) .listAmount {
+:global([data-theme="dark"]) .boardFooterStrip {
+  background: linear-gradient(135deg, #590007, #2d0004);
   color: #ffd778;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+}
+
+@media (max-width: 640px) {
+  .appreciationBoard {
+    padding: 24px 16px 20px;
+    border-radius: 18px;
+    gap: 20px;
+  }
+  .stickersFlow {
+    gap: 10px 10px;
+  }
+  .boardFooterStrip {
+    font-size: 0.72rem;
+    padding: 8px 12px;
+  }
 }

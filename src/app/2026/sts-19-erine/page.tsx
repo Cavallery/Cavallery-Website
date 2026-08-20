@@ -13,42 +13,69 @@ export const metadata: Metadata = {
   },
 };
 
-interface Gifter {
-  rank: number;
-  name: string;
-  amount: string;
+interface GifterGroup {
+  tierId: "pathfinder" | "navigator" | "explorer";
+  title: string;
+  badge: string;
+  rows: { name: string; rot: number; offset?: number; isLead?: boolean }[][];
 }
 
-const TOP_GIFTERS: Gifter[] = [
-  // Tier 2.500 (Rp 2.500.000)
-  { rank: 1, name: "MPK", amount: "Rp 2.500.000" },
-  { rank: 2, name: "William Santoso", amount: "Rp 2.500.000" },
-  { rank: 3, name: "Rifqi Annafi", amount: "Rp 2.500.000" },
-  { rank: 4, name: "Firstarisa", amount: "Rp 2.500.000" },
-
-  // Tier 1.000 (Rp 1.000.000)
-  { rank: 5, name: "Lucky Arasyah", amount: "Rp 1.000.000" },
-  { rank: 6, name: "Indyraaa", amount: "Rp 1.000.000" },
-  { rank: 7, name: "NabilRasyaaaa", amount: "Rp 1.000.000" },
-  { rank: 8, name: "Salma Nada", amount: "Rp 1.000.000" },
-
-  // Tier 500 (Rp 500.000)
-  { rank: 9, name: "Cipuyyy/@cpydermant", amount: "Rp 500.000" },
-  { rank: 10, name: "Angga", amount: "Rp 500.000" },
-  { rank: 11, name: "RFDorable", amount: "Rp 500.000" },
-  { rank: 12, name: "Vend.", amount: "Rp 500.000" },
-  { rank: 13, name: "Roni Eriyanto", amount: "Rp 500.000" },
-  { rank: 14, name: "🐝🐥", amount: "Rp 500.000" },
-  { rank: 15, name: "Nugo", amount: "Rp 500.000" },
+const GIFTER_BOARD_GROUPS: GifterGroup[] = [
+  {
+    tierId: "pathfinder",
+    title: "PATHFINDER",
+    badge: "👑 PATHFINDER",
+    rows: [
+      // Baris 1 (Paling Atas & Paling Menonjol): MPK & William Santoso
+      [
+        { name: "MPK", rot: -1.8, offset: 4, isLead: true },
+        { name: "William Santoso", rot: 1.5, offset: -4, isLead: true },
+      ],
+      // Baris 2: Rifqi Annafi, Firstarisa, Ucing Erine, iCaa
+      [
+        { name: "Rifqi Annafi", rot: -1.5, offset: 6 },
+        { name: "Firstarisa", rot: 1.2, offset: -4 },
+        { name: "Ucing Erine", rot: -1.6, offset: 5 },
+        { name: "iCaa", rot: 1.4, offset: -5 },
+      ],
+    ],
+  },
+  {
+    tierId: "navigator",
+    title: "NAVIGATOR",
+    badge: "💎 NAVIGATOR",
+    rows: [
+      [
+        { name: "Lucky Arasyah", rot: 1.2, offset: 4 },
+        { name: "Indyraaa", rot: -1.4, offset: -4 },
+      ],
+      [
+        { name: "NabilRasyaaaa", rot: 1.6, offset: 5 },
+        { name: "Salma Nada", rot: -1.1, offset: -3 },
+      ],
+    ],
+  },
+  {
+    tierId: "explorer",
+    title: "EXPLORER",
+    badge: "⭐ EXPLORER",
+    rows: [
+      [
+        { name: "Cipuyyy", rot: -1.2, offset: 2 },
+        { name: "Angga", rot: 1.5, offset: -3 },
+        { name: "RFDorable", rot: -0.9, offset: 4 },
+        { name: "Vend.", rot: 1.3, offset: -2 },
+      ],
+      [
+        { name: "Roni Eriyanto", rot: -1.6, offset: 3 },
+        { name: "🐝🐥", rot: 1.1, offset: -4 },
+        { name: "Nugo", rot: -1.4, offset: 3 },
+      ],
+    ],
+  },
 ];
 
 export default function ErineTheWayfinderPage() {
-  const remainingGifters = TOP_GIFTERS.slice(3);
-
-  const rank1 = TOP_GIFTERS.find((g) => g.rank === 1)!;
-  const rank2 = TOP_GIFTERS.find((g) => g.rank === 2)!;
-  const rank3 = TOP_GIFTERS.find((g) => g.rank === 3)!;
-
   return (
     <main className={styles.page}>
       {/* Video Section (Indonesia & Malaysia Videotron) */}
@@ -127,7 +154,7 @@ export default function ErineTheWayfinderPage() {
         </div>
       </section>
 
-      {/* Top Gifters Leaderboard */}
+      {/* Top Gifters Appreciation Board (Sticker Collage Style) */}
       <section className={styles.gifterSection}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionTag}>Special Appreciation</span>
@@ -137,42 +164,42 @@ export default function ErineTheWayfinderPage() {
           </p>
         </div>
 
-        {/* Podium (Top 3) */}
-        <div className={styles.podiumGrid}>
-          {/* Rank 2 - Silver */}
-          <div className={`${styles.podiumCard} ${styles.rank2}`}>
-            <span className={`${styles.rankBadge} ${styles.rankBadgeSilver}`}>2</span>
-            <h3 className={styles.gifterName}>{rank2.name}</h3>
-            <div className={styles.podiumAmount}>{rank2.amount}</div>
-          </div>
+        {/* The Exhibition Appreciation Board */}
+        <div className={styles.appreciationBoard}>
+          {GIFTER_BOARD_GROUPS.map((group) => (
+            <div key={group.tierId} className={`${styles.boardTierSection} ${styles[group.tierId]}`}>
+              {/* Category Ribbon / Strip */}
+              <div className={styles.tierRibbon}>
+                <span className={styles.tierRibbonText}>{group.title}</span>
+              </div>
 
-          {/* Rank 1 - Gold */}
-          <div className={`${styles.podiumCard} ${styles.rank1}`}>
-            <div className={styles.crownBadge}>👑</div>
-            <span className={`${styles.rankBadge} ${styles.rankBadgeGold}`}>1</span>
-            <h3 className={styles.gifterName}>{rank1.name}</h3>
-            <div className={`${styles.podiumAmount} ${styles.podiumAmountGold}`}>{rank1.amount}</div>
-          </div>
-
-          {/* Rank 3 - Bronze */}
-          <div className={`${styles.podiumCard} ${styles.rank3}`}>
-            <span className={`${styles.rankBadge} ${styles.rankBadgeBronze}`}>3</span>
-            <h3 className={styles.gifterName}>{rank3.name}</h3>
-            <div className={styles.podiumAmount}>{rank3.amount}</div>
-          </div>
-        </div>
-
-        {/* Remaining Gifters (Rank 4 to 15) */}
-        <div className={styles.gifterListGrid}>
-          {remainingGifters.map((gifter) => (
-            <div key={gifter.rank} className={styles.listCard}>
-              <div className={styles.listRank}>{gifter.rank}</div>
-              <div className={styles.listInfo}>
-                <div className={styles.listName}>{gifter.name}</div>
-                <div className={styles.listAmount}>{gifter.amount}</div>
+              {/* Rows Formation with Staggered Sticker Tags */}
+              <div className={styles.stickersFlow}>
+                {group.rows.map((row, rIdx) => (
+                  <div key={rIdx} className={styles.stickersRow}>
+                    {row.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className={`${styles.stickerTag} ${styles[`${group.tierId}Tag`]} ${item.isLead ? styles.leadTag : ""}`}
+                        style={{
+                          transform: `rotate(${item.rot}deg) translateY(${item.offset || 0}px)`,
+                        }}
+                      >
+                        {item.name}
+                      </span>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           ))}
+
+          {/* Bottom Footer Note Strip */}
+          <div className={styles.boardFooterStrip}>
+            <span>
+              serta seluruh warga Cavallery yang telah berpartisipasi dalam seluruh rangkaian penggalangan dana & kegiatan Seitansai Erine 2026
+            </span>
+          </div>
         </div>
       </section>
 
