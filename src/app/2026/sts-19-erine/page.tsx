@@ -77,7 +77,7 @@ const GIFTER_BOARD_GROUPS: GifterGroup[] = [
 
 const STORYLINE_CHAPTERS = [
   {
-    badge: "🌅 PROLOG",
+    chapterNumber: "PROLOG",
     title: "The End of The Path",
     quote: "Kadang jalan berakhir, untuk membawa kita ke jalan yang baru.",
     paragraphs: [
@@ -87,7 +87,7 @@ const STORYLINE_CHAPTERS = [
     image: "https://pbs.twimg.com/media/HQFkSnFaIAEAEAe?format=jpg&name=4096x4096",
   },
   {
-    badge: "🌅 CHAPTER I",
+    chapterNumber: "CHAPTER I",
     title: "The Forgotten Observatory",
     quote: "Tempat yang lama ditinggalkan, masih menyimpan cerita.",
     paragraphs: [
@@ -98,7 +98,7 @@ const STORYLINE_CHAPTERS = [
     image: "https://pbs.twimg.com/media/HQFkTaHbEAAC1Vs?format=jpg&name=medium",
   },
   {
-    badge: "🌅 CHAPTER II",
+    chapterNumber: "CHAPTER II",
     title: "The Hidden Horizon",
     quote: "Di balik kabut, ada sesuatu yang menunggu.",
     paragraphs: [
@@ -108,7 +108,7 @@ const STORYLINE_CHAPTERS = [
     image: "https://pbs.twimg.com/media/HQFkUVwbEAAGnUj?format=jpg&name=medium",
   },
   {
-    badge: "🌅 CHAPTER III",
+    chapterNumber: "CHAPTER III",
     title: "The Legacy",
     quote: "Membayangkan apa yang menunggu di balik tembok, menjadi kekuatan 'tuk mau mencoba.",
     paragraphs: [
@@ -118,7 +118,145 @@ const STORYLINE_CHAPTERS = [
     ],
     image: "https://pbs.twimg.com/media/HQJitRqbAAAq2cT?format=jpg&name=medium",
   },
+  {
+    chapterNumber: "EPILOGUE",
+    title: "Captain's Log",
+    quote: "Life is short, the world is wide. I want to make some memories.",
+    paragraphs: [
+      "Captain's Log — Day One.",
+      "Erine akhirnya memulai perjalanan menuju dunia yang belum pernah ia kenal.",
+      "Dan untuk pertama kalinya, halaman itu menjadi miliknya untuk ditulis.",
+    ],
+    image: "https://pbs.twimg.com/media/HQJjBEpbsAAHhUU?format=jpg&name=medium",
+  },
 ];
+
+// Reusable Sunrise / Horizon SVG Icon
+function SunriseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2v6" />
+      <path d="m4.93 10.93 4.24-4.24" />
+      <path d="m19.07 10.93-4.24-4.24" />
+      <path d="M2 18h20" />
+      <path d="M20 22H4" />
+      <path d="M8 18a4 4 0 0 1 8 0" />
+    </svg>
+  );
+}
+
+// Reusable Book / Story Icon
+function BookStoryIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+      <path d="M6 6h10" />
+      <path d="M6 10h10" />
+    </svg>
+  );
+}
+
+// Reusable Trophy / Award Icon
+function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34" />
+      <path d="M18 4H6v7a6 6 0 0 0 12 0V4Z" />
+    </svg>
+  );
+}
+
+// Reusable Camera Icon
+function CameraIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+  );
+}
+
+// Reusable Sparkles Icon
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z" />
+    </svg>
+  );
+}
+
+// Reusable Compass Icon
+function CompassIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+}
 
 export default function ErineTheWayfinderPage() {
   return (
@@ -129,7 +267,7 @@ export default function ErineTheWayfinderPage() {
           {/* Video 1: Indonesia */}
           <div className={styles.videoCard}>
             <div className={styles.videoHeader}>
-              <span>🇮🇩 Videotron Project Jakarta, Indonesia</span>
+              <span>Videotron Project Jakarta, Indonesia</span>
             </div>
             <video
               className={styles.heroVideo}
@@ -145,7 +283,7 @@ export default function ErineTheWayfinderPage() {
           {/* Video 2: Malaysia */}
           <div className={styles.videoCard}>
             <div className={styles.videoHeader}>
-              <span>🇲🇾 Videotron Project Kuala Lumpur, Malaysia</span>
+              <span>Videotron Project Kuala Lumpur, Malaysia</span>
             </div>
             <video
               className={styles.heroVideo}
@@ -163,22 +301,40 @@ export default function ErineTheWayfinderPage() {
       {/* Hero Header */}
       <div className={styles.hero}>
         <div className={styles.badge}>
-          <span>✨ Seitansai Project 2026</span>
+          <SparklesIcon className={styles.badgeIcon} />
+          <span>Seitansai Project 2026</span>
         </div>
         <h1 className={styles.title}>#ErineTheWayfinder</h1>
         <p className={styles.subtitle}>
           Perayaan hari ulang tahun Catherina Vallencia Kurniawan. Terima kasih atas dedikasi dan cinta dari seluruh Cavallers!
         </p>
+        <div className={styles.heroActionWrap}>
+          <Link href="/2026/the-wayfinder" className={styles.philosophyBtn}>
+            <CompassIcon className={styles.btnIcon} />
+            <span>Asal-Usul & Filosofi The Wayfinder</span>
+            <span className={styles.btnArrow}>→</span>
+          </Link>
+        </div>
       </div>
 
       {/* Storyline Section — The Wayfinder Journey */}
       <section className={styles.storylineSection}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>Official Storyline</span>
-          <h2 className={styles.sectionTitle}>📖 The Wayfinder Journey</h2>
+          <span className={styles.sectionTag}>
+            <BookStoryIcon className={styles.tagIcon} />
+            Official Storyline
+          </span>
+          <h2 className={styles.sectionTitle}>The Wayfinder Journey</h2>
           <p className={styles.sectionDesc}>
             Kisah perjalanan Erine dalam mencari jejak dan membuka cakrawala baru di luar batas horizon.
           </p>
+          <div className={styles.storylineActionWrap}>
+            <Link href="/2026/the-wayfinder" className={styles.storylinePhilosophyBtn}>
+              <CompassIcon className={styles.btnIcon} />
+              <span>Lihat Asal-Usul & Filosofi The Wayfinder</span>
+              <span className={styles.btnArrow}>→</span>
+            </Link>
+          </div>
         </div>
 
         <div className={styles.storylineTimeline}>
@@ -196,12 +352,18 @@ export default function ErineTheWayfinderPage() {
                   className={styles.storyImage}
                   loading="lazy"
                 />
-                <div className={styles.imageOverlayBadge}>{item.badge}</div>
+                <div className={styles.imageOverlayBadge}>
+                  <SunriseIcon className={styles.badgeIcon} />
+                  <span>{item.chapterNumber}</span>
+                </div>
               </div>
 
               {/* Story Content */}
               <div className={styles.storyContent}>
-                <div className={styles.storyBadge}>{item.badge}</div>
+                <div className={styles.storyBadge}>
+                  <SunriseIcon className={styles.badgeIcon} />
+                  <span>{item.chapterNumber}</span>
+                </div>
                 <h3 className={styles.storyTitle}>{item.title}</h3>
                 <blockquote className={styles.storyQuote}>
                   <span className={styles.quoteMark}>“</span>
@@ -250,8 +412,11 @@ export default function ErineTheWayfinderPage() {
       {/* Top Gifters Appreciation Board (Sticker Collage Style) */}
       <section className={styles.gifterSection}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>Special Appreciation</span>
-          <h2 className={styles.sectionTitle}>🏆 Top Gifter #ErineTheWayfinder</h2>
+          <span className={styles.sectionTag}>
+            <TrophyIcon className={styles.tagIcon} />
+            Special Appreciation
+          </span>
+          <h2 className={styles.sectionTitle}>Top Gifter #ErineTheWayfinder</h2>
           <p className={styles.sectionDesc}>
             Apresiasi dan terima kasih setinggi-tingginya kepada para Top Gifter atas kontribusi luar biasa untuk menyukseskan Seitansai Project Erine 2026.
           </p>
@@ -302,8 +467,11 @@ export default function ErineTheWayfinderPage() {
       {/* Photobooth Cheki Section */}
       <section className={styles.photoboothSection}>
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>Interactive Cheki</span>
-          <h2 className={styles.sectionTitle}>📸 Photobooth Cheki #ErineTheWayfinder</h2>
+          <span className={styles.sectionTag}>
+            <CameraIcon className={styles.tagIcon} />
+            Interactive Cheki
+          </span>
+          <h2 className={styles.sectionTitle}>Photobooth Cheki #ErineTheWayfinder</h2>
           <p className={styles.sectionDesc}>
             Ambil foto dan buat Cheki eksklusif Seitansai Erine langsung di bawah ini atau buka halaman penuh di{" "}
             <Link href="/photobooth" style={{ color: "#ffd778", textDecoration: "underline", fontWeight: 600 }}>
