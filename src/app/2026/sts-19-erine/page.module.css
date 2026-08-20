@@ -185,6 +185,107 @@
   color: #a09882;
 }
 
+.heroActionWrap {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.philosophyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(123, 2, 11, 0.9), rgba(89, 0, 7, 0.95));
+  color: #ffd778;
+  border: 1.5px solid rgba(201, 168, 76, 0.45);
+  padding: 10px 22px;
+  border-radius: 30px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(123, 2, 11, 0.25);
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.philosophyBtn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #7b020b, #590007);
+  border-color: #ffd778;
+  box-shadow: 0 8px 24px rgba(123, 2, 11, 0.4), 0 0 15px rgba(240, 190, 83, 0.2);
+}
+
+.philosophyBtn .btnIcon {
+  color: #ffd778;
+  transition: transform 0.3s ease;
+}
+
+.philosophyBtn:hover .btnIcon {
+  transform: rotate(45deg);
+}
+
+.philosophyBtn .btnArrow {
+  transition: transform 0.2s ease;
+}
+
+.philosophyBtn:hover .btnArrow {
+  transform: translateX(4px);
+}
+
+.storylineActionWrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.storylinePhilosophyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-2, #f5f0eb);
+  color: var(--primary);
+  border: 1.5px solid rgba(201, 168, 76, 0.4);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+}
+
+:global([data-theme="dark"]) .storylinePhilosophyBtn {
+  background: rgba(26, 34, 28, 0.85);
+  color: #ffd778;
+  border-color: rgba(201, 168, 76, 0.35);
+}
+
+.storylinePhilosophyBtn:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 6px 20px rgba(123, 2, 11, 0.15);
+}
+
+:global([data-theme="dark"]) .storylinePhilosophyBtn:hover {
+  border-color: #ffd778;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(201, 168, 76, 0.15);
+}
+
+.storylinePhilosophyBtn .btnIcon {
+  transition: transform 0.3s ease;
+}
+
+.storylinePhilosophyBtn:hover .btnIcon {
+  transform: rotate(45deg);
+}
+
+.storylinePhilosophyBtn .btnArrow {
+  transition: transform 0.2s ease;
+}
+
+.storylinePhilosophyBtn:hover .btnArrow {
+  transform: translateX(4px);
+}
+
 /* ── CAKE SECTION ───────────────────────────────────────────── */
 .cakeSection {
   margin: 20px 0 60px;
@@ -728,10 +829,25 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 :global([data-theme="dark"]) .storyBadge {
   color: #ffd778;
+}
+
+.badgeIcon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.tagIcon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .storyTitle {

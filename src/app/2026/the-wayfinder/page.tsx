@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 
-// Target: 21 Agustus 2026 Pukul 00:00:00 WIB (UTC+7)
-const UNLOCK_DATE = new Date("2026-08-21T00:00:00+07:00").getTime();
+// Target: 21 Agustus 2026 Pukul 02:00:00 WIB (UTC+7)
+const UNLOCK_DATE = new Date("2026-08-21T02:00:00+07:00").getTime();
 
 export default function TheWayfinder2026Page() {
   const [timeLeft, setTimeLeft] = useState<{
@@ -108,7 +108,7 @@ export default function TheWayfinder2026Page() {
 
             <div className={styles.quoteWrap}>
               <p className={styles.quoteText}>
-                “A World Beyond The Horizon awaits — 21 Agustus 2026, 00:00 WIB”
+                “A World Beyond The Horizon awaits — 21 Agustus 2026, 02:00 WIB”
               </p>
             </div>
 
