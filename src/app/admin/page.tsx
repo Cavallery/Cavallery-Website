@@ -686,12 +686,28 @@ function MediaManager() {
   const [toast, setToast]           = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [selected, setSelected]     = useState<Set<string>>(new Set());
   const [total, setTotal]           = useState(0);
+  const [publishedIds, setPublishedIds] = useState<Set<string>>(new Set());
+  const [publishModal, setPublishModal] = useState<any | null>(null);
+  const [pubTitle, setPubTitle]         = useState("");
+  const [pubDate, setPubDate]           = useState("");
+  const [pubActive, setPubActive]       = useState(true);
+  const [pubSaving, setPubSaving]       = useState(false);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      try {
+        const pubRes = await fetch("/api/published-media");
+        if (pubRes.ok) {
+          const pubJson = await pubRes.json();
+          if (Array.isArray(pubJson?.publishedIds)) {
+            setPublishedIds(new Set(pubJson.publishedIds));
+          }
+        }
+      } catch {}
+
       const params = new URLSearchParams();
       if (search)     params.set("search", search);
       if (folder)     params.set("folder", folder);
@@ -715,14 +731,57 @@ function MediaManager() {
     });
   };
 
+  const togglePublish = async (item: any) => {
+    const isCurrentlyPub = publishedIds.has(item.id) || publishedIds.has(item.public_url);
+    const newStatus = !isCurrentlyPub;
+    try {
+      const res = await fetch("/api/published-media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "toggle", id: item.id }),
+      });
+      if (res.ok) {
+        setPublishedIds(prev => {
+          const next = new Set(prev);
+          if (newStatus) {
+            next.add(item.id);
+            next.add(item.public_url);
+          } else {
+            next.delete(item.id);
+            next.delete(item.public_url);
+          }
+          return next;
+        });
+        showToast(
+          newStatus
+            ? `"${item.original_name}" DITERBITKAN ke About Cavallery!`
+            : `"${item.original_name}" DISEMBUNYIKAN (hanya tersimpan di media)`,
+          "success"
+        );
+      }
+    } catch {
+      showToast("Gagal mengubah status publikasi", "error");
+    }
+  };
+
   const deleteOne = async (item: any) => {
     setConfirm(null);
     try {
       const res  = await fetch(api(`/media/${item.id}`), { method: "DELETE" });
       const json = await res.json();
-      if (json.status) { showToast("Media berhasil dihapus", "success"); load(); }
-      else showToast(json.message || "Gagal menghapus", "error");
-    } catch { showToast("Error jaringan", "error"); }
+      if (json.status) {
+        showToast("Media berhasil dihapus", "success");
+        load();
+      } else if (res.status === 404 || (json.message && json.message.toLowerCase().includes("tidak ditemukan"))) {
+        showToast("File sudah tidak ada di server, dibersihkan dari tampilan.", "success");
+        setItems(prev => prev.filter(i => i.id !== item.id));
+        setTotal(prev => Math.max(0, prev - 1));
+      } else {
+        showToast(json.message || "Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Error jaringan", "error");
+    }
   };
 
   const deleteBulk = async () => {
@@ -738,8 +797,52 @@ function MediaManager() {
         showToast(`${selected.size} media dihapus`, "success");
         setSelected(new Set());
         load();
-      } else showToast(json.message || "Gagal menghapus", "error");
-    } catch { showToast("Error jaringan", "error"); }
+      } else if (res.status === 404 || (json.message && json.message.toLowerCase().includes("tidak ditemukan"))) {
+        showToast("File yang tidak ditemukan telah dibersihkan dari daftar.", "success");
+        setItems(prev => prev.filter(i => !selected.has(i.id)));
+        setTotal(prev => Math.max(0, prev - selected.size));
+        setSelected(new Set());
+      } else {
+        showToast(json.message || "Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Error jaringan", "error");
+    }
+  };
+
+  const openPublish = (item: any) => {
+    setPublishModal(item);
+    setPubTitle(item.original_name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, " "));
+    setPubDate(new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }));
+    setPubActive(true);
+  };
+
+  const handlePublishToGallery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!publishModal) return;
+    setPubSaving(true);
+    try {
+      const res = await fetch(api("/gallery"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: pubTitle,
+          image_url: publishModal.public_url,
+          date_label: pubDate,
+          is_active: pubActive,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Foto berhasil diterbitkan ke Gallery web!", "success");
+        setPublishModal(null);
+      } else {
+        showToast(json.message || "Gagal menerbitkan ke Gallery", "error");
+      }
+    } catch {
+      showToast("Gagal terhubung ke server", "error");
+    }
+    setPubSaving(false);
   };
 
   return (
@@ -761,6 +864,87 @@ function MediaManager() {
         />
       )}
 
+      {publishModal && (
+        <div className={styles.modalOverlay} onClick={() => setPublishModal(null)}>
+          <div className={styles.formModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <div className={styles.formModalHeader}>
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="bx bx-image" style={{ color: "#c9a84c" }} /> Tampilkan Foto ke Gallery Web
+              </h3>
+              <button className={styles.closeX} onClick={() => setPublishModal(null)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <form onSubmit={handlePublishToGallery}>
+              <div className={styles.formBody}>
+                <div style={{ textAlign: "center", marginBottom: 12 }}>
+                  <img
+                    src={publishModal.public_url}
+                    alt={publishModal.original_name}
+                    style={{ maxHeight: 150, maxWidth: "100%", borderRadius: 8, objectFit: "cover" }}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Judul Foto di Galeri <span style={{ color: "#e05252" }}>*</span></label>
+                  <input
+                    value={pubTitle}
+                    onChange={(e) => setPubTitle(e.target.value)}
+                    required
+                    placeholder="Contoh: Erine Theater Seitansai"
+                    autoFocus
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Label Tanggal</label>
+                  <input
+                    value={pubDate}
+                    onChange={(e) => setPubDate(e.target.value)}
+                    placeholder="Contoh: 20 Agustus 2026"
+                  />
+                </div>
+
+                <div className={styles.field} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+                  <input
+                    type="checkbox"
+                    id="pubActiveCheckbox"
+                    checked={pubActive}
+                    onChange={(e) => setPubActive(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: "pointer" }}
+                  />
+                  <label htmlFor="pubActiveCheckbox" style={{ margin: 0, cursor: "pointer", fontWeight: 600 }}>
+                    Langsung tampilkan di halaman /gallery (Aktif)
+                  </label>
+                </div>
+                {!pubActive && (
+                  <small style={{ color: "#888", display: "block", marginTop: -4 }}>
+                    Jika tidak dicentang, foto tersimpan sebagai draft dan belum terlihat oleh publik.
+                  </small>
+                )}
+              </div>
+
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setPublishModal(null)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnPrimary} disabled={pubSaving}>
+                  {pubSaving ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menerbitkan...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-check" /> Terbitkan ke Gallery
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
           <i className="bx bx-folder-open" /> Media
@@ -776,6 +960,24 @@ function MediaManager() {
             <i className="bx bx-upload" /> Upload
           </button>
         </div>
+      </div>
+
+      <div style={{
+        background: "rgba(201, 168, 76, 0.08)",
+        border: "1px solid rgba(201, 168, 76, 0.25)",
+        borderRadius: 8,
+        padding: "10px 14px",
+        marginBottom: 16,
+        fontSize: "0.85rem",
+        color: "#d6cebf",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+      }}>
+        <i className="bx bx-shield-quarter" style={{ fontSize: "1.3rem", color: "#c9a84c", flexShrink: 0 }} />
+        <span>
+          <strong>Kontrol Publikasi Media:</strong> Klik ikon mata <i className="bx bx-show" style={{ color: "#10b981" }} /> / <i className="bx bx-hide" /> pada tiap kartu untuk <strong>menerbitkan atau menyembunyikan</strong> file dari halaman About Cavallery.
+        </span>
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -815,6 +1017,7 @@ function MediaManager() {
         <div className={styles.mediaGrid}>
           {items.map(item => {
             const sel = selected.has(item.id);
+            const isPub = publishedIds.has(item.id) || publishedIds.has(item.public_url) || publishedIds.has(item.file_name);
             return (
               <div key={item.id} className={`${styles.mediaCard} ${sel ? styles.mediaCardSelected : ""}`}>
                 <div className={styles.mediaCheckbox} onClick={() => toggleSelect(item.id)}>
@@ -835,8 +1038,45 @@ function MediaManager() {
                     <span className={`${styles.typeBadge} ${item.type === "video" ? styles.typeBadgeVideo : styles.typeBadgeImage}`}>{item.type}</span>
                     <span>{(item.file_size / 1024).toFixed(0)} KB</span>
                   </div>
+                  <div style={{ marginTop: 6 }}>
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: 10,
+                        background: isPub ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.06)",
+                        color: isPub ? "#10b981" : "#888",
+                        border: `1px solid ${isPub ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <i className={`bx ${isPub ? "bx-check-circle" : "bx-lock-alt"}`} />
+                      {isPub ? "Tampil di Web" : "Hanya di Media"}
+                    </span>
+                  </div>
                 </div>
                 <div className={styles.mediaCardActions}>
+                  <button
+                    title={isPub ? "Sembunyikan dari About Cavallery" : "Terbitkan ke About Cavallery"}
+                    onClick={() => togglePublish(item)}
+                    className={styles.btnEdit}
+                    style={{ color: isPub ? "#10b981" : "#aaa" }}
+                  >
+                    <i className={`bx ${isPub ? "bx-show" : "bx-hide"}`} />
+                  </button>
+                  {item.type === "image" && (
+                    <button
+                      title="Terbitkan ke Gallery Web"
+                      onClick={() => openPublish(item)}
+                      className={styles.btnEdit}
+                      style={{ color: "#c9a84c" }}
+                    >
+                      <i className="bx bx-image-add" />
+                    </button>
+                  )}
                   <button title="Salin URL" onClick={() => navigator.clipboard.writeText(item.public_url)} className={styles.btnEdit}><i className="bx bx-copy" /></button>
                   <a href={item.public_url} target="_blank" rel="noreferrer" className={styles.btnEdit} title="Buka"><i className="bx bx-link-external" /></a>
                   <button className={styles.btnDel} onClick={() => setConfirm(item)} title="Hapus"><i className="bx bx-trash" /></button>

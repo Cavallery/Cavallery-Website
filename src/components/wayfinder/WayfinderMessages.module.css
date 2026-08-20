@@ -1,0 +1,324 @@
+.wrapper {
+  width: 100%;
+  max-width: 960px;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.sectionTag {
+  color: #c9a84c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.sectionTitle {
+  font-family: var(--serif, "Playfair Display", Georgia, serif);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 10px 0;
+}
+
+.sectionDesc {
+  color: #a09882;
+  font-size: 0.95rem;
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── FORM BOARD ─────────────────────────────────────────────── */
+.formBoard {
+  width: 100%;
+  max-width: 640px;
+  background: rgba(22, 28, 24, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 18px;
+  padding: 24px 28px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(201, 168, 76, 0.08);
+  margin-bottom: 36px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  background: rgba(11, 15, 13, 0.8);
+  border: 1px solid rgba(236, 227, 208, 0.15);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #ece3d0;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #f0be53;
+  box-shadow: 0 0 12px rgba(240, 190, 83, 0.25);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.submitBtn {
+  background: linear-gradient(135deg, #f0be53, #c9a84c);
+  color: #0b0f0d;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  padding: 14px 24px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(201, 168, 76, 0.45);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.successMsg {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 14px 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ── CAROUSEL CONTROLS ──────────────────────────────────────── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 14px;
+}
+
+.carouselLabel {
+  font-size: 0.9rem;
+  color: #ffd778;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scrollBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ece3d0;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.scrollBtn:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: #f0be53;
+  color: #f0be53;
+}
+
+/* ── INFINITE CAROUSEL ──────────────────────────────────────── */
+.carouselWindow {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding: 16px 0 24px;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 18px;
+  width: max-content;
+  animation: scrollInfinite 45s linear infinite;
+}
+
+.carouselTrack:hover,
+.paused {
+  animation-play-state: paused;
+}
+
+@keyframes scrollInfinite {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── STICKY NOTE CARD ───────────────────────────────────────── */
+.stickyCard {
+  width: 280px;
+  min-height: 180px;
+  background: linear-gradient(135deg, rgba(35, 42, 38, 0.85) 0%, rgba(20, 26, 22, 0.92) 100%);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 14px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.stickyCard:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: #f0be53;
+  box-shadow: 0 12px 32px rgba(240, 190, 83, 0.2);
+}
+
+.cardPin {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f0be53;
+  box-shadow: 0 0 8px #f0be53;
+  position: absolute;
+  top: 12px;
+  right: 14px;
+}
+
+.cardName {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #ffd778;
+  margin-bottom: 8px;
+  padding-right: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardMsg {
+  font-size: 0.88rem;
+  color: #d6cebf;
+  line-height: 1.5;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.cardDate {
+  font-size: 0.76rem;
+  color: #888;
+  align-self: flex-end;
+}
+
+/* ── MODAL POPUP ────────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modalContent {
+  background: #1a221d;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 18px;
+  padding: 28px 24px;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  color: #ece3d0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+.modalClose {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: #fff;
+}
+
+.modalName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffd778;
+  margin: 0 0 14px 0;
+}
+
+.modalMsg {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: #e0d8c8;
+  white-space: pre-wrap;
+  margin: 0 0 16px 0;
+  font-style: italic;
+}
+
+.modalDate {
+  font-size: 0.8rem;
+  color: #888;
+  text-align: right;
+}
