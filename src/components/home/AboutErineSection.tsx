@@ -89,6 +89,11 @@ export default function AboutErineSection() {
   const [statsData, setStatsData] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [updates, setUpdates] = useState<any[]>([]);
+  const [kabeshas, setKabeshas] = useState<any[]>([]);
+  const [funfacts, setFunfacts] = useState<any[]>([]);
+  const [debutVideoId, setDebutVideoId] = useState<string>("Obxn7knXq38");
+  const [sskVideoId, setSskVideoId] = useState<string>("XbAqE7iBJAw");
+  const [updatesLoaded, setUpdatesLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [slides, setSlides] = useState<string[]>([]);
@@ -144,28 +149,88 @@ export default function AboutErineSection() {
       .then((r) => r.json())
       .then((json) => {
         if (json?.status && Array.isArray(json.data) && json.data.length > 0) {
-          // Filter to only display total_shows, setlists, and unit_songs (or total_show, total_setlist)
-          const validKeys = new Set(["total_shows", "total_show", "setlists", "total_setlist", "unit_songs"]);
-          const filtered = json.data.filter((s: any) => validKeys.has(s.stat_key));
-          setStatsData(filtered.length > 0 ? filtered : json.data);
+          const seen = new Set<string>();
+          const uniqueList: any[] = [];
+          for (const s of json.data) {
+            const normKey = s.stat_key === "total_show" ? "total_shows" : (s.stat_key === "total_setlist" ? "setlists" : s.stat_key);
+            if (!seen.has(normKey) && (normKey === "total_shows" || normKey === "setlists" || normKey === "unit_songs")) {
+              seen.add(normKey);
+              uniqueList.push({ ...s, stat_key: normKey });
+            }
+          }
+          uniqueList.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+          setStatsData(uniqueList.length > 0 ? uniqueList : json.data);
         } else {
           fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
             .then((r) => r.json())
-            .then((ext) => { if (ext?.status) setStatsData(ext.data); })
+            .then((ext) => {
+              if (ext?.status && Array.isArray(ext.data)) {
+                setStatsData(ext.data);
+              }
+            })
             .catch(() => {});
         }
       })
       .catch(() => {
         fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
           .then((r) => r.json())
-          .then((ext) => { if (ext?.status) setStatsData(ext.data); })
+          .then((ext) => {
+            if (ext?.status && Array.isArray(ext.data)) {
+              setStatsData(ext.data);
+            }
+          })
           .catch(() => {});
       });
+
+    // Fetch kabeshas from API
+    fetch("/api/kabesha")
+      .then((r) => r.json())
+      .then((json) => {
+        const list = json.data || (Array.isArray(json) ? json : []);
+        if (Array.isArray(list) && list.length > 0) {
+          setKabeshas(list.filter((k: any) => k.is_active !== false && k.is_active !== 0));
+        }
+      })
+      .catch(() => {});
+
+    // Fetch funfacts from API
+    fetch("/api/funfacts")
+      .then((r) => r.json())
+      .then((json) => {
+        const list = json.data || (Array.isArray(json) ? json : []);
+        if (Array.isArray(list) && list.length > 0) {
+          setFunfacts(list.filter((f: any) => f.is_active !== false && f.is_active !== 0));
+        }
+      })
+      .catch(() => {});
+
+    // Fetch youtube videos to dynamically assign showcase video
+    fetch("/api/youtube")
+      .then((r) => r.json())
+      .then((json) => {
+        const list = json.data?.videos || (Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []));
+        if (Array.isArray(list) && list.length > 0) {
+          const debut = list.find((v: any) => {
+            const t = (v.title || "").toLowerCase();
+            const c = (v.category || "").toLowerCase();
+            return t.includes("debut") || c.includes("debut");
+          });
+          if (debut?.video_id) setDebutVideoId(debut.video_id);
+
+          const ssk = list.find((v: any) => {
+            const t = (v.title || "").toLowerCase();
+            return t.includes("pemilihan") || t.includes("sousenkyo") || t.includes("ssk");
+          });
+          if (ssk?.video_id) setSskVideoId(ssk.video_id);
+        }
+      })
+      .catch(() => {});
 
     fetch("/api/updates")
       .then((r) => r.json())
       .then((json) => { if (json?.success) setUpdates(json.data); })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setUpdatesLoaded(true));
 
     const twScript = document.createElement("script");
     twScript.src = "https://platform.twitter.com/widgets.js";
@@ -419,14 +484,22 @@ export default function AboutErineSection() {
         <div className={styles.ewFf}>
           <h3>Funfact Erine</h3>
           <ol>
-            <li>Penampilan pertamanya sebagai penari latar di JKT48 Stage ke-5 untuk lagu Glory Days adalah pada tanggal 1 Februari 2025.</li>
-            <li>Suka aespa, terutama member bernama Ningning.</li>
-            <li>Cita-cita pengen bawa bendera saat upacara.</li>
-            <li>Erine Waktu SMA ada dijurusan IPS.</li>
-            <li>Bisa memainkan Kalimba.</li>
-            <li>Mata sehat, tidak silinder atau minus.</li>
-            <li>Mendaftar JKT48 di hari terakhir pendaftaran.</li>
-            <li>Tidak bisa maen catur, &quot;Checkmate&quot; cuman spontan kepikiran.</li>
+            {funfacts.length > 0 ? (
+              funfacts.map((f: any, i: number) => (
+                <li key={f.id || i}>{f.fact || f.content}</li>
+              ))
+            ) : (
+              <>
+                <li>Penampilan pertamanya sebagai penari latar di JKT48 Stage ke-5 untuk lagu Glory Days adalah pada tanggal 1 Februari 2025.</li>
+                <li>Suka aespa, terutama member bernama Ningning.</li>
+                <li>Cita-cita pengen bawa bendera saat upacara.</li>
+                <li>Erine Waktu SMA ada dijurusan IPS.</li>
+                <li>Bisa memainkan Kalimba.</li>
+                <li>Mata sehat, tidak silinder atau minus.</li>
+                <li>Mendaftar JKT48 di hari terakhir pendaftaran.</li>
+                <li>Tidak bisa maen catur, &quot;Checkmate&quot; cuman spontan kepikiran.</li>
+              </>
+            )}
           </ol>
         </div>
       </div>
@@ -438,7 +511,7 @@ export default function AboutErineSection() {
           <h3 className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
           <div className={styles.videoFrameWrapper}>
             <div className={styles.responsiveVideo}>
-              <iframe src="https://www.youtube.com/embed/Obxn7knXq38" title="Debut" allowFullScreen />
+              <iframe src={`https://www.youtube.com/embed/${debutVideoId}`} title="Debut" allowFullScreen />
             </div>
           </div>
         </div>
@@ -446,25 +519,31 @@ export default function AboutErineSection() {
         <div className={styles.nailedFrame} />
         <h3 className={styles.erineTitle}>{"Erine's Kabesha"}</h3>
         <div className={styles.galleryGrid}>
-          {[
-            { img: "/images/trainee.jpg", year: "2023", title: "First Kabesha", desc: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
-            { img: "/images/regular.webp", year: "2026", title: "Regular Member", desc: "Dipromosikan menjadi Member reguler JKT48." },
-            { img: "/images/erine-passion.webp", year: "2026", title: "Team Passion", desc: "Dipromosikan menjadi Member Passion JKT48." },
-          ].map((item) => (
-            <div
-              key={`${item.year}-${item.title}`}
-              className={styles.frameCard}
-              onClick={() => openModal(item.img, item.year, item.desc)}
-            >
-              <div className={styles.imageContainer}>
-                <img src={item.img} alt={item.year} />
+          {(kabeshas.length > 0 ? kabeshas : [
+            { image_url: "/images/trainee.jpg", era: "2023", title: "First Kabesha", description: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
+            { image_url: "/images/regular.webp", era: "2026", title: "Regular Member", description: "Dipromosikan menjadi Member reguler JKT48." },
+            { image_url: "/images/erine-passion.webp", era: "2026", title: "Team Passion", description: "Dipromosikan menjadi Member Passion JKT48." },
+          ]).map((item: any, idx: number) => {
+            const img = item.image_url || item.img || "/images/cava-logo.jpg";
+            const year = item.era || item.year_label || item.year || "2026";
+            const title = item.title || item.era_name || "Kabesha";
+            const desc = item.description || item.desc || title;
+            return (
+              <div
+                key={item.id || `${year}-${title}-${idx}`}
+                className={styles.frameCard}
+                onClick={() => openModal(img, year, desc)}
+              >
+                <div className={styles.imageContainer}>
+                  <img src={img} alt={title} />
+                </div>
+                <div className={styles.captionBox}>
+                  <span className={styles.captionYear}>{year}</span>
+                  {title}
+                </div>
               </div>
-              <div className={styles.captionBox}>
-                <span className={styles.captionYear}>{item.year}</span>
-                {item.title}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className={styles.electionSection}>
@@ -472,7 +551,7 @@ export default function AboutErineSection() {
           <h3 className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
           <div className={styles.frameCardWide}>
             <div className={styles.responsiveVideo}>
-              <iframe src="https://www.youtube.com/embed/XbAqE7iBJAw" title="SSK" allowFullScreen />
+              <iframe src={`https://www.youtube.com/embed/${sskVideoId}`} title="SSK" allowFullScreen />
             </div>
             <div className={styles.electionGrid}>
               <div
@@ -605,7 +684,11 @@ export default function AboutErineSection() {
         <h3 className={styles.erineTitle}>Latest Updates</h3>
         {updates.length === 0 ? (
           <div style={{ color: "var(--gold)", padding: "1rem", textAlign: "center" }}>
-            <i className="bx bx-loader-alt bx-spin" /> Memuat updates...
+            {updatesLoaded ? (
+              <><i className="bx bx-info-circle" /> Belum ada updates terbaru.</>
+            ) : (
+              <><i className="bx bx-loader-alt bx-spin" /> Memuat updates...</>
+            )}
           </div>
         ) : (
           <div className={styles.embedsGrid}>

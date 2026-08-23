@@ -68,26 +68,37 @@ export default function TimelineSection() {
   useEffect(() => {
     const loadTimeline = async () => {
       try {
-        const res = await fetch("/api/timeline");
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.status && json.data?.events?.length > 0) {
-            setTimelineData(json.data);
-            return;
-          }
-        }
-      } catch {}
+        let loadedData: TimelineData | null = null;
 
-      try {
-        const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT");
-        if (extRes.ok) {
-          const extJson = await extRes.json();
-          if (extJson?.status && extJson.data) {
-            setTimelineData(extJson.data);
+        try {
+          const res = await fetch("/api/timeline");
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.status && json.data?.events?.length > 0) {
+              loadedData = json.data;
+            }
+          }
+        } catch {}
+
+        if (!loadedData) {
+          try {
+            const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT");
+            if (extRes.ok) {
+              const extJson = await extRes.json();
+              if (extJson?.status && extJson.data?.events?.length > 0) {
+                loadedData = extJson.data;
+              }
+            }
+          } catch (e) {
+            console.error("External timeline fetch failed:", e);
           }
         }
-      } catch (e) {
-        console.error("Failed to load timeline:", e);
+
+        if (loadedData) {
+          setTimelineData(loadedData);
+        }
+      } catch (err) {
+        console.error("Timeline loading error:", err);
       } finally {
         setLoading(false);
       }
