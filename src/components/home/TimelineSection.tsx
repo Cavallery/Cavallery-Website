@@ -7,9 +7,11 @@ interface TimelineEvent {
   id: string;
   year: string;
   date_label: string;
+  event_date?: string;
   title: string;
   description: string;
   image_url: string | null;
+  sort_order?: number;
 }
 
 interface TimelineData {
@@ -18,17 +20,38 @@ interface TimelineData {
 }
 
 function groupByYear(events: TimelineEvent[]) {
-  const groups: { year: string; events: TimelineEvent[] }[] = [];
-  let current: { year: string; events: TimelineEvent[] } | null = null;
+  const map = new Map<string, TimelineEvent[]>();
   for (const ev of events) {
-    if (!current || current.year !== ev.year) {
-      current = { year: ev.year, events: [ev] };
-      groups.push(current);
-    } else {
-      current.events.push(ev);
+    const yr = String(ev.year || "2026");
+    // Fix known typo if date_label says 2025 under year 2024
+    let dateLabel = ev.date_label || "";
+    if (yr === "2024" && dateLabel.includes("2025")) {
+      dateLabel = dateLabel.replace("2025", "2024");
     }
+    const cleanEv = { ...ev, date_label: dateLabel };
+    if (!map.has(yr)) {
+      map.set(yr, []);
+    }
+    map.get(yr)!.push(cleanEv);
   }
-  return groups;
+
+  // Sort years descending (2026, 2025, 2024, 2023)
+  const sortedYears = Array.from(map.keys()).sort((a, b) => Number(b) - Number(a));
+
+  return sortedYears.map((year) => {
+    const evList = map.get(year) || [];
+    // Sort events within each year (latest first or by sort_order)
+    evList.sort((a, b) => {
+      if (a.event_date && b.event_date) {
+        return new Date(b.event_date).getTime() - new Date(a.event_date).getTime();
+      }
+      return (b.sort_order || 0) - (a.sort_order || 0);
+    });
+    return {
+      year,
+      events: evList,
+    };
+  });
 }
 
 export default function TimelineSection() {
@@ -43,13 +66,34 @@ export default function TimelineSection() {
   };
 
   useEffect(() => {
-    fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT")
-      .then((r) => r.json())
-      .then((json) => {
-        if (json?.status) setTimelineData(json.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const loadTimeline = async () => {
+      try {
+        const res = await fetch("/api/timeline");
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.status && json.data?.events?.length > 0) {
+            setTimelineData(json.data);
+            return;
+          }
+        }
+      } catch {}
+
+      try {
+        const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT");
+        if (extRes.ok) {
+          const extJson = await extRes.json();
+          if (extJson?.status && extJson.data) {
+            setTimelineData(extJson.data);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load timeline:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTimeline();
   }, []);
 
   if (loading) {
@@ -84,10 +128,7 @@ export default function TimelineSection() {
     );
   }
 
-  const yearGroups = groupByYear(timelineData.events).reverse().map((group) => ({
-    ...group,
-    events: [...group.events].reverse(),
-  }));
+  const yearGroups = groupByYear(timelineData.events);
 
   return (
     <section className={styles.section}>

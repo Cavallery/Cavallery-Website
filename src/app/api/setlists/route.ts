@@ -32,11 +32,15 @@ export async function POST(request: Request) {
     const body = await request.json();
     if (!isMySqlConfigured()) return NextResponse.json({ status: false, message: "MySQL not configured" }, { status: 500 });
 
+    const title = body.title || body.name || "Setlist";
+    const code = body.code || title.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 40) + "-" + Date.now().toString().slice(-4);
     const songsVal = typeof body.songs === "string" ? body.songs : JSON.stringify(body.songs || []);
+    
     const result: any = await query(
-      "INSERT INTO `setlists` (`title`, `subtitle`, `cover_image`, `release_date`, `description`, `song_count`, `songs_json`, `sort_order`, `is_active`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO `setlists` (`code`, `title`, `subtitle`, `cover_image`, `release_date`, `description`, `song_count`, `songs_json`, `sort_order`, `is_active`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
-        body.title || body.name || "",
+        code,
+        title,
         body.japanese_name || body.subtitle || "",
         body.image_url || body.cover_image || body.poster_url || "",
         body.date_range || body.release_date || "",
