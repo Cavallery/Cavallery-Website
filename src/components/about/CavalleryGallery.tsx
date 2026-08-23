@@ -19,7 +19,7 @@ interface MediaItem {
   updated_at: string;
 }
 
-const API_URL = "https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT";
+const API_URL = "/api/media?limit=100";
 
 function useCarousel() {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -86,18 +86,43 @@ export default function CavalleryGallery() {
           }
         } catch {}
 
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("Gagal mengambil data media");
-        const json = await res.json();
-        if (!json.status) throw new Error(json.message || "Response tidak valid");
+        let items: MediaItem[] = [];
+        try {
+          const res = await fetch(API_URL);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.status && Array.isArray(json.data?.items)) {
+              items = json.data.items;
+            }
+          }
+        } catch {}
 
-        // Hanya tampilkan media yang secara eksplisit diterbitkan di dashboard
-        const filtered: MediaItem[] = (json.data.items as MediaItem[]).filter(
-          (item) =>
-            item.deleted_at === null &&
-            (item.folder === "cavallery/images" || item.folder === "cavallery/videos") &&
-            (publishedSet.has(item.id) || publishedSet.has(item.public_url) || publishedSet.has(item.file_name))
+        if (items.length === 0) {
+          const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT&limit=100");
+          if (extRes.ok) {
+            const extJson = await extRes.json();
+            if (extJson.status && Array.isArray(extJson.data?.items)) {
+              items = extJson.data.items;
+            }
+          }
+        }
+
+        const validItems = items.filter(
+          (item) => item.deleted_at === null && (item.folder === "cavallery/images" || item.folder === "cavallery/videos")
         );
+
+        let filtered = validItems.filter(
+          (item) =>
+            publishedSet.has(item.id) ||
+            publishedSet.has(item.public_url) ||
+            publishedSet.has(item.file_name) ||
+            publishedSet.has(item.r2_key)
+        );
+
+        // If publishedSet is not yet populated, fallback to all valid media
+        if (filtered.length === 0 && validItems.length > 0) {
+          filtered = validItems;
+        }
 
         setMediaItems(filtered);
       } catch (err: unknown) {

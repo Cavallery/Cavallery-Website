@@ -9,9 +9,10 @@ const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 const MERCH_API_BASE = "https://v5.jkt48connect.com/api/merch";
 const merchApi = (path: string) => `${MERCH_API_BASE}${path}`;
 
-const MEDIA_API_BASE = "https://v5.jkt48connect.com/api/cavallery";
-const MEDIA_API_KEY  = "JKTCONNECT";
-const mediaApi = (path: string) => `${MEDIA_API_BASE}${path}${path.includes("?") ? "&" : "?"}apikey=${MEDIA_API_KEY}`;
+const mediaApi = (path: string) => {
+  const clean = path.replace(/^\/media/, "");
+  return clean ? `/api/media${clean.startsWith("/") ? clean : `/${clean}`}` : "/api/media";
+};
 
 const DISCORD_API = "/api/discord";
 
@@ -445,7 +446,7 @@ function MediaPickerModal({
       if (folder) params.set("folder", folder);
       if (type !== "all") params.set("type", type);
       params.set("limit", "100");
-      const res  = await fetch(`${mediaApi("/media")}&${params}`);
+      const res  = await fetch(`/api/media?${params.toString()}`);
       const json = await res.json();
       setItems(json?.data?.items ?? []);
     } catch { setItems([]); }
@@ -714,7 +715,7 @@ function MediaManager() {
       if (folder)     params.set("folder", folder);
       if (filterType) params.set("type",   filterType);
       params.set("limit", "100");
-      const res  = await fetch(`${mediaApi("/media")}&${params}`);
+      const res  = await fetch(`/api/media?${params.toString()}`);
       const json = await res.json();
       setItems(json?.data?.items ?? []);
       setTotal(json?.data?.total ?? 0);
@@ -1323,15 +1324,31 @@ function JournalManager() {
       if (res.ok) {
         const data = await res.json();
         const arr = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : null);
-        if (arr && arr.length > 0) {
-          loadedMessages = arr.map((item: any, idx: number) => ({
-            id: item.id || (idx + 1),
-            name: item.name || "Anonim",
-            msg: item.msg || item.pesan || "",
-            date: item.date ? new Date(item.date).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-",
-            rawDate: item.date || ""
-          }));
-        }
+          loadedMessages = arr.map((item: any, idx: number) => {
+            const raw = item.date || item.created_at || item.date_label || "";
+            let formattedDate = "-";
+            if (raw) {
+              const d = new Date(raw);
+              if (!isNaN(d.getTime())) {
+                formattedDate = d.toLocaleString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+              } else {
+                formattedDate = String(raw);
+              }
+            }
+            return {
+              id: item.id || (idx + 1),
+              name: item.name || item.Nama || item.nama || "Anonim",
+              msg: item.msg || item.pesan || item.message || item.content || "",
+              date: formattedDate,
+              rawDate: raw || "",
+            };
+          });
       }
     } catch {}
 
@@ -2760,13 +2777,34 @@ function SectionManager({ section }: { section: Section }) {
       const res = await fetch(api("/stats"));
       const json = await res.json();
       if (json.status && Array.isArray(json.data)) {
-        const totalShows = json.data.find((s: any) => s.stat_key === "total_shows");
-        const setlists = json.data.find((s: any) => s.stat_key === "setlists");
-        const unitSongs = json.data.find((s: any) => s.stat_key === "unit_songs");
+        const totalShows = json.data.find((s: any) => s.stat_key === "total_shows" || s.stat_key === "total_show");
+        const setlists = json.data.find((s: any) => s.stat_key === "setlists" || s.stat_key === "total_setlist");
+        const unitSongs = json.data.find((s: any) => s.stat_key === "unit_songs" || s.stat_key === "unit_song");
         setStats({
-          total_shows: totalShows || { stat_key: "total_shows", label: "Total Shows", value: "0", icon: "bx-calendar", sort_order: "1", is_active: true },
-          setlists: setlists || { stat_key: "setlists", label: "Setlists", value: "0", icon: "bx-music", sort_order: "2", is_active: true },
-          unit_songs: unitSongs || { stat_key: "unit_songs", label: "Unit Songs", value: "0", icon: "bx-microphone", sort_order: "3", is_active: true }
+          total_shows: {
+            stat_key: "total_shows",
+            label: totalShows?.label || "Total Shows",
+            value: String(totalShows?.value ?? "102"),
+            icon: totalShows?.icon || "bx-calendar",
+            sort_order: totalShows?.sort_order || "1",
+            is_active: true,
+          },
+          setlists: {
+            stat_key: "setlists",
+            label: setlists?.label || "Setlists",
+            value: String(setlists?.value ?? "7"),
+            icon: setlists?.icon || "bx-music",
+            sort_order: setlists?.sort_order || "2",
+            is_active: true,
+          },
+          unit_songs: {
+            stat_key: "unit_songs",
+            label: unitSongs?.label || "Unit Songs",
+            value: String(unitSongs?.value ?? "15"),
+            icon: unitSongs?.icon || "bx-microphone",
+            sort_order: unitSongs?.sort_order || "3",
+            is_active: true,
+          },
         });
       }
     } catch (e) { console.error("Error loading stats:", e); }
@@ -2784,7 +2822,11 @@ function SectionManager({ section }: { section: Section }) {
       for (const key of ['total_shows', 'setlists', 'unit_songs']) {
         const item = stats[key];
         if (!item) continue;
-        const res = await fetch(api(`/stats/${item.stat_key}`), { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) });
+        const res = await fetch(api(`/stats/${item.stat_key}`), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(item),
+        });
         const json = await res.json();
         if (!json.status) allSuccess = false;
       }

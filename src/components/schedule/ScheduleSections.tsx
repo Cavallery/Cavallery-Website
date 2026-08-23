@@ -46,25 +46,28 @@ export function TheaterSection() {
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-indexed
 
-    return shows
-      .filter((s) => {
-        const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-        if (!members.some((m) => isErine(m.name ?? ""))) return false;
-        // Sembunyikan show dari bulan-bulan sebelumnya
-        const dateStr = s.date ?? s.showDate ?? "";
-        if (!dateStr) return true;
-        const showDate = new Date(dateStr);
-        return (
-          showDate.getFullYear() > currentYear ||
-          (showDate.getFullYear() === currentYear && showDate.getMonth() >= currentMonth)
-        );
-      })
-      .sort((a, b) => {
-        // Terbaru di atas
-        const da = new Date(a.date ?? a.showDate ?? "").getTime();
-        const db = new Date(b.date ?? b.showDate ?? "").getTime();
-        return db - da;
-      });
+    const erineShows = shows.filter((s) => {
+      const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name ?? ""));
+    });
+
+    const upcoming = erineShows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return true;
+      const showDate = new Date(dateStr);
+      return (
+        showDate.getFullYear() > currentYear ||
+        (showDate.getFullYear() === currentYear && showDate.getMonth() >= currentMonth)
+      );
+    });
+
+    const targetList = upcoming.length > 0 ? upcoming : erineShows;
+
+    return targetList.sort((a, b) => {
+      const da = new Date(a.date ?? a.showDate ?? "").getTime();
+      const db = new Date(b.date ?? b.showDate ?? "").getTime();
+      return db - da;
+    });
   }, [shows]);
 
   return (

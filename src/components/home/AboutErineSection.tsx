@@ -121,15 +121,46 @@ export default function AboutErineSection() {
       .catch(() => {})
       .finally(() => setPmLoading(false));
 
-    fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
+    fetch("/api/setlists")
       .then((r) => r.json())
-      .then((json) => { if (json?.status) setSetlists(json.data); })
-      .catch(console.error);
+      .then((json) => {
+        if (json?.status && Array.isArray(json.data) && json.data.length > 0) {
+          setSetlists(json.data);
+        } else {
+          fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
+            .then((r) => r.json())
+            .then((ext) => { if (ext?.status) setSetlists(ext.data); })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {
+        fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
+          .then((r) => r.json())
+          .then((ext) => { if (ext?.status) setSetlists(ext.data); })
+          .catch(() => {});
+      });
 
-    fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
+    fetch("/api/stats")
       .then((r) => r.json())
-      .then((json) => { if (json?.status) setStatsData(json.data); })
-      .catch(console.error);
+      .then((json) => {
+        if (json?.status && Array.isArray(json.data) && json.data.length > 0) {
+          // Filter to only display total_shows, setlists, and unit_songs (or total_show, total_setlist)
+          const validKeys = new Set(["total_shows", "total_show", "setlists", "total_setlist", "unit_songs"]);
+          const filtered = json.data.filter((s: any) => validKeys.has(s.stat_key));
+          setStatsData(filtered.length > 0 ? filtered : json.data);
+        } else {
+          fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
+            .then((r) => r.json())
+            .then((ext) => { if (ext?.status) setStatsData(ext.data); })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {
+        fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
+          .then((r) => r.json())
+          .then((ext) => { if (ext?.status) setStatsData(ext.data); })
+          .catch(() => {});
+      });
 
     fetch("/api/updates")
       .then((r) => r.json())
