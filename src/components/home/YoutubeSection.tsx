@@ -25,8 +25,7 @@ interface ApiResponse {
   };
 }
 
-const API_URL =
-  "https://v5.jkt48connect.com/api/cavallery/youtube?apikey=JKTCONNECT";
+const API_URL = "/api/youtube";
 
 export default function YoutubeSection() {
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -42,18 +41,34 @@ export default function YoutubeSection() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const json: ApiResponse = await res.json();
-        if (json.status && json.data?.videos) {
-          // Only show active videos, sorted by sort_order
-          const activeVideos = json.data.videos
-            .filter((v) => v.is_active)
-            .sort((a, b) => Number(a.sort_order) - Number(b.sort_order));
-          setVideos(activeVideos);
-        } else {
-          throw new Error(json.message || "Gagal mengambil data video");
+        let videoList: YtVideo[] = [];
+
+        try {
+          const res = await fetch(API_URL);
+          if (res.ok) {
+            const json = await res.json();
+            const list = json.data?.videos || (Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []));
+            if (Array.isArray(list) && list.length > 0) {
+              videoList = list;
+            }
+          }
+        } catch {}
+
+        if (videoList.length === 0) {
+          const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/youtube?apikey=JKTCONNECT");
+          if (extRes.ok) {
+            const extJson: ApiResponse = await extRes.json();
+            if (extJson.status && extJson.data?.videos) {
+              videoList = extJson.data.videos;
+            }
+          }
         }
+
+        const activeVideos = videoList
+          .filter((v) => v.is_active !== false && (v.is_active as any) !== 0)
+          .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+
+        setVideos(activeVideos);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Terjadi kesalahan");
       } finally {
