@@ -17,11 +17,11 @@ const mediaApi = (path: string) => {
 const DISCORD_API = "/api/discord";
 
 type Section =
-  | "dashboard" | "news"     | "timeline" | "gallery"
-  | "setlists"  | "stats"    | "youtube"  | "funfacts"
-  | "kabesha"   | "media"    | "discord"  | "journal"
-  | "bot"       | "tickets"  | "calendar" | "updates" 
-  | "vcschedule" | "abouterine" | "anggotakota" | "merch" | "invitations";
+  | "dashboard" | "recruitment" | "esport"    | "news"     | "timeline" | "gallery"
+  | "setlists"  | "stats"       | "youtube"  | "funfacts"
+  | "kabesha"   | "media"       | "discord"  | "journal"
+  | "bot"       | "tickets"     | "calendar" | "updates" 
+  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations";
 
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -4611,12 +4611,1778 @@ function InvitationsManager() {
   );
 }
 
+// ─── RECRUITMENT MANAGER ──────────────────────────────────────
+function RecruitmentManager() {
+  const [roles, setRoles] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [detailModal, setDetailModal] = useState<any | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [rolesRes, subRes] = await Promise.all([
+        fetch("/api/recruitment?t=" + Date.now()),
+        fetch(`/api/recruitment/submissions?role=${selectedRole}&status=${selectedStatus}&q=${encodeURIComponent(search)}&t=${Date.now()}`),
+      ]);
+      if (rolesRes.ok) {
+        const rJson = await rolesRes.json();
+        if (rJson.success && Array.isArray(rJson.data)) setRoles(rJson.data);
+      }
+      if (subRes.ok) {
+        const sJson = await subRes.json();
+        if (sJson.success && Array.isArray(sJson.data)) setSubmissions(sJson.data);
+      }
+    } catch {
+      showToast("Gagal memuat data recruitment", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRole, selectedStatus, search]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const toggleRoleStatus = async (roleId: string, currentStatus: boolean | number) => {
+    try {
+      const nextStatus = !currentStatus;
+      const res = await fetch("/api/recruitment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: roleId, is_open: nextStatus ? 1 : 0 }),
+      });
+      if (res.ok) {
+        setRoles(prev => prev.map(r => r.id === roleId ? { ...r, is_open: nextStatus ? 1 : 0 } : r));
+        showToast(`Pendaftaran ${roleId} berhasil ${nextStatus ? "DIBUKA" : "DITUTUP"}`, "success");
+      } else {
+        showToast("Gagal mengubah status pendaftaran", "error");
+      }
+    } catch {
+      showToast("Gagal mengubah status pendaftaran", "error");
+    }
+  };
+
+  const updateStatus = async (id: number, newStatus: string) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch("/api/recruitment/submissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+      if (res.ok) {
+        setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+        if (detailModal && detailModal.id === id) {
+          setDetailModal({ ...detailModal, status: newStatus });
+        }
+        showToast("Status pendaftar berhasil diperbarui", "success");
+      } else {
+        showToast("Gagal memperbarui status", "error");
+      }
+    } catch {
+      showToast("Gagal memperbarui status", "error");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteSubmission = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`/api/recruitment/submissions?id=${confirmDelete.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setSubmissions(prev => prev.filter(s => s.id !== confirmDelete.id));
+        showToast("Data pendaftar berhasil dihapus", "success");
+      } else {
+        showToast("Gagal menghapus data", "error");
+      }
+    } catch {
+      showToast("Gagal menghapus data", "error");
+    } finally {
+      setConfirmDelete(null);
+      if (detailModal?.id === confirmDelete?.id) setDetailModal(null);
+    }
+  };
+
+  // ─── EXPORT TO EXCEL (.csv / .xlsx compatible) ───────────────
+  const exportToExcel = () => {
+    if (submissions.length === 0) return showToast("Tidak ada data untuk diunduh", "error");
+
+    const headers = [
+      "No",
+      "Tanggal Daftar",
+      "Peran",
+      "Nama Lengkap",
+      "Nama Panggilan",
+      "Kota Domisili",
+      "Nomor WhatsApp",
+      "Sosial Media / Discord",
+      "Divisi / Minat",
+      "Alasan / Motivasi",
+      "Status",
+    ];
+
+    const rows = submissions.map((s, idx) => [
+      idx + 1,
+      s.created_at ? new Date(s.created_at).toLocaleString("id-ID") : "-",
+      s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer",
+      `"${(s.full_name || "").replace(/"/g, '""')}"`,
+      `"${(s.nickname || "").replace(/"/g, '""')}"`,
+      `"${(s.city || "").replace(/"/g, '""')}"`,
+      `'${s.whatsapp || ""}`,
+      `"${(s.social_media || "").replace(/"/g, '""')}"`,
+      `"${(s.division || "-").replace(/"/g, '""')}"`,
+      `"${(s.reason || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+      s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending",
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Pendaftar_Cavallery_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("File Excel/CSV berhasil diunduh!", "success");
+  };
+
+  // ─── EXPORT TO WORD (.doc Table) ────────────────────────────
+  const exportToWord = () => {
+    if (submissions.length === 0) return showToast("Tidak ada data untuk diunduh", "error");
+
+    const today = new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>Data Pendaftar Komunitas Cavallery</title>
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #222; }
+          h2 { color: #8a6d1a; margin-bottom: 4px; }
+          p.sub { font-size: 9pt; color: #666; margin-top: 0; margin-bottom: 16px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 9.5pt; }
+          th { background-color: #c9a84c; color: #111; font-weight: bold; border: 1px solid #999; padding: 8px 6px; text-align: left; }
+          td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: top; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          .badge-approved { background-color: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+          .badge-rejected { background-color: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+          .badge-pending { background-color: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h2>LAPORAN PENDAFTAR KOMUNITAS CAVALLERY</h2>
+        <p class='sub'>Tanggal Export: ${today} | Total Pendaftar: ${submissions.length} Orang</p>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px;">No</th>
+              <th style="width: 80px;">Tanggal</th>
+              <th style="width: 70px;">Peran</th>
+              <th>Nama Lengkap</th>
+              <th>Panggilan</th>
+              <th>Kota</th>
+              <th>WhatsApp</th>
+              <th>Sosmed</th>
+              <th>Divisi / Minat</th>
+              <th>Alasan</th>
+              <th style="width: 60px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${submissions.map((s, idx) => `
+              <tr>
+                <td style="text-align: center;">${idx + 1}</td>
+                <td>${s.created_at ? new Date(s.created_at).toLocaleDateString("id-ID") : "-"}</td>
+                <td><strong>${s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer"}</strong></td>
+                <td>${s.full_name || "-"}</td>
+                <td>${s.nickname || "-"}</td>
+                <td>${s.city || "-"}</td>
+                <td>${s.whatsapp || "-"}</td>
+                <td>${s.social_media || "-"}</td>
+                <td>${s.division || "-"}</td>
+                <td>${(s.reason || "-").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
+                <td style="text-align: center;">
+                  <span class='badge-${s.status}'>
+                    ${s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending"}
+                  </span>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(["\uFEFF", html], { type: "application/msword;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const fileDate = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Laporan_Pendaftar_Cavallery_${fileDate}.doc`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("File Word (.doc) berhasil diunduh!", "success");
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Hapus pendaftar "${confirmDelete.full_name}"? Data tidak dapat dipulihkan.`}
+          onConfirm={deleteSubmission}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className={styles.sectionHeader}>
+        <div>
+          <h2 className={styles.sectionTitle}>
+            <i className="bx bx-group" style={{ color: "var(--gold)" }} /> Recruitment / Open Member
+            <span className={styles.count}>{submissions.length} pendaftar</span>
+          </h2>
+          <p className={styles.sectionSub}>
+            Atur status buka/tutup pendaftaran dan kelola seluruh formulir pendaftar masuk.
+          </p>
+        </div>
+
+        <div className={styles.exportBtnGroup}>
+          <button className={styles.exportBtnExcel} onClick={exportToExcel} title="Export ke Excel">
+            <i className="bx bx-spreadsheet" /> Unduh Excel (.csv)
+          </button>
+          <button className={styles.exportBtnWord} onClick={exportToWord} title="Export ke Word">
+            <i className="bx bxs-file-doc" /> Unduh Word (.doc)
+          </button>
+          <button className={styles.btnGhost} onClick={loadData} title="Segarkan Data">
+            <i className="bx bx-refresh" /> Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* 3 Role Switch Cards */}
+      <div className={styles.recruitRolesGrid}>
+        {[
+          { id: "member", title: "Join Member", icon: "bx-user-pin", color: "#3b82f6" },
+          { id: "admin", title: "Join Admin", icon: "bx-shield-quarter", color: "#c9a84c" },
+          { id: "volunteer", title: "Join Volunteer", icon: "bx-donate-heart", color: "#ec4899" },
+        ].map((item) => {
+          const roleData = roles.find((r) => r.id === item.id);
+          const isOpen = Boolean(roleData?.is_open);
+
+          return (
+            <div key={item.id} className={styles.recruitRoleCard}>
+              <div className={styles.recruitRoleHeader}>
+                <div className={styles.recruitRoleTitle}>
+                  <i className={`bx ${item.icon}`} style={{ color: item.color, fontSize: "1.3rem" }} />
+                  {roleData?.title || item.title}
+                </div>
+                <span
+                  style={{
+                    fontSize: "0.72rem",
+                    padding: "3px 8px",
+                    borderRadius: 12,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    background: isOpen ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                    color: isOpen ? "#34d399" : "#f87171",
+                    border: `1px solid ${isOpen ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
+                  }}
+                >
+                  {isOpen ? "BUKA" : "TUTUP"}
+                </span>
+              </div>
+
+              <div className={styles.recruitRoleDesc}>
+                {roleData?.description || "Pendaftaran untuk posisi ini."}
+              </div>
+
+              <div className={styles.switchWrap}>
+                <span className={styles.switchLabel} style={{ color: isOpen ? "#34d399" : "#aaa" }}>
+                  {isOpen ? "Status: Form Terbuka" : "Status: Form Ditutup"}
+                </span>
+                <button
+                  type="button"
+                  className={`${styles.switchToggle} ${isOpen ? styles.switchToggleOpen : ""}`}
+                  onClick={() => toggleRoleStatus(item.id, isOpen)}
+                  title={`Klik untuk ${isOpen ? "Menutup" : "Membuka"} Pendaftaran`}
+                >
+                  <span className={`${styles.switchHandle} ${isOpen ? styles.switchHandleOpen : ""}`} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center", marginBottom: "1rem", background: "var(--adm-surface)", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--adm-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 200 }}>
+          <i className="bx bx-search" style={{ color: "var(--gold)" }} />
+          <input
+            type="text"
+            placeholder="Cari nama, kota, no wa, divisi..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", background: "transparent", border: "none", color: "var(--adm-text)", outline: "none", fontSize: "0.88rem" }}
+          />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Peran:</label>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            style={{ background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "5px 10px", fontSize: "0.84rem" }}
+          >
+            <option value="all">Semua Peran</option>
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+            <option value="volunteer">Volunteer</option>
+          </select>
+
+          <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Status:</label>
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            style={{ background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "5px 10px", fontSize: "0.84rem" }}
+          >
+            <option value="all">Semua Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Diterima</option>
+            <option value="rejected">Ditolak</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Submissions Table */}
+      {loading ? (
+        <div className={styles.loadingState}>
+          <i className="bx bx-loader-alt bx-spin" /> Memuat data pendaftar...
+        </div>
+      ) : submissions.length === 0 ? (
+        <div className={styles.emptyState}>
+          <i className="bx bx-folder-open" style={{ fontSize: "2.5rem", opacity: 0.3 }} />
+          <p>Belum ada data pendaftar yang cocok.</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 40 }}>#</th>
+                <th>Tanggal</th>
+                <th>Peran</th>
+                <th>Nama Lengkap</th>
+                <th>Kota</th>
+                <th>WhatsApp</th>
+                <th>Divisi / Minat</th>
+                <th>Status</th>
+                <th style={{ textAlign: "center", width: 140 }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {submissions.map((s, idx) => (
+                <tr key={s.id}>
+                  <td style={{ color: "var(--adm-muted)", fontSize: "0.78rem" }}>{idx + 1}</td>
+                  <td style={{ fontSize: "0.78rem", whiteSpace: "nowrap" }}>
+                    {s.created_at ? new Date(s.created_at).toLocaleDateString("id-ID") : "-"}
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        padding: "2px 8px",
+                        borderRadius: 4,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        background:
+                          s.role_id === "admin"
+                            ? "rgba(201, 168, 76, 0.2)"
+                            : s.role_id === "volunteer"
+                            ? "rgba(236, 72, 153, 0.2)"
+                            : "rgba(59, 130, 246, 0.2)",
+                        color:
+                          s.role_id === "admin"
+                            ? "#ffd778"
+                            : s.role_id === "volunteer"
+                            ? "#f472b6"
+                            : "#60a5fa",
+                      }}
+                    >
+                      {s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer"}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>{s.full_name}</strong>
+                    {s.nickname && <span style={{ fontSize: "0.78rem", color: "var(--adm-muted)", marginLeft: 6 }}>({s.nickname})</span>}
+                  </td>
+                  <td>{s.city}</td>
+                  <td>
+                    <a
+                      href={`https://wa.me/${s.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "62")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: "#34d399", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                      title="Chat di WhatsApp"
+                    >
+                      <i className="bx bxl-whatsapp" /> {s.whatsapp}
+                    </a>
+                  </td>
+                  <td style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>
+                    {s.division || "—"}
+                  </td>
+                  <td>
+                    <select
+                      value={s.status}
+                      disabled={updatingId === s.id}
+                      onChange={(e) => updateStatus(s.id, e.target.value)}
+                      style={{
+                        background:
+                          s.status === "approved"
+                            ? "#065f46"
+                            : s.status === "rejected"
+                            ? "#7f1d1d"
+                            : "#78350f",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "3px 6px",
+                        fontSize: "0.74rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Diterima</option>
+                      <option value="rejected">Ditolak</option>
+                    </select>
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: "4px", justifyContent: "center" }}>
+                      <button
+                        className={styles.actionBtnEdit}
+                        onClick={() => setDetailModal(s)}
+                        title="Lihat Detail Lengkap"
+                        style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                      >
+                        <i className="bx bx-show" /> Detail
+                      </button>
+                      <button
+                        className={styles.actionBtnDel}
+                        onClick={() => setConfirmDelete(s)}
+                        title="Hapus Pendaftar"
+                        style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                      >
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {detailModal && (
+        <div className={styles.modalOverlay} onClick={() => setDetailModal(null)}>
+          <div className={styles.formModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className={styles.formModalHeader}>
+              <h3>
+                <i className="bx bx-user" /> Detail Pendaftar: {detailModal.full_name}
+              </h3>
+              <button className={styles.closeX} onClick={() => setDetailModal(null)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <div className={styles.formBody} style={{ gap: "10px", fontSize: "0.9rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "6px" }}>
+                <span style={{ color: "var(--adm-muted)" }}>Peran:</span>
+                <strong>{detailModal.role_id?.toUpperCase()}</strong>
+
+                <span style={{ color: "var(--adm-muted)" }}>Nama Lengkap:</span>
+                <span>{detailModal.full_name}</span>
+
+                <span style={{ color: "var(--adm-muted)" }}>Nama Panggilan:</span>
+                <span>{detailModal.nickname || "—"}</span>
+
+                <span style={{ color: "var(--adm-muted)" }}>Kota Domisili:</span>
+                <span>{detailModal.city}</span>
+
+                <span style={{ color: "var(--adm-muted)" }}>No WhatsApp:</span>
+                <a
+                  href={`https://wa.me/${detailModal.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "62")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: "#34d399" }}
+                >
+                  {detailModal.whatsapp} <i className="bx bx-link-external" />
+                </a>
+
+                <span style={{ color: "var(--adm-muted)" }}>Sosmed/Discord:</span>
+                <span>{detailModal.social_media || "—"}</span>
+
+                <span style={{ color: "var(--adm-muted)" }}>Divisi / Minat:</span>
+                <span>{detailModal.division || "—"}</span>
+
+                <span style={{ color: "var(--adm-muted)" }}>Tanggal Daftar:</span>
+                <span>{detailModal.created_at ? new Date(detailModal.created_at).toLocaleString("id-ID") : "—"}</span>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                  Alasan / Motivasi:
+                </label>
+                <div style={{ background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 6, fontSize: "0.85rem", lineHeight: 1.5, border: "1px solid var(--adm-border)" }}>
+                  {detailModal.reason || "Tidak ada catatan."}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: 10 }}>
+                <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>Ubah Status:</label>
+                <select
+                  value={detailModal.status}
+                  onChange={(e) => updateStatus(detailModal.id, e.target.value)}
+                  style={{ background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "5px 10px" }}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="approved">Diterima</option>
+                  <option value="rejected">Ditolak</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.formFooter}>
+              <button type="button" className={styles.btnGhost} onClick={() => setDetailModal(null)}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── ESPORT MANAGER ───────────────────────────────────────────
+interface EsportDivision {
+  id: string;
+  name: string;
+  cover_url: string;
+  is_active: number;
+  sort_order: number;
+  roster_count: number;
+}
+
+interface EsportRoster {
+  id: number;
+  division_id: string;
+  player_name: string;
+  game_id: string | null;
+  role: string | null;
+  avatar_url: string | null;
+  is_captain: number;
+  sort_order: number;
+}
+
+interface EsportMatch {
+  id: number;
+  division_id: string;
+  division_name?: string;
+  tournament_name: string;
+  opponent_name: string;
+  opponent_logo: string | null;
+  match_date: string;
+  status: "upcoming" | "live" | "completed";
+  score_cavallery: number;
+  score_opponent: number;
+  result: "win" | "lose" | "draw" | "pending";
+  stream_url: string | null;
+  notes: string | null;
+}
+
+function EsportManager() {
+  const [activeTab, setActiveTab] = useState<"roster" | "matches">("roster");
+
+  const [divisions, setDivisions] = useState<EsportDivision[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDiv, setSelectedDiv] = useState<string>("ml");
+  const [roster, setRoster] = useState<EsportRoster[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  // Match states
+  const [matches, setMatches] = useState<EsportMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
+  const [matchFilterDiv, setMatchFilterDiv] = useState<string>("all");
+
+  // Modals Division & Roster
+  const [editDivModal, setEditDivModal] = useState<EsportDivision | null>(null);
+  const [divName, setDivName] = useState("");
+  const [divCover, setDivCover] = useState("");
+  const [savingDiv, setSavingDiv] = useState(false);
+
+  const [playerModal, setPlayerModal] = useState<EsportRoster | "new" | null>(null);
+  const [playerName, setPlayerName] = useState("");
+  const [gameId, setGameId] = useState("");
+  const [playerRole, setPlayerRole] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isCaptain, setIsCaptain] = useState(false);
+  const [savingPlayer, setSavingPlayer] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<EsportRoster | null>(null);
+
+  // Modals Matches
+  const [matchModal, setMatchModal] = useState<EsportMatch | "new" | null>(null);
+  const [mDivId, setMDivId] = useState("ml");
+  const [mTourName, setMTourName] = useState("");
+  const [mOpponent, setMOpponent] = useState("");
+  const [mDate, setMDate] = useState("");
+  const [mStatus, setMStatus] = useState<"upcoming" | "live" | "completed">("upcoming");
+  const [mStreamUrl, setMStreamUrl] = useState("");
+  const [mNotes, setMNotes] = useState("");
+  const [savingMatch, setSavingMatch] = useState(false);
+
+  // Score Input Modal
+  const [scoreModal, setScoreModal] = useState<EsportMatch | null>(null);
+  const [sScoreCav, setSScoreCav] = useState(0);
+  const [sScoreOpp, setSScoreOpp] = useState(0);
+  const [sResult, setSResult] = useState<"win" | "lose" | "draw">("win");
+  const [savingScore, setSavingScore] = useState(false);
+
+  const [confirmDeleteMatch, setConfirmDeleteMatch] = useState<EsportMatch | null>(null);
+  const [showMediaUpload, setShowMediaUpload] = useState<"cover" | "avatar" | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadDivisions = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/esport");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setDivisions(json.data);
+        }
+      }
+    } catch {
+      showToast("Gagal memuat divisi esport", "error");
+    }
+    setLoading(false);
+  }, []);
+
+  const loadRoster = useCallback(async (divId: string) => {
+    setRosterLoading(true);
+    try {
+      const res = await fetch(`/api/esport/${divId}/roster`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setRoster(json.data);
+        }
+      }
+    } catch {
+      showToast("Gagal memuat roster", "error");
+    }
+    setRosterLoading(false);
+  }, []);
+
+  const loadMatches = useCallback(async () => {
+    setMatchesLoading(true);
+    try {
+      const url = matchFilterDiv !== "all" ? `/api/esport/matches?division_id=${matchFilterDiv}` : "/api/esport/matches";
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setMatches(json.data);
+        }
+      }
+    } catch {
+      showToast("Gagal memuat jadwal pertandingan", "error");
+    }
+    setMatchesLoading(false);
+  }, [matchFilterDiv]);
+
+  useEffect(() => {
+    loadDivisions();
+  }, [loadDivisions]);
+
+  useEffect(() => {
+    if (selectedDiv) {
+      loadRoster(selectedDiv);
+    }
+  }, [selectedDiv, loadRoster]);
+
+  useEffect(() => {
+    if (activeTab === "matches") {
+      loadMatches();
+    }
+  }, [activeTab, loadMatches]);
+
+  const toggleActive = async (div: EsportDivision) => {
+    const nextStatus = div.is_active ? 0 : 1;
+    try {
+      const res = await fetch("/api/esport", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: div.id, is_active: nextStatus }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDivisions(prev =>
+          prev.map(d => (d.id === div.id ? { ...d, is_active: nextStatus } : d))
+        );
+        showToast(
+          nextStatus ? `${div.name} diaktifkan!` : `${div.name} dinonaktifkan (hiatus)`,
+          "success"
+        );
+      } else {
+        showToast(json.message || "Gagal mengubah status", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+  };
+
+  const openEditDiv = (div: EsportDivision) => {
+    setEditDivModal(div);
+    setDivName(div.name);
+    setDivCover(div.cover_url);
+  };
+
+  const saveDivision = async () => {
+    if (!editDivModal) return;
+    setSavingDiv(true);
+    try {
+      const res = await fetch("/api/esport", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editDivModal.id, name: divName, cover_url: divCover }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDivisions(prev =>
+          prev.map(d => (d.id === editDivModal.id ? { ...d, name: divName, cover_url: divCover } : d))
+        );
+        setEditDivModal(null);
+        showToast("Divisi berhasil diperbarui", "success");
+      } else {
+        showToast(json.message || "Gagal menyimpan divisi", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+    setSavingDiv(false);
+  };
+
+  const openAddPlayer = () => {
+    setPlayerModal("new");
+    setPlayerName("");
+    setGameId("");
+    setPlayerRole("");
+    setAvatarUrl("");
+    setIsCaptain(false);
+  };
+
+  const openEditPlayer = (p: EsportRoster) => {
+    setPlayerModal(p);
+    setPlayerName(p.player_name);
+    setGameId(p.game_id || "");
+    setPlayerRole(p.role || "");
+    setAvatarUrl(p.avatar_url || "");
+    setIsCaptain(Boolean(p.is_captain));
+  };
+
+  const savePlayer = async () => {
+    if (!playerName.trim()) {
+      showToast("Nama player wajib diisi", "error");
+      return;
+    }
+    setSavingPlayer(true);
+    try {
+      const isNew = playerModal === "new";
+      const method = isNew ? "POST" : "PATCH";
+      const payload: any = {
+        player_name: playerName.trim(),
+        game_id: gameId.trim() || null,
+        role: playerRole.trim() || null,
+        avatar_url: avatarUrl.trim() || null,
+        is_captain: isCaptain ? 1 : 0,
+      };
+      if (!isNew && typeof playerModal === "object" && playerModal !== null) {
+        payload.id = playerModal.id;
+      }
+
+      const res = await fetch(`/api/esport/${selectedDiv}/roster`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setPlayerModal(null);
+        loadRoster(selectedDiv);
+        loadDivisions();
+        showToast(isNew ? "Player berhasil ditambahkan!" : "Player berhasil diperbarui!", "success");
+      } else {
+        showToast(json.message || "Gagal menyimpan player", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+    setSavingPlayer(false);
+  };
+
+  const deletePlayer = async () => {
+    if (!confirmDelete) return;
+    try {
+      const res = await fetch(`/api/esport/${selectedDiv}/roster?rid=${confirmDelete.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        setConfirmDelete(null);
+        loadRoster(selectedDiv);
+        loadDivisions();
+        showToast("Player berhasil dihapus", "success");
+      } else {
+        showToast(json.message || "Gagal menghapus player", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+  };
+
+  // Match actions
+  const openAddMatch = () => {
+    setMatchModal("new");
+    setMDivId(selectedDiv || "ml");
+    setMTourName("");
+    setMOpponent("");
+    // format now + 1 hour as datetime-local string
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    setMDate(now.toISOString().slice(0, 16));
+    setMStatus("upcoming");
+    setMStreamUrl("");
+    setMNotes("");
+  };
+
+  const openEditMatch = (m: EsportMatch) => {
+    setMatchModal(m);
+    setMDivId(m.division_id);
+    setMTourName(m.tournament_name);
+    setMOpponent(m.opponent_name);
+    setMDate(m.match_date ? new Date(m.match_date).toISOString().slice(0, 16) : "");
+    setMStatus(m.status);
+    setMStreamUrl(m.stream_url || "");
+    setMNotes(m.notes || "");
+  };
+
+  const saveMatch = async () => {
+    if (!mTourName.trim() || !mOpponent.trim() || !mDate) {
+      showToast("Nama Turnamen, Lawan, dan Tanggal wajib diisi", "error");
+      return;
+    }
+    setSavingMatch(true);
+    try {
+      const isNew = matchModal === "new";
+      const method = isNew ? "POST" : "PATCH";
+      const payload: any = {
+        division_id: mDivId,
+        tournament_name: mTourName.trim(),
+        opponent_name: mOpponent.trim(),
+        match_date: mDate,
+        status: mStatus,
+        stream_url: mStreamUrl.trim() || null,
+        notes: mNotes.trim() || null,
+      };
+      if (!isNew && typeof matchModal === "object" && matchModal !== null) {
+        payload.id = matchModal.id;
+      }
+
+      const res = await fetch("/api/esport/matches", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setMatchModal(null);
+        loadMatches();
+        showToast(isNew ? "Jadwal pertandingan berhasil ditambah!" : "Jadwal pertandingan diperbarui!", "success");
+      } else {
+        showToast(json.message || "Gagal menyimpan jadwal", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+    setSavingMatch(false);
+  };
+
+  const openScoreModal = (m: EsportMatch) => {
+    setScoreModal(m);
+    setSScoreCav(m.score_cavallery || 0);
+    setSScoreOpp(m.score_opponent || 0);
+    setSResult(m.result === "win" || m.result === "lose" || m.result === "draw" ? m.result : "win");
+  };
+
+  const saveScore = async () => {
+    if (!scoreModal) return;
+    setSavingScore(true);
+    try {
+      const res = await fetch("/api/esport/matches", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: scoreModal.id,
+          score_cavallery: Number(sScoreCav) || 0,
+          score_opponent: Number(sScoreOpp) || 0,
+          result: sResult,
+          status: "completed",
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setScoreModal(null);
+        loadMatches();
+        showToast("Hasil pertandingan berhasil disimpan!", "success");
+      } else {
+        showToast(json.message || "Gagal menyimpan hasil", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+    setSavingScore(false);
+  };
+
+  const deleteMatch = async () => {
+    if (!confirmDeleteMatch) return;
+    try {
+      const res = await fetch(`/api/esport/matches?id=${confirmDeleteMatch.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        setConfirmDeleteMatch(null);
+        loadMatches();
+        showToast("Pertandingan berhasil dihapus", "success");
+      } else {
+        showToast(json.message || "Gagal menghapus pertandingan", "error");
+      }
+    } catch {
+      showToast("Error koneksi jaringan", "error");
+    }
+  };
+
+  const curDiv = divisions.find(d => d.id === selectedDiv);
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Header */}
+      <div className={styles.sectionHeader} style={{ marginBottom: 16 }}>
+        <div>
+          <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="bx bx-trophy" style={{ color: "var(--gold)" }} />
+            Cavallery Esport Manager
+          </h2>
+          <p className={styles.sectionSub}>
+            Kelola divisi game, roaster pemain, serta jadwal & hasil pertandingan e-sports Cavallery.
+          </p>
+        </div>
+      </div>
+
+      {/* Tab Navigation (Roster vs Matches) */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 24, borderBottom: "1px solid var(--adm-border)", paddingBottom: 12 }}>
+        <button
+          type="button"
+          onClick={() => setActiveTab("roster")}
+          style={{
+            padding: "8px 18px",
+            borderRadius: 10,
+            fontSize: "0.9rem",
+            fontWeight: 700,
+            cursor: "pointer",
+            border: activeTab === "roster" ? "1px solid var(--gold)" : "1px solid var(--adm-border)",
+            background: activeTab === "roster" ? "rgba(201, 168, 76, 0.15)" : "var(--adm-surface)",
+            color: activeTab === "roster" ? "var(--gold)" : "var(--adm-text)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <i className="bx bx-group" /> Divisi & Roster Player
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("matches")}
+          style={{
+            padding: "8px 18px",
+            borderRadius: 10,
+            fontSize: "0.9rem",
+            fontWeight: 700,
+            cursor: "pointer",
+            border: activeTab === "matches" ? "1px solid var(--gold)" : "1px solid var(--adm-border)",
+            background: activeTab === "matches" ? "rgba(201, 168, 76, 0.15)" : "var(--adm-surface)",
+            color: activeTab === "matches" ? "var(--gold)" : "var(--adm-text)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <i className="bx bx-calendar-event" /> Jadwal & Hasil Pertandingan
+        </button>
+      </div>
+
+      {activeTab === "roster" ? (
+        <>
+          {/* 6 Game Divisions Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, marginBottom: 28 }}>
+            {divisions.map(div => {
+              const isSelected = div.id === selectedDiv;
+              const isActive = Boolean(div.is_active);
+
+              return (
+                <div
+                  key={div.id}
+                  style={{
+                    background: "var(--adm-surface)",
+                    border: isSelected ? "2px solid var(--gold)" : "1px solid var(--adm-border)",
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: isSelected ? "0 0 20px rgba(201, 168, 76, 0.2)" : "none",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {/* Cover preview */}
+                  <div style={{ position: "relative", height: 130, background: "#111", overflow: "hidden" }}>
+                    <img
+                      src={div.cover_url}
+                      alt={div.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        filter: isActive ? "none" : "grayscale(0.8)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.85) 100%)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        background: "rgba(0,0,0,0.7)",
+                        backdropFilter: "blur(4px)",
+                        color: "#fff",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        padding: "3px 8px",
+                        borderRadius: 12,
+                        border: "1px solid rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      {div.roster_count || 0} Roster
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 10,
+                        left: 12,
+                        color: "#fff",
+                        fontSize: "1.1rem",
+                        fontWeight: 800,
+                        textShadow: "0 2px 6px rgba(0,0,0,0.8)",
+                      }}
+                    >
+                      {div.name}
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+                    {/* Active Switch */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "0.85rem", color: "var(--adm-muted)" }}>Status Divisi:</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleActive(div)}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "4px 12px",
+                          borderRadius: 20,
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          border: "none",
+                          cursor: "pointer",
+                          background: isActive ? "#065f46" : "rgba(239,68,68,0.15)",
+                          color: isActive ? "#34d399" : "#f87171",
+                        }}
+                      >
+                        <i className={`bx ${isActive ? "bx-check-circle" : "bx-pause-circle"}`} />
+                        {isActive ? "AKTIF" : "NONAKTIF"}
+                      </button>
+                    </div>
+
+                    {/* Buttons */}
+                    <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                      <button
+                        type="button"
+                        className={isSelected ? styles.btnPrimary : styles.btnGhost}
+                        style={{ flex: 1, padding: "7px 10px", fontSize: "0.82rem", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        onClick={() => setSelectedDiv(div.id)}
+                      >
+                        <i className="bx bx-group" />
+                        {isSelected ? "Sedang Dipilih" : "Kelola Roster"}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.btnGhost}
+                        style={{ padding: "7px 10px", fontSize: "0.82rem" }}
+                        onClick={() => openEditDiv(div)}
+                        title="Edit nama & cover"
+                      >
+                        <i className="bx bx-image" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Roster Management for Selected Game */}
+          <div style={{ background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 14, padding: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "1.15rem", display: "flex", alignItems: "center", gap: 8, color: "var(--adm-text)" }}>
+                  <i className="bx bx-group" style={{ color: "var(--gold)" }} />
+                  Daftar Roster: <span style={{ color: "var(--gold)" }}>{curDiv?.name || selectedDiv}</span>
+                  <span className={styles.count}>{roster.length}</span>
+                </h3>
+                <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "var(--adm-muted)" }}>
+                  Tambahkan anggota roaster untuk divisi {curDiv?.name}.
+                </p>
+              </div>
+              <button className={styles.btnPrimary} onClick={openAddPlayer} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bx bx-user-plus" /> Tambah Player
+              </button>
+            </div>
+
+            {rosterLoading ? (
+              <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data roster...</div>
+            ) : roster.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--adm-muted)" }}>
+                <i className="bx bx-user-x" style={{ fontSize: "3rem", opacity: 0.3, display: "block", marginBottom: 8 }} />
+                Belum ada player terdaftar untuk divisi {curDiv?.name}. Klik <strong>"Tambah Player"</strong> untuk memasukkan anggota baru.
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={`${styles.table} ${styles.responsiveTable}`}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 60 }}>Avatar</th>
+                      <th>Nama Player</th>
+                      <th>In-Game ID</th>
+                      <th>Role / Posisi</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roster.map(p => (
+                      <tr key={p.id}>
+                        <td data-label="Avatar">
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt="" className={styles.thumb} style={{ borderRadius: "50%" }} />
+                          ) : (
+                            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(201,168,76,0.15)", color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>
+                              <i className="bx bx-user" />
+                            </div>
+                          )}
+                        </td>
+                        <td data-label="Nama Player" style={{ fontWeight: 700, color: "var(--adm-text)" }}>
+                          {p.player_name}
+                        </td>
+                        <td data-label="In-Game ID" style={{ fontFamily: "monospace", color: "var(--adm-muted)" }}>
+                          {p.game_id || "-"}
+                        </td>
+                        <td data-label="Role">
+                          <span style={{ padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: 6, fontSize: "0.8rem" }}>
+                            {p.role || "Player"}
+                          </span>
+                        </td>
+                        <td data-label="Status">
+                          {Boolean(p.is_captain) ? (
+                            <span style={{ background: "rgba(201,168,76,0.2)", color: "#ffd37c", border: "1px solid rgba(201,168,76,0.4)", padding: "2px 8px", borderRadius: 10, fontSize: "0.75rem", fontWeight: 700 }}>
+                              👑 CAPTAIN
+                            </span>
+                          ) : (
+                            <span style={{ color: "var(--adm-muted)", fontSize: "0.78rem" }}>Member</span>
+                          )}
+                        </td>
+                        <td data-label="Aksi">
+                          <div className={styles.actionBtns}>
+                            <button className={styles.btnEdit} onClick={() => openEditPlayer(p)} title="Edit player">
+                              <i className="bx bx-edit" />
+                            </button>
+                            <button className={styles.btnDel} onClick={() => setConfirmDelete(p)} title="Hapus player">
+                              <i className="bx bx-trash" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        /* MATCH SCHEDULES & RESULTS TAB */
+        <div style={{ background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 14, padding: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "1.15rem", display: "flex", alignItems: "center", gap: 8, color: "var(--adm-text)" }}>
+                <i className="bx bx-calendar-event" style={{ color: "var(--gold)" }} />
+                Jadwal & Hasil Pertandingan
+                <span className={styles.count}>{matches.length}</span>
+              </h3>
+              <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "var(--adm-muted)" }}>
+                Kelola jadwal turnamen/scrim mendatang dan input skor hasil pertandingan Cavallery Esport.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              {/* Game filter */}
+              <select
+                value={matchFilterDiv}
+                onChange={e => setMatchFilterDiv(e.target.value)}
+                style={{
+                  background: "var(--adm-bg)",
+                  color: "var(--adm-text)",
+                  border: "1px solid var(--adm-border)",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <option value="all">Semua Divisi Game</option>
+                {divisions.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+
+              <button className={styles.btnPrimary} onClick={openAddMatch} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bx bx-plus-circle" /> Tambah Jadwal Pertandingan
+              </button>
+            </div>
+          </div>
+
+          {matchesLoading ? (
+            <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data pertandingan...</div>
+          ) : matches.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--adm-muted)" }}>
+              <i className="bx bx-calendar-x" style={{ fontSize: "3rem", opacity: 0.3, display: "block", marginBottom: 8 }} />
+              Belum ada jadwal pertandingan terdaftar. Klik <strong>"Tambah Jadwal Pertandingan"</strong> untuk menambahkan.
+            </div>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={`${styles.table} ${styles.responsiveTable}`}>
+                <thead>
+                  <tr>
+                    <th>Game</th>
+                    <th>Turnamen / Event</th>
+                    <th>Lawan / Opponent</th>
+                    <th>Waktu Pertandingan</th>
+                    <th>Status</th>
+                    <th>Skor / Hasil</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map(m => {
+                    const isWin = m.result === "win";
+                    const isLose = m.result === "lose";
+                    const isDraw = m.result === "draw";
+
+                    return (
+                      <tr key={m.id}>
+                        <td data-label="Game">
+                          <span style={{ fontWeight: 700, color: "var(--gold)", fontSize: "0.85rem" }}>
+                            {m.division_name || m.division_id.toUpperCase()}
+                          </span>
+                        </td>
+                        <td data-label="Turnamen">
+                          <div style={{ fontWeight: 700, color: "var(--adm-text)" }}>{m.tournament_name}</div>
+                          {m.notes && <small style={{ color: "var(--adm-muted)", fontSize: "0.75rem" }}>{m.notes}</small>}
+                        </td>
+                        <td data-label="Lawan" style={{ fontWeight: 600 }}>
+                          vs {m.opponent_name}
+                        </td>
+                        <td data-label="Waktu" style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>
+                          {new Date(m.match_date).toLocaleString("id-ID", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </td>
+                        <td data-label="Status">
+                          {m.status === "live" ? (
+                            <span style={{ background: "#dc2626", color: "#fff", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 800, animation: "pulse 1.5s infinite" }}>
+                              🔴 LIVE STREAM
+                            </span>
+                          ) : m.status === "completed" ? (
+                            <span style={{ background: "rgba(255,255,255,0.08)", color: "var(--adm-muted)", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
+                              SELESAI
+                            </span>
+                          ) : (
+                            <span style={{ background: "rgba(201,168,76,0.2)", color: "#ffd37c", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
+                              UPCOMING
+                            </span>
+                          )}
+                        </td>
+                        <td data-label="Skor / Hasil">
+                          {m.status === "completed" ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--adm-text)" }}>
+                                {m.score_cavallery} - {m.score_opponent}
+                              </span>
+                              <span
+                                style={{
+                                  padding: "2px 6px",
+                                  borderRadius: 4,
+                                  fontSize: "0.7rem",
+                                  fontWeight: 800,
+                                  background: isWin ? "#065f46" : isLose ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.1)",
+                                  color: isWin ? "#34d399" : isLose ? "#f87171" : "#e5e7eb",
+                                }}
+                              >
+                                {isWin ? "WIN" : isLose ? "LOSE" : "DRAW"}
+                              </span>
+                            </div>
+                          ) : (
+                            <span style={{ opacity: 0.5, fontSize: "0.8rem" }}>Belum Diinput</span>
+                          )}
+                        </td>
+                        <td data-label="Aksi">
+                          <div className={styles.actionBtns}>
+                            <button
+                              className={styles.btnGhost}
+                              style={{ padding: "4px 8px", fontSize: 12, color: "var(--gold)", borderColor: "rgba(201,168,76,0.4)" }}
+                              onClick={() => openScoreModal(m)}
+                              title="Input skor & hasil"
+                            >
+                              <i className="bx bx-check-square" /> Skor
+                            </button>
+                            <button className={styles.btnEdit} onClick={() => openEditMatch(m)} title="Edit jadwal">
+                              <i className="bx bx-edit" />
+                            </button>
+                            <button className={styles.btnDel} onClick={() => setConfirmDeleteMatch(m)} title="Hapus">
+                              <i className="bx bx-trash" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL: EDIT DIVISION (Cover & Name) */}
+      {editDivModal && (
+        <div className={styles.modalOverlay} onClick={() => setEditDivModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-edit" /> Edit Divisi: {editDivModal.name}</h3>
+              <button className={styles.closeX} onClick={() => setEditDivModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <div className={styles.field}>
+                <label>Nama Divisi Game</label>
+                <input
+                  type="text"
+                  value={divName}
+                  onChange={e => setDivName(e.target.value)}
+                  placeholder="Contoh: Mobile Legends"
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>URL Gambar Cover</span>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    style={{ padding: "2px 8px", fontSize: "0.75rem" }}
+                    onClick={() => setShowMediaUpload("cover")}
+                  >
+                    <i className="bx bx-cloud-upload" /> Upload Gambar
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  value={divCover}
+                  onChange={e => setDivCover(e.target.value)}
+                  placeholder="https://... atau /uploads/..."
+                />
+              </div>
+
+              {divCover && (
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>Preview Cover:</label>
+                  <div style={{ width: "100%", height: 140, borderRadius: 8, overflow: "hidden", background: "#000", border: "1px solid var(--adm-border)" }}>
+                    <img src={divCover} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setEditDivModal(null)}>Batal</button>
+              <button className={styles.btnPrimary} onClick={saveDivision} disabled={savingDiv}>
+                {savingDiv ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan Perubahan</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT MATCH SCHEDULE */}
+      {matchModal && (
+        <div className={styles.modalOverlay} onClick={() => setMatchModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>
+                <i className="bx bx-calendar-event" />
+                {matchModal === "new" ? "Tambah Jadwal Pertandingan" : "Edit Jadwal Pertandingan"}
+              </h3>
+              <button className={styles.closeX} onClick={() => setMatchModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <div className={styles.field}>
+                <label>Divisi Game <span style={{ color: "#ef4444" }}>*</span></label>
+                <select
+                  value={mDivId}
+                  onChange={e => setMDivId(e.target.value)}
+                  style={{ background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "10px 12px", width: "100%", fontSize: "0.9rem" }}
+                >
+                  {divisions.map(d => (
+                    <option key={d.id} value={d.id} style={{ background: "var(--adm-bg)", color: "var(--adm-text)" }}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.field}>
+                <label>Nama Turnamen / Event <span style={{ color: "#ef4444" }}>*</span></label>
+                <input
+                  type="text"
+                  value={mTourName}
+                  onChange={e => setMTourName(e.target.value)}
+                  placeholder="Contoh: Fanbase Cup JKT48 S2"
+                  required
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Nama Tim Lawan / Opponent <span style={{ color: "#ef4444" }}>*</span></label>
+                <input
+                  type="text"
+                  value={mOpponent}
+                  onChange={e => setMOpponent(e.target.value)}
+                  placeholder="Contoh: Valeria Esport / Team Kinal Fanbase"
+                  required
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Tanggal & Waktu Pertandingan <span style={{ color: "#ef4444" }}>*</span></label>
+                <input
+                  type="datetime-local"
+                  value={mDate}
+                  onChange={e => setMDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Status Pertandingan</label>
+                <select
+                  value={mStatus}
+                  onChange={e => setMStatus(e.target.value as any)}
+                  style={{ background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "10px 12px", width: "100%", fontSize: "0.9rem" }}
+                >
+                  <option value="upcoming" style={{ background: "var(--adm-bg)", color: "var(--adm-text)" }}>Akan Datang (Upcoming)</option>
+                  <option value="live" style={{ background: "var(--adm-bg)", color: "var(--adm-text)" }}>Sedang Berlangsung (Live)</option>
+                  <option value="completed" style={{ background: "var(--adm-bg)", color: "var(--adm-text)" }}>Selesai (Completed)</option>
+                </select>
+              </div>
+
+              <div className={styles.field}>
+                <label>Link Live Stream (YouTube / Discord - Opsional)</label>
+                <input
+                  type="text"
+                  value={mStreamUrl}
+                  onChange={e => setMStreamUrl(e.target.value)}
+                  placeholder="https://youtube.com/live/..."
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Catatan / Babak (Opsional)</label>
+                <input
+                  type="text"
+                  value={mNotes}
+                  onChange={e => setMNotes(e.target.value)}
+                  placeholder="Contoh: Babak Semifinal - Best of 3"
+                />
+              </div>
+            </div>
+
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setMatchModal(null)}>Batal</button>
+              <button className={styles.btnPrimary} onClick={saveMatch} disabled={savingMatch}>
+                {savingMatch ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan Jadwal</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: INPUT SKOR & HASIL */}
+      {scoreModal && (
+        <div className={styles.modalOverlay} onClick={() => setScoreModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-check-square" /> Input Skor & Hasil Pertandingan</h3>
+              <button className={styles.closeX} onClick={() => setScoreModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <p style={{ margin: "0 0 14px", fontSize: "0.88rem", color: "var(--adm-muted)" }}>
+                {scoreModal.tournament_name} — <strong>Cavallery vs {scoreModal.opponent_name}</strong>
+              </p>
+
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <div className={styles.field} style={{ flex: 1 }}>
+                  <label>Skor Cavallery</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={sScoreCav}
+                    onChange={e => setSScoreCav(Number(e.target.value))}
+                    style={{ fontSize: "1.2rem", fontWeight: 800, textAlign: "center" }}
+                  />
+                </div>
+
+                <div className={styles.field} style={{ flex: 1 }}>
+                  <label>Skor {scoreModal.opponent_name}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={sScoreOpp}
+                    onChange={e => setSScoreOpp(Number(e.target.value))}
+                    style={{ fontSize: "1.2rem", fontWeight: 800, textAlign: "center" }}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label>Hasil Akhir Cavallery</label>
+                <div style={{ display: "flex", gap: 10 }}>
+                  {[
+                    { id: "win", label: "MENANG (WIN)", bg: "#065f46", color: "#34d399" },
+                    { id: "lose", label: "KALAH (LOSE)", bg: "rgba(239,68,68,0.2)", color: "#f87171" },
+                    { id: "draw", label: "SERI (DRAW)", bg: "rgba(255,255,255,0.1)", color: "#e5e7eb" },
+                  ].map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setSResult(opt.id as any)}
+                      style={{
+                        flex: 1,
+                        padding: "10px 6px",
+                        borderRadius: 8,
+                        fontSize: "0.78rem",
+                        fontWeight: 800,
+                        border: sResult === opt.id ? `2px solid ${opt.color}` : "1px solid var(--adm-border)",
+                        background: opt.bg,
+                        color: opt.color,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setScoreModal(null)}>Batal</button>
+              <button className={styles.btnPrimary} onClick={saveScore} disabled={savingScore}>
+                {savingScore ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan Hasil</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT PLAYER */}
+      {playerModal && (
+        <div className={styles.modalOverlay} onClick={() => setPlayerModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3>
+                <i className="bx bx-user" />
+                {playerModal === "new" ? `Tambah Player — ${curDiv?.name}` : `Edit Player: ${playerName}`}
+              </h3>
+              <button className={styles.closeX} onClick={() => setPlayerModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <div className={styles.field}>
+                <label>Nama Lengkap / Nama Panggilan <span style={{ color: "#ef4444" }}>*</span></label>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={e => setPlayerName(e.target.value)}
+                  placeholder="Contoh: Farhan / Erine Fan"
+                  required
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>In-Game ID / Nickname Game</label>
+                <input
+                  type="text"
+                  value={gameId}
+                  onChange={e => setGameId(e.target.value)}
+                  placeholder="Contoh: CAV·Vallen (12345678)"
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label>Role / Posisi</label>
+                <input
+                  type="text"
+                  value={playerRole}
+                  onChange={e => setPlayerRole(e.target.value)}
+                  placeholder="Contoh: Jungler, Midlaner, Rusher, IGL, Striker"
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>URL Foto Avatar (Opsional)</span>
+                  <button
+                    type="button"
+                    className={styles.btnGhost}
+                    style={{ padding: "2px 8px", fontSize: "0.75rem" }}
+                    onClick={() => setShowMediaUpload("avatar")}
+                  >
+                    <i className="bx bx-cloud-upload" /> Upload Foto
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  value={avatarUrl}
+                  onChange={e => setAvatarUrl(e.target.value)}
+                  placeholder="https://... atau /uploads/..."
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
+                <input
+                  type="checkbox"
+                  id="isCaptainCheck"
+                  checked={isCaptain}
+                  onChange={e => setIsCaptain(e.target.checked)}
+                  style={{ width: 18, height: 18, cursor: "pointer", accentColor: "var(--gold)" }}
+                />
+                <label htmlFor="isCaptainCheck" style={{ cursor: "pointer", fontSize: "0.88rem", color: "var(--adm-text)", fontWeight: 600 }}>
+                  Jadikan Kapten Tim (Captain)
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.formFooter}>
+              <button className={styles.btnGhost} onClick={() => setPlayerModal(null)}>Batal</button>
+              <button className={styles.btnPrimary} onClick={savePlayer} disabled={savingPlayer}>
+                {savingPlayer ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE PLAYER MODAL */}
+      {confirmDelete && (
+        <ConfirmModal
+          msg={`Yakin ingin menghapus player "${confirmDelete.player_name}" dari divisi ${curDiv?.name}?`}
+          onConfirm={deletePlayer}
+          onCancel={() => setConfirmDelete(null)}
+        />
+      )}
+
+      {/* MEDIA UPLOAD MODAL HELPER */}
+      {showMediaUpload && (
+        <MediaUploadModal
+          onClose={() => setShowMediaUpload(null)}
+          onUploaded={(url) => {
+            if (showMediaUpload === "cover") setDivCover(url);
+            if (showMediaUpload === "avatar") setAvatarUrl(url);
+            setShowMediaUpload(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── DASHBOARD HOME ───────────────────────────────────────────
 function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     ([
+      { key: "recruitment", path: "/api/recruitment/submissions" },
+      { key: "esport",      path: "/api/esport"      },
       { key: "news",        path: "/api/news"        },
       { key: "timeline",    path: "/api/timeline"    },
       { key: "gallery",     path: "/api/gallery"     },
@@ -4653,24 +6419,26 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   }, []);
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
-    { key: "invitations",icon: "bx-envelope",     label: "Undangan",  color: "#c9a84c" },
-    { key: "news",       icon: "bx-news",         label: "News",      color: "#b45309" },
-    { key: "timeline",   icon: "bx-history",      label: "Timeline",  color: "#047857" },
-    { key: "gallery",    icon: "bx-image-alt",    label: "Gallery",   color: "#7c3aed" },
-    { key: "setlists",   icon: "bx-music",        label: "Setlists",  color: "#0369a1" },
-    { key: "youtube",    icon: "bxl-youtube",     label: "YouTube",   color: "#dc2626" },
-    { key: "merch",      icon: "bx-store",        label: "Merchandise", color: "#f59e0b" },
-    { key: "funfacts",   icon: "bx-laugh",        label: "Funfacts",  color: "#059669" },
-    { key: "kabesha",    icon: "bx-star",         label: "Kabesha",   color: "#d97706" },
-    { key: "stats",      icon: "bx-bar-chart",    label: "Stats",     color: "#9333ea" },
-    { key: "media",      icon: "bx-folder-open",  label: "Media",     color: "#0891b2" },
-    { key: "discord",    icon: "bxl-discord-alt", label: "Discord",   color: "#5865f2" },
-    { key: "journal",    icon: "bx-book-open",    label: "MemoRine",  color: "#db2777" },
-    { key: "bot",        icon: "bx-bot",          label: "Bot",       color: "#f59e0b" },
-    { key: "tickets",    icon: "bx-receipt",      label: "Tickets",   color: "#10b981" },
-    { key: "calendar",   icon: "bx-calendar",     label: "Calendar",  color: "#3b82f6" },
-    { key: "updates",    icon: "bx-refresh",      label: "Updates",   color: "#10b981" },
-    { key: "vcschedule", icon: "bx-video",        label: "Video Call",color: "#ec4899" },
+    { key: "recruitment",icon: "bx-group",        label: "Recruitment",color: "#10b981" },
+    { key: "esport",     icon: "bx-trophy",       label: "Esport",     color: "#f59e0b" },
+    { key: "invitations",icon: "bx-envelope",     label: "Undangan",   color: "#c9a84c" },
+    { key: "news",       icon: "bx-news",         label: "News",       color: "#b45309" },
+    { key: "timeline",   icon: "bx-history",      label: "Timeline",   color: "#047857" },
+    { key: "gallery",    icon: "bx-image-alt",    label: "Gallery",    color: "#7c3aed" },
+    { key: "setlists",   icon: "bx-music",        label: "Setlists",   color: "#0369a1" },
+    { key: "youtube",    icon: "bxl-youtube",     label: "YouTube",    color: "#dc2626" },
+    { key: "merch",      icon: "bx-store",        label: "Merchandise",color: "#f59e0b" },
+    { key: "funfacts",   icon: "bx-laugh",        label: "Funfacts",   color: "#059669" },
+    { key: "kabesha",    icon: "bx-star",         label: "Kabesha",    color: "#d97706" },
+    { key: "stats",      icon: "bx-bar-chart",    label: "Stats",      color: "#9333ea" },
+    { key: "media",      icon: "bx-folder-open",  label: "Media",      color: "#0891b2" },
+    { key: "discord",    icon: "bxl-discord-alt", label: "Discord",    color: "#5865f2" },
+    { key: "journal",    icon: "bx-book-open",    label: "MemoRine",   color: "#db2777" },
+    { key: "bot",        icon: "bx-bot",          label: "Bot",        color: "#f59e0b" },
+    { key: "tickets",    icon: "bx-receipt",      label: "Tickets",    color: "#10b981" },
+    { key: "calendar",   icon: "bx-calendar",     label: "Calendar",   color: "#3b82f6" },
+    { key: "updates",    icon: "bx-refresh",      label: "Updates",    color: "#10b981" },
+    { key: "vcschedule", icon: "bx-video",        label: "Video Call", color: "#ec4899" },
     { key: "abouterine", icon: "bx-image",        label: "About Erine",color: "#ec4899" },
     { key: "anggotakota",icon: "bx-map",          label: "Anggota Kota",color: "#3b82f6" },
   ];
@@ -4694,39 +6462,79 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   );
 }
 
-// ─── NAV ITEMS ────────────────────────────────────────────────
-const navItems: { key: Section; icon: string; label: string }[] = [
-  { key: "dashboard",   icon: "bx-home-alt",     label: "Dashboard"  },
-  { key: "invitations", icon: "bx-envelope",     label: "Undangan"   },
-  { key: "news",        icon: "bx-news",         label: "News"       },
-  { key: "timeline",    icon: "bx-history",      label: "Timeline"   },
-  { key: "gallery",     icon: "bx-image-alt",    label: "Gallery"    },
-  { key: "setlists",    icon: "bx-music",        label: "Setlists"   },
-  { key: "youtube",     icon: "bxl-youtube",     label: "YouTube"    },
-  { key: "merch",       icon: "bx-store",        label: "Merchandise"},
-  { key: "funfacts",    icon: "bx-laugh",        label: "Funfacts"   },
-  { key: "kabesha",     icon: "bx-star",         label: "Kabesha"    },
-  { key: "stats",       icon: "bx-bar-chart",    label: "Stats"      },
-  { key: "media",       icon: "bx-folder-open",  label: "Media"      },
-  { key: "discord",     icon: "bxl-discord-alt", label: "Discord"    },
-  { key: "journal",     icon: "bx-book-open",    label: "MemoRine"   },
-  { key: "bot",         icon: "bx-bot",          label: "Bot"        },
-  { key: "tickets",     icon: "bx-receipt",      label: "Tickets"    },
-  { key: "calendar",    icon: "bx-calendar",     label: "Calendar"   },
-  { key: "updates",     icon: "bx-refresh",      label: "Updates"    },
-  { key: "vcschedule",  icon: "bx-video",        label: "Video Call" },
-  { key: "abouterine",  icon: "bx-image",        label: "About Erine"},
-  { key: "anggotakota", icon: "bx-map",          label: "Anggota Kota"},
+// ─── NAV GROUPS WITH ACCORDION COLLAPSIBLE ────────────────────
+interface NavGroup {
+  id: string;
+  label: string;
+  icon: string;
+  items: { key: Section; icon: string; label: string }[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    id: "utama",
+    label: "Utama",
+    icon: "bx-grid-alt",
+    items: [
+      { key: "dashboard",   icon: "bx-home-alt",     label: "Dashboard"   },
+      { key: "recruitment", icon: "bx-group",        label: "Recruitment" },
+      { key: "invitations", icon: "bx-envelope",     label: "Undangan"    },
+      { key: "anggotakota", icon: "bx-map",          label: "Anggota Kota"},
+    ],
+  },
+  {
+    id: "konten",
+    label: "Konten & Media",
+    icon: "bx-layer",
+    items: [
+      { key: "news",        icon: "bx-news",         label: "News"        },
+      { key: "timeline",    icon: "bx-history",      label: "Timeline"    },
+      { key: "gallery",     icon: "bx-image-alt",    label: "Gallery"     },
+      { key: "youtube",     icon: "bxl-youtube",     label: "YouTube"     },
+      { key: "media",       icon: "bx-folder-open",  label: "Media"       },
+      { key: "updates",     icon: "bx-refresh",      label: "Updates"     },
+    ],
+  },
+  {
+    id: "erine",
+    label: "Erine & Show",
+    icon: "bx-star",
+    items: [
+      { key: "abouterine",  icon: "bx-image",        label: "About Erine" },
+      { key: "kabesha",     icon: "bx-badge-check",  label: "Kabesha"     },
+      { key: "funfacts",    icon: "bx-laugh",        label: "Funfacts"    },
+      { key: "stats",       icon: "bx-bar-chart",    label: "Stats"       },
+      { key: "setlists",    icon: "bx-music",        label: "Setlists"    },
+      { key: "vcschedule",  icon: "bx-video",        label: "Video Call"  },
+    ],
+  },
+  {
+    id: "komunitas",
+    label: "Komunitas & Interaksi",
+    icon: "bx-conversation",
+    items: [
+      { key: "esport",      icon: "bx-trophy",       label: "Esport"      },
+      { key: "journal",     icon: "bx-book-open",    label: "MemoRine"    },
+      { key: "discord",     icon: "bxl-discord-alt", label: "Discord"     },
+      { key: "bot",         icon: "bx-bot",          label: "Bot"         },
+      { key: "merch",       icon: "bx-store",        label: "Merchandise" },
+      { key: "tickets",     icon: "bx-receipt",      label: "Tickets"     },
+      { key: "calendar",    icon: "bx-calendar",     label: "Calendar"    },
+    ],
+  },
 ];
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
-  // ✅ Auth diverifikasi ke server — tidak bisa di-bypass dari browser console
   const { authed, checking, setAuthed, logout } = useAdminAuth();
 
-  const [active,     setActive]     = useState<Section>("dashboard");
+  const [active, setActive] = useState<Section>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
-  
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
   if (checking) return (
     <AdminPortal>
@@ -4741,7 +6549,55 @@ export default function AdminPage() {
 
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
 
-  const navigate = (section: Section) => { setActive(section); setDrawerOpen(false); };
+  const navigate = (section: Section) => {
+    setActive(section);
+    setDrawerOpen(false);
+  };
+
+  // Helper to render accordion navigation
+  const renderNav = () => (
+    <nav className={styles.nav}>
+      {navGroups.map(group => {
+        const isCollapsed = Boolean(collapsedGroups[group.id]);
+        const hasActiveChild = group.items.some(item => item.key === active);
+
+        return (
+          <div key={group.id} className={styles.navGroup}>
+            <button
+              type="button"
+              className={styles.navGroupHeader}
+              onClick={() => toggleGroup(group.id)}
+              style={hasActiveChild ? { color: "var(--gold)" } : {}}
+            >
+              <div className={styles.navGroupHeaderLeft}>
+                <i className={`bx ${group.icon}`} />
+                <span>{group.label}</span>
+              </div>
+              <i className={`bx ${isCollapsed ? "bx-chevron-right" : "bx-chevron-down"} ${styles.navGroupArrow}`} />
+            </button>
+
+            {!isCollapsed && (
+              <div className={styles.navGroupItems}>
+                {group.items.map(n => (
+                  <button
+                    key={n.key}
+                    className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`}
+                    onClick={() => navigate(n.key)}
+                  >
+                    <i className={`bx ${n.icon}`} />
+                    <span>{n.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+
+  const allItems = navGroups.flatMap(g => g.items);
+  const currentTitle = allItems.find(n => n.key === active)?.label ?? "Dashboard";
 
   return (
     <AdminPortal>
@@ -4768,14 +6624,7 @@ export default function AdminPage() {
               <i className="bx bxs-shield-alt-2" />
               <span>Cavallery</span>
             </div>
-            <nav className={styles.nav}>
-              {navItems.map(n => (
-                <button key={n.key} className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`} onClick={() => navigate(n.key)}>
-                  <i className={`bx ${n.icon}`} />
-                  <span>{n.label}</span>
-                </button>
-              ))}
-            </nav>
+            {renderNav()}
           </div>
           <button className={styles.logoutBtn} onClick={logout}>
             <i className="bx bx-log-out" /> Keluar
@@ -4788,14 +6637,7 @@ export default function AdminPage() {
             <aside className={styles.drawer} onClick={e => e.stopPropagation()}>
               <div className={styles.sideTop}>
                 <div className={styles.sideLogo}><i className="bx bxs-shield-alt-2" /><span>Cavallery</span></div>
-                <nav className={styles.nav}>
-                  {navItems.map(n => (
-                    <button key={n.key} className={`${styles.navItem} ${active === n.key ? styles.navActive : ""}`} onClick={() => navigate(n.key)}>
-                      <i className={`bx ${n.icon}`} />
-                      <span>{n.label}</span>
-                    </button>
-                  ))}
-                </nav>
+                {renderNav()}
               </div>
               <button className={styles.logoutBtn} onClick={logout}><i className="bx bx-log-out" /> Keluar</button>
             </aside>
@@ -4806,7 +6648,7 @@ export default function AdminPage() {
         <div className={styles.mainArea}>
           <header className={styles.topbar}>
             <button className={styles.menuBtn} onClick={() => setDrawerOpen(true)}><i className="bx bx-menu" /></button>
-            <div className={styles.topbarTitle}>{navItems.find(n => n.key === active)?.label ?? "Dashboard"}</div>
+            <div className={styles.topbarTitle}>{currentTitle}</div>
             <div className={styles.topbarRight}>
               <span className={styles.adminBadge}><i className="bx bx-user" /> Admin</span>
               <button className={styles.logoutIconBtn} onClick={logout} title="Keluar"><i className="bx bx-log-out" /></button>
@@ -4815,6 +6657,8 @@ export default function AdminPage() {
 
           <div className={styles.content}>
             {active === "dashboard"   ? <DashboardHome onNav={setActive} />
+            : active === "recruitment"? <RecruitmentManager />
+            : active === "esport"     ? <EsportManager />
             : active === "invitations"? <InvitationsManager />
             : active === "media"      ? <MediaManager />
             : active === "discord"    ? <DiscordManager />
@@ -4834,3 +6678,4 @@ export default function AdminPage() {
     </AdminPortal>
   );
 }
+

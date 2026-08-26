@@ -1054,3 +1054,178 @@
   color: #666;
   flex-wrap: wrap;
 }
+
+/* ── COLLAPSIBLE NAV GROUPS ─────────────────────────────────── */
+.navGroup {
+  margin-bottom: 0.4rem;
+}
+
+.navGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.45rem 0.8rem;
+  background: transparent;
+  border: none;
+  color: #777;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navGroupHeader:hover {
+  color: #bbb;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.navGroupHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navGroupArrow {
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
+}
+
+.navGroupItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 0.4rem;
+  margin-top: 2px;
+}
+
+/* ── RECRUITMENT MANAGER ────────────────────────────────────── */
+.recruitRolesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.recruitRoleCard {
+  background: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.recruitRoleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recruitRoleTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recruitRoleDesc {
+  font-size: 0.82rem;
+  color: #999;
+  line-height: 1.5;
+}
+
+.switchWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.6rem;
+  border-top: 1px solid #282828;
+}
+
+.switchLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.switchToggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: #333;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+  padding: 2px;
+}
+
+.switchToggleOpen {
+  background: #10b981;
+}
+
+.switchHandle {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  display: block;
+}
+
+.switchHandleOpen {
+  transform: translateX(20px);
+}
+
+.exportBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exportBtnExcel {
+  background: #047857;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.exportBtnExcel:hover {
+  background: #059669;
+}
+
+.exportBtnWord {
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.exportBtnWord:hover {
+  background: #2563eb;
+}
+

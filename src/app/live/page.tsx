@@ -19,22 +19,6 @@ interface LiveItem {
   is_erine?: boolean;
 }
 
-function isErineName(name: string) {
-  const n = (name ?? "").toLowerCase();
-  return ["erine", "catherina", "vallencia", "catherine", "valencia"].some((k) => n.includes(k));
-}
-
-function getLiveUrl(live: LiveItem): string {
-  if (live.url && live.url !== "#") return live.url;
-  if (live.is_erine || isErineName(live.name ?? "")) {
-    return (live.type ?? "idn").includes("showroom") ? ERINE_SHOWROOM_URL : ERINE_IDN_URL;
-  }
-  const key = live.url_key ?? "";
-  const type = (live.type ?? live.platform ?? "idn").toLowerCase();
-  if (type.includes("showroom")) return key ? `https://www.showroom-live.com/r/${key}` : "#";
-  return key ? `https://www.idn.app/${key}` : (live.slug ? `https://www.idn.app/jkt48-official/live/${live.slug}` : "#");
-}
-
 export default function LivePage() {
   const [lives, setLives] = useState<LiveItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,63 +27,29 @@ export default function LivePage() {
   const [erineLive, setErineLive] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/live", { cache: "no-store" });
       const json = await res.json();
-      setLives(Array.isArray(json.data) ? json.data : []);
-      setErineLive(json.erine_live ?? false);
+      const list: LiveItem[] = Array.isArray(json.data) ? json.data : [];
+      setLives(list);
+      setErineLive(Boolean(json.erine_live) || list.length > 0);
       setLastUpdate(new Date());
-    } catch (e) { setError(String(e)); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 60000);
+    const id = setInterval(load, 30000);
     return () => clearInterval(id);
   }, [load]);
 
-  const erineLives = lives.filter((l) => l.is_erine || isErineName(l.name ?? ""));
-  const otherLives = lives.filter((l) => !l.is_erine && !isErineName(l.name ?? ""));
-
-  const LiveCard = ({ live, highlight = false }: { live: LiveItem; highlight?: boolean }) => {
-    const name = live.name ?? "Unknown";
-    const img = live.img ?? "";
-    const platform = (live.type ?? live.platform ?? "IDN").toUpperCase();
-    const url = getLiveUrl(live);
-
-    return (
-      <div className={`glassCard ${styles.card} ${highlight ? styles.cardErine : ""}`}>
-        {highlight && (
-          <div className={styles.erineBadge}><i className="bx bxs-star" /> Erine sedang LIVE!</div>
-        )}
-        <div className={styles.cardImg}>
-          {img ? (
-            <img src={img} alt={name} loading="lazy" />
-          ) : (
-            <div className={styles.noImg}><i className="bx bxs-user" /></div>
-          )}
-          <div className={`${styles.liveDot} ${highlight ? styles.liveDotGold : ""}`} />
-        </div>
-        <div className={styles.cardBody}>
-          <div className={styles.platform}>
-            <i className={`bx ${platform.includes("SHOWROOM") ? "bx-broadcast" : "bx-video"}`} />
-            {platform}
-          </div>
-          <h3 className={styles.memberName}>{name}</h3>
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className={`${highlight ? "btnPrimary" : "btnOutline"} ${styles.watchBtn}`}
-          >
-            <i className="bx bx-play-circle" /> {highlight ? "Tonton Live Erine!" : "Tonton Sekarang"}
-          </a>
-        </div>
-      </div>
-    );
-  };
+  const currentLive = lives[0] || null;
 
   return (
     <div className={styles.page}>
@@ -108,13 +58,15 @@ export default function LivePage() {
         <div className={styles.heroInner}>
           <div className="badge">
             <span className={styles.livePulse} />
-            LIVE NOW
+            LIVE ERINE
           </div>
-          <h1 className={styles.heroTitle}>Live <span className="textGold">Erine</span></h1>
+          <h1 className={styles.heroTitle}>
+            Live Streaming <span className="textGold">Erine</span>
+          </h1>
           <p className={styles.heroSub}>
             {erineLive
-              ? "Erine sedang live sekarang! Yuk tonton!"
-              : "Pantau siapa yang sedang live saat ini. Jadwal Erine paling diprioritaskan!"}
+              ? "Catherina Vallencia (Erine) sedang LIVE sekarang! Klik tombol di bawah untuk langsung menonton siarannya."
+              : "Pantau siaran langsung Catherina Vallencia (Erine) di IDN Live dan Showroom secara real-time."}
           </p>
         </div>
       </div>
@@ -132,80 +84,97 @@ export default function LivePage() {
 
         {loading ? (
           <div className={styles.skeletons}>
-            {[0,1,2,3].map(i => <div key={i} className={styles.skeleton} />)}
+            {[0, 1].map((i) => (
+              <div key={i} className={styles.skeleton} />
+            ))}
           </div>
         ) : error ? (
-          <div className={styles.errorBox}><i className="bx bx-error-circle" /> {error}</div>
-        ) : lives.length === 0 ? (
-          <div className={styles.empty}>
-            <i className="bx bx-video-off" />
-            <p>Tidak ada yang sedang live saat ini.</p>
-            <p style={{ fontSize: "0.85rem", opacity: 0.7, marginTop: 4 }}>
-              Kamu bisa langsung cek live Erine di IDN:
-            </p>
-            <a
-              href={ERINE_IDN_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="btnOutline"
-              style={{ marginTop: 12 }}
-            >
-              <i className="bx bx-play-circle" /> Cek Live Erine di IDN
-            </a>
-            <button className={styles.refreshBtn} onClick={load} style={{ marginTop: 16 }}>
-              <i className="bx bx-refresh" /> Cek Lagi
-            </button>
+          <div className={styles.errorBox}>
+            <i className="bx bx-error-circle" /> {error}
+          </div>
+        ) : erineLive && currentLive ? (
+          /* Erine is Currently Live */
+          <div style={{ maxWidth: 540, margin: "0 auto" }}>
+            <div className={`glassCard ${styles.card} ${styles.cardErine}`}>
+              <div className={styles.erineBadge}>
+                <i className="bx bxs-star" /> Erine sedang LIVE!
+              </div>
+
+              <div className={styles.cardImg} style={{ height: 260 }}>
+                {currentLive.img ? (
+                  <img src={currentLive.img} alt="Erine Live" loading="lazy" />
+                ) : (
+                  <div className={styles.noImg}>
+                    <i className="bx bxs-user" />
+                  </div>
+                )}
+                <div className={`${styles.liveDot} ${styles.liveDotGold}`} />
+              </div>
+
+              <div className={styles.cardBody} style={{ padding: "1.4rem", textAlign: "center" }}>
+                <div className={styles.platform} style={{ justifyContent: "center", marginBottom: 6 }}>
+                  <i
+                    className={`bx ${
+                      currentLive.type?.includes("showroom") ? "bx-broadcast" : "bx-video"
+                    }`}
+                  />
+                  {currentLive.platform || "IDN LIVE"}
+                </div>
+
+                <h2 className={styles.memberName} style={{ fontSize: "1.4rem", marginBottom: 6 }}>
+                  Catherina Vallencia (Erine)
+                </h2>
+
+                <p style={{ fontSize: "0.85rem", color: "#aaa", marginBottom: 16 }}>
+                  Sedang melangsungkan siaran langsung. Yuk gabung dan berikan semangat untuk Erine!
+                </p>
+
+                <a
+                  href={currentLive.url || ERINE_IDN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`btnPrimary ${styles.watchBtn}`}
+                  style={{ fontSize: "1rem", padding: "12px 24px" }}
+                >
+                  <i className="bx bx-play-circle" /> Tonton Live Erine Sekarang!
+                </a>
+              </div>
+            </div>
           </div>
         ) : (
-          <>
-            {/* Erine Live — highlighted */}
-            {erineLives.length > 0 && (
-              <div className={styles.erineSection}>
-                <h2 className={styles.sectionLabel}>
-                  <i className="bx bxs-star" /> Erine sedang Live!
-                </h2>
-                <div className={styles.grid}>
-                  {erineLives.map((l, i) => <LiveCard key={l.id ?? i} live={l} highlight />)}
-                </div>
-              </div>
-            )}
+          /* Erine is Currently Offline */
+          <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
+            <div className={styles.empty} style={{ padding: "3rem 1.5rem" }}>
+              <i className="bx bx-video-off" style={{ fontSize: "3.5rem", color: "var(--gold)", opacity: 0.6 }} />
+              <h3 style={{ fontSize: "1.3rem", color: "#fff", margin: "1rem 0 0.5rem" }}>
+                Erine Belum Live Saat Ini
+              </h3>
+              <p style={{ fontSize: "0.92rem", color: "#aaa", maxWidth: 460, margin: "0 auto 1.8rem" }}>
+                Saat ini Catherina Vallencia belum melangsungkan live streaming. Kamu bisa memantau dan mem-follow akun resmi Erine di bawah ini agar tidak ketinggalan saat live dimulai:
+              </p>
 
-            {/* Shortcut to Erine even when not in list */}
-            {erineLives.length === 0 && (
-              <div className={styles.erineSection} style={{ marginBottom: "1.5rem" }}>
-                <h2 className={styles.sectionLabel}>
-                  <i className="bx bx-star" /> Erine
-                </h2>
-                <div className={styles.grid}>
-                  <div className={`glassCard ${styles.card}`} style={{ opacity: 0.7 }}>
-                    <div className={styles.cardImg}>
-                      <div className={styles.noImg}><i className="bx bxs-user" /></div>
-                    </div>
-                    <div className={styles.cardBody}>
-                      <div className={styles.platform}><i className="bx bx-video" /> IDN Live</div>
-                      <h3 className={styles.memberName}>Catherina Vallencia</h3>
-                      <p style={{ fontSize: "0.78rem", color: "var(--gold)", marginBottom: 8 }}>Belum live saat ini</p>
-                      <a href={ERINE_IDN_URL} target="_blank" rel="noreferrer" className={`btnOutline ${styles.watchBtn}`}>
-                        <i className="bx bx-link-external" /> Pantau Live Erine
-                      </a>
-                    </div>
-                  </div>
-                </div>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                <a
+                  href={ERINE_IDN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btnPrimary"
+                  style={{ padding: "10px 20px", fontSize: "0.9rem" }}
+                >
+                  <i className="bx bx-video" /> IDN Live Erine
+                </a>
+                <a
+                  href={ERINE_SHOWROOM_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btnOutline"
+                  style={{ padding: "10px 20px", fontSize: "0.9rem" }}
+                >
+                  <i className="bx bx-broadcast" /> Showroom Erine
+                </a>
               </div>
-            )}
-
-            {/* Other members */}
-            {otherLives.length > 0 && (
-              <div className={styles.otherSection}>
-                <h2 className={styles.sectionLabel}>
-                  <i className="bx bx-broadcast" /> Member Lain yang Live
-                </h2>
-                <div className={styles.grid}>
-                  {otherLives.map((l, i) => <LiveCard key={l.id ?? i} live={l} />)}
-                </div>
-              </div>
-            )}
-          </>
+            </div>
+          </div>
         )}
       </div>
     </div>
