@@ -1,6 +1,5 @@
 import styles from "./page.module.css";
 import HeroSection from "@/components/home/HeroSection";
-import BirthdayCountdown from "@/components/home/BirthdayCountdown";
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
 import NewsPreview from "@/components/home/NewsPreview";
@@ -22,7 +21,6 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
-      <BirthdayCountdown />
       <SectionDivider />
       <VideoSection />
       <SectionDivider />

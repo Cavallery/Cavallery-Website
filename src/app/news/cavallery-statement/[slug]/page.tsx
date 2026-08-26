@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "../page.module.css";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 interface NewsDetail {
   id: string;
@@ -17,14 +18,32 @@ interface NewsDetail {
 
 async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
   try {
+    if (isMySqlConfigured()) {
+      const rows = await query<any[]>("SELECT * FROM `news` WHERE `slug`=? OR `id`=? LIMIT 1", [slug, slug]);
+      if (rows && rows.length > 0) {
+        const r = rows[0];
+        return {
+          id: String(r.id),
+          slug: r.slug || `statement-${r.id}`,
+          title: r.title || "",
+          label: r.category || r.label || "Statement",
+          description: r.summary || r.description || "",
+          content: r.content || r.description || "",
+          image_url: r.image_url || "/images/cava-logo.jpg",
+          images: r.images || "",
+          published_at: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+        };
+      }
+    }
+
     const res = await fetch(
       `https://v5.jkt48connect.com/api/cavallery/news/${slug}?apikey=JKTCONNECT`,
       {
         cache: "no-store",
         headers: {
           "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0"
-        }
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+        },
       }
     );
     if (!res.ok) return null;
@@ -53,41 +72,23 @@ function renderContent(content: string) {
   ));
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(
-      "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT",
-      {
-        headers: {
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
-        },
-      }
-    );
-    if (!res.ok) return [{ slug: "detail" }];
-    const json = await res.json();
-    const list = json?.data?.news || (Array.isArray(json?.data) ? json.data : []);
-    const slugs = list.map((item: any) => ({
-      slug: String(item.slug || item.id),
-    }));
-    return slugs.length > 0 ? slugs : [{ slug: "detail" }];
-  } catch {
-    return [{ slug: "detail" }];
-  }
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const news = await getNewsDetail(slug);
+  if (!news) return { title: "Berita Tidak Ditemukan" };
   return {
-    title: news?.title ?? "Berita Cavallery",
-    description: news?.description ?? "",
+    title: `${news.title} — Cavallery`,
+    description: news.description,
   };
 }
 
-export default async function CavalleryStatementDetailPage({
+export default async function NewsDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -97,79 +98,70 @@ export default async function CavalleryStatementDetailPage({
 
   if (!news) notFound();
 
-  const extraImages = parseImageArray(news.images);
+  const galleryImages = parseImageArray(news.images);
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
-      <div className={styles.hero}>
-        <div className={styles.heroBg} />
-        <div className={styles.heroInner}>
-          <div className="badge">
-            <i className="bx bx-shield-quarter" /> {news.label}
-          </div>
-          <h1 className={styles.heroTitle}>
-            {news.title.split(" ").slice(0, -1).join(" ")}{" "}
-            <span className="textGold">{news.title.split(" ").at(-1)}</span>
-          </h1>
-          <p className={styles.heroDate}>
-            <i className="bx bx-calendar" />{" "}
+      <div className={styles.detailContainer}>
+        {/* Back button */}
+        <Link href="/news" className={styles.backBtn}>
+          <i className="bx bx-arrow-back" /> Kembali ke News
+        </Link>
+
+        {/* Header */}
+        <div className={styles.detailHeader}>
+          <div className={styles.labelBadge}>{news.label}</div>
+          <h1 className={styles.detailTitle}>{news.title}</h1>
+          <div className={styles.detailDate}>
+            <i className="bx bx-calendar" />
             {new Date(news.published_at).toLocaleDateString("id-ID", {
+              weekday: "long",
               day: "numeric",
               month: "long",
               year: "numeric",
             })}
-          </p>
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <article className={styles.content}>
-        <div className={styles.statementCard}>
-          <div className={styles.statementHeader}>
-            <i
-              className="bx bxs-shield-alt-2"
-              style={{ fontSize: "1.4rem", color: "var(--gold)" }}
+        {/* Main image */}
+        {news.image_url && (
+          <div className={styles.detailMainImg}>
+            <Image
+              src={news.image_url}
+              alt={news.title}
+              width={800}
+              height={450}
+              style={{ width: "100%", height: "auto" }}
+              priority
             />
-            <h2 className={styles.statementTitle}>{news.title}</h2>
-          </div>
-
-          <div className={styles.statementBody}>
-            {renderContent(news.content)}
-            <p className={styles.signature}>Cavallery</p>
-          </div>
-        </div>
-
-        {/* Evidence */}
-        {extraImages.length > 0 && (
-          <div className={styles.evidenceSection}>
-            <h3 className={styles.evidenceTitle}>
-              <i className="bx bx-image-alt" /> Bukti Dokumentasi
-            </h3>
-            <div className={styles.evidenceGrid}>
-              {extraImages.map((url, i) => (
-  <div key={i} className={styles.evidenceFrame}>
-    <a href={url} target="_blank" rel="noopener noreferrer">
-      <img
-        src={url}
-        alt={`Bukti dokumentasi ${i + 1}`}
-        style={{ width: "100%", height: "auto" }}
-        loading="lazy"
-      />
-    </a>
-  </div>
-))}
-            </div>
           </div>
         )}
 
-        {/* Back */}
-        <div className={styles.backWrap}>
-          <Link href="/news/cavallery-statement" className={styles.backLink}>
-            <i className="bx bx-arrow-back" /> Kembali ke News Cavallery
-          </Link>
+        {/* Content */}
+        <div className={styles.detailContent}>
+          {renderContent(news.content)}
         </div>
-      </article>
+
+        {/* Image gallery jika ada gambar tambahan */}
+        {galleryImages.length > 0 && (
+          <div className={styles.detailGallery}>
+            <h2 className={styles.galleryTitle}>Dokumentasi</h2>
+            <div className={styles.detailGalleryGrid}>
+              {galleryImages.map((url, i) => (
+                <div key={i} className={styles.galleryImgWrap}>
+                  <Image
+                    src={url}
+                    alt={`Dokumentasi ${i + 1}`}
+                    width={400}
+                    height={300}
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

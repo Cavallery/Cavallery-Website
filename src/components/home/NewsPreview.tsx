@@ -17,21 +17,21 @@ interface NewsItem {
   is_active: boolean;
 }
 
-const API_URL = "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT";
+const API_URL = "/api/news";
 
 export default function NewsPreview() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}&_t=${Date.now()}`)
+    fetch(`${API_URL}?_t=${Date.now()}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d?.status && Array.isArray(d?.data?.news)) {
-          // Tampilkan hanya yang aktif, pinned duluan
-          const items: NewsItem[] = d.data.news
-            .filter((n: NewsItem) => n.is_active)
-            .sort((a: NewsItem, b: NewsItem) => Number(b.is_pinned) - Number(a.is_pinned))
+        const list = d?.data?.news || (Array.isArray(d?.data) ? d.data : (Array.isArray(d) ? d : []));
+        if (Array.isArray(list) && list.length > 0) {
+          const items: NewsItem[] = list
+            .filter((n: any) => n.is_active !== false)
+            .sort((a: any, b: any) => Number(b.is_pinned || 0) - Number(a.is_pinned || 0))
             .slice(0, 4);
           setNews(items);
         } else {

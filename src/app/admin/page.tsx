@@ -3247,8 +3247,21 @@ function UpdatesManager() {
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setLoading(true);
+    try {
+      const res = await fetch("/api/updates?t=" + Date.now());
+      if (res.ok) {
+        const json = await res.json();
+        const list = json.data || (Array.isArray(json) ? json : null);
+        if (Array.isArray(list) && list.length > 0) {
+          setUpdates(list);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {}
+
     try {
       const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_updates") : null;
       if (saved) setUpdates(JSON.parse(saved));
@@ -3261,34 +3274,71 @@ function UpdatesManager() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return showToast("URL wajib diisi", "error");
     setSaving(true);
     try {
-      const newUpdates = editId
-        ? updates.map(u => u.id === editId ? { ...u, platform, url: url.trim() } : u)
-        : [...updates, { id: Date.now().toString(), platform, url: url.trim() }];
-      setUpdates(newUpdates);
+      let updatedList = [];
+      if (editId) {
+        updatedList = updates.map(u => u.id === editId ? { ...u, platform, url: url.trim() } : u);
+      } else {
+        updatedList = [...updates, { id: Date.now().toString(), platform, url: url.trim() }];
+      }
+
+      // Save to server API
+      const res = await fetch("/api/updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: editId ? "update" : "add",
+          id: editId,
+          platform,
+          url: url.trim(),
+          item: { platform, url: url.trim() },
+          data: updatedList,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data && Array.isArray(json.data)) {
+          setUpdates(json.data);
+        } else {
+          setUpdates(updatedList);
+        }
+      } else {
+        setUpdates(updatedList);
+      }
+
       if (typeof window !== "undefined") {
-        localStorage.setItem("cavallery_updates", JSON.stringify(newUpdates));
+        localStorage.setItem("cavallery_updates", JSON.stringify(updatedList));
       }
       showToast("Berhasil disimpan", "success");
       setShowModal(false);
     } catch {
-      showToast("Gagal menyimpan", "error");
+      showToast("Gagal menyimpan ke server", "error");
     }
     setSaving(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!confirmDelete) return;
-    const newUpdates = updates.filter(u => u.id !== confirmDelete.id);
-    setUpdates(newUpdates);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cavallery_updates", JSON.stringify(newUpdates));
+    try {
+      const newUpdates = updates.filter(u => u.id !== confirmDelete.id);
+      await fetch("/api/updates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: confirmDelete.id, data: newUpdates }),
+      });
+      setUpdates(newUpdates);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cavallery_updates", JSON.stringify(newUpdates));
+      }
+      showToast("Berhasil dihapus", "success");
+    } catch {
+      showToast("Gagal menghapus", "error");
     }
-    showToast("Berhasil dihapus", "success");
     setConfirmDelete(null);
   };
 
