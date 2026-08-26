@@ -4698,15 +4698,20 @@ function RecruitmentManager() {
   const deleteSubmission = async () => {
     if (!confirmDelete) return;
     try {
-      const res = await fetch(`/api/recruitment/submissions?id=${confirmDelete.id}`, { method: "DELETE" });
-      if (res.ok) {
+      const res = await fetch(`/api/recruitment/submissions?id=${confirmDelete.id}&t=${Date.now()}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: confirmDelete.id }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && (json.success || json.success === undefined)) {
         setSubmissions(prev => prev.filter(s => s.id !== confirmDelete.id));
         showToast("Data pendaftar berhasil dihapus", "success");
       } else {
-        showToast("Gagal menghapus data", "error");
+        showToast(json.message || "Gagal menghapus data", "error");
       }
-    } catch {
-      showToast("Gagal menghapus data", "error");
+    } catch (e: any) {
+      showToast(e.message || "Gagal menghapus data", "error");
     } finally {
       setConfirmDelete(null);
       if (detailModal?.id === confirmDelete?.id) setDetailModal(null);
