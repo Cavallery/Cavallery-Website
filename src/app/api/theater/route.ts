@@ -5,13 +5,33 @@ import path from "path";
 const API_KEY = "sJbpVqLinYlp";
 const BASE = "https://v5.jkt48connect.com/api/jkt48";
 
+function normalizeShow(s: any) {
+  const members = s.members || s.member || s.lineup || [];
+  return {
+    ...s,
+    id: s.id || s.schedule_id || s.link,
+    title: s.title || s.name || "JKT48 Show",
+    date: s.date || s.showDate || "",
+    showDate: s.date || s.showDate || "",
+    startTime: s.startTime || s.start_time || "19:00",
+    start_time: s.startTime || s.start_time || "19:00",
+    members: members,
+    member: members,
+    lineup: members,
+    poster: s.poster || s.banner || s.poster_url || "",
+    banner: s.banner || s.poster || "",
+    url: s.url || (s.link ? `https://jkt48.com/theater/schedule/id/${s.schedule_id || s.link}?lang=id` : "#"),
+  };
+}
+
 function getFallbackShows(): any[] {
   try {
     const fallbackPath = path.join(process.cwd(), "theater_res.json");
     if (fs.existsSync(fallbackPath)) {
       const content = fs.readFileSync(fallbackPath, "utf-8");
       const parsed = JSON.parse(content);
-      return Array.isArray(parsed.data) ? parsed.data : (Array.isArray(parsed) ? parsed : []);
+      const list = Array.isArray(parsed.data) ? parsed.data : (Array.isArray(parsed) ? parsed : []);
+      return list.map(normalizeShow);
     }
   } catch (e) {
     console.error("Fallback theater read error:", e);
@@ -19,7 +39,7 @@ function getFallbackShows(): any[] {
   return [];
 }
 
-async function fetchMonthTheater(monthStr: string, yearStr: string) {
+async function fetchMonthTheater(monthStr: string, yearStr: string): Promise<any[]> {
   try {
     const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
     const res = await fetch(apiUrl, {
@@ -32,7 +52,8 @@ async function fetchMonthTheater(monthStr: string, yearStr: string) {
     });
     if (!res.ok) return [];
     const json = await res.json();
-    return Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+    const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+    return list.map(normalizeShow);
   } catch {
     return [];
   }
@@ -51,7 +72,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Default: fetch current month, next month, and previous month
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1; // 1-indexed
@@ -69,7 +89,7 @@ export async function GET(request: Request) {
     const merged = results.flat();
     const seenIds = new Set<string>();
     const uniqueShows = merged.filter((show: any) => {
-      const key = show.schedule_id || show.link || show.title + (show.date || "");
+      const key = String(show.schedule_id || show.link || show.title + (show.date || ""));
       if (seenIds.has(key)) return false;
       seenIds.add(key);
       return true;

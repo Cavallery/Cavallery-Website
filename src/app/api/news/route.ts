@@ -1,35 +1,131 @@
 import { NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
 
+const JKT48_API_KEY = "sJbpVqLinYlp";
+const JKT48_BASE = "https://v5.jkt48connect.com/api/jkt48";
+const CAVA_NEWS_URL = "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT";
+
+async function fetchJkt48OfficialNews(): Promise<any[]> {
+  try {
+    const res = await fetch(`${JKT48_BASE}/news?priority_token=${JKT48_API_KEY}`, {
+      headers: {
+        "x-priority-token": JKT48_API_KEY,
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+      },
+      next: { revalidate: 180 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const list = Array.isArray(json.news) ? json.news : (Array.isArray(json.data) ? json.data : []);
+    return list.map((n: any) => ({
+      id: String(n.id || n._id || Math.random()),
+      title: n.title || "",
+      label: n.category || "Official JKT48",
+      category: n.category || "Official JKT48",
+      date: n.date || n.published_at || new Date().toISOString(),
+      published_at: n.date || n.published_at || new Date().toISOString(),
+      link_url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
+      url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
+      image_url: n.background_image || n.image_url || "/images/cava-logo.jpg",
+      background_image: n.background_image || n.image_url || "/images/cava-logo.jpg",
+      description: n.summary || n.description || "",
+      is_pinned: false,
+      is_active: true,
+      is_internal: false,
+    }));
+  } catch (e) {
+    console.error("Failed to fetch official JKT48 news:", e);
+    return [];
+  }
+}
+
+async function fetchCavalleryFanbaseNews(): Promise<any[]> {
+  try {
+    const res = await fetch(CAVA_NEWS_URL, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+      },
+      next: { revalidate: 180 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status && Array.isArray(json.data?.news)) {
+        return json.data.news;
+      }
+    }
+  } catch {}
+  return [];
+}
+
 export async function GET() {
   try {
+    let dbNews: any[] = [];
     if (isMySqlConfigured()) {
-      const rows = await query<any[]>("SELECT * FROM `news` ORDER BY `published_at` DESC, `id` DESC");
-      const mapped = (rows || []).map(r => ({
-        ...r,
-        label: r.category || "Statement",
-        description: r.summary || r.content?.slice(0, 120),
-        link_url: `/news/cavallery-statement/${r.slug || r.id}`
-      }));
-      return NextResponse.json({ status: true, success: true, data: { news: mapped } });
+      try {
+        const rows = await query<any[]>("SELECT * FROM `news` ORDER BY `published_at` DESC, `id` DESC");
+        if (rows && Array.isArray(rows) && rows.length > 0) {
+          dbNews = rows.map((r) => ({
+            id: String(r.id),
+            slug: r.slug || `statement-${r.id}`,
+            title: r.title || "",
+            label: r.category || r.label || "Statement",
+            category: r.category || r.label || "Statement",
+            date: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+            published_at: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+            description: r.summary || r.description || r.content?.slice(0, 140) || "",
+            content: r.content || "",
+            image_url: r.image_url || "/images/cava-logo.jpg",
+            background_image: r.image_url || "/images/cava-logo.jpg",
+            link_url: `/news/cavallery-statement/${r.slug || r.id}`,
+            url: `/news/cavallery-statement/${r.slug || r.id}`,
+            is_pinned: Boolean(r.is_pinned),
+            is_active: r.is_active !== undefined ? Boolean(r.is_active) : true,
+            is_internal: true,
+          }));
+        }
+      } catch (e) {
+        console.error("DB news fetch error:", e);
+      }
     }
 
-    const defaultNews = [
-      {
-        id: 1,
-        title: "Perilisan Website Resmi Cavallery",
-        slug: "perilisan-website-resmi-cavallery",
-        label: "Statement",
-        description: "Official Fanbase Catherina Vallencia Kurniawan meluncurkan website resmi.",
-        content: "Official Fanbase Catherina Vallencia Kurniawan meluncurkan website resmi.",
-        image_url: "https://pbs.twimg.com/media/Gf43U5EaMAAwQ9G?format=jpg&name=medium",
-        published_at: "2026-08-20",
-        is_active: 1
+    const officialNews = await fetchJkt48OfficialNews();
+
+    // If dbNews is empty, try external Cavallery news
+    if (dbNews.length === 0) {
+      const extCava = await fetchCavalleryFanbaseNews();
+      if (extCava.length > 0) {
+        dbNews = extCava.map((n: any) => ({
+          ...n,
+          label: n.label || n.category || "Statement",
+          category: n.category || n.label || "Statement",
+          date: n.published_at || n.date || new Date().toISOString(),
+          published_at: n.published_at || n.date || new Date().toISOString(),
+          link_url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
+          url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
+          image_url: n.image_url || "/images/cava-logo.jpg",
+          background_image: n.image_url || "/images/cava-logo.jpg",
+        }));
       }
-    ];
-    return NextResponse.json({ status: true, success: true, data: { news: defaultNews } });
+    }
+
+    // Merge: Pinned Cavallery news first, then official JKT48 news, sorted by date
+    const merged = [...dbNews, ...officialNews];
+
+    return NextResponse.json({
+      status: true,
+      success: true,
+      data: { news: merged },
+    });
   } catch (error: any) {
-    return NextResponse.json({ status: false, success: false, message: error.message, data: { news: [] } }, { status: 500 });
+    console.error("News API Error:", error);
+    const officialNews = await fetchJkt48OfficialNews();
+    return NextResponse.json({
+      status: true,
+      success: true,
+      data: { news: officialNews },
+    });
   }
 }
 

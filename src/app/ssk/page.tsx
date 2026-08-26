@@ -82,7 +82,7 @@ export default function SSKPage() {
             <h3 className={styles.videoTitle}>Kampanye SSK Erine</h3>
             <div className={styles.videoWrapper}>
               <iframe 
-                src="https://www.youtube.com/embed/XbAqE7iBJAw" 
+                src="https://www.youtube.com/embed/_Qn9B9mD2bI" 
                 title="Kampanye SSK Erine" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen 

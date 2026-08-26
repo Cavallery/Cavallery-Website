@@ -1,15 +1,43 @@
 import { NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
 
+const EXTERNAL_GALLERY_URL = "https://v5.jkt48connect.com/api/cavallery/gallery?apikey=JKTCONNECT";
+
+async function fetchExternalGallery(): Promise<any[]> {
+  try {
+    const res = await fetch(EXTERNAL_GALLERY_URL, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+      },
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status && Array.isArray(json.data?.items)) {
+        return json.data.items;
+      }
+    }
+  } catch (e) {
+    console.error("External gallery fetch failed:", e);
+  }
+  return [];
+}
+
 export async function GET() {
   try {
     if (isMySqlConfigured()) {
-      const rows = await query<any[]>("SELECT * FROM `gallery` ORDER BY `sort_order` ASC, `id` DESC");
-      return NextResponse.json({ status: true, success: true, data: { items: rows || [] } });
+      const rows = await query<any[]>("SELECT * FROM `gallery` WHERE `is_active`=1 ORDER BY `sort_order` ASC, `id` DESC");
+      if (rows && Array.isArray(rows) && rows.length > 0) {
+        return NextResponse.json({ status: true, success: true, data: { items: rows } });
+      }
     }
-    return NextResponse.json({ status: true, success: true, data: { items: [] } });
+
+    const extItems = await fetchExternalGallery();
+    return NextResponse.json({ status: true, success: true, data: { items: extItems } });
   } catch (error: any) {
-    return NextResponse.json({ status: false, success: false, message: error.message, data: { items: [] } }, { status: 500 });
+    const extItems = await fetchExternalGallery();
+    return NextResponse.json({ status: true, success: true, data: { items: extItems } });
   }
 }
 

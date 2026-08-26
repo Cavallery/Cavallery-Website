@@ -92,7 +92,7 @@ export default function AboutErineSection() {
   const [kabeshas, setKabeshas] = useState<any[]>([]);
   const [funfacts, setFunfacts] = useState<any[]>([]);
   const [debutVideoId, setDebutVideoId] = useState<string>("Obxn7knXq38");
-  const [sskVideoId, setSskVideoId] = useState<string>("XbAqE7iBJAw");
+  const [sskVideoId, setSskVideoId] = useState<string>("_Qn9B9mD2bI");
   const [updatesLoaded, setUpdatesLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
