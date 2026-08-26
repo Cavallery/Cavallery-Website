@@ -4742,6 +4742,7 @@ function RecruitmentManager() {
       "Divisi / Minat",
       "Alasan Masuk",
       "Bentuk Support",
+      "Saran Kegiatan Cavallery",
       "Persetujuan Iuran",
       "Status",
     ];
@@ -4766,6 +4767,7 @@ function RecruitmentManager() {
       `"${(s.division || "-").replace(/"/g, '""')}"`,
       `"${(s.reason || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       `"${(s.support_type || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+      `"${(s.activity_suggestion || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       s.fee_agreed ? "Bersedia (Rp75.000)" : "-",
       s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending",
     ]);
@@ -4849,7 +4851,8 @@ function RecruitmentManager() {
                 </td>
                 <td>
                   <strong>Alasan:</strong> ${(s.reason || "-").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br>
-                  ${s.support_type ? `<strong>Support:</strong> ${(s.support_type).replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""}
+                  ${s.support_type ? `<strong>Support:</strong> ${(s.support_type).replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br>` : ""}
+                  ${s.activity_suggestion ? `<strong>Saran Kegiatan:</strong> ${(s.activity_suggestion).replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""}
                 </td>
                 <td style="text-align: center;">
                   <span class='badge-${s.status}'>
@@ -5281,6 +5284,17 @@ function RecruitmentManager() {
                 </div>
               )}
 
+              {detailModal.activity_suggestion && (
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                    Saran Kegiatan untuk Cavallery:
+                  </label>
+                  <div style={{ background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 6, fontSize: "0.85rem", lineHeight: 1.5, border: "1px solid var(--adm-border)" }}>
+                    {detailModal.activity_suggestion}
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: 10 }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>Ubah Status:</label>
                 <select
@@ -5399,7 +5413,7 @@ function EsportManager() {
   const loadDivisions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/esport");
+      const res = await fetch(`/api/esport?t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {

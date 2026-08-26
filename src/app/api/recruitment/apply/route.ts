@@ -18,6 +18,7 @@ async function ensureColumns() {
     { name: "username_ig", type: "VARCHAR(100) NULL" },
     { name: "username_tiktok", type: "VARCHAR(100) NULL" },
     { name: "support_type", type: "TEXT NULL" },
+    { name: "activity_suggestion", type: "TEXT NULL" },
     { name: "fee_agreed", type: "TINYINT(1) DEFAULT 1" },
     { name: "extra_data", type: "LONGTEXT NULL" },
   ];
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
       division,
       reason,
       support_type,
+      activity_suggestion,
       fee_agreed,
     } = body;
 
@@ -119,6 +121,7 @@ export async function POST(request: Request) {
         username_ig,
         username_tiktok,
         support_type: formattedSupport,
+        activity_suggestion: activity_suggestion ? activity_suggestion.trim() : null,
         fee_agreed: fee_agreed ? 1 : 0,
       });
 
@@ -126,8 +129,8 @@ export async function POST(request: Request) {
       try {
         const result: any = await query(
           `INSERT INTO \`recruitment_submissions\` 
-            (\`role_id\`, \`full_name\`, \`nickname\`, \`email\`, \`city\`, \`whatsapp\`, \`line_id\`, \`line_display_name\`, \`info_source\`, \`gender\`, \`hobby\`, \`username_x\`, \`username_ig\`, \`username_tiktok\`, \`social_media\`, \`division\`, \`reason\`, \`support_type\`, \`fee_agreed\`, \`extra_data\`, \`status\`) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            (\`role_id\`, \`full_name\`, \`nickname\`, \`email\`, \`city\`, \`whatsapp\`, \`line_id\`, \`line_display_name\`, \`info_source\`, \`gender\`, \`hobby\`, \`username_x\`, \`username_ig\`, \`username_tiktok\`, \`social_media\`, \`division\`, \`reason\`, \`support_type\`, \`activity_suggestion\`, \`fee_agreed\`, \`extra_data\`, \`status\`) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
           [
             role_id,
             full_name.trim(),
@@ -147,6 +150,7 @@ export async function POST(request: Request) {
             division ? division.trim() : null,
             reason ? reason.trim() : null,
             formattedSupport,
+            activity_suggestion ? activity_suggestion.trim() : null,
             fee_agreed ? 1 : 0,
             extraJson,
           ]

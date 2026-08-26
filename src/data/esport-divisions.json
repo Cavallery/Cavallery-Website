@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ml",
+    "name": "Mobile Legends",
+    "cover_url": "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co7lqm.jpg",
+    "is_active": 1,
+    "sort_order": 1,
+    "roster_count": 0
+  },
+  {
+    "id": "efootball",
+    "name": "eFootball",
+    "cover_url": "https://m.media-amazon.com/images/M/MV5BZjAzYjBiM2YtNTM4Zi00MmIzLWFhNDktZWNiNmY4N2YzYjFiXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+    "is_active": 0,
+    "sort_order": 2,
+    "roster_count": 0
+  },
+  {
+    "id": "coc",
+    "name": "Clash of Clans",
+    "cover_url": "https://m.media-amazon.com/images/M/MV5BZTEyNjE0OGEtYmIwNS00NjQ4LTgzNTEtYWVmMzBkMmYxMGI0XkEyXkFqcGc@._V1_.jpg",
+    "is_active": 1,
+    "sort_order": 3,
+    "roster_count": 0
+  },
+  {
+    "id": "pubg",
+    "name": "PUBG Mobile",
+    "cover_url": "https://screenscore.digitalmama.id/wp-content/uploads/2024/05/IMG_0880.jpeg",
+    "is_active": 0,
+    "sort_order": 4,
+    "roster_count": 0
+  },
+  {
+    "id": "ff",
+    "name": "Free Fire",
+    "cover_url": "https://cdn.wildflamestudio.com/common/web_event/official2.ff.garena.all/20266/f3ff01eefc0b3d7186b553edcd16debf.jpg",
+    "is_active": 0,
+    "sort_order": 5,
+    "roster_count": 0
+  },
+  {
+    "id": "valorant",
+    "name": "Valorant",
+    "cover_url": "https://mediaproxy.tvtropes.org/width/1200/https://static.tvtropes.org/pmwiki/pub/images/valo2.png",
+    "is_active": 0,
+    "sort_order": 6,
+    "roster_count": 0
+  }
+]
