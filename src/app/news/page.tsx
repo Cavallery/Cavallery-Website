@@ -37,6 +37,7 @@ export default function NewsPage() {
     fetch(`/api/news?v=${new Date().getTime()}`)
       .then((r) => r.json())
       .then((d) => {
+        if (d.success && d.data?.news && Array.isArray(d.data.news)) {
           const items: NewsItem[] = d.data.news.map((n: any) => ({
             id: n.id,
             title: n.title,
@@ -46,7 +47,6 @@ export default function NewsPage() {
             image_url: n.image_url || n.background_image || DEFAULT_IMG,
             description: n.description || n.summary || undefined,
           }));
-
           setNews(items);
         } else {
           setError(d.message || "Gagal memuat berita");

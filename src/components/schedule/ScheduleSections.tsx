@@ -127,9 +127,8 @@ interface LiveItem {
   id?: string; name?: string; member_name?: string;
   image?: string; img?: string; avatar?: string;
   platform?: string; type?: string;
-  url?: string; idn_url?: string; showroom_url?: string;
-  url_key?: string;
-  title?: string;
+  url?: string; url_key?: string; slug?: string;
+  is_erine?: boolean;
 }
 
 export function LiveSection() {
@@ -160,25 +159,22 @@ export function LiveSection() {
         {lives.map((l, i) => {
           const name = l.name ?? l.member_name ?? "Unknown";
           const img = l.image ?? l.img ?? l.avatar ?? "";
-          const highlight = isErine(name);
-
-          // Construct correct live URL
-          const platform = (l.platform ?? l.type ?? "").toLowerCase();
-          const key = l.url_key || "";
-          let url = l.url ?? l.idn_url ?? l.showroom_url ?? "#";
-          
-          if (platform.includes("idn")) {
-            url = key ? `https://www.idn.app/${key}` : "https://www.idn.app/jkt48_erine";
-          } else if (platform.includes("showroom")) {
-            url = key ? `https://www.showroom-live.com/r/${key}` : "https://www.showroom-live.com/r/JKT48_Erine";
-          }
+          const highlight = l.is_erine || isErine(name);
+          // URL already normalized by API
+          const url = l.url && l.url !== "#" ? l.url
+            : highlight
+              ? "https://www.idn.app/jkt48_erine"
+              : (l.url_key ? `https://www.idn.app/${l.url_key}` : "#");
 
           return (
             <div key={l.id ?? i} className={`${styles.liveCard} ${highlight ? styles.liveErine : ""}`}>
               <div className={styles.liveImg}><img src={img || "/images/cava-logo.jpg"} alt={name} /></div>
               <div className={styles.liveInfo}>
                 <h4>{name}</h4>
-                <a href={url} target="_blank" rel="noreferrer" className="btnOutline">Watch</a>
+                {highlight && <span style={{ fontSize: "0.7rem", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: "4px" }}><i className="bx bxs-star" /> Erine Live!</span>}
+                <a href={url} target="_blank" rel="noreferrer" className="btnOutline">
+                  {highlight ? "Tonton Erine!" : "Watch"}
+                </a>
               </div>
             </div>
           );
