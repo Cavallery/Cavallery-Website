@@ -53,7 +53,7 @@ async function fixMediaTable() {
   `);
 
   const divisions = [
-    ['ml', 'Mobile Legends', 'https://seagm-media.seagmcdn.com/item_480/1045.png', 1, 1],
+    ['ml', 'Mobile Legends', 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co7lqm.jpg', 1, 1],
     ['efootball', 'eFootball', 'https://m.media-amazon.com/images/M/MV5BZjAzYjBiM2YtNTM4Zi00MmIzLWFhNDktZWNiNmY4N2YzYjFiXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg', 0, 2],
     ['coc', 'Clash of Clans', 'https://m.media-amazon.com/images/M/MV5BZTEyNjE0OGEtYmIwNS00NjQ4LTgzNTEtYWVmMzBkMmYxMGI0XkEyXkFqcGc@._V1_.jpg', 0, 3],
     ['pubg', 'PUBG Mobile', 'https://screenscore.digitalmama.id/wp-content/uploads/2024/05/IMG_0880.jpeg', 0, 4],

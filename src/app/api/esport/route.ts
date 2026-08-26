@@ -5,7 +5,7 @@ const DEFAULT_DIVISIONS = [
   {
     id: "ml",
     name: "Mobile Legends",
-    cover_url: "https://seagm-media.seagmcdn.com/item_480/1045.png",
+    cover_url: "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co7lqm.jpg",
     is_active: 1,
     sort_order: 1,
     roster_count: 0,

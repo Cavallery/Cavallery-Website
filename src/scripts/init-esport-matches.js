@@ -36,21 +36,7 @@ async function initEsportMatches() {
 
   console.log('Table esport_matches initialized successfully.');
 
-  // Seed sample initial matches so the user immediately sees beautiful UI
-  const [existing] = await conn.query('SELECT COUNT(*) AS total FROM esport_matches');
-  if (existing[0].total === 0) {
-    console.log('Seeding initial match data...');
-    await conn.query(`
-      INSERT INTO esport_matches 
-      (division_id, tournament_name, opponent_name, match_date, status, score_cavallery, score_opponent, result, stream_url, notes)
-      VALUES
-      ('ml', 'JKT48 Fanbase Cup S2', 'Team Iris Esports', NOW() + INTERVAL 3 DAY, 'upcoming', 0, 0, 'pending', 'https://youtube.com', 'Babak Playoff - Best of 3'),
-      ('valorant', 'Community Scrim Cup', 'Freyanation Squad', NOW() + INTERVAL 5 DAY, 'upcoming', 0, 0, 'pending', NULL, 'Friendly Match'),
-      ('ml', 'MabaRine Open Season 1', 'Christyzer Esports', NOW() - INTERVAL 2 DAY, 'completed', 2, 1, 'win', 'https://youtube.com', 'Final Match - Cavallery Juara 1'),
-      ('pubg', 'Fanbase Battle Royale', 'Olla The Miracle', NOW() - INTERVAL 6 DAY, 'completed', 1, 0, 'win', NULL, 'Matchday 4')
-    `);
-    console.log('Sample matches seeded.');
-  }
+
 
   const [rows] = await conn.query('SELECT * FROM esport_matches ORDER BY match_date DESC');
   console.log('Current matches in DB:', rows.length);
