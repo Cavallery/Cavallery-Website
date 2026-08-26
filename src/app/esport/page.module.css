@@ -1,0 +1,751 @@
+.page {
+  min-height: 100vh;
+  padding-top: var(--nav-h, 72px);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* ─── HERO WITH HEADER BANNER & LOGO ─────────────────── */
+.hero {
+  position: relative;
+  min-height: 380px;
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroBgImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.35);
+  transform: scale(1.02);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4) 0%, rgba(20, 16, 14, 0.92) 90%),
+              linear-gradient(to bottom, transparent 60%, var(--bg) 100%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heroLogo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.4);
+  margin-bottom: 1.2rem;
+  background: #111;
+}
+
+.heroTitle {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  font-family: var(--serif);
+  margin: 0.6rem 0 0.8rem;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.8);
+}
+
+.heroSub {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* ─── ABOUT / HIGHLIGHT PILLARS ──────────────────────── */
+.introSection {
+  max-width: 1240px;
+  margin: 0 auto 3.5rem;
+  padding: 0 1.5rem;
+}
+
+.pillarsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+
+@media (max-width: 860px) {
+  .pillarsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pillarCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.6rem 1.4rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: transform 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.pillarCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+}
+
+.pillarIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(201, 168, 76, 0.12);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.pillarTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--fg);
+  margin-bottom: 0.35rem;
+}
+
+.pillarDesc {
+  font-size: 0.88rem;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ─── SECTION HEADER & TABS ──────────────────────────── */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--serif);
+  color: var(--fg);
+  margin-bottom: 0.4rem;
+}
+
+.sectionSub {
+  font-size: 0.95rem;
+  color: var(--fg-muted);
+}
+
+/* ─── GRID ──────────────────────────────────────────── */
+.content {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem 5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── GAME CARD ─────────────────────────────────────── */
+.card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(201, 168, 76, 0.2);
+}
+
+.cardInactive {
+  filter: grayscale(0.7);
+}
+
+.cardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .cardImg {
+  transform: scale(1.05);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 30%,
+    rgba(0, 0, 0, 0.5) 55%,
+    rgba(0, 0, 0, 0.9) 80%,
+    rgba(0, 0, 0, 0.98) 100%
+  );
+  pointer-events: none;
+}
+
+.rosterBadge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cardBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.4rem 1.4rem 1.2rem;
+}
+
+.cardName {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: var(--serif);
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  margin-bottom: 0.65rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.cardActive {
+  border: 2px solid rgba(201, 168, 76, 0.5);
+}
+
+.cardActive:hover {
+  border-color: rgba(201, 168, 76, 0.9);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.statusActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffd37c;
+  background: rgba(201, 168, 76, 0.2);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.statusActive i {
+  font-size: 0.9rem;
+  color: #ffd37c;
+}
+
+.statusInactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.statusInactive i {
+  font-size: 0.9rem;
+}
+
+.rosterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+}
+
+.rosterBtn:hover {
+  color: #ffd37c;
+}
+
+.hiatus {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  padding-top: 0.3rem;
+}
+
+/* ─── MATCHES SECTION & CARDS ────────────────────────── */
+.matchesSection {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}
+
+.matchTabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.matchTab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.matchTabActive {
+  background: var(--gold);
+  color: #111;
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+}
+
+.matchesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.4rem;
+}
+
+@media (max-width: 840px) {
+  .matchesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.matchCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.matchCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+}
+
+.matchHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gameTag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--gold);
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.matchStatusBadge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.statusLive {
+  background: #dc2626;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.statusUpcoming {
+  background: rgba(201, 168, 76, 0.2);
+  color: var(--gold);
+}
+
+.statusWin {
+  background: #065f46;
+  color: #34d399;
+}
+
+.statusLose {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.statusDraw {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fg-muted);
+}
+
+.matchVersusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.teamBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--fg);
+}
+
+.vsBadge {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--fg-muted);
+  opacity: 0.6;
+}
+
+.matchScoreBox {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--fg);
+  font-family: monospace;
+  background: rgba(201, 168, 76, 0.12);
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
+.matchFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  padding-top: 4px;
+}
+
+.streamLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.streamLinkBtn:hover {
+  opacity: 0.9;
+}
+
+/* ─── JOIN CTA ───────────────────────────────────────── */
+.joinCta {
+  margin-top: 4rem;
+  background: radial-gradient(circle at 50% 50%, var(--gold-dim, rgba(201, 168, 76, 0.15)) 0%, transparent 80%), var(--surface);
+  border: 1px solid var(--border-gold);
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.joinCtaTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: var(--serif);
+  margin-bottom: 0.5rem;
+  color: var(--fg);
+}
+
+.joinCtaDesc {
+  font-size: 0.95rem;
+  color: var(--fg-muted);
+  max-width: 580px;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.joinBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
+  color: #111;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(201, 168, 76, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.joinBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(201, 168, 76, 0.35);
+}
+
+/* ─── ROSTER MODAL ──────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: var(--surface, #1e1e1e);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+  animation: modalIn 0.25s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modalHeader {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--gold, #c9a84c);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: #fff;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.rosterList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rosterItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+.rosterAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(201,168,76,0.35);
+  flex-shrink: 0;
+}
+
+.rosterAvatarPlaceholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.15);
+  border: 2px solid rgba(201,168,76,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: rgba(201,168,76,0.7);
+  flex-shrink: 0;
+}
+
+.rosterInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.rosterName {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.captainBadge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffd37c;
+  background: rgba(201,168,76,0.2);
+  border: 1px solid rgba(201,168,76,0.4);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.rosterRole {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+.rosterGameId {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  font-family: monospace;
+  text-align: right;
+}
+
+.emptyRoster {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: rgba(255,255,255,0.3);
+  font-size: 0.9rem;
+}
+
+.emptyRoster i {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  gap: 8px;
+  align-items: center;
+}

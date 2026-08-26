@@ -47,55 +47,40 @@ export async function GET() {
     const raw: LiveStream[] = await res.json();
     const streams = Array.isArray(raw) ? raw : [];
 
-    // Find Erine specifically
-    const erineLives = streams.filter((s) => isErine(s.name ?? s.member_name ?? s.username ?? ""));
+    // Filter ONLY Erine (Catherina Vallencia)
+    const erineLives = streams.filter((s) =>
+      isErine(s.name ?? s.member_name ?? s.username ?? s.room_name ?? "")
+    );
 
-    // Build normalized live list – Erine first, then others
-    const buildStream = (s: LiveStream, highlight: boolean) => {
-      const name = s.name ?? s.member_name ?? s.username ?? "Unknown";
-      const img = s.img ?? s.img_alt ?? s.image ?? s.avatar ?? "";
+    const erineStreams = erineLives.map((s) => {
+      const name = "Catherina Vallencia (Erine)";
+      const img = s.img ?? s.img_alt ?? s.image ?? s.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
       const type = (s.type ?? s.platform ?? "idn").toLowerCase();
-      const key = s.url_key ?? "";
       const slug = s.slug ?? "";
 
-      // Determine watch URL
-      let url = "#";
-      if (highlight || isErine(name)) {
-        // For Erine: always use her profile page so clicking always opens her live
-        url = type.includes("showroom")
-          ? "https://www.showroom-live.com/r/JKT48_Erine"
-          : "https://www.idn.app/jkt48_erine";
-      } else if (type.includes("showroom")) {
-        url = key ? `https://www.showroom-live.com/r/${key}` : "#";
-      } else {
-        // IDN – use url_key (jkt48_name) pattern
-        url = key ? `https://www.idn.app/${key}` : (slug ? `https://www.idn.app/jkt48-official/live/${slug}` : "#");
-      }
+      const url = type.includes("showroom")
+        ? "https://www.showroom-live.com/r/JKT48_Erine"
+        : "https://www.idn.app/jkt48_erine";
 
       return {
-        id: s.slug ?? s.url_key ?? name,
+        id: s.slug ?? s.url_key ?? "erine-live",
         name,
         img,
         type,
-        platform: type,
-        url_key: key,
+        platform: type.includes("showroom") ? "SHOWROOM" : "IDN LIVE",
+        url_key: "jkt48_erine",
         slug,
         started_at: s.started_at ?? s.live_at ?? null,
         streaming_url: s.streaming_url_list?.[0]?.url ?? s.streaming_url ?? null,
         url,
-        is_erine: highlight || isErine(name),
+        is_erine: true,
       };
-    };
-
-    const erineStreams = erineLives.map((s) => buildStream(s, true));
-    const othersStreams = streams
-      .filter((s) => !isErine(s.name ?? s.member_name ?? s.username ?? ""))
-      .map((s) => buildStream(s, false));
+    });
 
     return NextResponse.json({
       success: true,
       erine_live: erineStreams.length > 0,
-      data: [...erineStreams, ...othersStreams],
+      data: erineStreams, // ONLY ERINE
     });
   } catch (error) {
     console.error("Live API Error:", error);
