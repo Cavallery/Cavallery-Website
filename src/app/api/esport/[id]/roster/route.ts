@@ -3,8 +3,17 @@ import { query, isMySqlConfigured } from "@/lib/mysql";
 
 type Params = { params: Promise<{ id: string }> };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/esport/[id]/roster
 export async function GET(_req: NextRequest, { params }: Params) {
+  const headers = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  };
+
   try {
     const { id } = await params;
     if (isMySqlConfigured()) {
@@ -12,9 +21,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
         "SELECT * FROM `esport_rosters` WHERE `division_id` = ? ORDER BY `is_captain` DESC, `sort_order` ASC, `id` ASC",
         [id]
       );
-      return NextResponse.json({ success: true, data: rows || [] });
+      return NextResponse.json({ success: true, data: rows || [] }, { headers });
     }
-    return NextResponse.json({ success: true, data: [] });
+    return NextResponse.json({ success: true, data: [] }, { headers });
   } catch (e: any) {
     console.error("GET Roster error:", e.message);
     return NextResponse.json({ success: false, message: e.message, data: [] }, { status: 500 });

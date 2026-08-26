@@ -4722,12 +4722,22 @@ function RecruitmentManager() {
       "Tanggal Daftar",
       "Peran",
       "Nama Lengkap",
-      "Nama Panggilan",
+      "Email",
+      "Gender",
+      "ID Line",
+      "Display Name Line",
+      "WhatsApp",
       "Kota Domisili",
-      "Nomor WhatsApp",
+      "Sumber Info",
+      "Hobby",
+      "Username X",
+      "Username Instagram",
+      "Username TikTok",
       "Sosial Media / Discord",
       "Divisi / Minat",
-      "Alasan / Motivasi",
+      "Alasan Masuk",
+      "Bentuk Support",
+      "Persetujuan Iuran",
       "Status",
     ];
 
@@ -4736,12 +4746,22 @@ function RecruitmentManager() {
       s.created_at ? new Date(s.created_at).toLocaleString("id-ID") : "-",
       s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer",
       `"${(s.full_name || "").replace(/"/g, '""')}"`,
-      `"${(s.nickname || "").replace(/"/g, '""')}"`,
-      `"${(s.city || "").replace(/"/g, '""')}"`,
+      `"${(s.email || "-").replace(/"/g, '""')}"`,
+      `"${(s.gender || "-").replace(/"/g, '""')}"`,
+      `"${(s.line_id || "-").replace(/"/g, '""')}"`,
+      `"${(s.line_display_name || "-").replace(/"/g, '""')}"`,
       `'${s.whatsapp || ""}`,
-      `"${(s.social_media || "").replace(/"/g, '""')}"`,
+      `"${(s.city || "").replace(/"/g, '""')}"`,
+      `"${(s.info_source || "-").replace(/"/g, '""')}"`,
+      `"${(s.hobby || "-").replace(/"/g, '""')}"`,
+      `"${(s.username_x || "-").replace(/"/g, '""')}"`,
+      `"${(s.username_ig || "-").replace(/"/g, '""')}"`,
+      `"${(s.username_tiktok || "-").replace(/"/g, '""')}"`,
+      `"${(s.social_media || "-").replace(/"/g, '""')}"`,
       `"${(s.division || "-").replace(/"/g, '""')}"`,
       `"${(s.reason || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+      `"${(s.support_type || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+      s.fee_agreed ? "Bersedia (Rp75.000)" : "-",
       s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending",
     ]);
 
@@ -4797,12 +4817,11 @@ function RecruitmentManager() {
               <th style="width: 80px;">Tanggal</th>
               <th style="width: 70px;">Peran</th>
               <th>Nama Lengkap</th>
-              <th>Panggilan</th>
+              <th>Email</th>
+              <th>ID / Display Line</th>
               <th>Kota</th>
-              <th>WhatsApp</th>
-              <th>Sosmed</th>
-              <th>Divisi / Minat</th>
-              <th>Alasan</th>
+              <th>Hobby / Sosmed</th>
+              <th>Alasan / Support</th>
               <th style="width: 60px;">Status</th>
             </tr>
           </thead>
@@ -4813,12 +4832,20 @@ function RecruitmentManager() {
                 <td>${s.created_at ? new Date(s.created_at).toLocaleDateString("id-ID") : "-"}</td>
                 <td><strong>${s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer"}</strong></td>
                 <td>${s.full_name || "-"}</td>
-                <td>${s.nickname || "-"}</td>
+                <td>${s.email || "-"}</td>
+                <td>${s.line_id || s.whatsapp || "-"} ${s.line_display_name ? `(${s.line_display_name})` : ""}</td>
                 <td>${s.city || "-"}</td>
-                <td>${s.whatsapp || "-"}</td>
-                <td>${s.social_media || "-"}</td>
-                <td>${s.division || "-"}</td>
-                <td>${(s.reason || "-").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</td>
+                <td>
+                  ${s.hobby ? `Hobby: ${s.hobby}<br>` : ""}
+                  ${s.username_x ? `X: ${s.username_x}<br>` : ""}
+                  ${s.username_ig ? `IG: ${s.username_ig}<br>` : ""}
+                  ${s.username_tiktok ? `TikTok: ${s.username_tiktok}<br>` : ""}
+                  ${s.social_media || ""}
+                </td>
+                <td>
+                  <strong>Alasan:</strong> ${(s.reason || "-").replace(/</g, "&lt;").replace(/>/g, "&gt;")}<br>
+                  ${s.support_type ? `<strong>Support:</strong> ${(s.support_type).replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""}
+                </td>
                 <td style="text-align: center;">
                   <span class='badge-${s.status}'>
                     ${s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending"}
@@ -5118,34 +5145,112 @@ function RecruitmentManager() {
               </button>
             </div>
             <div className={styles.formBody} style={{ gap: "10px", fontSize: "0.9rem" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "6px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "130px 1fr", gap: "6px" }}>
                 <span style={{ color: "var(--adm-muted)" }}>Peran:</span>
                 <strong>{detailModal.role_id?.toUpperCase()}</strong>
 
                 <span style={{ color: "var(--adm-muted)" }}>Nama Lengkap:</span>
                 <span>{detailModal.full_name}</span>
 
-                <span style={{ color: "var(--adm-muted)" }}>Nama Panggilan:</span>
-                <span>{detailModal.nickname || "—"}</span>
+                {detailModal.email && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Email:</span>
+                    <a href={`mailto:${detailModal.email}`} style={{ color: "#38bdf8" }}>{detailModal.email}</a>
+                  </>
+                )}
+
+                {detailModal.gender && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Gender:</span>
+                    <span>{detailModal.gender}</span>
+                  </>
+                )}
+
+                {detailModal.line_id && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>ID Line:</span>
+                    <span style={{ color: "#10b981", fontWeight: 700 }}>{detailModal.line_id}</span>
+                  </>
+                )}
+
+                {detailModal.line_display_name && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Display Name Line:</span>
+                    <span>{detailModal.line_display_name}</span>
+                  </>
+                )}
+
+                {detailModal.nickname && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Nama Panggilan:</span>
+                    <span>{detailModal.nickname}</span>
+                  </>
+                )}
 
                 <span style={{ color: "var(--adm-muted)" }}>Kota Domisili:</span>
                 <span>{detailModal.city}</span>
 
-                <span style={{ color: "var(--adm-muted)" }}>No WhatsApp:</span>
-                <a
-                  href={`https://wa.me/${detailModal.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "62")}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: "#34d399" }}
-                >
-                  {detailModal.whatsapp} <i className="bx bx-link-external" />
-                </a>
+                {detailModal.whatsapp && detailModal.whatsapp !== "-" && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>No WhatsApp:</span>
+                    <a
+                      href={`https://wa.me/${detailModal.whatsapp.replace(/[^0-9]/g, "").replace(/^0/, "62")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ color: "#34d399" }}
+                    >
+                      {detailModal.whatsapp} <i className="bx bx-link-external" />
+                    </a>
+                  </>
+                )}
 
-                <span style={{ color: "var(--adm-muted)" }}>Sosmed/Discord:</span>
-                <span>{detailModal.social_media || "—"}</span>
+                {detailModal.info_source && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Sumber Info:</span>
+                    <span>{detailModal.info_source}</span>
+                  </>
+                )}
 
-                <span style={{ color: "var(--adm-muted)" }}>Divisi / Minat:</span>
-                <span>{detailModal.division || "—"}</span>
+                {detailModal.hobby && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Hobby:</span>
+                    <span>{detailModal.hobby}</span>
+                  </>
+                )}
+
+                {(detailModal.username_x || detailModal.username_ig || detailModal.username_tiktok) && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Akun Medsos:</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {detailModal.username_x && <span>X: <strong>{detailModal.username_x}</strong></span>}
+                      {detailModal.username_ig && <span>IG: <strong>{detailModal.username_ig}</strong></span>}
+                      {detailModal.username_tiktok && <span>TikTok: <strong>{detailModal.username_tiktok}</strong></span>}
+                    </div>
+                  </>
+                )}
+
+                {detailModal.social_media && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Sosmed/Discord:</span>
+                    <span>{detailModal.social_media}</span>
+                  </>
+                )}
+
+                {detailModal.division && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Divisi / Minat:</span>
+                    <span>{detailModal.division}</span>
+                  </>
+                )}
+
+                {detailModal.role_id === "member" && (
+                  <>
+                    <span style={{ color: "var(--adm-muted)" }}>Iuran Rp75.000:</span>
+                    <span style={{ color: detailModal.fee_agreed ? "#10b981" : "#ef4444", fontWeight: 700 }}>
+                      {detailModal.fee_agreed ? "✓ Bersedia" : "✗ Belum / Tidak"}
+                    </span>
+                  </>
+                )}
 
                 <span style={{ color: "var(--adm-muted)" }}>Tanggal Daftar:</span>
                 <span>{detailModal.created_at ? new Date(detailModal.created_at).toLocaleString("id-ID") : "—"}</span>
@@ -5153,12 +5258,23 @@ function RecruitmentManager() {
 
               <div style={{ marginTop: 8 }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
-                  Alasan / Motivasi:
+                  Alasan Masuk / Motivasi:
                 </label>
                 <div style={{ background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 6, fontSize: "0.85rem", lineHeight: 1.5, border: "1px solid var(--adm-border)" }}>
                   {detailModal.reason || "Tidak ada catatan."}
                 </div>
               </div>
+
+              {detailModal.support_type && (
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                    Bentuk Support / Keahlian:
+                  </label>
+                  <div style={{ background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 6, fontSize: "0.85rem", lineHeight: 1.5, border: "1px solid var(--adm-border)" }}>
+                    {detailModal.support_type}
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: 10 }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>Ubah Status:</label>

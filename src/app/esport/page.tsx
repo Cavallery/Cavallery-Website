@@ -100,7 +100,7 @@ export default function EsportPage() {
   const [activeMatchFilter, setActiveMatchFilter] = useState<string>("all");
 
   useEffect(() => {
-    fetch("/api/esport")
+    fetch(`/api/esport?t=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (d.success && Array.isArray(d.data) && d.data.length > 0) {
@@ -111,7 +111,7 @@ export default function EsportPage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/esport/matches")
+    fetch(`/api/esport/matches?t=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (d.success && Array.isArray(d.data)) {
@@ -127,7 +127,7 @@ export default function EsportPage() {
     setRosterLoading(true);
     setRoster([]);
     try {
-      const r = await fetch(`/api/esport/${div.id}/roster`);
+      const r = await fetch(`/api/esport/${div.id}/roster?t=${Date.now()}`, { cache: "no-store" });
       if (r.ok) {
         const d = await r.json();
         if (d.success && Array.isArray(d.data)) {
