@@ -394,6 +394,232 @@
   min-height: 80px;
 }
 
+/* ─── REGISTRATION FORM SPECIAL STYLES ────────────────────────── */
+.formHeaderNotice {
+  background: #fdfaf3;
+  border: 1px solid #ebd9b4;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+:global([data-theme="dark"]) .formHeaderNotice,
+:global(.dark) .formHeaderNotice {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: rgba(201, 168, 76, 0.25);
+}
+
+.noticeText {
+  font-size: 0.88rem;
+  color: var(--fg-muted, #574d44);
+  line-height: 1.55;
+  margin-bottom: 0.8rem;
+}
+
+.noticeBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.noticeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(180, 83, 9, 0.1);
+  color: var(--gold, #b45309);
+  width: fit-content;
+}
+
+:global([data-theme="dark"]) .noticeBadge,
+:global(.dark) .noticeBadge {
+  background: rgba(201, 168, 76, 0.15);
+  color: #dfc377;
+}
+
+.disclaimerBox {
+  background: #fff8f0;
+  border: 1.5px solid #f97316;
+  border-radius: 12px;
+  padding: 1.1rem;
+}
+
+:global([data-theme="dark"]) .disclaimerBox,
+:global(.dark) .disclaimerBox {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.disclaimerTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #c2410c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.5rem;
+}
+
+:global([data-theme="dark"]) .disclaimerTitle,
+:global(.dark) .disclaimerTitle {
+  color: #fb923c;
+}
+
+.disclaimerBody {
+  font-size: 0.84rem;
+  color: var(--fg, #372e27);
+  line-height: 1.6;
+}
+
+.disclaimerBody ul {
+  margin: 0.4rem 0 0.6rem 1.2rem;
+  padding: 0;
+}
+
+.disclaimerBody li {
+  margin-bottom: 2px;
+}
+
+.checkboxAgree {
+  margin-top: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--fg, #372e27);
+  padding: 8px 12px;
+  background: rgba(249, 115, 22, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  transition: all 0.2s;
+}
+
+.checkboxAgree:hover {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.checkboxAgree input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #c2410c;
+  cursor: pointer;
+}
+
+.sectionDivider {
+  border-top: 1px dashed #d6cebf;
+  margin: 0.6rem 0;
+  padding-top: 0.8rem;
+}
+
+:global([data-theme="dark"]) .sectionDivider,
+:global(.dark) .sectionDivider {
+  border-color: #383838;
+}
+
+.sectionHeading {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gold, #b45309);
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldSubtext {
+  font-size: 0.76rem;
+  color: var(--fg-muted, #7c7268);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.optionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--fg, #372e27);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #fbf9f5;
+  border: 1px solid #d6cebf;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+:global([data-theme="dark"]) .optionLabel,
+:global(.dark) .optionLabel {
+  background: #181818;
+  border-color: #333333;
+}
+
+.optionLabel:hover {
+  border-color: var(--gold, #b45309);
+  background: rgba(180, 83, 9, 0.05);
+}
+
+.optionLabel input {
+  accent-color: var(--gold, #b45309);
+}
+
+.otherInput {
+  margin-top: 4px;
+}
+
+.reminderBox {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+:global([data-theme="dark"]) .reminderBox,
+:global(.dark) .reminderBox {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.reminderBox i {
+  color: #10b981;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reminderTitle {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #15803d;
+  margin-bottom: 2px;
+}
+
+:global([data-theme="dark"]) .reminderTitle,
+:global(.dark) .reminderTitle {
+  color: #34d399;
+}
+
+.reminderText {
+  font-size: 0.8rem;
+  color: var(--fg-muted, #574d44);
+  line-height: 1.45;
+}
+
 .submitBtn {
   margin-top: 0.5rem;
   padding: 12px;
@@ -479,3 +705,4 @@
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.3);
 }
+

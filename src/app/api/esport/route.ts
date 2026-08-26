@@ -52,8 +52,17 @@ const DEFAULT_DIVISIONS = [
   },
 ];
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/esport — list semua 6 divisi + roster count
 export async function GET() {
+  const headers = {
+    "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+  };
+
   try {
     if (isMySqlConfigured()) {
       const rows = await query<any[]>(`
@@ -64,13 +73,13 @@ export async function GET() {
         ORDER BY d.sort_order ASC
       `);
       if (Array.isArray(rows) && rows.length > 0) {
-        return NextResponse.json({ success: true, data: rows });
+        return NextResponse.json({ success: true, data: rows }, { headers });
       }
     }
   } catch (e: any) {
     console.warn("Esport GET error, fallback:", e.message);
   }
-  return NextResponse.json({ success: true, data: DEFAULT_DIVISIONS });
+  return NextResponse.json({ success: true, data: DEFAULT_DIVISIONS }, { headers });
 }
 
 // PATCH /api/esport — toggle is_active
@@ -82,7 +91,9 @@ export async function PATCH(req: NextRequest) {
     if (isMySqlConfigured()) {
       await query("UPDATE `esport_divisions` SET `is_active` = ? WHERE `id` = ?", [is_active ? 1 : 0, id]);
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
+    });
   } catch (e: any) {
     return NextResponse.json({ success: false, message: e.message }, { status: 500 });
   }
@@ -100,8 +111,11 @@ export async function PUT(req: NextRequest) {
         [cover_url || null, name || null, id]
       );
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, {
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
+    });
   } catch (e: any) {
     return NextResponse.json({ success: false, message: e.message }, { status: 500 });
   }
 }
+

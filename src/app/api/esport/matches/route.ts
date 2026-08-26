@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/esport/matches
 export async function GET(request: NextRequest) {
   try {
