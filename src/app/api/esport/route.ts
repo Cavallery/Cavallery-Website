@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { query, isMySqlConfigured } from "@/lib/mysql";
+
+const isVercel = process.env.VERCEL === "1";
+const DATA_DIR = isVercel ? "/tmp" : path.join(process.cwd(), "src", "data");
+const DIVISIONS_FILE = path.join(DATA_DIR, "esport-divisions.json");
 
 const DEFAULT_DIVISIONS = [
   {
@@ -52,6 +58,33 @@ const DEFAULT_DIVISIONS = [
   },
 ];
 
+function ensureDataDirectory() {
+  const dir = path.dirname(DIVISIONS_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+function readDivisionsLocal(): any[] {
+  ensureDataDirectory();
+  if (fs.existsSync(DIVISIONS_FILE)) {
+    try {
+      const content = fs.readFileSync(DIVISIONS_FILE, "utf-8");
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {
+      console.error("Error reading esport-divisions.json:", e);
+    }
+  }
+  fs.writeFileSync(DIVISIONS_FILE, JSON.stringify(DEFAULT_DIVISIONS, null, 2), "utf-8");
+  return DEFAULT_DIVISIONS;
+}
+
+function writeDivisionsLocal(data: any[]) {
+  ensureDataDirectory();
+  fs.writeFileSync(DIVISIONS_FILE, JSON.stringify(data, null, 2), "utf-8");
+}
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -73,13 +106,17 @@ export async function GET() {
         ORDER BY d.sort_order ASC
       `);
       if (Array.isArray(rows) && rows.length > 0) {
+        // Sync local cache
+        try { writeDivisionsLocal(rows); } catch {}
         return NextResponse.json({ success: true, data: rows }, { headers });
       }
     }
   } catch (e: any) {
-    console.warn("Esport GET error, fallback:", e.message);
+    console.warn("Esport GET error, fallback to local:", e.message);
   }
-  return NextResponse.json({ success: true, data: DEFAULT_DIVISIONS }, { headers });
+
+  const localData = readDivisionsLocal();
+  return NextResponse.json({ success: true, data: localData }, { headers });
 }
 
 // PATCH /api/esport — toggle is_active
@@ -89,9 +126,21 @@ export async function PATCH(req: NextRequest) {
     if (!id) return NextResponse.json({ success: false, message: "id wajib diisi" }, { status: 400 });
     
     if (isMySqlConfigured()) {
-      await query("UPDATE `esport_divisions` SET `is_active` = ? WHERE `id` = ?", [is_active ? 1 : 0, id]);
+      try {
+        await query("UPDATE `esport_divisions` SET `is_active` = ? WHERE `id` = ?", [is_active ? 1 : 0, id]);
+      } catch (err: any) {
+        console.warn("MySQL update division error:", err.message);
+      }
     }
-    return NextResponse.json({ success: true }, {
+
+    // Always update local JSON
+    const divisions = readDivisionsLocal();
+    const updated = divisions.map((d) =>
+      d.id === id ? { ...d, is_active: is_active ? 1 : 0 } : d
+    );
+    writeDivisionsLocal(updated);
+
+    return NextResponse.json({ success: true, data: updated }, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
     });
   } catch (e: any) {
@@ -106,16 +155,35 @@ export async function PUT(req: NextRequest) {
     if (!id) return NextResponse.json({ success: false, message: "id wajib diisi" }, { status: 400 });
     
     if (isMySqlConfigured()) {
-      await query(
-        "UPDATE `esport_divisions` SET `cover_url` = COALESCE(?, `cover_url`), `name` = COALESCE(?, `name`) WHERE `id` = ?",
-        [cover_url || null, name || null, id]
-      );
+      try {
+        await query(
+          "UPDATE `esport_divisions` SET `cover_url` = COALESCE(?, `cover_url`), `name` = COALESCE(?, `name`) WHERE `id` = ?",
+          [cover_url || null, name || null, id]
+        );
+      } catch (err: any) {
+        console.warn("MySQL update division error:", err.message);
+      }
     }
-    return NextResponse.json({ success: true }, {
+
+    // Always update local JSON
+    const divisions = readDivisionsLocal();
+    const updated = divisions.map((d) =>
+      d.id === id
+        ? {
+            ...d,
+            cover_url: cover_url !== undefined ? cover_url : d.cover_url,
+            name: name !== undefined ? name : d.name,
+          }
+        : d
+    );
+    writeDivisionsLocal(updated);
+
+    return NextResponse.json({ success: true, data: updated }, {
       headers: { "Cache-Control": "no-store, no-cache, must-revalidate" }
     });
   } catch (e: any) {
     return NextResponse.json({ success: false, message: e.message }, { status: 500 });
   }
 }
+
 

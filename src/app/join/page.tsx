@@ -99,6 +99,7 @@ export default function JoinPage() {
     "Aku akan aktif interaksi di grup",
   ]);
   const [supportTypeOther, setSupportTypeOther] = useState("");
+  const [activitySuggestion, setActivitySuggestion] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -141,6 +142,7 @@ export default function JoinPage() {
     setReasonMemberOther("");
     setSupportTypes(["Aku akan aktif interaksi di grup"]);
     setSupportTypeOther("");
+    setActivitySuggestion("");
     setFormError("");
     setSubmitted(false);
   };
@@ -246,6 +248,7 @@ export default function JoinPage() {
               username_tiktok: usernameTiktok.trim() || null,
               reason: chosenReason,
               support_type: finalSupportList,
+              activity_suggestion: activitySuggestion.trim() || null,
               fee_agreed: feeAgreed ? 1 : 0,
               whatsapp: lineId.trim(),
             }
@@ -720,6 +723,21 @@ export default function JoinPage() {
                         placeholder="Keahlian / bentuk support yang lain..."
                         value={supportTypeOther}
                         onChange={(e) => setSupportTypeOther(e.target.value)}
+                      />
+                    </div>
+
+                    {/* SARAN KEGIATAN CAVALLERY */}
+                    <div className={styles.field}>
+                      <label>
+                        Saran Kegiatan yang harus dilakukan oleh Cavallery
+                      </label>
+                      <span className={styles.fieldSubtext}>
+                        Punya ide event, project, atau kegiatan seru untuk Cavallery? Tuliskan saranmu di sini!
+                      </span>
+                      <textarea
+                        placeholder="Tuliskan saran kegiatan atau ide project untuk Cavallery..."
+                        value={activitySuggestion}
+                        onChange={(e) => setActivitySuggestion(e.target.value)}
                       />
                     </div>
 
