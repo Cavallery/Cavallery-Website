@@ -41,7 +41,7 @@ const INITIAL_DIVISIONS: Division[] = [
   {
     id: "ml",
     name: "Mobile Legends",
-    cover_url: "https://seagm-media.seagmcdn.com/item_480/1045.png",
+    cover_url: "https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co7lqm.jpg",
     is_active: 1,
     sort_order: 1,
     roster_count: 0,
@@ -276,9 +276,6 @@ export default function EsportPage() {
                         </>
                       )}
                     </div>
-                    {!isActive && (
-                      <div className={styles.hiatus}>DIVISI SEDANG HIATUS</div>
-                    )}
                   </div>
                 </div>
               );
@@ -420,6 +417,14 @@ export default function EsportPage() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Empty State when no matches */}
+          {upcomingMatches.length === 0 && completedMatches.length === 0 && (
+            <div style={{ textAlign: "center", padding: "2.5rem 1rem", opacity: 0.7, background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px", border: "1px dashed rgba(255, 255, 255, 0.1)" }}>
+              <i className="bx bx-calendar-x" style={{ fontSize: "2.2rem", color: "var(--gold)", marginBottom: "0.5rem", display: "block" }} />
+              <p style={{ margin: 0, fontWeight: 600, fontSize: "0.95rem" }}>Belum ada jadwal atau riwayat hasil pertandingan.</p>
             </div>
           )}
         </div>
