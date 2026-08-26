@@ -81,21 +81,14 @@ export default function CalendarSection() {
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`;
           const lives: Show[] = json.data.map((stream: any, idx: number) => {
             const type = (stream.type || stream.platform || "").toLowerCase();
-            let liveUrl = "https://www.showroom-live.com/r/JKT48_Erine";
-            if (type.includes("idn") || stream.url?.includes("idn.app") || stream.idn_url) {
-              liveUrl = "https://www.idn.app/jkt48_erine";
-            } else if (stream.url_key) {
-              liveUrl = `https://www.showroom-live.com/r/${stream.url_key}`;
-            } else if (stream.url) {
-              liveUrl = stream.url;
-            }
+            let liveUrl = stream.url || (type.includes("idn") ? "https://www.idn.app/jkt48_erine" : "https://www.showroom-live.com/r/JKT48_Erine");
 
             return {
               id: `live-${idx}`,
-              title: `LIVE: ${stream.room_name || stream.name || "Showroom / IDN"}`,
+              title: `LIVE: ${stream.title || stream.room_name || stream.name || "Showroom / IDN"}`,
               date: todayStr,
               startTime: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-              members: [{ name: stream.member_name || "Catherina Vallencia (Erine)" }],
+              members: [{ name: stream.name || stream.member_name || (stream.is_erine ? "Catherina Vallencia" : "JKT48") }],
               url: liveUrl,
             };
           });
@@ -161,7 +154,7 @@ export default function CalendarSection() {
             const todayStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}T00:00:00`;
             return {
               id: `birthday-${idx}`,
-              title: `🎂 Ulang Tahun: ${item.name}`,
+              title: `Ulang Tahun: ${item.name}`,
               date: todayStr,
               startTime: "00:00",
               members: [{ name: item.name }],
@@ -407,8 +400,11 @@ export default function CalendarSection() {
                               marginRight: 6,
                               fontWeight: 700,
                               textTransform: "uppercase",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px"
                             }}>
-                              🐴 Cavallery
+                              <i className="bx bx-calendar-event" /> Cavallery
                             </span>
                           )}
                           {show.title}
