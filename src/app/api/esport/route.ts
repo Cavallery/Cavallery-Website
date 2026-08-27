@@ -58,6 +58,8 @@ const DEFAULT_DIVISIONS = [
   },
 ];
 
+const ROSTERS_FILE = path.join(DATA_DIR, "esport-rosters.json");
+
 function ensureDataDirectory() {
   const dir = path.dirname(DIVISIONS_FILE);
   if (!fs.existsSync(dir)) {
@@ -67,17 +69,34 @@ function ensureDataDirectory() {
 
 function readDivisionsLocal(): any[] {
   ensureDataDirectory();
+  let divisions: any[] = DEFAULT_DIVISIONS;
   if (fs.existsSync(DIVISIONS_FILE)) {
     try {
       const content = fs.readFileSync(DIVISIONS_FILE, "utf-8");
       const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        divisions = parsed;
+      }
     } catch (e) {
       console.error("Error reading esport-divisions.json:", e);
     }
   }
-  fs.writeFileSync(DIVISIONS_FILE, JSON.stringify(DEFAULT_DIVISIONS, null, 2), "utf-8");
-  return DEFAULT_DIVISIONS;
+
+  // Dynamically calculate roster_count from esport-rosters.json
+  try {
+    if (fs.existsSync(ROSTERS_FILE)) {
+      const rostersContent = fs.readFileSync(ROSTERS_FILE, "utf-8");
+      const rosters = JSON.parse(rostersContent);
+      if (Array.isArray(rosters)) {
+        divisions = divisions.map((d) => ({
+          ...d,
+          roster_count: rosters.filter((r: any) => r.division_id === d.id).length,
+        }));
+      }
+    }
+  } catch {}
+
+  return divisions;
 }
 
 function writeDivisionsLocal(data: any[]) {

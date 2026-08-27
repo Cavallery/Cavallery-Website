@@ -4,12 +4,31 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import styles from "./AboutErineSection.module.css";
 
-function parseSongs(raw: string): string[] {
+function parseSongs(raw: any): string[] {
   if (!raw) return [];
-  return raw
-    .replace(/^\{/, "").replace(/\}$/, "")
+
+  if (Array.isArray(raw)) {
+    return raw
+      .map((s) => String(s).replace(/^[\["'\s]+|[\]"'\s]+$/g, "").replace(/\\"/g, '"').trim())
+      .filter(Boolean);
+  }
+
+  const s = String(raw).trim();
+  if (s.startsWith("[") || s.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(s.replace(/^\{/, "[").replace(/\}$/, "]"));
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => String(item).replace(/^[\["'\s]+|[\]"'\s]+$/g, "").replace(/\\"/g, '"').trim())
+          .filter(Boolean);
+      }
+    } catch {}
+  }
+
+  return s
+    .replace(/^[\[\{]+|[\]\}]+$/g, "")
     .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-    .map((s) => s.replace(/^"|"$/g, "").trim())
+    .map((item) => item.replace(/^[\["'\s]+|[\]"'\s]+$/g, "").replace(/\\"/g, '"').trim())
     .filter(Boolean);
 }
 
@@ -22,7 +41,6 @@ function calculateAge() {
   return age;
 }
 
-
 interface SetlistData {
   title: string;
   date: string;
@@ -31,7 +49,7 @@ interface SetlistData {
   songs: string[];
 }
 
-function FlipCard({ set, idx }: { set: SetlistData; idx: number }) {
+function FlipCard({ set }: { set: SetlistData; idx: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
@@ -62,11 +80,14 @@ function FlipCard({ set, idx }: { set: SetlistData; idx: number }) {
             Unit Songs
           </div>
           <ul className={styles.unitSongs}>
-            {set.songs.map((song: string, i: number) => (
-              <li key={song} className={styles.songRow}>
-                <span className={styles.songNum}>{i + 1}.</span> {song}
-              </li>
-            ))}
+            {set.songs.map((song: string, i: number) => {
+              const cleanSong = String(song).replace(/^[\["'\s]+|[\]"'\s]+$/g, "").trim();
+              return (
+                <li key={`${cleanSong}-${i}`} className={styles.songRow}>
+                  <span className={styles.songNum}>{i + 1}.</span> {cleanSong}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </motion.div>
@@ -91,6 +112,7 @@ export default function AboutErineSection() {
   const [updates, setUpdates] = useState<any[]>([]);
   const [kabeshas, setKabeshas] = useState<any[]>([]);
   const [funfacts, setFunfacts] = useState<any[]>([]);
+  const [openFunFactIds, setOpenFunFactIds] = useState<number[]>([]);
   const [debutVideoId, setDebutVideoId] = useState<string>("Obxn7knXq38");
   const [sskVideoId, setSskVideoId] = useState<string>("_Qn9B9mD2bI");
   const [updatesLoaded, setUpdatesLoaded] = useState(false);
@@ -482,25 +504,133 @@ export default function AboutErineSection() {
         </div>
 
         <div className={styles.ewFf}>
-          <h3>Funfact Erine</h3>
-          <ol>
-            {funfacts.length > 0 ? (
-              funfacts.map((f: any, i: number) => (
-                <li key={f.id || i}>{f.fact || f.content}</li>
-              ))
-            ) : (
-              <>
-                <li>Penampilan pertamanya sebagai penari latar di JKT48 Stage ke-5 untuk lagu Glory Days adalah pada tanggal 1 Februari 2025.</li>
-                <li>Suka aespa, terutama member bernama Ningning.</li>
-                <li>Cita-cita pengen bawa bendera saat upacara.</li>
-                <li>Erine Waktu SMA ada dijurusan IPS.</li>
-                <li>Bisa memainkan Kalimba.</li>
-                <li>Mata sehat, tidak silinder atau minus.</li>
-                <li>Mendaftar JKT48 di hari terakhir pendaftaran.</li>
-                <li>Tidak bisa maen catur, &quot;Checkmate&quot; cuman spontan kepikiran.</li>
-              </>
-            )}
-          </ol>
+          <div className={styles.ffHeader}>
+            <div>
+              <h3 className={styles.ffTitle}>
+                <i className="bx bx-help-circle" style={{ color: "var(--gold)", marginRight: 8 }} />
+                Fun Fact & Trivia Erine
+              </h3>
+              <p className={styles.ffSubtitle}>
+                Klik pertanyaan di bawah untuk mengungkap fakta & rahasia menarik tentang Erine! 🐣✨
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.ffToggleAllBtn}
+              onClick={() => {
+                const totalIds = (funfacts.length > 0 ? funfacts : [1, 2, 3, 4, 5, 6, 7, 8]).map((_, i) => i + 1);
+                setOpenFunFactIds(openFunFactIds.length === totalIds.length ? [] : totalIds);
+              }}
+            >
+              {openFunFactIds.length > 0 ? "Tutup Semua" : "Buka Semua"}
+            </button>
+          </div>
+
+          <div className={styles.ffGrid}>
+            {(funfacts.length > 0
+              ? funfacts.map((f: any, i: number) => {
+                  const raw = f.fact || f.content || "";
+                  let q = `Trivia #${i + 1}: Tahukah kamu tentang hal ini?`;
+                  let a = raw;
+                  if (raw.includes("?") || raw.includes("—") || raw.includes(":")) {
+                    const parts = raw.split(/[?|—|:]/);
+                    if (parts.length >= 2 && parts[0].trim().length > 5) {
+                      q = parts[0].trim() + (raw.includes("?") ? "?" : "");
+                      a = parts.slice(1).join(" ").trim();
+                    }
+                  }
+                  if (!a.toLowerCase().includes("erine")) {
+                    a = `Fakta Erine: ${a}`;
+                  }
+                  return { id: f.id || i + 1, q, a, tag: "Fun Fact" };
+                })
+              : [
+                  {
+                    id: 1,
+                    q: "Kapan penampilan pertama Erine di panggung theater JKT48?",
+                    a: "Penampilan pertama Erine sebagai penari latar (zenza girl) di JKT48 Stage ke-5 untuk lagu 'Glory Days' adalah pada tanggal 1 Februari 2025.",
+                    tag: "Panggung Theater",
+                  },
+                  {
+                    id: 2,
+                    q: "Siapa grup dan idol K-Pop favorit Erine?",
+                    a: "Erine sangat mengidolakan girlgroup aespa, dengan bias utama Erine yaitu Ningning.",
+                    tag: "Favorit",
+                  },
+                  {
+                    id: 3,
+                    q: "Apa cita-cita unik Erine semasa upacara sekolah?",
+                    a: "Erine punya cita-cita unik ingin menjadi petugas pembawa bendera saat Erine upacara bendera di sekolah.",
+                    tag: "Masa Sekolah",
+                  },
+                  {
+                    id: 4,
+                    q: "Waktu SMA, Erine memilih jurusan apa?",
+                    a: "Erine mengambil jurusan IPS saat Erine menempuh pendidikan di SMA.",
+                    tag: "Pendidikan",
+                  },
+                  {
+                    id: 5,
+                    q: "Alat musik apa yang bisa dimainkan oleh Erine?",
+                    a: "Erine mahir memainkan alat musik Kalimba (alat musik petik jempol).",
+                    tag: "Bakat Musik",
+                  },
+                  {
+                    id: 6,
+                    q: "Bagaimana kondisi kesehatan mata Erine?",
+                    a: "Mata Erine sangat sehat dan jernih, Erine sama sekali tidak memiliki silinder ataupun minus.",
+                    tag: "Fisik & Kesehatan",
+                  },
+                  {
+                    id: 7,
+                    q: "Kapan Erine mengirimkan formulir pendaftaran audisi JKT48?",
+                    a: "Erine mendaftarkan diri pada audisi JKT48 tepat di hari terakhir penutupan pendaftaran!",
+                    tag: "Audisi JKT48",
+                  },
+                  {
+                    id: 8,
+                    q: "Apakah Erine benar-benar jago bermain catur?",
+                    a: "Sebenarnya Erine tidak bisa main catur! Jikoshoukai 'Checkmate' Erine itu murni ide spontan yang terlintas begitu saja di pikiran Erine.",
+                    tag: "Jikoshoukai",
+                  },
+                ]
+            ).map((item: any) => {
+              const isOpen = openFunFactIds.includes(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className={`${styles.ffCard} ${isOpen ? styles.ffCardOpen : ""}`}
+                  onClick={() => {
+                    setOpenFunFactIds((prev) =>
+                      prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
+                    );
+                  }}
+                >
+                  <div className={styles.ffQuestionRow}>
+                    <div className={styles.ffQuestionLeft}>
+                      <span className={styles.ffNumberBadge}>Q{item.id}</span>
+                      <span className={styles.ffQuestionText}>{item.q}</span>
+                    </div>
+                    <div className={styles.ffChevron}>
+                      <i className={`bx ${isOpen ? "bx-chevron-up" : "bx-chevron-down"}`} />
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div className={styles.ffAnswerBox}>
+                      <div className={styles.ffAnswerHeader}>
+                        <span className={styles.ffAnswerBadge}>
+                          <i className="bx bx-bulb" /> Jawaban
+                        </span>
+                        {item.tag && <span className={styles.ffTagBadge}>{item.tag}</span>}
+                      </div>
+                      <p className={styles.ffAnswerText}>{item.a}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 

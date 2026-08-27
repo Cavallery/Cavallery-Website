@@ -1,5 +1,6 @@
 import AboutErineSection from "@/components/home/AboutErineSection";
 import TimelineSection from "@/components/home/TimelineSection";
+import YoutubeSection from "@/components/home/YoutubeSection";
 import type { Metadata } from "next";
 import styles from "./page.module.css";
 
@@ -14,6 +15,7 @@ export default function AboutErinePage() {
     <div className={styles.page}>
       <div style={{ paddingTop: 80 }}>
         <AboutErineSection />
+        <YoutubeSection />
         <TimelineSection />
       </div>
     </div>

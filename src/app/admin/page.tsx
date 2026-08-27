@@ -5429,7 +5429,7 @@ function EsportManager() {
   const loadRoster = useCallback(async (divId: string) => {
     setRosterLoading(true);
     try {
-      const res = await fetch(`/api/esport/${divId}/roster`);
+      const res = await fetch(`/api/esport/${divId}/roster?t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {

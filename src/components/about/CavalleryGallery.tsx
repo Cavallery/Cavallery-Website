@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import styles from "@/app/about/cavallery/page.module.css";
 
 interface MediaItem {
@@ -21,53 +21,13 @@ interface MediaItem {
 
 const API_URL = "/api/media?limit=100";
 
-function useCarousel() {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScroll = () => {
-    if (viewportRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = viewportRef.current;
-      setCanScrollLeft(scrollLeft > 5);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
-    }
-  };
-
-  useEffect(() => {
-    const el = viewportRef.current;
-    if (el) {
-      el.addEventListener("scroll", checkScroll);
-      checkScroll();
-      window.addEventListener("resize", checkScroll);
-    }
-    return () => {
-      if (el) el.removeEventListener("scroll", checkScroll);
-      window.removeEventListener("resize", checkScroll);
-    };
-  });
-
-  const scroll = (direction: "left" | "right") => {
-    if (viewportRef.current) {
-      viewportRef.current.scrollBy({
-        left: direction === "left" ? -340 : 340,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  return { viewportRef, canScrollLeft, canScrollRight, scroll };
-}
-
 export default function CavalleryGallery() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "image" | "video">("all");
   const [lightboxItem, setLightboxItem] = useState<MediaItem | null>(null);
   const [lightboxList, setLightboxList] = useState<MediaItem[]>([]);
-
-  const photoCarousel = useCarousel();
-  const videoCarousel = useCarousel();
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -98,13 +58,15 @@ export default function CavalleryGallery() {
         } catch {}
 
         if (items.length === 0) {
-          const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT&limit=100");
-          if (extRes.ok) {
-            const extJson = await extRes.json();
-            if (extJson.status && Array.isArray(extJson.data?.items)) {
-              items = extJson.data.items;
+          try {
+            const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT&limit=100");
+            if (extRes.ok) {
+              const extJson = await extRes.json();
+              if (extJson.status && Array.isArray(extJson.data?.items)) {
+                items = extJson.data.items;
+              }
             }
-          }
+          } catch {}
         }
 
         const validItems = items.filter(
@@ -156,8 +118,14 @@ export default function CavalleryGallery() {
   const photos = mediaItems.filter((i) => i.type === "image");
   const videos = mediaItems.filter((i) => i.type === "video");
 
-  const openLightbox = (item: MediaItem, list: MediaItem[]) => {
-    setLightboxList(list);
+  const displayedItems = activeTab === "all"
+    ? mediaItems
+    : activeTab === "image"
+    ? photos
+    : videos;
+
+  const openLightbox = (item: MediaItem) => {
+    setLightboxList(displayedItems);
     setLightboxItem(item);
   };
 
@@ -167,81 +135,6 @@ export default function CavalleryGallery() {
     setLightboxItem(lightboxList[(idx + dir + lightboxList.length) % lightboxList.length]);
   };
 
-  const renderCarousel = (
-    items: MediaItem[],
-    carouselHook: ReturnType<typeof useCarousel>,
-    label: string,
-    icon: string
-  ) => {
-    if (items.length === 0) return null;
-
-    return (
-      <div className={styles.mediaSubSection}>
-        <div className={styles.mediaSubHeader}>
-          <div className={styles.mediaSubLabel}>
-            <i className={`bx ${icon}`} /> {label}
-          </div>
-          <div className={styles.navButtons}>
-            <button
-              className={styles.slideBtn}
-              onClick={() => carouselHook.scroll("left")}
-              disabled={!carouselHook.canScrollLeft}
-              aria-label="Scroll left"
-            >
-              <i className="bx bx-chevron-left" />
-            </button>
-            <button
-              className={styles.slideBtn}
-              onClick={() => carouselHook.scroll("right")}
-              disabled={!carouselHook.canScrollRight}
-              aria-label="Scroll right"
-            >
-              <i className="bx bx-chevron-right" />
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.carouselContainer}>
-          <div className={styles.carouselViewport} ref={carouselHook.viewportRef}>
-            <div className={styles.carouselTrack}>
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className={`${styles.galleryCard} ${item.type === "video" ? styles.galleryCardVideo : ""}`}
-                  onClick={() => openLightbox(item, items)}
-                  style={{ position: "relative" }}
-                >
-                  {item.type === "video" ? (
-                    <>
-                      <video
-                        src={item.public_url}
-                        className={styles.galleryImage}
-                        muted
-                        playsInline
-                        preload="metadata"
-                      />
-                      <div className={styles.videoOverlay}>
-                        <i className="bx bx-play-circle" style={{ fontSize: 44, color: "#fff" }} />
-                        <span className={styles.videoLabel}>Putar Video</span>
-                      </div>
-                    </>
-                  ) : (
-                    <img
-                      src={item.public_url}
-                      alt={item.alt_text}
-                      className={styles.galleryImage}
-                      loading="lazy"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const currentIdx = lightboxList.findIndex((i) => i.id === lightboxItem?.id);
 
   return (
@@ -249,45 +142,131 @@ export default function CavalleryGallery() {
       <div className={styles.headerWrapper}>
         <div className={styles.header}>
           <div className="badge">
-            <i className="bx bx-image" /> Galeri Media
+            <i className="bx bx-image" /> Galeri Dokumentasi
           </div>
           <h2 className={styles.sectionH} style={{ marginTop: 16 }}>
             Keseruan Bersama Cavallery
           </h2>
+          <p style={{ color: "var(--fg-muted)", fontSize: "0.95rem", maxWidth: 600, margin: "8px auto 0" }}>
+            Kumpulan momen indah, kegiatan fanbase, dan keseruan bersama seluruh anggota Cavallery dalam mendukung Erine.
+          </p>
         </div>
       </div>
 
+      {/* FILTER TABS */}
+      <div className={styles.filterTabBar}>
+        <button
+          className={`${styles.filterTab} ${activeTab === "all" ? styles.filterTabActive : ""}`}
+          onClick={() => setActiveTab("all")}
+        >
+          <i className="bx bx-grid-alt" /> Semua ({mediaItems.length})
+        </button>
+        <button
+          className={`${styles.filterTab} ${activeTab === "image" ? styles.filterTabActive : ""}`}
+          onClick={() => setActiveTab("image")}
+        >
+          <i className="bx bx-images" /> Foto ({photos.length})
+        </button>
+        <button
+          className={`${styles.filterTab} ${activeTab === "video" ? styles.filterTabActive : ""}`}
+          onClick={() => setActiveTab("video")}
+        >
+          <i className="bx bx-video" /> Video ({videos.length})
+        </button>
+      </div>
+
       {loading && (
-        <div style={{ padding: "2rem", color: "var(--text-secondary)" }}>
-          Memuat galeri...
+        <div style={{ textAlign: "center", padding: "3rem", color: "var(--fg-muted)" }}>
+          <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", marginBottom: "8px", display: "block" }} />
+          Memuat galeri keseruan...
         </div>
       )}
+
       {error && (
-        <div style={{ padding: "2rem", color: "red" }}>{error}</div>
-      )}
-      {!loading && !error && mediaItems.length === 0 && (
-        <div style={{ padding: "2rem", color: "var(--text-secondary)" }}>
-          Belum ada media tersedia.
+        <div style={{ textAlign: "center", padding: "2rem", color: "#ef4444" }}>
+          {error}
         </div>
       )}
 
-      {!loading && !error && (
-        <>
-          {renderCarousel(videos, videoCarousel, "Video Keseruan", "bx-video")}
-          {renderCarousel(photos, photoCarousel, "Foto Keseruan", "bx-images")}
-        </>
+      {!loading && !error && displayedItems.length === 0 && (
+        <div style={{ textAlign: "center", padding: "3rem", color: "var(--fg-muted)" }}>
+          <i className="bx bx-folder-open" style={{ fontSize: "2.5rem", marginBottom: "8px", display: "block", opacity: 0.6 }} />
+          Belum ada dokumentasi {activeTab === "image" ? "foto" : activeTab === "video" ? "video" : "media"} yang dipublikasikan.
+        </div>
       )}
 
-      {/* Lightbox */}
+      {/* GALLERY GRID */}
+      {!loading && !error && displayedItems.length > 0 && (
+        <div className={styles.galleryGrid}>
+          {displayedItems.map((item) => (
+            <div
+              key={item.id}
+              className={`${styles.galleryGridCard} ${item.type === "video" ? styles.galleryGridCardVideo : ""}`}
+              onClick={() => openLightbox(item)}
+            >
+              {item.type === "video" ? (
+                <>
+                  <video
+                    src={item.public_url}
+                    className={styles.galleryGridImage}
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                  <div className={styles.videoOverlay}>
+                    <div className={styles.playIconCircle}>
+                      <i className="bx bx-play" />
+                    </div>
+                    <span className={styles.videoLabel}>Tonton Video</span>
+                  </div>
+                  <div className={styles.typeBadge}>
+                    <i className="bx bx-video" /> Video
+                  </div>
+                </>
+              ) : (
+                <>
+                  <img
+                    src={item.public_url}
+                    alt={item.alt_text || "Dokumentasi Cavallery"}
+                    className={styles.galleryGridImage}
+                    loading="lazy"
+                  />
+                  <div className={styles.photoOverlay}>
+                    <div className={styles.zoomIconCircle}>
+                      <i className="bx bx-expand" />
+                    </div>
+                  </div>
+                  <div className={styles.typeBadge}>
+                    <i className="bx bx-image" /> Foto
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* LIGHTBOX MODAL */}
       {lightboxItem && (
         <div className={styles.lightbox} onClick={() => setLightboxItem(null)}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeBtn} onClick={() => setLightboxItem(null)}>
+            <button
+              className={styles.closeBtn}
+              onClick={() => setLightboxItem(null)}
+              aria-label="Tutup"
+            >
               <i className="bx bx-x" />
             </button>
-            <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={(e) => navLightbox(-1, e)}>
-              <i className="bx bx-chevron-left" />
-            </button>
+
+            {lightboxList.length > 1 && (
+              <button
+                className={`${styles.navBtn} ${styles.prevBtn}`}
+                onClick={(e) => navLightbox(-1, e)}
+                aria-label="Sebelumnya"
+              >
+                <i className="bx bx-chevron-left" />
+              </button>
+            )}
 
             {lightboxItem.type === "video" ? (
               <video
@@ -299,14 +278,21 @@ export default function CavalleryGallery() {
             ) : (
               <img
                 src={lightboxItem.public_url}
-                alt={lightboxItem.alt_text}
+                alt={lightboxItem.alt_text || "Dokumentasi Cavallery"}
                 className={styles.lightboxImage}
               />
             )}
 
-            <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={(e) => navLightbox(1, e)}>
-              <i className="bx bx-chevron-right" />
-            </button>
+            {lightboxList.length > 1 && (
+              <button
+                className={`${styles.navBtn} ${styles.nextBtn}`}
+                onClick={(e) => navLightbox(1, e)}
+                aria-label="Berikutnya"
+              >
+                <i className="bx bx-chevron-right" />
+              </button>
+            )}
+
             <div className={styles.counter}>
               {currentIdx + 1} / {lightboxList.length}
             </div>

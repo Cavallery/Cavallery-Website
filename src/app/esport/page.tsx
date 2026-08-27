@@ -58,9 +58,9 @@ const INITIAL_DIVISIONS: Division[] = [
     id: "coc",
     name: "Clash of Clans",
     cover_url: "https://m.media-amazon.com/images/M/MV5BZTEyNjE0OGEtYmIwNS00NjQ4LTgzNTEtYWVmMzBkMmYxMGI0XkEyXkFqcGc@._V1_.jpg",
-    is_active: 0,
+    is_active: 1,
     sort_order: 3,
-    roster_count: 0,
+    roster_count: 4,
   },
   {
     id: "pubg",
@@ -155,6 +155,11 @@ export default function EsportPage() {
 
   return (
     <div className={styles.page}>
+      {/* Background chess watermarks */}
+      <div className="chessboard-bg" />
+      <div className="knight-watermark" aria-hidden="true" />
+      <div className="board-watermark" aria-hidden="true" />
+
       {/* Hero with Header Banner and Official Esport Logo */}
       <div className={styles.hero}>
         <img

@@ -99,6 +99,21 @@ function renderNavIcon(icon?: string) {
   return <i className={icon} />;
 }
 
+function isParentActive(link: any, pathname: string): boolean {
+  if (link.href) {
+    return pathname === link.href;
+  }
+  if (link.children) {
+    return link.children.some((child: any) => {
+      if (child.children) {
+        return child.children.some((sub: any) => pathname === sub.href || (sub.href !== "/" && pathname.startsWith(sub.href)));
+      }
+      return pathname === child.href || (child.href && child.href !== "/" && pathname.startsWith(child.href));
+    });
+  }
+  return false;
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -106,7 +121,7 @@ export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -122,33 +137,38 @@ export default function Navbar() {
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ""} ${isForceLightText ? styles.forceLightText : ""}`}>
       <div className={styles.inner}>
-        {/* Logo */}
+        {/* Brand Emblem Pill Badge */}
         <Link
           href="/"
-          className={styles.logo}
+          className={styles.brandBadge}
           onClick={() => window.dispatchEvent(new Event("trigger-splash"))}
         >
-          <img src="/images/cava-logo.jpg" alt="Cava Logo" className={styles.logoImg} />
+          <div className={styles.logoImgWrap}>
+            <img src="/images/cava-logo.jpg" alt="Cavallery Logo" className={styles.logoImg} />
+          </div>
           <div className={styles.logoInfo}>
-            <span className={styles.logoText}>Cavallery.id</span>
-            <span className={styles.logoSub}>Fanbase of Catherina Vallencia</span>
+            <span className={styles.logoText}>CAVALLERY</span>
+            <span className={styles.logoSub}>Fanbase Catherina Vallencia</span>
           </div>
         </Link>
 
         {/* Desktop Links */}
         <ul className={styles.links}>
-          {navLinks.map((link: any) =>
-            link.children ? (
+          {navLinks.map((link: any) => {
+            const active = isParentActive(link, pathname);
+            return link.children ? (
               <li
                 key={link.label}
                 className={styles.dropdownItem}
                 onMouseEnter={() => setOpenDropdown(link.label)}
                 onMouseLeave={() => setOpenDropdown(null)}
               >
-                <button className={styles.dropdownToggle}>
-                  {link.label}
-                  <i className="bx bx-chevron-down" />
+                <button className={`${styles.dropdownToggle} ${active ? styles.active : ""}`}>
+                  <span>{link.label}</span>
+                  <i className={`bx bx-chevron-down ${styles.chevronIcon}`} />
+                  {active && <span className={styles.activeIndicator} />}
                 </button>
+
                 {openDropdown === link.label && (
                   <ul className={styles.dropdown}>
                     {link.children.map((child: any) => (
@@ -156,7 +176,8 @@ export default function Navbar() {
                         {child.children ? (
                           <>
                             <div className={styles.nestedToggle}>
-                              {child.label} <i className="bx bx-chevron-right" />
+                              <span>{child.label}</span>
+                              <i className="bx bx-chevron-right" />
                             </div>
                             <ul className={styles.nestedDropdown}>
                               {child.children.map((sub: any) => (
@@ -164,7 +185,7 @@ export default function Navbar() {
                                   {sub.icon ? (
                                     <Link
                                       href={sub.href}
-                                      className={`${styles.dropdownLinkRich} ${pathname === sub.href ? styles.active : ""}`}
+                                      className={`${styles.dropdownLinkRich} ${pathname === sub.href ? styles.activeRich : ""}`}
                                     >
                                       <span className={styles.richIcon}>
                                         {renderNavIcon(sub.icon)}
@@ -191,7 +212,7 @@ export default function Navbar() {
                         ) : child.icon ? (
                           <Link
                             href={child.href}
-                            className={`${styles.dropdownLinkRich} ${pathname === child.href ? styles.active : ""}`}
+                            className={`${styles.dropdownLinkRich} ${pathname === child.href ? styles.activeRich : ""}`}
                           >
                             <span className={styles.richIcon}>
                               {renderNavIcon(child.icon)}
@@ -218,15 +239,17 @@ export default function Navbar() {
               <li key={link.href}>
                 <Link
                   href={link.href!}
-                  className={`${styles.link} ${pathname === link.href ? styles.active : ""}`}
+                  className={`${styles.link} ${active ? styles.active : ""}`}
                   onClick={link.href === "/" ? () => window.dispatchEvent(new Event("trigger-splash")) : undefined}
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {active && <span className={styles.activeIndicator} />}
                 </Link>
               </li>
-            )
-          )}
-          <li>
+            );
+          })}
+
+          <li className={styles.themeToggleItem}>
             <ThemeToggle />
           </li>
         </ul>
@@ -246,7 +269,7 @@ export default function Navbar() {
         <div className={styles.mobileMenu}>
           {navLinks.map((link: any) =>
             link.children ? (
-              <div key={link.label}>
+              <div key={link.label} className={styles.mobileGroup}>
                 <div className={styles.mobileGroupLabel}>{link.label}</div>
                 {link.children.map((child: any) => (
                   child.children ? (
@@ -256,10 +279,10 @@ export default function Navbar() {
                         <Link
                           key={sub.href}
                           href={sub.href}
-                          className={`${styles.mobileLink} ${styles.mobileNestedLink} ${pathname === sub.href ? styles.active : ""}`}
+                          className={`${styles.mobileLink} ${styles.mobileNestedLink} ${pathname === sub.href ? styles.mobileActive : ""}`}
                         >
-                          {sub.icon && <span style={{ marginRight: 8 }}>{renderNavIcon(sub.icon)}</span>}
-                          {sub.label}
+                          {sub.icon && <span className={styles.mobileIcon}>{renderNavIcon(sub.icon)}</span>}
+                          <span>{sub.label}</span>
                         </Link>
                       ))}
                     </div>
@@ -269,10 +292,10 @@ export default function Navbar() {
                     <Link
                       key={child.href}
                       href={child.href}
-                      className={`${styles.mobileLink} ${pathname === child.href ? styles.active : ""}`}
+                      className={`${styles.mobileLink} ${pathname === child.href ? styles.mobileActive : ""}`}
                     >
-                      {child.icon && <span style={{ marginRight: 8 }}>{renderNavIcon(child.icon)}</span>}
-                      {child.label}
+                      {child.icon && <span className={styles.mobileIcon}>{renderNavIcon(child.icon)}</span>}
+                      <span>{child.label}</span>
                     </Link>
                   )
                 ))}
@@ -281,14 +304,14 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href!}
-                className={`${styles.mobileLink} ${pathname === link.href ? styles.active : ""}`}
+                className={`${styles.mobileLink} ${pathname === link.href ? styles.mobileActive : ""}`}
                 onClick={link.href === "/" ? () => window.dispatchEvent(new Event("trigger-splash")) : undefined}
               >
-                {link.label}
+                <span>{link.label}</span>
               </Link>
             )
           )}
-          <div style={{ padding: "16px", display: "flex", justifyContent: "center", borderTop: "1px dashed var(--border)" }}>
+          <div style={{ padding: "16px 0", display: "flex", justifyContent: "center", borderTop: "1px dashed var(--border)" }}>
             <ThemeToggle />
           </div>
         </div>
