@@ -34,7 +34,7 @@ export default function NewsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/news?v=${new Date().getTime()}`)
+    fetch(`/api/news?type=jkt48&v=${new Date().getTime()}`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success && d.data?.news && Array.isArray(d.data.news)) {

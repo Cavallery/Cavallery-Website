@@ -1,0 +1,50 @@
+[
+  {
+    "id": 3,
+    "division_id": "coc",
+    "player_name": "Aditya Pratama Putra",
+    "game_id": "CathVallencia",
+    "role": "Leader",
+    "avatar_url": "https://pbs.twimg.com/profile_images/1963151432489848832/ZdVwt-EZ_400x400.jpg",
+    "is_captain": 1,
+    "sort_order": 0,
+    "created_at": "2026-08-26T09:48:06.000Z",
+    "updated_at": "2026-08-26T10:13:04.000Z"
+  },
+  {
+    "id": 4,
+    "division_id": "coc",
+    "player_name": "Aqil",
+    "game_id": "Abigail Rachel",
+    "role": "Co-Leader",
+    "avatar_url": "https://pbs.twimg.com/profile_images/2091464336019734528/oTzmUhZ5_400x400.jpg",
+    "is_captain": 0,
+    "sort_order": 0,
+    "created_at": "2026-08-26T10:17:09.000Z",
+    "updated_at": "2026-08-26T10:21:17.000Z"
+  },
+  {
+    "id": 5,
+    "division_id": "coc",
+    "player_name": "Dio Ramadhan",
+    "game_id": "dioRama",
+    "role": "Co-Leader",
+    "avatar_url": "https://pbs.twimg.com/profile_images/2091220148040732672/vfR3vu1n_400x400.jpg",
+    "is_captain": 0,
+    "sort_order": 0,
+    "created_at": "2026-08-26T10:17:37.000Z",
+    "updated_at": "2026-08-26T10:17:37.000Z"
+  },
+  {
+    "id": 6,
+    "division_id": "coc",
+    "player_name": "Thoriq Darma",
+    "game_id": "Drooopy",
+    "role": "Co-Leader",
+    "avatar_url": "https://pbs.twimg.com/profile_images/2091342972059299840/zXh1Gfi3_400x400.jpg",
+    "is_captain": 0,
+    "sort_order": 0,
+    "created_at": "2026-08-26T10:18:28.000Z",
+    "updated_at": "2026-08-26T10:18:45.000Z"
+  }
+]

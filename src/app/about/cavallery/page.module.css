@@ -304,56 +304,178 @@
   cursor: not-allowed;
 }
 
-.carouselContainer {
-  position: relative;
+/* ─── FILTER TAB BAR ─────────────────────────────────────── */
+.filterTabBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0 40px;
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface-2, rgba(212, 175, 55, 0.05));
+  border: 1px solid var(--border);
+  color: var(--fg-muted);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filterTab:hover {
+  border-color: var(--gold);
+  color: var(--fg);
+  transform: translateY(-2px);
+}
+
+.filterTabActive {
+  background: linear-gradient(135deg, var(--gold, #d4af37), var(--gold-dark, #b45309));
+  color: #fff !important;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.25);
+}
+
+/* ─── GALLERY GRID ─────────────────────────────────────────── */
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
   width: 100%;
 }
 
-.carouselViewport {
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  display: flex;
-  width: 100%;
-  padding: 12px 4px 24px;
-  scrollbar-width: none; /* Firefox */
-}
-
-.carouselViewport::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Opera */
-}
-
-.carouselTrack {
-  display: flex;
-  gap: 20px;
-}
-
-.galleryCard {
-  flex: 0 0 320px;
+.galleryGridCard {
   position: relative;
   aspect-ratio: 4/3;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--border);
   cursor: pointer;
   background: var(--surface-2);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s, box-shadow 0.4s;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.35s, box-shadow 0.35s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
-.galleryCard:hover {
-  transform: translateY(-6px) scale(1.02);
+.galleryGridCard:hover {
+  transform: translateY(-6px);
   border-color: var(--gold);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), 0 0 24px rgba(212, 175, 55, 0.18);
 }
 
-.galleryImage {
+.galleryGridImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.galleryCard:hover .galleryImage {
-  transform: scale(1.08);
+.galleryGridCard:hover .galleryGridImage {
+  transform: scale(1.06);
+}
+
+/* Overlay & Badges */
+.typeBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.photoOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.galleryGridCard:hover .photoOverlay {
+  opacity: 1;
+}
+
+.zoomIconCircle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transform: scale(0.8);
+  transition: transform 0.25s ease;
+}
+
+.galleryGridCard:hover .zoomIconCircle {
+  transform: scale(1);
+}
+
+.videoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 1;
+  transition: background 0.3s ease;
+}
+
+.galleryGridCard:hover .videoOverlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+}
+
+.playIconCircle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gold, #d4af37);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  padding-left: 3px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.galleryGridCard:hover .playIconCircle {
+  transform: scale(1.15);
+  background: #f59e0b;
+}
+
+.videoLabel {
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
 /* Lightbox Styles */

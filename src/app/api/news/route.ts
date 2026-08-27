@@ -59,55 +59,77 @@ async function fetchCavalleryFanbaseNews(): Promise<any[]> {
   return [];
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type") || searchParams.get("category");
+
     let dbNews: any[] = [];
-    if (isMySqlConfigured()) {
-      try {
-        const rows = await query<any[]>("SELECT * FROM `news` ORDER BY `published_at` DESC, `id` DESC");
-        if (rows && Array.isArray(rows) && rows.length > 0) {
-          dbNews = rows.map((r) => ({
-            id: String(r.id),
-            slug: r.slug || `statement-${r.id}`,
-            title: r.title || "",
-            label: r.category || r.label || "Statement",
-            category: r.category || r.label || "Statement",
-            date: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
-            published_at: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
-            description: r.summary || r.description || r.content?.slice(0, 140) || "",
-            content: r.content || "",
-            image_url: r.image_url || "/images/cava-logo.jpg",
-            background_image: r.image_url || "/images/cava-logo.jpg",
-            link_url: `/news/cavallery-statement/${r.slug || r.id}`,
-            url: `/news/cavallery-statement/${r.slug || r.id}`,
-            is_pinned: Boolean(r.is_pinned),
-            is_active: r.is_active !== undefined ? Boolean(r.is_active) : true,
+    if (type !== "jkt48") {
+      if (isMySqlConfigured()) {
+        try {
+          const rows = await query<any[]>("SELECT * FROM `news` ORDER BY `published_at` DESC, `id` DESC");
+          if (rows && Array.isArray(rows) && rows.length > 0) {
+            dbNews = rows.map((r) => ({
+              id: String(r.id),
+              slug: r.slug || `statement-${r.id}`,
+              title: r.title || "",
+              label: r.category || r.label || "Statement",
+              category: r.category || r.label || "Statement",
+              date: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+              published_at: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+              description: r.summary || r.description || r.content?.slice(0, 140) || "",
+              content: r.content || "",
+              image_url: r.image_url || "/images/cava-logo.jpg",
+              background_image: r.image_url || "/images/cava-logo.jpg",
+              link_url: `/news/cavallery-statement/${r.slug || r.id}`,
+              url: `/news/cavallery-statement/${r.slug || r.id}`,
+              is_pinned: Boolean(r.is_pinned),
+              is_active: r.is_active !== undefined ? Boolean(r.is_active) : true,
+              is_internal: true,
+            }));
+          }
+        } catch (e) {
+          console.error("DB news fetch error:", e);
+        }
+      }
+
+      // If dbNews is empty, try external Cavallery news
+      if (dbNews.length === 0) {
+        const extCava = await fetchCavalleryFanbaseNews();
+        if (extCava.length > 0) {
+          dbNews = extCava.map((n: any) => ({
+            ...n,
+            label: n.label || n.category || "Statement",
+            category: n.category || n.label || "Statement",
+            date: n.published_at || n.date || new Date().toISOString(),
+            published_at: n.published_at || n.date || new Date().toISOString(),
+            link_url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
+            url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
+            image_url: n.image_url || "/images/cava-logo.jpg",
+            background_image: n.image_url || "/images/cava-logo.jpg",
             is_internal: true,
           }));
         }
-      } catch (e) {
-        console.error("DB news fetch error:", e);
       }
+    }
+
+    if (type === "cavallery") {
+      return NextResponse.json({
+        status: true,
+        success: true,
+        data: { news: dbNews },
+      });
     }
 
     const officialNews = await fetchJkt48OfficialNews();
 
-    // If dbNews is empty, try external Cavallery news
-    if (dbNews.length === 0) {
-      const extCava = await fetchCavalleryFanbaseNews();
-      if (extCava.length > 0) {
-        dbNews = extCava.map((n: any) => ({
-          ...n,
-          label: n.label || n.category || "Statement",
-          category: n.category || n.label || "Statement",
-          date: n.published_at || n.date || new Date().toISOString(),
-          published_at: n.published_at || n.date || new Date().toISOString(),
-          link_url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
-          url: n.link_url || `/news/cavallery-statement/${n.slug || n.id}`,
-          image_url: n.image_url || "/images/cava-logo.jpg",
-          background_image: n.image_url || "/images/cava-logo.jpg",
-        }));
-      }
+    if (type === "jkt48") {
+      return NextResponse.json({
+        status: true,
+        success: true,
+        data: { news: officialNews },
+      });
     }
 
     // Merge: Pinned Cavallery news first, then official JKT48 news, sorted by date
