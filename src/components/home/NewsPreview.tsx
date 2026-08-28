@@ -24,7 +24,7 @@ export default function NewsPreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}?_t=${Date.now()}`)
+    fetch(`${API_URL}?type=cavallery&_t=${Date.now()}`)
       .then((r) => r.json())
       .then((d) => {
         const list = d?.data?.news || (Array.isArray(d?.data) ? d.data : (Array.isArray(d) ? d : []));
@@ -46,12 +46,12 @@ export default function NewsPreview() {
     <section className={styles.section}>
       <div className={styles.header}>
         <div className="badge">
-          <i className="bx bx-news" /> Berita Terkini
+          <i className="bx bx-file-blank" /> Cavallery Statement
         </div>
         <h2 className={`sectionTitle textGold ${styles.title}`}>News & Updates</h2>
         <div className="divider" />
         <p className={styles.subtitle}>
-          Informasi terbaru seputar Erine dan JKT48.
+          Pernyataan resmi, pengumuman proyek, dan informasi terkini dari fanbase Cavallery.
         </p>
       </div>
 

@@ -44,19 +44,63 @@ export default function ShowTheaterPage() {
   useEffect(() => { load(); const id = setInterval(load, 180000); return () => clearInterval(id); }, [load]);
 
   const displayed = useMemo(() => {
-    if (!filterErine) return shows;
-    return shows.filter((s) => {
-      const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name ?? ""));
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    // 1. Shows from today onwards
+    const upcomingShows = shows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return true;
+      const d = new Date(dateStr).getTime();
+      return !isNaN(d) && d >= today;
+    });
+
+    // 2. If upcoming shows exist, use them; otherwise, show latest shows from the current month
+    const validShows = upcomingShows.length > 0 ? upcomingShows : shows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    });
+
+    const list = filterErine
+      ? validShows.filter((s) => {
+          const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+          return members.some((m) => isErine(m.name ?? ""));
+        })
+      : validShows;
+
+    // Sort ascending (nearest upcoming show first)
+    return list.sort((a, b) => {
+      const da = new Date(a.date ?? a.showDate ?? "").getTime();
+      const db = new Date(b.date ?? b.showDate ?? "").getTime();
+      return da - db;
     });
   }, [shows, filterErine]);
 
-  const erineCount = useMemo(() =>
-    shows.filter((s) => {
+  const erineCount = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+    const upcoming = shows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return true;
+      const d = new Date(dateStr).getTime();
+      return !isNaN(d) && d >= today;
+    });
+
+    const target = upcoming.length > 0 ? upcoming : shows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    });
+
+    return target.filter((s) => {
       const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
       return members.some((m) => isErine(m.name ?? ""));
-    }).length,
-  [shows]);
+    }).length;
+  }, [shows]);
 
   return (
     <div className={styles.page}>
