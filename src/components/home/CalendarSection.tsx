@@ -198,8 +198,10 @@ export default function CalendarSection() {
 
   const shows = useMemo(() => {
     const filteredShows = apiShows.filter((s) => {
-      const members = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name));
+      const dateStr = s.date || s.showDate;
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month;
     });
 
     const now = new Date();
@@ -209,20 +211,13 @@ export default function CalendarSection() {
       if (!s.date) return false;
       const d = new Date(s.date);
       return d.getFullYear() === year && d.getMonth() === month;
-    }).filter((s) => {
-      const members = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name));
     });
 
     const filteredLives = apiLives.filter((s) => {
-      const members = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name));
+      return true;
     });
 
     const filteredBirthdays = apiBirthdays.filter((s) => {
-      const members = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name));
-    }).filter((s) => {
       if (!s.date) return false;
       const d = new Date(s.date);
       return d.getFullYear() === year && d.getMonth() === month;

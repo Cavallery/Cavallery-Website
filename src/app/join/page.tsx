@@ -298,7 +298,7 @@ export default function JoinPage() {
             Bergabung Bersama Komunitas <span className="textGold">Cavallery</span>
           </h1>
           <p className={styles.heroSub}>
-            Pilih Peranmu & Dukung Erine (Catherina Vallencia) JKT48! Kami membuka pintu bagi seluruh fans dan pendukung untuk menjadi anggota resmi, tim pengurus, maupun relawan kegiatan kebersamaan Cavallery.
+            Pilih Peranmu & Dukung Erine JKT48! Kami membuka pintu bagi seluruh fans dan pendukung untuk menjadi anggota resmi, tim pengurus, maupun relawan kegiatan kebersamaan Cavallery.
           </p>
         </div>
       </div>

@@ -12,7 +12,7 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 export const metadata: Metadata = {
   title: "Cavallery",
   description:
-    "Cavallery adalah fanbase resmi Catherina Vallencia Kurniawan (Erine) JKT48. Temukan berita, jadwal show theater, live, games, dan proyek eksklusif.",
+    "Cavallery adalah fanbase resmi Erine JKT48. Temukan berita, jadwal show theater, live, games, dan proyek eksklusif.",
   keywords: ["Cavallery", "Erine JKT48", "Catherina Vallencia", "JKT48 fanbase"],
   icons: {
     icon: "/images/cava-logo-round.png",

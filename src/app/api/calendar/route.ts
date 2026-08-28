@@ -55,6 +55,37 @@ function rowToEvent(row: any) {
   };
 }
 
+const API_KEY = "sJbpVqLinYlp";
+const JKT48_BASE = "https://v5.jkt48connect.com/api/jkt48";
+
+async function fetchJkt48OfficialEvents(): Promise<any[]> {
+  try {
+    const res = await fetch(`${JKT48_BASE}/schedule?priority_token=${API_KEY}`, {
+      headers: {
+        "x-priority-token": API_KEY,
+        Accept: "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+      },
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const list = Array.isArray(json.data) ? json.data : (Array.isArray(json.schedule) ? json.schedule : (Array.isArray(json) ? json : []));
+    return list.map((item: any, idx: number) => ({
+      id: `jkt48-${item.id || item.schedule_id || idx}`,
+      title: item.title || item.event_name || item.name || "Event JKT48",
+      date: item.date || item.showDate || new Date().toISOString().slice(0, 10),
+      startTime: item.startTime || item.start_time || "19:00",
+      members: item.members || item.member || [{ name: "JKT48" }],
+      url: item.url || item.link || (item.id ? `https://jkt48.com/calendar/list/id/${item.id}?lang=id` : "#"),
+      imageUrl: item.image_url || item.poster || item.banner || "",
+      isOfficial: true,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 // ---------- READ ----------
 export async function readCalendar(): Promise<any[]> {
   if (isMySqlConfigured()) {
@@ -68,8 +99,19 @@ export async function readCalendar(): Promise<any[]> {
 
 // ---------- GET ----------
 export async function GET() {
-  const data = await readCalendar();
-  return NextResponse.json({ success: true, data });
+  const localData = await readCalendar();
+  const officialEvents = await fetchJkt48OfficialEvents();
+
+  const merged = [...localData, ...officialEvents];
+  const seen = new Set<string>();
+  const unique = merged.filter((item: any) => {
+    const key = `${item.title}-${item.date}-${item.startTime}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return NextResponse.json({ success: true, data: unique });
 }
 
 // ---------- POST ----------

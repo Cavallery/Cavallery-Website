@@ -28,6 +28,7 @@ export function TheaterSection() {
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filterErine, setFilterErine] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -43,41 +44,57 @@ export function TheaterSection() {
 
   const displayed = useMemo(() => {
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-indexed
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-    const erineShows = shows.filter((s) => {
-      const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name ?? ""));
-    });
-
-    const upcoming = erineShows.filter((s) => {
+    // 1. Shows from today onwards
+    const upcoming = shows.filter((s) => {
       const dateStr = s.date ?? s.showDate ?? "";
       if (!dateStr) return true;
-      const showDate = new Date(dateStr);
-      return (
-        showDate.getFullYear() > currentYear ||
-        (showDate.getFullYear() === currentYear && showDate.getMonth() >= currentMonth)
-      );
+      const d = new Date(dateStr).getTime();
+      return !isNaN(d) && d >= today;
     });
 
-    const targetList = upcoming.length > 0 ? upcoming : erineShows;
+    // 2. If upcoming exists, use upcoming; otherwise show current month's latest shows
+    const targetList = upcoming.length > 0 ? upcoming : shows.filter((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    });
 
-    return targetList.sort((a, b) => {
+    const list = filterErine
+      ? targetList.filter((s) => {
+          const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+          return members.some((m) => isErine(m.name ?? ""));
+        })
+      : targetList;
+
+    // Sort ascending (nearest upcoming show first)
+    return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return db - da;
+      return da - db;
     });
-  }, [shows]);
+  }, [shows, filterErine]);
+
+  const erineCount = useMemo(() => {
+    return displayed.filter((s) => {
+      const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name ?? ""));
+    }).length;
+  }, [displayed]);
 
   return (
     <section className={styles.section} id="theater">
       <div className={styles.sectionHeader}>
         <div className="badge"><i className="bx bx-calendar" /> Theater Schedule</div>
         <div className={styles.controls}>
-          <button className={`${styles.filterBtn} ${styles.filterActive}`}>
-            <i className="bx bxs-hot" style={{color: "orange"}} />
-            Erine's Shows
+          <button
+            className={`${styles.filterBtn} ${filterErine ? styles.filterActive : ""}`}
+            onClick={() => setFilterErine((v) => !v)}
+          >
+            <i className={`bx ${filterErine ? "bxs-star" : "bx-star"}`} style={{ color: "orange" }} />
+            {filterErine ? "Semua Jadwal Erine" : "Filter: Jadwal Erine"}
           </button>
         </div>
       </div>
@@ -89,7 +106,7 @@ export function TheaterSection() {
       ) : displayed.length === 0 ? (
         <div className={styles.empty}>
           <i className="bx bx-calendar-x" />
-          <p>No shows available.</p>
+          <p>Belum ada jadwal show mendatang saat ini.</p>
         </div>
       ) : (
         <div className={styles.showList}>
@@ -103,7 +120,14 @@ export function TheaterSection() {
             return (
               <div key={show.id ?? idx} className={`${styles.showCard} ${hasErine ? styles.showErine : ""}`}>
                 <div className={styles.showDate}>{dateStr} · {timeStr} WIB</div>
-                <h3 className={styles.showTitle}>{show.title} {hasErine && <i className="bx bxs-hot" style={{color: "orange"}} title="Erine is performing!" />}</h3>
+                <h3 className={styles.showTitle}>
+                  {show.title}{" "}
+                  {hasErine && (
+                    <span style={{ fontSize: "0.8rem", color: "orange", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                      <i className="bx bxs-star" /> Erine Show
+                    </span>
+                  )}
+                </h3>
                 <div className={styles.memberTags}>
                   {members.map((m, mi) => (
                     <span key={mi} className={`${styles.memberTag} ${isErine(m.name) ? styles.tagErine : ""}`}>

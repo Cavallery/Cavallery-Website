@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Home Cavallery",
   description:
-    "Cavallery adalah komunitas resmi penggemar Erine (Catherina Vallencia) JKT48. Jadwal, berita, games, dan proyek eksklusif.",
+    "Cavallery adalah komunitas resmi penggemar Erine JKT48. Jadwal, berita, games, dan proyek eksklusif.",
 };
 
 export const revalidate = 0; // Disable caching to fix Hostinger CDN cache issue
