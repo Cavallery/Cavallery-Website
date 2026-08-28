@@ -42,6 +42,21 @@ async function ensureColumns() {
   }
 }
 
+const GOOGLE_SHEETS_WEBHOOK = process.env.GOOGLE_SHEETS_RECRUITMENT_WEBHOOK || process.env.NEXT_PUBLIC_GOOGLE_SHEETS_RECRUITMENT_WEBHOOK || "";
+
+async function forwardToGoogleSheets(payload: any) {
+  if (!GOOGLE_SHEETS_WEBHOOK) return;
+  try {
+    await fetch(GOOGLE_SHEETS_WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("Google Sheets Sync Error:", err);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -187,12 +202,45 @@ export async function POST(request: Request) {
         insertId = result?.insertId;
       }
 
+      // Auto-sync real-time ke Google Spreadsheet jika webhook disetel
+      await forwardToGoogleSheets({
+        id: insertId,
+        submitted_at: new Date().toISOString(),
+        role_id,
+        full_name: full_name.trim(),
+        nickname: nickname ? nickname.trim() : "",
+        email: email ? email.trim() : "",
+        city: city.trim(),
+        whatsapp: contactWhatsApp,
+        line_id: line_id ? line_id.trim() : "",
+        line_display_name: line_display_name ? line_display_name.trim() : "",
+        info_source: info_source ? info_source.trim() : "",
+        gender: gender ? gender.trim() : "",
+        hobby: formattedHobby || "",
+        username_x: username_x ? username_x.trim() : "",
+        username_ig: username_ig ? username_ig.trim() : "",
+        username_tiktok: username_tiktok ? username_tiktok.trim() : "",
+        social_media: social_media ? social_media.trim() : "",
+        division: division ? division.trim() : "",
+        reason: reason ? reason.trim() : "",
+        support_type: formattedSupport || "",
+        activity_suggestion: activity_suggestion ? activity_suggestion.trim() : "",
+        fee_agreed: fee_agreed ? "Ya (Rp75.000)" : "Tidak",
+        extra_data: typeof body.extra_data === "object" ? body.extra_data : null,
+      });
+
       return NextResponse.json({
         success: true,
         message: "Pendaftaran berhasil dikirim! Tim screening Cavallery akan segera memeriksa data kamu.",
         id: insertId,
       });
     }
+
+    // Fallback sync if MySQL not configured
+    await forwardToGoogleSheets({
+      submitted_at: new Date().toISOString(),
+      ...body,
+    });
 
     return NextResponse.json({
       success: true,
