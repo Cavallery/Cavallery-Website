@@ -4903,6 +4903,16 @@ function RecruitmentManager() {
         </div>
 
         <div className={styles.exportBtnGroup}>
+          <a
+            href="https://docs.google.com/spreadsheets/d/18Kc517nLygbNNWN4OYHR5N8MfSbYzW1CzLr17zHH-kA/edit?gid=900522075#gid=900522075"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.exportBtnExcel}
+            style={{ background: "#0f9d58", color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            title="Buka Google Spreadsheet Pendaftar"
+          >
+            <i className="bx bxl-google" /> Lihat Spreadsheet
+          </a>
           <button className={styles.exportBtnExcel} onClick={exportToExcel} title="Export ke Excel">
             <i className="bx bx-spreadsheet" /> Unduh Excel (.csv)
           </button>
@@ -5301,16 +5311,50 @@ function RecruitmentManager() {
                   extra = typeof detailModal.extra_data === "string" ? JSON.parse(detailModal.extra_data) : detailModal.extra_data;
                 } catch {}
                 if (!extra?.role_specific_answers) return null;
+
+                const LABELS: Record<string, string> = {
+                  familiarity: "Tingkat Kemahiran / Familiaritas",
+                  software: "Software / Aplikasi Editing",
+                  content_type: "Jenis Konten yang Disukai",
+                  content_types: "Jenis Konten yang Disukai",
+                  experience: "Pengalaman Sebelumnya",
+                  brief_comfort: "Kenyamanan Mengerjakan Brief",
+                  portfolio: "Portfolio / Link Contoh Karya",
+                  frequency: "Frekuensi Menulis Konten",
+                  types: "Jenis Tulisan yang Disukai",
+                  script_quality_insight: "Kriteria Script Menarik",
+                  ideation_comfort: "Kemampuan Mengembangkan Ide",
+                  sample_opening_erine: "Contoh Opening Erine / Wayfinder",
+                  platforms: "Platform Sosmed yang Dikuasai",
+                  engagement_insight: "Daya Tarik Postingan",
+                  low_engagement_strategy: "Strategi Saat Engagement Sepi",
+                  caption_and_timing: "Kenyamanan Caption & Waktu Posting",
+                  voice_comfort: "Kenyamanan Suara Sendiri",
+                  voice_character: "Karakter Suara",
+                  intonation_adapt: "Adaptasi Intonasi Sesuai Mood",
+                  sample_link: "Link Contoh Voice Over",
+                  favorite_games: "Game / Esport yang Diikuti",
+                  match_preparation: "Pengaturan Jadwal & Persiapan Match",
+                  reschedule_handling: "Penanganan Reschedule Mendadak",
+                  communication_comfort: "Kenyamanan Komunikasi Tim",
+                  highlight_insight: "Daya Tarik Highlight Match",
+                  long_video_strategy: "Strategi Menyaring Rekaman Panjang",
+                };
+
                 return (
-                  <div style={{ marginTop: 10, background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
-                    <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--gold)", marginBottom: 6 }}>
-                      Jawaban Khusus Posisi ({extra?.step1?.position_title || detailModal.division}):
+                  <div style={{ marginTop: 10, background: "var(--adm-bg)", padding: "12px 14px", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.88rem", color: "var(--gold)", marginBottom: 8, display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="bx bx-check-double" /> Jawaban Khusus Posisi ({extra?.step1?.position_title || detailModal.division}):
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "6px", fontSize: "0.82rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "8px", fontSize: "0.84rem" }}>
                       {Object.entries(extra.role_specific_answers).map(([k, v]: [string, any]) => (
-                        <div key={k} style={{ padding: "4px 0", borderBottom: "1px dashed var(--adm-border)" }}>
-                          <span style={{ color: "var(--adm-muted)", textTransform: "capitalize" }}>{k.replace(/_/g, " ")}: </span>
-                          <span style={{ fontWeight: 600 }}>{Array.isArray(v) ? v.join(", ") : String(v)}</span>
+                        <div key={k} style={{ padding: "6px 0", borderBottom: "1px dashed var(--adm-border)" }}>
+                          <span style={{ color: "var(--adm-muted)", fontWeight: 600, display: "block", marginBottom: "2px" }}>
+                            {LABELS[k] || k.replace(/_/g, " ")}:
+                          </span>
+                          <span style={{ color: "var(--adm-text)", fontWeight: 500, lineHeight: 1.4 }}>
+                            {Array.isArray(v) ? v.join(", ") : String(v)}
+                          </span>
                         </div>
                       ))}
                     </div>
