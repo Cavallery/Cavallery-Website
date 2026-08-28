@@ -681,7 +681,12 @@ export default function AboutErineSection() {
           <h3 className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
           <div className={styles.frameCardWide}>
             <div className={styles.responsiveVideo}>
-              <iframe src={`https://www.youtube.com/embed/${sskVideoId}`} title="SSK" allowFullScreen />
+              <iframe
+                src="https://www.youtube.com/embed/_Qn9B9mD2bI"
+                title="7th JKT48 Senbatsu Election Erine"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
             <div className={styles.electionGrid}>
               <div

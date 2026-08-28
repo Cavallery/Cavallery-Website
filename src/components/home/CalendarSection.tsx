@@ -197,32 +197,57 @@ export default function CalendarSection() {
   }, []);
 
   const shows = useMemo(() => {
-    const filteredShows = apiShows.filter((s) => {
-      const dateStr = s.date || s.showDate;
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month;
-    });
+    // 1. Erine Theater Shows ONLY
+    const filteredShows = apiShows
+      .filter((s) => {
+        const members = s.members ?? s.member ?? s.lineup ?? [];
+        return members.some((m) => isErine(m.name ?? ""));
+      })
+      .filter((s) => {
+        const dateStr = s.date || s.showDate;
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return !isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month;
+      });
 
     const now = new Date();
     const isCurrentMonth = now.getFullYear() === year && now.getMonth() === month;
 
-    const filteredRiwayat = apiRiwayat.filter((s) => {
-      if (!s.date) return false;
-      const d = new Date(s.date);
-      return d.getFullYear() === year && d.getMonth() === month;
-    });
+    // 2. Erine Past Live History
+    const filteredRiwayat = apiRiwayat
+      .filter((s) => {
+        const members = s.members ?? s.member ?? s.lineup ?? [];
+        return members.some((m) => isErine(m.name ?? "")) || (s.title || "").toLowerCase().includes("erine");
+      })
+      .filter((s) => {
+        if (!s.date) return false;
+        const d = new Date(s.date);
+        return d.getFullYear() === year && d.getMonth() === month;
+      });
 
+    // 3. Erine Live Streams (Showroom / IDN)
     const filteredLives = apiLives.filter((s) => {
-      return true;
+      const members = s.members ?? s.member ?? s.lineup ?? [];
+      return members.some((m) => isErine(m.name ?? "")) || (s.title || "").toLowerCase().includes("erine");
     });
 
-    const filteredBirthdays = apiBirthdays.filter((s) => {
-      if (!s.date) return false;
-      const d = new Date(s.date);
-      return d.getFullYear() === year && d.getMonth() === month;
-    });
+    // 4. Erine Birthday ONLY (21 Agustus)
+    const filteredBirthdays = apiBirthdays
+      .filter((s) => {
+        const members = s.members ?? s.member ?? s.lineup ?? [];
+        return (
+          members.some((m) => isErine(m.name ?? "")) ||
+          (s.title || "").toLowerCase().includes("erine") ||
+          (s.title || "").toLowerCase().includes("vallencia")
+        );
+      })
+      .filter((s) => {
+        if (!s.date) return false;
+        const d = new Date(s.date);
+        return d.getFullYear() === year && d.getMonth() === month;
+      });
 
+    // 5. Cavallery Fanbase Events for Erine
     const filteredManual = apiManualEvents.filter((s) => {
       if (!s.date) return false;
       const d = new Date(s.date);
