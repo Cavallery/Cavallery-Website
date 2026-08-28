@@ -5287,13 +5287,36 @@ function RecruitmentManager() {
               {detailModal.activity_suggestion && (
                 <div style={{ marginTop: 8 }}>
                   <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
-                    Saran Kegiatan untuk Cavallery:
+                    Saran Kegiatan / Komitmen Waktu:
                   </label>
                   <div style={{ background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 6, fontSize: "0.85rem", lineHeight: 1.5, border: "1px solid var(--adm-border)" }}>
                     {detailModal.activity_suggestion}
                   </div>
                 </div>
               )}
+
+              {(() => {
+                let extra: any = null;
+                try {
+                  extra = typeof detailModal.extra_data === "string" ? JSON.parse(detailModal.extra_data) : detailModal.extra_data;
+                } catch {}
+                if (!extra?.role_specific_answers) return null;
+                return (
+                  <div style={{ marginTop: 10, background: "var(--adm-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
+                    <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--gold)", marginBottom: 6 }}>
+                      Jawaban Khusus Posisi ({extra?.step1?.position_title || detailModal.division}):
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "6px", fontSize: "0.82rem" }}>
+                      {Object.entries(extra.role_specific_answers).map(([k, v]: [string, any]) => (
+                        <div key={k} style={{ padding: "4px 0", borderBottom: "1px dashed var(--adm-border)" }}>
+                          <span style={{ color: "var(--adm-muted)", textTransform: "capitalize" }}>{k.replace(/_/g, " ")}: </span>
+                          <span style={{ fontWeight: 600 }}>{Array.isArray(v) ? v.join(", ") : String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: 10 }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--adm-muted)" }}>Ubah Status:</label>

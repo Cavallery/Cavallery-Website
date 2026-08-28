@@ -7,30 +7,39 @@ export const revalidate = 0;
 let columnsEnsured = false;
 async function ensureColumns() {
   if (columnsEnsured) return;
-  const colsToAdd = [
-    { name: "email", type: "VARCHAR(150) NULL" },
-    { name: "info_source", type: "VARCHAR(100) NULL" },
-    { name: "gender", type: "VARCHAR(50) NULL" },
-    { name: "line_id", type: "VARCHAR(100) NULL" },
-    { name: "line_display_name", type: "VARCHAR(150) NULL" },
-    { name: "hobby", type: "TEXT NULL" },
-    { name: "username_x", type: "VARCHAR(100) NULL" },
-    { name: "username_ig", type: "VARCHAR(100) NULL" },
-    { name: "username_tiktok", type: "VARCHAR(100) NULL" },
-    { name: "support_type", type: "TEXT NULL" },
-    { name: "activity_suggestion", type: "TEXT NULL" },
-    { name: "fee_agreed", type: "TINYINT(1) DEFAULT 1" },
-    { name: "extra_data", type: "LONGTEXT NULL" },
-  ];
+  try {
+    const existingCols = await query<any[]>("SHOW COLUMNS FROM `recruitment_submissions`");
+    const existingNames = new Set((existingCols || []).map((c: any) => c.Field));
 
-  for (const col of colsToAdd) {
-    try {
-      await query(`ALTER TABLE \`recruitment_submissions\` ADD COLUMN \`${col.name}\` ${col.type}`);
-    } catch {
-      // Column already exists or table not ready
+    const colsToAdd = [
+      { name: "email", type: "VARCHAR(150) NULL" },
+      { name: "info_source", type: "VARCHAR(100) NULL" },
+      { name: "gender", type: "VARCHAR(50) NULL" },
+      { name: "line_id", type: "VARCHAR(100) NULL" },
+      { name: "line_display_name", type: "VARCHAR(150) NULL" },
+      { name: "hobby", type: "TEXT NULL" },
+      { name: "username_x", type: "VARCHAR(100) NULL" },
+      { name: "username_ig", type: "VARCHAR(100) NULL" },
+      { name: "username_tiktok", type: "VARCHAR(100) NULL" },
+      { name: "support_type", type: "TEXT NULL" },
+      { name: "activity_suggestion", type: "TEXT NULL" },
+      { name: "fee_agreed", type: "TINYINT(1) DEFAULT 1" },
+      { name: "extra_data", type: "LONGTEXT NULL" },
+    ];
+
+    for (const col of colsToAdd) {
+      if (!existingNames.has(col.name)) {
+        try {
+          await query(`ALTER TABLE \`recruitment_submissions\` ADD COLUMN \`${col.name}\` ${col.type}`);
+        } catch {
+          // Ignore
+        }
+      }
     }
+    columnsEnsured = true;
+  } catch {
+    // Ignore if table not yet created
   }
-  columnsEnsured = true;
 }
 
 export async function POST(request: Request) {
@@ -110,20 +119,22 @@ export async function POST(request: Request) {
       const formattedSupport = Array.isArray(support_type) ? support_type.join(", ") : (support_type || null);
       const contactWhatsApp = whatsapp ? whatsapp.trim() : (line_id ? line_id.trim() : "-");
 
-      const extraJson = JSON.stringify({
-        email,
-        info_source,
-        gender,
-        line_id,
-        line_display_name,
-        hobby: formattedHobby,
-        username_x,
-        username_ig,
-        username_tiktok,
-        support_type: formattedSupport,
-        activity_suggestion: activity_suggestion ? activity_suggestion.trim() : null,
-        fee_agreed: fee_agreed ? 1 : 0,
-      });
+      const extraJson = body.extra_data
+        ? (typeof body.extra_data === "string" ? body.extra_data : JSON.stringify(body.extra_data))
+        : JSON.stringify({
+            email,
+            info_source,
+            gender,
+            line_id,
+            line_display_name,
+            hobby: formattedHobby,
+            username_x,
+            username_ig,
+            username_tiktok,
+            support_type: formattedSupport,
+            activity_suggestion: activity_suggestion ? activity_suggestion.trim() : null,
+            fee_agreed: fee_agreed ? 1 : 0,
+          });
 
       let insertId: any = null;
       try {
