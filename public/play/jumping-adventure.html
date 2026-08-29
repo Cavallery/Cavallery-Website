@@ -49,24 +49,6 @@
       .card button:hover {
         background: #0063d1;
       }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-      th,
-      td {
-        padding: 12px;
-        text-align: center;
-        border-bottom: 1px solid #eee;
-      }
-      th {
-        background: #372e27;
-        color: white;
-      }
       #game {
         width: 95%;
         height: 400px;
@@ -200,20 +182,6 @@
           />
         </div>
       </div>
-
-      <div class="card">
-        <h3>🏆 Leaderboard Top 10</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Nama</th>
-              <th>Skor</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard"></tbody>
-        </table>
-      </div>
     </div>
 
     <script>
@@ -305,6 +273,7 @@
 
       function startGame() {
         gameOver = false;
+        scoreSubmitted = false;
         score = 0;
 
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -341,6 +310,8 @@
         }, 10);
       }
 
+      let scoreSubmitted = false;
+
       function endGame() {
         gameOver = true;
         cancelAnimationFrame(animationFrameId);
@@ -350,24 +321,19 @@
         dinoSprite.src = idleFrame;
         finalScoreDisplay.innerText = score;
         gameOverScreen.style.display = "block";
-        saveToLeaderboard(playerName, score);
-        renderLeaderboard();
+        if (!scoreSubmitted) {
+          scoreSubmitted = true;
+          saveToLeaderboard(playerName, score);
+        }
       }
 
       function resetGame() {
+        scoreSubmitted = false;
         startGame();
       }
 
       function saveToLeaderboard(name, score) {
         const cleanName = (name || "Pemain").trim();
-        const data =
-          JSON.parse(localStorage.getItem("erine_leaderboard")) || [];
-        data.push({ name: cleanName, score: score });
-        data.sort((a, b) => b.score - a.score);
-        localStorage.setItem(
-          "erine_leaderboard",
-          JSON.stringify(data.slice(0, 10))
-        );
         try {
           fetch("/api/games/jumping-adventure/leaderboard", {
             method: "POST",
@@ -375,24 +341,6 @@
             body: JSON.stringify({ username: cleanName, score: score }),
           }).catch(() => {});
         } catch (e) {}
-        try {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: "GAME_OVER", score: score, playerName: cleanName, gameId: "jumping-adventure" }, "*");
-          }
-        } catch (e) {}
-      }
-
-      function renderLeaderboard() {
-        const data =
-          JSON.parse(localStorage.getItem("erine_leaderboard")) || [];
-        const tbody = document.getElementById("leaderboard");
-        tbody.innerHTML = "";
-        data.forEach((entry, i) => {
-          const row = `<tr><td>${i + 1}</td><td>${entry.name}</td><td>${
-            entry.score
-          }</td></tr>`;
-          tbody.innerHTML += row;
-        });
       }
 
       document.addEventListener("keydown", (e) => {
@@ -410,8 +358,6 @@
       volumeSlider.addEventListener("input", () => {
         bgm.volume = volumeSlider.value;
       });
-
-      renderLeaderboard();
     </script>
   </body>
 </html>
