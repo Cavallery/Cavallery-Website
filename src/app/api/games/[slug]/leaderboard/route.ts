@@ -154,8 +154,7 @@ export async function GET(
           }));
         }
 
-        // Jika di DB ada data, kembalikan langsung
-        if (stats.sesi_dimainkan > 0 || leaderboard.length > 0) {
+        if (statsRows !== null && lbRows !== null) {
           return NextResponse.json({
             status: true,
             slug,
@@ -233,10 +232,10 @@ export async function POST(
     await ensureTablesExist();
 
     const body = await request.json();
-    const rawName = (body.username || body.name || body.playerName || "Anonim").trim().slice(0, 50);
+    const rawName = (body.username || body.name || body.playerName || "Pemain").trim().slice(0, 50);
     const username = rawName || "Pemain";
-    const score = parseInt(body.score, 10);
-    const duration = parseInt(body.duration_seconds || "0", 10) || 0;
+    const score = parseInt(String(body.score), 10);
+    const duration = parseInt(String(body.duration_seconds || "0"), 10) || 0;
 
     if (isNaN(score)) {
       return NextResponse.json(
@@ -246,7 +245,7 @@ export async function POST(
     }
 
     const playedAt = new Date().toISOString();
-    const playerId = username.toLowerCase().replace(/\s+/g, "_");
+    const playerId = username.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "pemain";
 
     if (isMySqlConfigured()) {
       try {

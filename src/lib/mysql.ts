@@ -48,11 +48,22 @@ export async function query<T = any>(sql: string, params: any[] = []): Promise<T
   if (!isMySqlConfigured()) return null;
   try {
     const pool = getPool();
-    const [results] = await pool.execute(sql, params);
-    return results as T;
+    if (params && params.length > 0) {
+      const [results] = await pool.execute(sql, params);
+      return results as T;
+    } else {
+      const [results] = await pool.query(sql);
+      return results as T;
+    }
   } catch (error: any) {
-    console.error("[MySQL Error]:", error.message);
-    return null;
+    try {
+      const pool = getPool();
+      const [results] = await pool.query(sql, params);
+      return results as T;
+    } catch (fallbackError: any) {
+      console.error("[MySQL Error]:", fallbackError.message);
+      return null;
+    }
   }
 }
 

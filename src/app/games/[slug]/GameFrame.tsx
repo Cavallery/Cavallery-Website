@@ -13,7 +13,6 @@ export default function GameFrame({ src, title, slug, showMusicToggle }: GameFra
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [musicOn, setMusicOn] = useState(true);
-  const [savedToast, setSavedToast] = useState<string | null>(null);
 
   const getAvailableHeight = () => {
     if (wrapperRef.current) {
@@ -49,16 +48,11 @@ export default function GameFrame({ src, title, slug, showMusicToggle }: GameFra
 
         if (!isNaN(finalScore)) {
           try {
-            const res = await fetch(`/api/games/${targetSlug}/leaderboard`, {
+            await fetch(`/api/games/${targetSlug}/leaderboard`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ username: finalName, score: finalScore }),
             });
-            const result = await res.json();
-            if (result.status) {
-              setSavedToast(`✨ Skor ${finalScore} (${finalName}) tersimpan ke database!`);
-              setTimeout(() => setSavedToast(null), 4000);
-            }
           } catch (err) {
             console.error("Gagal simpan skor via GameFrame:", err);
           }
@@ -96,31 +90,6 @@ export default function GameFrame({ src, title, slug, showMusicToggle }: GameFra
           <i className={`bx ${musicOn ? "bx-volume-full" : "bx-volume-mute"}`} style={{ fontSize: "16px" }} />
           {musicOn ? "Music On" : "Music Off"}
         </button>
-      )}
-
-      {savedToast && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 1000,
-            background: "linear-gradient(135deg, #ca8a04, #eab308)",
-            color: "#000",
-            fontWeight: 700,
-            padding: "10px 18px",
-            borderRadius: "10px",
-            fontSize: "0.88rem",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            animation: "fadeIn 0.3s ease",
-          }}
-        >
-          <i className="bx bxs-check-circle" style={{ fontSize: "18px" }} />
-          {savedToast}
-        </div>
       )}
 
       <iframe
