@@ -1078,30 +1078,51 @@ function MediaManager() {
 
 // ─── DISCORD MANAGER ──────────────────────────────────────────
 interface DiscordLog {
+  id: string;
   time: string;
   title: string;
+  description?: string;
+  url?: string;
   mention: string;
+  image?: string;
   hasImage: boolean;
+  status?: "success" | "failed";
 }
 
 function DiscordManager() {
-  const [title,    setTitle]    = useState("");
-  const [desc,     setDesc]     = useState("");
-  const [url,      setUrl]      = useState("https://cavallery.id");
-  const [image,    setImage]    = useState("");
-  const [mention,  setMention]  = useState("");
-  const [sending,  setSending]  = useState(false);
-  const [logs,     setLogs]     = useState<DiscordLog[]>([]);
-  const [toast,    setToast]    = useState<{ msg: string; type: "success" | "error" } | null>(null);
-  const [showPicker, setShowPicker] = useState(false);
+  const [title,       setTitle]       = useState("");
+  const [desc,        setDesc]        = useState("");
+  const [url,         setUrl]         = useState("https://cavallery.id");
+  const [image,       setImage]       = useState("");
+  const [mention,     setMention]     = useState("");
+  const [sending,     setSending]     = useState(false);
+  const [logs,        setLogs]        = useState<DiscordLog[]>([]);
+  const [toast,       setToast]       = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [showPicker,  setShowPicker]  = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [deleteLogId, setDeleteLogId] = useState<string | null>(null);
+  const [viewLog,     setViewLog]     = useState<DiscordLog | null>(null);
+  const [searchLog,   setSearchLog]   = useState("");
 
   const STORAGE_KEY = "cava_discord_logs";
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setLogs(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          // Normalisasi id jika ada log lama yang belum punya id
+          const normalized = parsed.map((item: any, idx: number) => ({
+            ...item,
+            id: item.id || `log-${Date.now()}-${idx}`,
+            description: item.description || "",
+            url: item.url || "https://cavallery.id",
+            status: item.status || "success",
+          }));
+          setLogs(normalized);
+        }
+      }
     } catch {}
   }, []);
 
@@ -1128,9 +1149,15 @@ function DiscordManager() {
       let imgVal   = image.trim();
       if (imgVal && !imgVal.startsWith("http")) imgVal = "https://" + imgVal;
 
+      // Bersihkan deskripsi & potong aman max 1800 karakter
+      let cleanDesc = desc.trim();
+      if (cleanDesc.length > 1800) {
+        cleanDesc = cleanDesc.slice(0, 1797) + "...";
+      }
+
       const payload: Record<string, any> = {
         title: title.trim(),
-        description: desc.trim() + "\n\n🕐 " + time,
+        description: cleanDesc,
         url: urlVal,
       };
 
@@ -1153,12 +1180,36 @@ function DiscordManager() {
 
       if (res.ok && resData?.success !== false) {
         showToast("✅ Berhasil dikirim ke Discord!", "success");
-        const newLog: DiscordLog = { time, title: title.trim(), mention: mention || "—", hasImage: !!imgVal };
-        saveLogs([newLog, ...logs].slice(0, 30));
+        const newLog: DiscordLog = {
+          id: `log-${Date.now()}`,
+          time,
+          title: title.trim(),
+          description: cleanDesc,
+          url: urlVal,
+          mention: mention || "—",
+          image: imgVal,
+          hasImage: !!imgVal,
+          status: "success",
+        };
+        saveLogs([newLog, ...logs].slice(0, 50));
         setTitle(""); setDesc(""); setImage(""); setMention("");
       } else {
         const errMsg = resData?.message || resData?.error || "Gagal mengirim ke Discord";
         showToast(`❌ Gagal (${res.status}): ${errMsg}`, "error");
+
+        // Simpan juga ke log dengan status failed agar bisa dicoba lagi
+        const failLog: DiscordLog = {
+          id: `log-${Date.now()}`,
+          time,
+          title: title.trim(),
+          description: cleanDesc,
+          url: urlVal,
+          mention: mention || "—",
+          image: imgVal,
+          hasImage: !!imgVal,
+          status: "failed",
+        };
+        saveLogs([failLog, ...logs].slice(0, 50));
       }
     } catch (e: any) {
       showToast("❌ Error jaringan: " + (e?.message ?? "unknown"), "error");
@@ -1166,15 +1217,136 @@ function DiscordManager() {
     setSending(false);
   };
 
-  const clearLogs = () => { saveLogs([]); setConfirmClear(false); showToast("Log dihapus", "success"); };
+  // Simpan Draft tanpa kirim
+  const saveDraft = () => {
+    if (!title.trim()) { showToast("Masukkan judul sebelum simpan draft", "error"); return; }
+    const newLog: DiscordLog = {
+      id: `draft-${Date.now()}`,
+      time: now(),
+      title: "[Draft] " + title.trim(),
+      description: desc.trim(),
+      url: url.trim() || "https://cavallery.id",
+      mention: mention || "—",
+      image: image.trim(),
+      hasImage: !!image.trim(),
+      status: "success",
+    };
+    saveLogs([newLog, ...logs].slice(0, 50));
+    showToast("📝 Draft pengumuman berhasil disimpan ke riwayat!", "success");
+  };
+
+  // Muat data log ke dalam Form (Re-use / Edit)
+  const loadLogToForm = (log: DiscordLog) => {
+    setTitle(log.title.replace(/^\[Draft\]\s*/, ""));
+    setDesc(log.description || "");
+    setUrl(log.url || "https://cavallery.id");
+    setImage(log.image || "");
+    setMention(log.mention === "—" ? "" : log.mention);
+    setViewLog(null);
+    showToast("📋 Data pengumuman dimuat ke form input!", "success");
+  };
+
+  // Hapus single log
+  const deleteSingleLog = (id: string) => {
+    const updated = logs.filter(l => l.id !== id);
+    saveLogs(updated);
+    setDeleteLogId(null);
+    if (viewLog?.id === id) setViewLog(null);
+    showToast("🗑️ Log pengumuman dihapus", "success");
+  };
+
+  const clearLogs = () => { saveLogs([]); setConfirmClear(false); showToast("Semua riwayat log dihapus", "success"); };
 
   const embedColor = mention === "@everyone" ? "#e05252" : mention === "@here" ? "#d97706" : "#5865f2";
+
+  // Filter logs berdasarkan keyword pencarian
+  const filteredLogs = logs.filter(l => {
+    if (!searchLog.trim()) return true;
+    const q = searchLog.toLowerCase();
+    return (
+      l.title.toLowerCase().includes(q) ||
+      (l.description && l.description.toLowerCase().includes(q)) ||
+      l.time.toLowerCase().includes(q) ||
+      l.mention.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       {confirmClear && <ConfirmModal msg="Hapus semua riwayat pengiriman Discord?" onConfirm={clearLogs} onCancel={() => setConfirmClear(false)} />}
+      {deleteLogId && <ConfirmModal msg="Hapus item riwayat log ini?" onConfirm={() => deleteSingleLog(deleteLogId)} onCancel={() => setDeleteLogId(null)} />}
       {showPicker && <MediaPickerModal type="image" onPick={url => { setImage(url); setShowPicker(false); }} onClose={() => setShowPicker(false)} />}
+
+      {/* Modal Detail Log (Read/Preview CRUD) */}
+      {viewLog && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 16, width: "100%", maxWidth: 520, padding: 24, display: "flex", flexDirection: "column", gap: 16, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #333", paddingBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="bxl-discord-alt" style={{ color: "#5865f2", fontSize: "1.3rem" }} />
+                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#f0f0f0" }}>Detail Log Discord</h3>
+              </div>
+              <button className={styles.btnDel} style={{ width: 32, height: 32 }} onClick={() => setViewLog(null)}><i className="bx bx-x" /></button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Waktu & Status</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                  <span style={{ fontSize: 13, color: "#ccc" }}>🕒 {viewLog.time}</span>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: viewLog.status === "failed" ? "#3a1a1a" : "#1a3a1a", color: viewLog.status === "failed" ? "#e07070" : "#6dbf6d", fontWeight: 700 }}>
+                    {viewLog.status === "failed" ? "Gagal" : "Terkirim"}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Judul</span>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginTop: 4 }}>{viewLog.title}</div>
+              </div>
+
+              {viewLog.description && (
+                <div>
+                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Deskripsi</span>
+                  <div style={{ fontSize: 13, color: "#ddd", background: "#141414", padding: 12, borderRadius: 8, marginTop: 4, whiteSpace: "pre-wrap", lineHeight: 1.6, border: "1px solid #282828" }}>
+                    {viewLog.description}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 16 }}>
+                <div>
+                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Mention</span>
+                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>{viewLog.mention || "—"}</div>
+                </div>
+                {viewLog.url && (
+                  <div>
+                    <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Link URL</span>
+                    <div style={{ fontSize: 12, color: "#5865f2", marginTop: 4 }}>{viewLog.url}</div>
+                  </div>
+                )}
+              </div>
+
+              {viewLog.image && (
+                <div>
+                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Lampiran Gambar</span>
+                  <img src={viewLog.image} alt="preview" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 8, marginTop: 4, border: "1px solid #333" }} />
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 8, borderTop: "1px solid #333", paddingTop: 14 }}>
+              <button className={styles.btnPrimary} style={{ flex: 1, justifyContent: "center", fontSize: 13 }} onClick={() => loadLogToForm(viewLog)}>
+                <i className="bx bx-edit" /> Muat ke Form & Edit
+              </button>
+              <button className={styles.btnDel} style={{ width: "auto", padding: "0 14px", fontSize: 13 }} onClick={() => { setDeleteLogId(viewLog.id); }}>
+                <i className="bx bx-trash" /> Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
@@ -1186,19 +1358,37 @@ function DiscordManager() {
         <div className={styles.discordForm}>
           <div className={styles.discordFormInner}>
             <div className={styles.field}>
-              <label>Judul Update <span style={{ color: "#e05252" }}>*</span></label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label>Judul Update <span style={{ color: "#e05252" }}>*</span></label>
+                <span style={{ fontSize: 11, color: title.length > 240 ? "#e05252" : "#777" }}>{title.length}/256</span>
+              </div>
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Masukkan judul pengumuman..." maxLength={256} />
-              <span style={{ fontSize: 11, color: "#555", textAlign: "right" }}>{title.length}/256</span>
             </div>
+
             <div className={styles.field}>
-              <label>Deskripsi <span style={{ color: "#e05252" }}>*</span></label>
-              <textarea rows={6} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Tulis detail pengumuman di sini..." maxLength={2000} />
-              <span style={{ fontSize: 11, color: "#555", textAlign: "right" }}>{desc.length}/2000</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label>Deskripsi <span style={{ color: "#e05252" }}>*</span></label>
+                <span style={{ fontSize: 11, color: desc.length > 1700 ? "#e05252" : desc.length > 1400 ? "#f59e0b" : "#777", fontWeight: 700 }}>
+                  {desc.length}/1800 {desc.length > 1800 && "(Maksimal tercapai)"}
+                </span>
+              </div>
+              <textarea
+                rows={6}
+                value={desc}
+                onChange={e => setDesc(e.target.value)}
+                placeholder="Tulis detail pengumuman di sini (maks. 1.800 karakter agar pengiriman Discord selalu lancar)..."
+                maxLength={1800}
+              />
+              <span style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+                💡 Tip: Teks dibatasi maks. 1.800 karakter agar sesuai batas pesan Discord dan tidak terjadi error server.
+              </span>
             </div>
+
             <div className={styles.field}>
               <label>URL Website</label>
               <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://cavallery.id" />
             </div>
+
             <div className={styles.field}>
               <label>Gambar <span style={{ color: "#777", fontWeight: 400 }}>(opsional)</span></label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -1208,6 +1398,7 @@ function DiscordManager() {
               </div>
               {image && <img src={image} alt="preview" style={{ marginTop: 8, maxHeight: 120, borderRadius: 8, objectFit: "cover", border: "1px solid var(--adm-border)", width: "100%" }} onError={e => (e.currentTarget.style.display = "none")} />}
             </div>
+
             <div className={styles.field}>
               <label>Mention</label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -1218,9 +1409,26 @@ function DiscordManager() {
                 ))}
               </div>
             </div>
-            <button className={styles.btnPrimary} onClick={send} disabled={sending || !title.trim() || !desc.trim()} style={{ width: "100%", justifyContent: "center", padding: "0.65rem", fontSize: "0.9rem", background: sending ? "#333" : "linear-gradient(135deg, #5865f2, #7289da)", color: "#fff" }}>
-              {sending ? <><i className="bx bx-loader-alt bx-spin" /> Mengirim ke Discord...</> : <><i className="bx bxl-discord-alt" /> Kirim Sekarang</>}
-            </button>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                className={styles.btnPrimary}
+                onClick={send}
+                disabled={sending || !title.trim() || !desc.trim()}
+                style={{ flex: 2, justifyContent: "center", padding: "0.65rem", fontSize: "0.9rem", background: sending ? "#333" : "linear-gradient(135deg, #5865f2, #7289da)", color: "#fff" }}
+              >
+                {sending ? <><i className="bx bx-loader-alt bx-spin" /> Mengirim ke Discord...</> : <><i className="bx bxl-discord-alt" /> Kirim Sekarang</>}
+              </button>
+              <button
+                className={styles.btnGhost}
+                onClick={saveDraft}
+                disabled={!title.trim()}
+                title="Simpan sebagai catatan/draft ke log"
+                style={{ flex: 1, justifyContent: "center", fontSize: "0.85rem", whiteSpace: "nowrap" }}
+              >
+                <i className="bx bx-save" /> Simpan Draft
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1239,25 +1447,89 @@ function DiscordManager() {
             </div>
           </div>
 
+          {/* CRUD RIWAYAT LOG DISCORD */}
           <div className={styles.discordLogsCard}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <p className={styles.discordPreviewLabel} style={{ margin: 0 }}><i className="bx bx-history" /> Riwayat ({logs.length})</p>
-              {logs.length > 0 && <button className={styles.btnDel} style={{ width: "auto", height: "auto", padding: "3px 10px", fontSize: 11, borderRadius: 6 }} onClick={() => setConfirmClear(true)}>Hapus Log</button>}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 6 }}>
+              <p className={styles.discordPreviewLabel} style={{ margin: 0 }}><i className="bx bx-history" /> Riwayat Log ({logs.length})</p>
+              {logs.length > 0 && (
+                <button
+                  className={styles.btnDel}
+                  style={{ width: "auto", height: "auto", padding: "3px 10px", fontSize: 11, borderRadius: 6 }}
+                  onClick={() => setConfirmClear(true)}
+                  title="Hapus semua riwayat"
+                >
+                  <i className="bx bx-trash" /> Hapus Semua
+                </button>
+              )}
             </div>
-            {logs.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "24px 0", opacity: 0.3, fontSize: 13 }}>
+
+            {/* Search filter log */}
+            {logs.length > 0 && (
+              <div style={{ position: "relative", marginBottom: 10 }}>
+                <input
+                  type="text"
+                  value={searchLog}
+                  onChange={e => setSearchLog(e.target.value)}
+                  placeholder="Cari riwayat pengumuman..."
+                  style={{ width: "100%", padding: "6px 10px 6px 30px", fontSize: 12, background: "#141414", border: "1px solid #333", borderRadius: 8, color: "#fff" }}
+                />
+                <i className="bx bx-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#666", fontSize: 14 }} />
+                {searchLog && (
+                  <button onClick={() => setSearchLog("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}>
+                    <i className="bx bx-x" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {filteredLogs.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px 0", opacity: 0.4, fontSize: 13 }}>
                 <i className="bx bx-inbox" style={{ fontSize: "2rem", display: "block", marginBottom: 4 }} />
-                Belum ada riwayat
+                {logs.length === 0 ? "Belum ada riwayat" : "Tidak ada hasil pencarian"}
               </div>
             ) : (
-              <div className={styles.discordLogList}>
-                {logs.map((log, i) => (
-                  <div key={i} className={styles.discordLogItem}>
-                    <div className={styles.discordLogTitle}>{log.title}</div>
-                    <div className={styles.discordLogMeta}>
-                      <span>{log.time}</span>
-                      {log.mention !== "—" && <span style={{ background: log.mention === "@everyone" ? "#3a1a1a" : "#2a1e10", color: log.mention === "@everyone" ? "#e05252" : "#f59e0b", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{log.mention}</span>}
-                      {log.hasImage && <span style={{ color: "#5865f2", fontSize: 10 }}><i className="bx bx-image" /> gambar</span>}
+              <div className={styles.discordLogList} style={{ maxHeight: 320, overflowY: "auto" }}>
+                {filteredLogs.map((log) => (
+                  <div key={log.id} className={styles.discordLogItem} style={{ borderLeft: log.status === "failed" ? "3px solid #e05252" : "3px solid #5865f2" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                      <div
+                        onClick={() => setViewLog(log)}
+                        style={{ cursor: "pointer", flex: 1, minWidth: 0 }}
+                        title="Klik untuk melihat detail log"
+                      >
+                        <div className={styles.discordLogTitle} style={{ fontWeight: 600, color: "#f0f0f0" }}>{log.title}</div>
+                        <div className={styles.discordLogMeta} style={{ marginTop: 2 }}>
+                          <span>{log.time}</span>
+                          {log.mention && log.mention !== "—" && <span style={{ background: log.mention === "@everyone" ? "#3a1a1a" : "#2a1e10", color: log.mention === "@everyone" ? "#e05252" : "#f59e0b", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{log.mention}</span>}
+                          {log.hasImage && <span style={{ color: "#5865f2", fontSize: 10 }}><i className="bx bx-image" /> gambar</span>}
+                          {log.status === "failed" && <span style={{ color: "#e05252", fontSize: 10, fontWeight: 700 }}>⚠️ Gagal</span>}
+                        </div>
+                      </div>
+
+                      {/* CRUD ACTION BUTTONS */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                        <button
+                          onClick={() => setViewLog(log)}
+                          title="Lihat Detail (Read)"
+                          style={{ background: "#252525", border: "1px solid #3a3a3a", borderRadius: 6, color: "#aaa", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                        >
+                          <i className="bx bx-show" />
+                        </button>
+                        <button
+                          onClick={() => loadLogToForm(log)}
+                          title="Muat ke Form & Edit (Update)"
+                          style={{ background: "#1a2a3a", border: "1px solid #2a4a6a", borderRadius: 6, color: "#60a5fa", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                        >
+                          <i className="bx bx-edit-alt" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteLogId(log.id)}
+                          title="Hapus Log Ini (Delete)"
+                          style={{ background: "#3a1a1a", border: "1px solid #5a2a2a", borderRadius: 6, color: "#f87171", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                        >
+                          <i className="bx bx-trash" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
