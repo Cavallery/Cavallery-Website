@@ -1145,9 +1145,18 @@ function DiscordManager() {
     try {
       const time   = now();
       let urlVal   = url.trim() || "https://cavallery.id";
-      if (urlVal && !urlVal.startsWith("http")) urlVal = "https://" + urlVal;
+      if (urlVal && !urlVal.startsWith("http://") && !urlVal.startsWith("https://")) {
+        urlVal = "https://" + urlVal.replace(/^\/+/, "");
+      }
+
       let imgVal   = image.trim();
-      if (imgVal && !imgVal.startsWith("http")) imgVal = "https://" + imgVal;
+      if (imgVal && !imgVal.startsWith("http://") && !imgVal.startsWith("https://")) {
+        if (imgVal.startsWith("/")) {
+          imgVal = "https://cavallery.id" + imgVal;
+        } else {
+          imgVal = "https://" + imgVal;
+        }
+      }
 
       // Bersihkan deskripsi & potong aman max 1800 karakter
       let cleanDesc = desc.trim();

@@ -42,11 +42,12 @@ export async function POST(req: NextRequest) {
       body.image || body.image_url || body.imageUrl || ""
     ).trim();
     let validImage: string | null = null;
-    if (
-      rawImage &&
-      (rawImage.startsWith("http://") || rawImage.startsWith("https://"))
-    ) {
-      validImage = rawImage;
+    if (rawImage) {
+      if (rawImage.startsWith("http://") || rawImage.startsWith("https://")) {
+        validImage = rawImage;
+      } else if (rawImage.startsWith("/")) {
+        validImage = `https://cavallery.id${rawImage}`;
+      }
     }
 
     // 5. Validasi Mention
