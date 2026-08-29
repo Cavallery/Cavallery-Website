@@ -131,6 +131,10 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   const isDarkBgPage = ["/kaleidoskop"].includes(pathname);
   const isForceLightText = isDarkBgPage && !scrolled;
 
