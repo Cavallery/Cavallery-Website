@@ -11,6 +11,7 @@ export default function GamesVideoTeaser() {
         loop
         playsInline
         controls
+        preload="metadata"
         className={styles.video}
       />
     </div>
