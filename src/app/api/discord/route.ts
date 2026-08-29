@@ -4,7 +4,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // 1. Bersihkan & Validasi Title (max 256 karakter)
+    // 1. Bersihkan & Validasi Title (max 256 karakter sesuai Discord embed limit)
     const title = String(body.title || "").trim().slice(0, 256);
     if (!title) {
       return NextResponse.json(
@@ -13,13 +13,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Bersihkan & Validasi Deskripsi (max 3800 karakter agar aman)
-    const rawDesc = String(body.description || "").trim().slice(0, 3800);
+    // 2. Bersihkan & Validasi Deskripsi (max 1800 karakter agar tidak melebihi batas 2000 karakter Discord bot message)
+    let rawDesc = String(body.description || "").trim();
     if (!rawDesc) {
       return NextResponse.json(
         { success: false, message: "Deskripsi pengumuman wajib diisi." },
         { status: 400 }
       );
+    }
+
+    if (rawDesc.length > 1800) {
+      rawDesc = rawDesc.slice(0, 1797) + "...";
     }
 
     // 3. Validasi URL
@@ -99,7 +103,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Kembalikan error detail dari server bot jika gagal
     return NextResponse.json(
       {
         success: false,
