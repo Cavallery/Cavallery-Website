@@ -1,11 +1,84 @@
 .container {
   width: 100%;
   max-width: 1200px;
-  margin: 40px auto 60px auto;
-  padding: 0 20px;
+  margin: 60px auto 80px auto;
+  padding: 0 24px;
   display: flex;
   flex-direction: column;
   gap: 32px;
+}
+
+.sectionHeaderWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  text-align: center;
+}
+
+.titleAreaMain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mainTitle {
+  font-family: var(--font-serif, "Cinzel", Georgia, serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.mainSubtitle {
+  color: #a8a29e;
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0;
+}
+
+/* Tabs */
+.tabsContainer {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.tabBtn {
+  background: rgba(26, 21, 16, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  color: #d6d3d1;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tabBtn i {
+  font-size: 1.15rem;
+}
+
+.tabBtn:hover {
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.5);
+  color: #fef08a;
+  transform: translateY(-2px);
+}
+
+.tabBtnActive {
+  background: linear-gradient(135deg, rgba(212, 163, 89, 0.35), rgba(212, 163, 89, 0.15));
+  border-color: #f59e0b;
+  color: #fef08a;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
 }
 
 /* Stats Cards Grid */
@@ -115,13 +188,10 @@
 
 .sectionTitle {
   font-family: var(--font-serif, "Cinzel", Georgia, serif);
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .titleArea i {

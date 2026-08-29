@@ -61,6 +61,7 @@ const games = [
 ];
 
 import Link from "next/link";
+import GameLeaderboard from "@/components/games/GameLeaderboard";
 
 export default function GamesPage() {
   return (
@@ -106,6 +107,9 @@ export default function GamesPage() {
           </div>
         ))}
       </div>
+
+      {/* Leaderboard & Stats for games with name input (Belalang & Bibir) */}
+      <GameLeaderboard />
     </div>
   );
 }

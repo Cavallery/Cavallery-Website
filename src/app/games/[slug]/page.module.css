@@ -1,8 +1,9 @@
 .container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
   background-color: var(--bg);
   padding-top: var(--nav-h);
   box-sizing: border-box;
@@ -17,8 +18,6 @@
   padding: 0 24px;
   flex-shrink: 0;
   z-index: 10;
-  position: sticky;
-  top: var(--nav-h);
 }
 
 .headerInner {
@@ -61,13 +60,10 @@
 }
 
 .frameWrapper {
+  flex: 1;
   width: 100%;
+  min-height: 0;
+  overflow-y: auto;
   background-color: var(--bg);
+  height: 0;
 }
-
-/* Game iframe area */
-.frameWrapper > :first-child {
-  min-height: 600px;
-  height: 75vh;
-}
-
