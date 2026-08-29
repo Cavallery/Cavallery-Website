@@ -367,6 +367,11 @@
           "erine_leaderboard",
           JSON.stringify(data.slice(0, 10))
         );
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "GAME_OVER", score: score, playerName: name, gameId: "jumping-adventure" }, "*");
+          }
+        } catch (e) {}
       }
 
       function renderLeaderboard() {

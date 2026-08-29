@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
 import GameFrame from "./GameFrame";
+import GameLeaderboard from "@/components/games/GameLeaderboard";
 
 const gameData: Record<string, { title: string; url: string; description: string }> = {
   "grasshopper-collector": {
@@ -66,11 +67,12 @@ export default async function GamePlayPage({ params }: Props) {
         </div>
       </div>
       <div className={styles.frameWrapper}>
-  <GameFrame
-    src={game.url}
-    title={game.title}
-  />
-</div>
+        <GameFrame
+          src={game.url}
+          title={game.title}
+        />
+        <GameLeaderboard slug={resolvedParams.slug} gameTitle={game.title} />
+      </div>
     </div>
   );
 }

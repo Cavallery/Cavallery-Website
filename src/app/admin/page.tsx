@@ -3474,13 +3474,18 @@ function AboutErineManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [pickerIdx, setPickerIdx] = useState<number | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_about_erine") : null;
-      if (saved) setSlides(JSON.parse(saved));
-      else setSlides(DEFAULT_ABOUT_ERINE);
+      const res = await fetch("/api/about-erine");
+      const json = await res.json();
+      if (json?.success && Array.isArray(json.data) && json.data.length > 0) {
+        setSlides(json.data);
+      } else {
+        setSlides(DEFAULT_ABOUT_ERINE);
+      }
     } catch {
       setSlides(DEFAULT_ABOUT_ERINE);
     }
@@ -3489,16 +3494,41 @@ function AboutErineManager() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const updateSlide = (idx: number, val: string) => {
+    const n = [...slides]; n[idx] = val; setSlides(n);
+  };
+
+  const addSlide = () => setSlides(prev => [...prev, ""]);
+
+  const removeSlide = (idx: number) => {
+    if (slides.length <= 1) return;
+    setSlides(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    const filtered = slides.filter(s => s.trim().length > 0);
+    if (filtered.length === 0) {
+      setToast({ msg: "Minimal harus ada 1 foto.", type: "error" });
+      setSaving(false);
+      return;
+    }
     try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cavallery_about_erine", JSON.stringify(slides));
+      const res = await fetch("/api/about-erine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(filtered),
+      });
+      const json = await res.json();
+      if (json?.success) {
+        setSlides(json.data);
+        setToast({ msg: `✅ ${filtered.length} foto About Erine berhasil disimpan ke database!`, type: "success" });
+      } else {
+        setToast({ msg: json.message || "Gagal menyimpan ke server", type: "error" });
       }
-      setToast({ msg: "Berhasil menyimpan foto About Erine", type: "success" });
     } catch {
-      setToast({ msg: "Gagal menyimpan", type: "error" });
+      setToast({ msg: "Error koneksi ke server", type: "error" });
     }
     setSaving(false);
   };
@@ -3506,21 +3536,110 @@ function AboutErineManager() {
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-image" style={{ color: "#ec4899" }} /> About Erine Hero Photos</h2></div>
-      {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div> : (
-        <div className={styles.formModal} style={{ position: "relative", maxWidth: 600 }}>
+      {pickerIdx !== null && (
+        <MediaPickerModal
+          type="image"
+          onPick={(url) => { updateSlide(pickerIdx, url); setPickerIdx(null); }}
+          onClose={() => setPickerIdx(null)}
+        />
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-image" style={{ color: "#ec4899" }} /> About Erine Hero Photos
+        </h2>
+        <p style={{ color: "var(--adm-muted)", fontSize: 13, marginTop: 4 }}>
+          Kelola foto yang tampil di slider hero halaman About Erine. Foto pertama adalah foto utama yang paling besar.
+        </p>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data dari database...</div>
+      ) : (
+        <div className={styles.formModal} style={{ position: "relative", maxWidth: 680 }}>
           <form onSubmit={handleSave}>
             <div className={styles.formBody}>
               {slides.map((url, idx) => (
-                <div className={styles.field} key={idx}>
-                  <label>Foto {idx + 1}</label>
-                  <input type="url" value={url} onChange={e => { const n = [...slides]; n[idx] = e.target.value; setSlides(n); }} placeholder="https://..." />
-                  {url && <img src={url} alt={`Preview ${idx + 1}`} style={{ marginTop: 8, maxHeight: 150, borderRadius: 8, objectFit: "cover" }} />}
+                <div key={idx} className={styles.field}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <label style={{ margin: 0 }}>
+                      {idx === 0 ? "🌟 Foto Utama (Foto 1 — tampil paling besar)" : `📷 Foto ${idx + 1}`}
+                    </label>
+                    {slides.length > 1 && (
+                      <button
+                        type="button"
+                        className={styles.btnDel}
+                        onClick={() => removeSlide(idx)}
+                        title="Hapus foto ini"
+                        style={{ padding: "4px 10px", fontSize: 12 }}
+                      >
+                        <i className="bx bx-trash" /> Hapus
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={e => updateSlide(idx, e.target.value)}
+                      placeholder="URL foto (https://...) atau pilih dari media library"
+                      style={{ flex: 1 }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.btnGhost}
+                      style={{ whiteSpace: "nowrap", fontSize: 13 }}
+                      onClick={() => setPickerIdx(idx)}
+                    >
+                      <i className="bx bx-folder-open" /> Pilih
+                    </button>
+                  </div>
+                  {url && url.trim().length > 4 && (
+                    <img
+                      src={url}
+                      alt={`Preview ${idx + 1}`}
+                      style={{ marginTop: 8, maxHeight: 160, width: "100%", borderRadius: 8, objectFit: "cover", border: "1px solid var(--adm-border)" }}
+                      onError={e => (e.currentTarget.style.display = "none")}
+                    />
+                  )}
                 </div>
               ))}
+
+              <button
+                type="button"
+                className={styles.btnGhost}
+                onClick={addSlide}
+                style={{ width: "100%", marginTop: 8, padding: "10px", borderStyle: "dashed", fontSize: 14 }}
+              >
+                <i className="bx bx-plus" /> Tambah Foto Baru
+              </button>
+
+              <div style={{
+                marginTop: 16,
+                padding: "12px 16px",
+                background: "rgba(236, 72, 153, 0.08)",
+                border: "1px dashed rgba(236, 72, 153, 0.3)",
+                borderRadius: 8,
+                fontSize: 13,
+                color: "var(--adm-muted)",
+                display: "flex",
+                gap: 8,
+                alignItems: "flex-start",
+              }}>
+                <i className="bx bx-info-circle" style={{ color: "#ec4899", flexShrink: 0, marginTop: 2 }} />
+                <span>
+                  Total <strong>{slides.filter(s => s.trim()).length} foto</strong>. Foto 1 jadi foto utama besar, foto ke-2, 3, 4 tampil di thumbnail bawah.
+                  Perubahan disimpan ke database dan langsung aktif di website.
+                </span>
+              </div>
             </div>
-            <div className={styles.formFooter} style={{ justifyContent: "flex-end", marginTop: 16 }}>
-              <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan</>}</button>
+            <div className={styles.formFooter} style={{ justifyContent: "flex-end", marginTop: 16, gap: 8 }}>
+              <button type="button" className={styles.btnGhost} onClick={load} disabled={loading}>
+                <i className="bx bx-refresh" /> Reset
+              </button>
+              <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan ke Database...</> : <><i className="bx bx-save" /> Simpan ke Database</>}
+              </button>
             </div>
           </form>
         </div>

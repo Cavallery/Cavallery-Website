@@ -341,6 +341,11 @@
           "belalang_leaderboard",
           JSON.stringify(data.slice(0, 10))
         );
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "GAME_OVER", score: score, playerName: name, gameId: "grasshopper-collector" }, "*");
+          }
+        } catch (e) {}
       }
 
       function renderLeaderboard() {
