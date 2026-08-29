@@ -110,6 +110,9 @@ export default function JoinPage() {
   const [division, setDivision] = useState("");
   const [reason, setReason] = useState("");
 
+  // ─── MEMBER REGISTRATION MULTI-STEP STATE ──────────────────────
+  const [memberStep, setMemberStep] = useState<1 | 2 | 3>(1);
+
   // Member Registration Form specific states (1-Page Form)
   const [email, setEmail] = useState("");
   const [feeAgreed, setFeeAgreed] = useState(false);
@@ -216,6 +219,7 @@ export default function JoinPage() {
   const openForm = (roleId: string) => {
     setActiveModalRole(roleId);
     setAdminStep(1);
+    setMemberStep(1);
     setFullName("");
     setNickname("");
     setCity("");
@@ -393,6 +397,54 @@ export default function JoinPage() {
       }
     }
     setAdminStep(3);
+  };
+
+  // Member Step 1 Validation
+  const handleMemberStep1Next = () => {
+    setFormError("");
+    if (!email.trim()) {
+      setFormError("Mohon isi Email Anda.");
+      return;
+    }
+    if (!feeAgreed) {
+      setFormError(
+        "Anda wajib menyetujui ketentuan iuran Rp75.000 untuk melanjutkan pendaftaran.",
+      );
+      return;
+    }
+    if (!fullName.trim()) {
+      setFormError("Mohon isi Nama Lengkap.");
+      return;
+    }
+    if (!lineId.trim()) {
+      setFormError("Mohon isi ID Line.");
+      return;
+    }
+    if (!lineDisplayName.trim()) {
+      setFormError("Mohon isi Display Name Line.");
+      return;
+    }
+    if (!city.trim()) {
+      setFormError("Mohon tuliskan Kota atau Kabupaten Domisili Anda.");
+      return;
+    }
+    setMemberStep(2);
+  };
+
+  // Member Step 2 Validation
+  const handleMemberStep2Next = () => {
+    setFormError("");
+    if (hobbies.length === 0 && !hobbyOther.trim()) {
+      setFormError("Mohon pilih minimal satu Hobby.");
+      return;
+    }
+    if (!usernameX.trim() && !usernameIg.trim() && !usernameTiktok.trim()) {
+      setFormError(
+        "Mohon isi minimal satu akun media sosial aktif (X, Instagram, atau TikTok).",
+      );
+      return;
+    }
+    setMemberStep(3);
   };
 
   const getPositionTitle = (id: string) => {
@@ -654,7 +706,7 @@ export default function JoinPage() {
           </h1>
           <p className={styles.heroSub}>
             Tentukan peranmu dalam mendukung, merayakan, dan berbagi keceriaan
-            bersama Erine JKT48.
+            bersama Catherina Vallencia (Erine) JKT48.
           </p>
         </div>
       </div>
@@ -736,7 +788,7 @@ export default function JoinPage() {
       {activeModalRole && (
         <div className={styles.modalOverlay} onClick={closeModal}>
           <div
-            className={`${styles.modalContent} ${activeModalRole === "admin" ? styles.modalContentWide : ""}`}
+            className={`${styles.modalContent} ${activeModalRole === "admin" || activeModalRole === "member" ? styles.modalContentWide : ""}`}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1901,365 +1953,469 @@ export default function JoinPage() {
                   </>
                 ) : activeModalRole === "member" ? (
                   /* ══════════════════════════════════════════════════════
-                      2. MEMBER REGISTRATION FORM (1-PAGE FORM)
+                      2. FORM REKRUTMEN MEMBER (MULTI-STEP WIZARD)
                       ══════════════════════════════════════════════════════ */
                   <>
-                    {/* DISCLAIMER IURAN */}
-                    <div className={styles.disclaimerBox}>
-                      <div className={styles.disclaimerTitle}>
-                        <i className="bx bx-info-circle" /> DISCLAIMER IURAN
-                        KEANGGOTAAN
-                      </div>
-                      <div className={styles.disclaimerText}>
-                        Sebelum melanjutkan pendaftaran, harap diperhatikan
-                        bahwa calon anggota Cavallery yang terpilih memiliki
-                        kewajiban untuk membayar iuran sebesar{" "}
-                        <strong>Rp75.000</strong>. Iuran tersebut digunakan
-                        untuk keperluan operasional fanbase dan pembelian
-                        atribut resmi anggota.
-                      </div>
-                      <label className={styles.checkboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={feeAgreed}
-                          onChange={(e) => setFeeAgreed(e.target.checked)}
-                          required
-                        />
-                        <span>
-                          Saya bersedia dan menyetujui kewajiban membayar iuran
-                          sebesar Rp75.000 jika terpilih sebagai anggota resmi.{" "}
-                          <span>*</span>
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Email Aktif <span>*</span>
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="Contoh: user@gmail.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Nama Lengkap <span>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Tuliskan nama lengkap kamu"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Tahu Cavallery darimana? <span>*</span>
-                      </label>
-                      <div className={styles.optionsGrid}>
-                        {["X", "Instagram", "Tiktok", "Teman", "Yang lain"].map(
-                          (src) => (
-                            <label key={src} className={styles.optionLabel}>
-                              <input
-                                type="radio"
-                                name="infoSource"
-                                value={src}
-                                checked={infoSource === src}
-                                onChange={(e) => setInfoSource(e.target.value)}
-                              />
-                              <span>{src}</span>
-                            </label>
-                          ),
-                        )}
-                      </div>
-                      {infoSource === "Yang lain" && (
-                        <input
-                          type="text"
-                          className={styles.otherInput}
-                          placeholder="Sebutkan sumber lainnya..."
-                          value={infoSourceOther}
-                          onChange={(e) => setInfoSourceOther(e.target.value)}
-                        />
-                      )}
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Jenis Kelamin <span>*</span>
-                      </label>
-                      <div className={styles.optionsGrid}>
-                        {["Perempuan", "Laki-laki"].map((g) => (
-                          <label key={g} className={styles.optionLabel}>
-                            <input
-                              type="radio"
-                              name="gender"
-                              value={g}
-                              checked={gender === g}
-                              onChange={(e) => setGender(e.target.value)}
-                            />
-                            <span>{g}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        ID Line <span>*</span>
-                      </label>
-                      <span className={styles.fieldSubtext}>
-                        Pastikan ID Line sudah benar dan akun tidak di-private
-                        agar bisa diundang ke grup koordinasi.
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Tuliskan ID Line aktif kamu"
-                        value={lineId}
-                        onChange={(e) => setLineId(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Display Name Line <span>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Nama tampilan akun Line kamu"
-                        value={lineDisplayName}
-                        onChange={(e) => setLineDisplayName(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Domisili <span>*</span>
-                      </label>
-                      <span className={styles.fieldSubtext}>
-                        Tuliskan Kota atau Kabupaten tempat tinggal kamu saat
-                        ini.
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Contoh: Jakarta / Surabaya / Bandung"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Hobby <span>*</span>
-                      </label>
-                      <span className={styles.fieldSubtext}>
-                        Pilih satu atau lebih hobi yang kamu minati.
-                      </span>
-                      <div className={styles.optionsGrid}>
-                        {[
-                          "Editing",
-                          "Design",
-                          "Nonton Show Theater",
-                          "Bermain Game",
-                          "Bermain Alat Musik",
-                          "Menari",
-                          "Menulis",
-                          "Membaca",
-                          "Nonton Film",
-                          "Olahraga",
-                        ].map((h) => (
-                          <label key={h} className={styles.optionLabel}>
-                            <input
-                              type="checkbox"
-                              checked={hobbies.includes(h)}
-                              onChange={() => toggleHobby(h)}
-                            />
-                            <span>{h}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <input
-                        type="text"
-                        className={styles.otherInput}
-                        placeholder="Hobby yang lain (opsional)..."
-                        value={hobbyOther}
-                        onChange={(e) => setHobbyOther(e.target.value)}
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <span
-                        className={styles.fieldSubtext}
-                        style={{
-                          color: "var(--gold, #b45309)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Silakan isi minimal satu akun media sosial yang aktif.
-                        Untuk keperluan pengecekan, mohon agar akun tidak
-                        di-private sementara waktu hingga proses pendaftaran
-                        selesai.
-                      </span>
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>Username X (Twitter)</label>
-                      <input
-                        type="text"
-                        placeholder="Contoh: @username_x"
-                        value={usernameX}
-                        onChange={(e) => setUsernameX(e.target.value)}
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>Username Instagram</label>
-                      <input
-                        type="text"
-                        placeholder="Contoh: @username_ig"
-                        value={usernameIg}
-                        onChange={(e) => setUsernameIg(e.target.value)}
-                      />
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>Username TikTok</label>
-                      <input
-                        type="text"
-                        placeholder="Contoh: @username_tiktok"
-                        value={usernameTiktok}
-                        onChange={(e) => setUsernameTiktok(e.target.value)}
-                      />
-                    </div>
-
-                    {/* ALASAN MASUK CAVALLERY */}
-                    <div className={styles.sectionDivider}>
-                      <div className={styles.sectionHeading}>
-                        <i className="bx bx-heart" /> Alasan & Kontribusi
-                      </div>
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Alasan kamu masuk Cavallery <span>*</span>
-                      </label>
-                      <div className={styles.optionsGrid}>
-                        {[
-                          "Aku Erine Oshi banget",
-                          "Erine Cantik Banget",
-                          "Aku Bangga sama Erine",
-                          "Yang lain",
-                        ].map((rOpt) => (
-                          <label key={rOpt} className={styles.optionLabel}>
-                            <input
-                              type="radio"
-                              name="reasonMember"
-                              value={rOpt}
-                              checked={reasonMember === rOpt}
-                              onChange={(e) => setReasonMember(e.target.value)}
-                            />
-                            <span>{rOpt}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {reasonMember === "Yang lain" && (
-                        <input
-                          type="text"
-                          className={styles.otherInput}
-                          placeholder="Tuliskan alasan lainnya..."
-                          value={reasonMemberOther}
-                          onChange={(e) => setReasonMemberOther(e.target.value)}
-                        />
-                      )}
-                    </div>
-
-                    <div className={styles.field}>
-                      <label>
-                        Bentuk support apa yang akan kamu berikan kepada
-                        Cavallery <span>*</span>
-                      </label>
-                      <span className={styles.fieldSubtext}>
-                        Silahkan tuliskan keahlian kalian dalam bentuk apa saja!
-                      </span>
-                      <div className={styles.optionsGrid}>
-                        {[
-                          "Aku akan aktif interaksi di grup",
-                          "Aku bisa ikut brainstorming dan aktif dalam project cavallery",
-                          "Aku kalo verif bakal absen di grup min biar theateran bareng",
-                          "Aku bisa desain dan editing",
-                        ].map((sOpt) => (
-                          <label key={sOpt} className={styles.optionLabel}>
-                            <input
-                              type="checkbox"
-                              checked={supportTypes.includes(sOpt)}
-                              onChange={() => toggleSupportType(sOpt)}
-                            />
-                            <span>{sOpt}</span>
-                          </label>
-                        ))}
-                      </div>
-                      <input
-                        type="text"
-                        className={styles.otherInput}
-                        placeholder="Keahlian / bentuk support yang lain..."
-                        value={supportTypeOther}
-                        onChange={(e) => setSupportTypeOther(e.target.value)}
-                      />
-                    </div>
-
-                    {/* SARAN KEGIATAN CAVALLERY */}
-                    <div className={styles.field}>
-                      <label>
-                        Saran Kegiatan yang harus dilakukan oleh Cavallery
-                      </label>
-                      <span className={styles.fieldSubtext}>
-                        Punya ide event, project, atau kegiatan seru untuk
-                        Cavallery? Tuliskan saranmu di sini!
-                      </span>
-                      <textarea
-                        placeholder="Tuliskan saran kegiatan atau ide project untuk Cavallery..."
-                        value={activitySuggestion}
-                        onChange={(e) => setActivitySuggestion(e.target.value)}
-                      />
-                    </div>
-
-                    {/* REMINDER */}
-                    <div className={styles.reminderBox}>
-                      <i className="bx bx-info-circle" />
-                      <div>
-                        <div className={styles.reminderTitle}>-REMINDER-</div>
-                        <div className={styles.reminderText}>
-                          Data kalian akan dikumpulkan dan di-screening oleh
-                          admin kami untuk proses pemeriksaan sebelum kalian
-                          bergabung dengan Cavallery.
+                    {/* Stepper Progress */}
+                    <div className={styles.stepperContainer}>
+                      <div className={styles.stepperBar}>
+                        <div
+                          className={`${styles.stepperStep} ${memberStep >= 1 ? styles.stepperStepActive : ""} ${memberStep > 1 ? styles.stepperStepDone : ""}`}
+                        >
+                          <div className={styles.stepperNumber}>
+                            {memberStep > 1 ? "✓" : "1"}
+                          </div>
+                          <span className={styles.stepperLabel}>Data Diri</span>
+                        </div>
+                        <div className={styles.stepperDivider} />
+                        <div
+                          className={`${styles.stepperStep} ${memberStep >= 2 ? styles.stepperStepActive : ""} ${memberStep > 2 ? styles.stepperStepDone : ""}`}
+                        >
+                          <div className={styles.stepperNumber}>
+                            {memberStep > 2 ? "✓" : "2"}
+                          </div>
+                          <span className={styles.stepperLabel}>
+                            Hobby & Sosmed
+                          </span>
+                        </div>
+                        <div className={styles.stepperDivider} />
+                        <div
+                          className={`${styles.stepperStep} ${memberStep === 3 ? styles.stepperStepActive : ""}`}
+                        >
+                          <div className={styles.stepperNumber}>3</div>
+                          <span className={styles.stepperLabel}>
+                            Alasan & Kontribusi
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      className={styles.submitBtn}
-                      disabled={submitting}
-                    >
-                      {submitting ? (
-                        <>
-                          <i className="bx bx-loader-alt bx-spin" /> Mengirim...
-                        </>
-                      ) : (
-                        <>
-                          <i className="bx bx-send" /> Kirim Pendaftaran Member
-                        </>
-                      )}
-                    </button>
+                    {/* ── STEP 1: DATA DIRI ── */}
+                    {memberStep === 1 && (
+                      <>
+                        {/* DISCLAIMER IURAN */}
+                        <div className={styles.disclaimerBox}>
+                          <div className={styles.disclaimerTitle}>
+                            <i className="bx bx-info-circle" /> DISCLAIMER IURAN
+                            KEANGGOTAAN
+                          </div>
+                          <div className={styles.disclaimerText}>
+                            Sebelum melanjutkan pendaftaran, harap diperhatikan
+                            bahwa calon anggota Cavallery yang terpilih memiliki
+                            kewajiban untuk membayar iuran sebesar{" "}
+                            <strong>Rp75.000</strong>. Iuran tersebut digunakan
+                            untuk keperluan operasional fanbase dan pembelian
+                            atribut resmi anggota.
+                          </div>
+                          <label className={styles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={feeAgreed}
+                              onChange={(e) => setFeeAgreed(e.target.checked)}
+                              required
+                            />
+                            <span>
+                              Saya bersedia dan menyetujui kewajiban membayar
+                              iuran sebesar Rp75.000 jika terpilih sebagai
+                              anggota resmi. <span>*</span>
+                            </span>
+                          </label>
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Email Aktif <span>*</span>
+                          </label>
+                          <input
+                            type="email"
+                            placeholder="Contoh: user@gmail.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Nama Lengkap <span>*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Tuliskan nama lengkap kamu"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Tahu Cavallery darimana? <span>*</span>
+                          </label>
+                          <div className={styles.optionsGrid}>
+                            {[
+                              "X",
+                              "Instagram",
+                              "Tiktok",
+                              "Teman",
+                              "Yang lain",
+                            ].map((src) => (
+                              <label key={src} className={styles.optionLabel}>
+                                <input
+                                  type="radio"
+                                  name="infoSource"
+                                  value={src}
+                                  checked={infoSource === src}
+                                  onChange={(e) =>
+                                    setInfoSource(e.target.value)
+                                  }
+                                />
+                                <span>{src}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {infoSource === "Yang lain" && (
+                            <input
+                              type="text"
+                              className={styles.otherInput}
+                              placeholder="Sebutkan sumber lainnya..."
+                              value={infoSourceOther}
+                              onChange={(e) =>
+                                setInfoSourceOther(e.target.value)
+                              }
+                            />
+                          )}
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Jenis Kelamin <span>*</span>
+                          </label>
+                          <div className={styles.optionsGrid}>
+                            {["Perempuan", "Laki-laki"].map((g) => (
+                              <label key={g} className={styles.optionLabel}>
+                                <input
+                                  type="radio"
+                                  name="gender"
+                                  value={g}
+                                  checked={gender === g}
+                                  onChange={(e) => setGender(e.target.value)}
+                                />
+                                <span>{g}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            ID Line <span>*</span>
+                          </label>
+                          <span className={styles.fieldSubtext}>
+                            Pastikan ID Line sudah benar dan akun tidak
+                            di-private agar bisa diundang ke grup koordinasi.
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="Tuliskan ID Line aktif kamu"
+                            value={lineId}
+                            onChange={(e) => setLineId(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Display Name Line <span>*</span>
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Nama tampilan akun Line kamu"
+                            value={lineDisplayName}
+                            onChange={(e) => setLineDisplayName(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Domisili <span>*</span>
+                          </label>
+                          <span className={styles.fieldSubtext}>
+                            Tuliskan Kota atau Kabupaten tempat tinggal kamu
+                            saat ini.
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="Contoh: Jakarta / Surabaya / Bandung"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className={styles.stepNavButtons}>
+                          <button
+                            type="button"
+                            className={styles.nextBtn}
+                            onClick={handleMemberStep1Next}
+                          >
+                            Lanjut ke Hobby & Sosmed{" "}
+                            <i className="bx bx-right-arrow-alt" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {/* ── STEP 2: HOBBY & SOSIAL MEDIA ── */}
+                    {memberStep === 2 && (
+                      <>
+                        <div className={styles.field}>
+                          <label>
+                            Hobby <span>*</span>
+                          </label>
+                          <span className={styles.fieldSubtext}>
+                            Pilih satu atau lebih hobi yang kamu minati.
+                          </span>
+                          <div className={styles.optionsGrid}>
+                            {[
+                              "Editing",
+                              "Design",
+                              "Nonton Show Theater",
+                              "Bermain Game",
+                              "Bermain Alat Musik",
+                              "Menari",
+                              "Menulis",
+                              "Membaca",
+                              "Nonton Film",
+                              "Olahraga",
+                            ].map((h) => (
+                              <label key={h} className={styles.optionLabel}>
+                                <input
+                                  type="checkbox"
+                                  checked={hobbies.includes(h)}
+                                  onChange={() => toggleHobby(h)}
+                                />
+                                <span>{h}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            className={styles.otherInput}
+                            placeholder="Hobby yang lain (opsional)..."
+                            value={hobbyOther}
+                            onChange={(e) => setHobbyOther(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <span
+                            className={styles.fieldSubtext}
+                            style={{
+                              color: "var(--gold, #b45309)",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Silakan isi minimal satu akun media sosial yang
+                            aktif. Untuk keperluan pengecekan, mohon agar akun
+                            tidak di-private sementara waktu hingga proses
+                            pendaftaran selesai.
+                          </span>
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>Username X (Twitter)</label>
+                          <input
+                            type="text"
+                            placeholder="Contoh: @username_x"
+                            value={usernameX}
+                            onChange={(e) => setUsernameX(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>Username Instagram</label>
+                          <input
+                            type="text"
+                            placeholder="Contoh: @username_ig"
+                            value={usernameIg}
+                            onChange={(e) => setUsernameIg(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>Username TikTok</label>
+                          <input
+                            type="text"
+                            placeholder="Contoh: @username_tiktok"
+                            value={usernameTiktok}
+                            onChange={(e) => setUsernameTiktok(e.target.value)}
+                          />
+                        </div>
+
+                        <div className={styles.stepNavButtons}>
+                          <button
+                            type="button"
+                            className={styles.prevBtn}
+                            onClick={() => setMemberStep(1)}
+                          >
+                            <i className="bx bx-left-arrow-alt" /> Kembali
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.nextBtn}
+                            onClick={handleMemberStep2Next}
+                          >
+                            Lanjut ke Alasan & Kontribusi{" "}
+                            <i className="bx bx-right-arrow-alt" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {/* ── STEP 3: ALASAN & KONTRIBUSI ── */}
+                    {memberStep === 3 && (
+                      <>
+                        <div className={styles.sectionHeading}>
+                          <i className="bx bx-heart" /> Alasan & Kontribusi
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Alasan kamu masuk Cavallery <span>*</span>
+                          </label>
+                          <div className={styles.optionsGrid}>
+                            {[
+                              "Aku Erine Oshi banget",
+                              "Erine Cantik Banget",
+                              "Aku Bangga sama Erine",
+                              "Yang lain",
+                            ].map((rOpt) => (
+                              <label key={rOpt} className={styles.optionLabel}>
+                                <input
+                                  type="radio"
+                                  name="reasonMember"
+                                  value={rOpt}
+                                  checked={reasonMember === rOpt}
+                                  onChange={(e) =>
+                                    setReasonMember(e.target.value)
+                                  }
+                                />
+                                <span>{rOpt}</span>
+                              </label>
+                            ))}
+                          </div>
+                          {reasonMember === "Yang lain" && (
+                            <input
+                              type="text"
+                              className={styles.otherInput}
+                              placeholder="Tuliskan alasan lainnya..."
+                              value={reasonMemberOther}
+                              onChange={(e) =>
+                                setReasonMemberOther(e.target.value)
+                              }
+                            />
+                          )}
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Bentuk support apa yang akan kamu berikan kepada
+                            Cavallery <span>*</span>
+                          </label>
+                          <span className={styles.fieldSubtext}>
+                            Silahkan tuliskan keahlian kalian dalam bentuk apa
+                            saja!
+                          </span>
+                          <div className={styles.optionsGrid}>
+                            {[
+                              "Aku akan aktif interaksi di grup",
+                              "Aku bisa ikut brainstorming dan aktif dalam project cavallery",
+                              "Aku kalo verif bakal absen di grup min biar theateran bareng",
+                              "Aku bisa desain dan editing",
+                            ].map((sOpt) => (
+                              <label key={sOpt} className={styles.optionLabel}>
+                                <input
+                                  type="checkbox"
+                                  checked={supportTypes.includes(sOpt)}
+                                  onChange={() => toggleSupportType(sOpt)}
+                                />
+                                <span>{sOpt}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            className={styles.otherInput}
+                            placeholder="Keahlian / bentuk support yang lain..."
+                            value={supportTypeOther}
+                            onChange={(e) =>
+                              setSupportTypeOther(e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div className={styles.field}>
+                          <label>
+                            Saran Kegiatan yang harus dilakukan oleh Cavallery
+                          </label>
+                          <span className={styles.fieldSubtext}>
+                            Punya ide event, project, atau kegiatan seru untuk
+                            Cavallery? Tuliskan saranmu di sini!
+                          </span>
+                          <textarea
+                            placeholder="Tuliskan saran kegiatan atau ide project untuk Cavallery..."
+                            value={activitySuggestion}
+                            onChange={(e) =>
+                              setActivitySuggestion(e.target.value)
+                            }
+                          />
+                        </div>
+
+                        <div className={styles.reminderBox}>
+                          <i className="bx bx-info-circle" />
+                          <div>
+                            <div className={styles.reminderTitle}>
+                              -REMINDER-
+                            </div>
+                            <div className={styles.reminderText}>
+                              Data kalian akan dikumpulkan dan di-screening oleh
+                              admin kami untuk proses pemeriksaan sebelum kalian
+                              bergabung dengan Cavallery.
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className={styles.stepNavButtons}>
+                          <button
+                            type="button"
+                            className={styles.prevBtn}
+                            onClick={() => setMemberStep(2)}
+                            disabled={submitting}
+                          >
+                            <i className="bx bx-left-arrow-alt" /> Kembali
+                          </button>
+                          <button
+                            type="submit"
+                            className={styles.nextBtn}
+                            disabled={submitting}
+                          >
+                            {submitting ? (
+                              <>
+                                <i className="bx bx-loader-alt bx-spin" />{" "}
+                                Mengirim...
+                              </>
+                            ) : (
+                              <>
+                                <i className="bx bx-send" /> Kirim Pendaftaran
+                                Member
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </>
                 ) : (
                   /* ══════════════════════════════════════════════════════
