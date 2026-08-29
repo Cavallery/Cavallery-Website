@@ -4,31 +4,72 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Bersihkan dan batasi panjang field sesuai limit Discord
-    const title = String(body.title || "").slice(0, 256);
-    const rawDesc = String(body.description || "").slice(0, 4096);
-    const url = String(body.url || body.link || "").trim();
-    const mention = String(body.mention || "").trim();
-    const imageUrl = String(body.image || body.image_url || body.imageUrl || "").trim();
+    // 1. Bersihkan & Validasi Title (max 256 karakter)
+    const title = String(body.title || "").trim().slice(0, 256);
+    if (!title) {
+      return NextResponse.json(
+        { success: false, message: "Judul pengumuman wajib diisi." },
+        { status: 400 }
+      );
+    }
 
-    // Validasi URL gambar harus https
-    const validImage = imageUrl.startsWith("https://") ? imageUrl : "";
+    // 2. Bersihkan & Validasi Deskripsi (max 3800 karakter agar aman)
+    const rawDesc = String(body.description || "").trim().slice(0, 3800);
+    if (!rawDesc) {
+      return NextResponse.json(
+        { success: false, message: "Deskripsi pengumuman wajib diisi." },
+        { status: 400 }
+      );
+    }
 
-    // Validasi URL embed harus diawali https
-    const validUrl = url.startsWith("https://") || url.startsWith("http://") ? url : "";
+    // 3. Validasi URL
+    const rawUrl = String(body.url || body.link || "").trim();
+    let validUrl = "https://cavallery.id";
+    if (rawUrl) {
+      if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+        validUrl = rawUrl;
+      } else {
+        validUrl = `https://${rawUrl}`;
+      }
+    }
 
-    // Build payload sesuai format yang diterima bot server
+    // 4. Validasi Gambar (PENTING: Jangan kirim string kosong ke Discord!)
+    const rawImage = String(
+      body.image || body.image_url || body.imageUrl || ""
+    ).trim();
+    let validImage: string | null = null;
+    if (
+      rawImage &&
+      (rawImage.startsWith("http://") || rawImage.startsWith("https://"))
+    ) {
+      validImage = rawImage;
+    }
+
+    // 5. Validasi Mention
+    const rawMention = String(body.mention || "").trim();
+
+    // 6. Bangun Payload Bersih
     const payload: Record<string, any> = {
       title,
       description: rawDesc,
+      url: validUrl,
+      link: validUrl,
     };
 
-    if (validUrl) payload.url = validUrl;
-    if (mention) payload.mention = mention;
+    if (rawMention && rawMention !== "Tanpa Mention" && rawMention !== "—") {
+      payload.mention = rawMention;
+      payload.content = rawMention;
+    }
+
     if (validImage) {
       payload.image = validImage;
       payload.image_url = validImage;
+      payload.imageUrl = validImage;
     }
+
+    // 7. Kirim ke bot server
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     const res = await fetch("http://apps1.vynzzhost.com:25613/api/send", {
       method: "POST",
@@ -37,23 +78,47 @@ export async function POST(req: NextRequest) {
         Authorization: "Bearer 21082007",
       },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
-    const data = await res.text();
+    clearTimeout(timeoutId);
 
-    // Jika bot server berhasil, kembalikan sukses
-    if (res.ok) {
-      return NextResponse.json({ success: true, message: "Berhasil dikirim ke Discord!" }, { status: 200 });
+    const responseText = await res.text();
+    let responseData: any = {};
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = { message: responseText };
     }
 
-    // Jika bot gagal, kembalikan pesan asli untuk debug
-    return new NextResponse(data, {
-      status: res.status,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err: any) {
+    if (res.ok && responseData.success !== false) {
+      return NextResponse.json({
+        success: true,
+        message: "Berhasil dikirim ke Discord!",
+        data: responseData,
+      });
+    }
+
+    // Kembalikan error detail dari server bot jika gagal
     return NextResponse.json(
-      { success: false, message: "Terjadi kesalahan internal.", error: err?.message ?? "unknown" },
+      {
+        success: false,
+        message:
+          responseData.message ||
+          responseData.error ||
+          `Bot Discord mengembalikan status ${res.status}`,
+        detail: responseData,
+      },
+      { status: res.status >= 400 && res.status < 600 ? res.status : 500 }
+    );
+  } catch (err: any) {
+    console.error("[Discord API Route Error]:", err);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Gagal terhubung ke server Discord bot.",
+        error: err?.message || "Unknown error",
+      },
       { status: 500 }
     );
   }
