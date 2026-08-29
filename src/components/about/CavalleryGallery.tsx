@@ -69,21 +69,35 @@ export default function CavalleryGallery() {
           } catch {}
         }
 
-        const validItems = items.filter(
-          (item) => item.deleted_at === null && (item.folder === "cavallery/images" || item.folder === "cavallery/videos")
-        );
+        const normalizedItems: MediaItem[] = items
+          .filter((item) => item && !item.deleted_at)
+          .map((item) => {
+            const isVideo =
+              item.type === "video" ||
+              item.mime_type?.startsWith("video/") ||
+              /\.(mp4|webm|ogg|mov)$/i.test(item.public_url || item.file_name || "");
+            return {
+              ...item,
+              type: isVideo ? ("video" as const) : ("image" as const),
+            };
+          });
 
-        let filtered = validItems.filter(
-          (item) =>
-            publishedSet.has(item.id) ||
-            publishedSet.has(item.public_url) ||
-            publishedSet.has(item.file_name) ||
-            publishedSet.has(item.r2_key)
-        );
+        let filtered: MediaItem[] = [];
+        if (publishedSet.size > 0) {
+          filtered = normalizedItems.filter(
+            (item) =>
+              publishedSet.has(String(item.id)) ||
+              publishedSet.has(String(item.public_url)) ||
+              publishedSet.has(String(item.file_name)) ||
+              publishedSet.has(String(item.r2_key)) ||
+              (item as any).is_published === 1 ||
+              (item as any).is_published === true
+          );
+        }
 
-        // If publishedSet is not yet populated, fallback to all valid media
-        if (filtered.length === 0 && validItems.length > 0) {
-          filtered = validItems;
+        // If publishedSet has no matches or is empty, show all active media
+        if (filtered.length === 0 && normalizedItems.length > 0) {
+          filtered = normalizedItems;
         }
 
         setMediaItems(filtered);
