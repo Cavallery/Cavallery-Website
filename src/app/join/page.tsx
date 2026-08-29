@@ -44,15 +44,9 @@ const ROLES_INFO: Record<
     iconBg: "rgba(219, 39, 119, 0.12)",
     color: "#db2777",
     perks: [
-      "Relawan pelaksana kegiatan lapangan",
-      "Event gathering, perayaan & santunan sosial",
-      "Networking seru sesama fans Erine",
-    ],
-    divisionOptions: [
-      "Event & Gathering",
-      "Perayaan Ulang Tahun (Birthday Project)",
-      "Santunan Sosial & Baksos",
-      "Logistik & Lapangan",
+      "Display Project STS Erine di Sport Bar CGV fX Sudirman",
+      "Persiapan, pengaturan area, & pendampingan project",
+      "Briefing resmi & koordinasi bersama panitia Cavallery",
     ],
   },
 };
@@ -101,7 +95,7 @@ export default function JoinPage() {
   const [loading, setLoading] = useState(true);
   const [activeModalRole, setActiveModalRole] = useState<string | null>(null);
 
-  // Common Form states (for volunteer)
+  // Common Form states
   const [fullName, setFullName] = useState("");
   const [nickname, setNickname] = useState("");
   const [city, setCity] = useState("");
@@ -109,6 +103,15 @@ export default function JoinPage() {
   const [socialMedia, setSocialMedia] = useState("");
   const [division, setDivision] = useState("");
   const [reason, setReason] = useState("");
+
+  // ─── VOLUNTEER REGISTRATION STATES (STS ERINE) ────────────────
+  const [volGender, setVolGender] = useState("Laki Laki");
+  const [volName, setVolName] = useState("");
+  const [volMemberNumber, setVolMemberNumber] = useState("");
+  const [volLineDisplayName, setVolLineDisplayName] = useState("");
+  const [volLineId, setVolLineId] = useState("");
+  const [volReason, setVolReason] = useState("");
+  const [volJobdesk, setVolJobdesk] = useState("");
 
   // ─── MEMBER REGISTRATION MULTI-STEP STATE ──────────────────────
   const [memberStep, setMemberStep] = useState<1 | 2 | 3>(1);
@@ -244,6 +247,15 @@ export default function JoinPage() {
     setSupportTypes(["Aku akan aktif interaksi di grup"]);
     setSupportTypeOther("");
     setActivitySuggestion("");
+
+    // Reset Volunteer STS fields
+    setVolGender("Laki Laki");
+    setVolName("");
+    setVolMemberNumber("");
+    setVolLineDisplayName("");
+    setVolLineId("");
+    setVolReason("");
+    setVolJobdesk("");
 
     // Reset Admin fields
     setAdminFullName("");
@@ -504,6 +516,33 @@ export default function JoinPage() {
         );
         return;
       }
+    } else if (activeModalRole === "volunteer") {
+      if (!volName.trim()) {
+        setFormError("Mohon isi Nama Lengkap kamu.");
+        return;
+      }
+      if (!volMemberNumber.trim()) {
+        setFormError("Mohon isi Nomor Anggota kamu (contoh: CAVA01-007).");
+        return;
+      }
+      if (!volLineDisplayName.trim()) {
+        setFormError("Mohon isi Display Name Line kamu.");
+        return;
+      }
+      if (!volLineId.trim()) {
+        setFormError("Mohon isi ID Line kamu.");
+        return;
+      }
+      if (!volReason.trim()) {
+        setFormError("Mohon isi Alasan Mendaftar Volunteer.");
+        return;
+      }
+      if (!volJobdesk.trim()) {
+        setFormError(
+          "Mohon sebutkan Jobdesk Volunteer untuk STS yang kamu ketahui.",
+        );
+        return;
+      }
     } else {
       if (!fullName.trim() || !city.trim() || !whatsapp.trim()) {
         setFormError(
@@ -649,6 +688,28 @@ export default function JoinPage() {
               interest_reason: commitmentReason.trim(),
               selection_briefing_ready: commitmentSelectionReady,
             },
+          },
+        };
+      } else if (activeModalRole === "volunteer") {
+        payload = {
+          role_id: "volunteer",
+          full_name: volName.trim(),
+          gender: volGender,
+          line_id: volLineId.trim(),
+          line_display_name: volLineDisplayName.trim(),
+          whatsapp: volLineId.trim(),
+          city: "Jakarta (fX Sudirman)",
+          division: "Volunteer Project STS Erine",
+          reason: volReason.trim(),
+          support_type: volJobdesk.trim(),
+          extra_data: {
+            gender: volGender,
+            full_name: volName.trim(),
+            member_number: volMemberNumber.trim(),
+            line_display_name: volLineDisplayName.trim(),
+            line_id: volLineId.trim(),
+            reason: volReason.trim(),
+            jobdesk_known: volJobdesk.trim(),
           },
         };
       } else {
@@ -2422,6 +2483,150 @@ export default function JoinPage() {
                       3. VOLUNTEER REGISTRATION FORM
                       ══════════════════════════════════════════════════════ */
                   <>
+                    {/* Notice & Ketentuan Box */}
+                    <div
+                      className={styles.disclaimerBox}
+                      style={{
+                        background: "rgba(201, 168, 76, 0.08)",
+                        borderColor: "var(--gold)",
+                      }}
+                    >
+                      <div
+                        className={styles.disclaimerTitle}
+                        style={{ color: "var(--gold)" }}
+                      >
+                        <i className="bx bx-info-circle" /> Pendaftaran Volunteer
+                        Project STS Erine
+                      </div>
+                      <div className={styles.disclaimerText}>
+                        <p style={{ margin: "0 0 8px" }}>
+                          <strong>Halo, Pasukan Berkuda!</strong> 👋
+                        </p>
+                        <p style={{ margin: "0 0 8px" }}>
+                          Formulir ini dibuat untuk mendata anggota Cavallery yang
+                          bersedia menjadi volunteer dalam Display Project STS
+                          Erine yang akan dilaksanakan di{" "}
+                          <strong>Sport Bar CGV fX Sudirman</strong>.
+                        </p>
+                        <p style={{ margin: "0 0 8px" }}>
+                          Karena keterbatasan area dan kebutuhan di lapangan,
+                          volunteer akan membantu dalam berbagai kebutuhan selama
+                          project berlangsung, seperti persiapan, pengaturan
+                          area, pendampingan, serta menjaga ketertiban project.
+                        </p>
+                        <div style={{ marginTop: 8 }}>
+                          <strong>Ketentuan Volunteer:</strong>
+                          <ul style={{ margin: "6px 0 6px 18px", padding: 0 }}>
+                            <li>
+                              Pendataan dibuka 19–20 Agustus hingga pukul 23.59
+                              WIB.
+                            </li>
+                            <li>
+                              Volunteer bebas untuk seluruh anggota Cavallery,
+                              diutamakan untuk yang tidak Verif pada Show STS.
+                            </li>
+                            <li>
+                              Volunteer yang terpilih wajib mengikuti briefing pada
+                              Jum'at Malam (TBA) dan sebelum project
+                              berlangsung.
+                            </li>
+                            <li>
+                              Pembagian tugas akan disesuaikan dengan kebutuhan
+                              dan kondisi di lapangan.
+                            </li>
+                            <li>
+                              Volunteer diharapkan dapat mengikuti arahan panitia
+                              serta menjaga ketertiban dan kenyamanan selama
+                              project berlangsung.
+                            </li>
+                          </ul>
+                        </div>
+                        <p style={{ margin: "8px 0 0", fontStyle: "italic" }}>
+                          Mohon mengisi data dengan benar dan lengkap. Informasi
+                          mengenai registrasi ulang dan teknis pelaksanaan akan
+                          disampaikan lebih lanjut setelah seluruhnya
+                          dipastikan. Terima kasih atas pengertian dan
+                          dukungannya! 🤍
+                          <br />
+                          <strong>#ErineTheWayfinder</strong>
+                        </p>
+                      </div>
+
+                      {/* Narahubung Direct WhatsApp */}
+                      <div
+                        style={{
+                          marginTop: 12,
+                          padding: "10px 12px",
+                          background: "rgba(0,0,0,0.04)",
+                          borderRadius: 8,
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        <strong>Ada Pertanyaan? Silakan Hubungi:</strong>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "12px",
+                            marginTop: 6,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <a
+                            href="https://wa.me/6281285572795"
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              color: "#25d366",
+                              fontWeight: 700,
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <i className="bx bxl-whatsapp" /> Bendahara (Dior)
+                          </a>
+                          <a
+                            href="https://wa.me/6281230018635"
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              color: "#25d366",
+                              fontWeight: 700,
+                              textDecoration: "none",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <i className="bx bxl-whatsapp" /> Humas (Aqil)
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 1. Jenis Kelamin */}
+                    <div className={styles.field}>
+                      <label>
+                        Jenis Kelamin <span>*</span>
+                      </label>
+                      <div className={styles.optionsGrid}>
+                        {["Laki Laki", "Perempuan"].map((g) => (
+                          <label key={g} className={styles.optionLabel}>
+                            <input
+                              type="radio"
+                              name="volGender"
+                              value={g}
+                              checked={volGender === g}
+                              onChange={(e) => setVolGender(e.target.value)}
+                            />
+                            <span>{g}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2. Nama */}
                     <div className={styles.field}>
                       <label>
                         Nama Lengkap <span>*</span>
@@ -2429,81 +2634,81 @@ export default function JoinPage() {
                       <input
                         type="text"
                         placeholder="Tuliskan nama lengkap kamu"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        value={volName}
+                        onChange={(e) => setVolName(e.target.value)}
                         required
                       />
                     </div>
 
+                    {/* 3. Nomor Anggota */}
                     <div className={styles.field}>
-                      <label>Nama Panggilan / Nickname</label>
+                      <label>
+                        Nomor Anggota <span>*</span>
+                      </label>
+                      <span className={styles.fieldSubtext}>
+                        Contoh: CAVA01-007
+                      </span>
                       <input
                         type="text"
-                        placeholder="Tuliskan nama panggilan kamu"
-                        value={nickname}
-                        onChange={(e) => setNickname(e.target.value)}
+                        placeholder="Contoh: CAVA01-007"
+                        value={volMemberNumber}
+                        onChange={(e) => setVolMemberNumber(e.target.value)}
+                        required
                       />
                     </div>
 
+                    {/* 4. Display Name Line */}
                     <div className={styles.field}>
                       <label>
-                        Kota Domisili <span>*</span>
+                        Display Name Line <span>*</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="Contoh: Jakarta / Surabaya / Bandung"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="Nama tampilan di akun Line kamu"
+                        value={volLineDisplayName}
+                        onChange={(e) => setVolLineDisplayName(e.target.value)}
                         required
                       />
                     </div>
 
+                    {/* 5. ID Line */}
                     <div className={styles.field}>
                       <label>
-                        Nomor WhatsApp / Telegram <span>*</span>
+                        ID Line <span>*</span>
                       </label>
                       <input
-                        type="tel"
-                        placeholder="Contoh: 081234567890"
-                        value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value)}
+                        type="text"
+                        placeholder="Tuliskan ID Line aktif kamu"
+                        value={volLineId}
+                        onChange={(e) => setVolLineId(e.target.value)}
                         required
                       />
                     </div>
 
+                    {/* 6. Alasan Mendaftar Volunteer */}
                     <div className={styles.field}>
-                      <label>Akun Media Sosial / Discord (Opsional)</label>
-                      <input
-                        type="text"
-                        placeholder="Contoh: @username / discord_tag#0000"
-                        value={socialMedia}
-                        onChange={(e) => setSocialMedia(e.target.value)}
-                      />
-                    </div>
-
-                    {currentRoleInfo?.divisionOptions && (
-                      <div className={styles.field}>
-                        <label>Pilihan Divisi / Bidang Minat</label>
-                        <select
-                          value={division}
-                          onChange={(e) => setDivision(e.target.value)}
-                        >
-                          <option value="">-- Pilih Divisi / Minat --</option>
-                          {currentRoleInfo.divisionOptions.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    <div className={styles.field}>
-                      <label>Alasan Ingin Bergabung / Pengalaman Singkat</label>
+                      <label>
+                        Alasan Mendaftar Volunteer <span>*</span>
+                      </label>
                       <textarea
-                        placeholder="Ceritakan motivasi kamu bergabung sebagai relawan Cavallery..."
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="Ceritakan motivasi dan alasan kamu ingin bergabung sebagai volunteer STS Erine..."
+                        value={volReason}
+                        onChange={(e) => setVolReason(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    {/* 7. Jobdesk STS yang Diketahui */}
+                    <div className={styles.field}>
+                      <label>
+                        Sebutkan Jobdesk Volunteer untuk STS yang kamu ketahui{" "}
+                        <span>*</span>
+                      </label>
+                      <textarea
+                        placeholder="Contoh: Persiapan display, pengaturan antrian, pendampingan project, logistik, dll."
+                        value={volJobdesk}
+                        onChange={(e) => setVolJobdesk(e.target.value)}
+                        required
                       />
                     </div>
 
@@ -2519,6 +2724,7 @@ export default function JoinPage() {
                       ) : (
                         <>
                           <i className="bx bx-send" /> Kirim Pendaftaran
+                          Volunteer
                         </>
                       )}
                     </button>

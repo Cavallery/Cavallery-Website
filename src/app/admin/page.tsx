@@ -1,7 +1,6 @@
 
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
 import styles from "./page.module.css";
 
 const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
@@ -66,24 +65,9 @@ function preparePayload(section: string, data: Record<string, any>): Record<stri
   return payload;
 }
 
-// ─── ADMIN PORTAL ─────────────────────────────────────────────
+// ─── ADMIN WRAPPER ───────────────────────────────────────────
 function AdminPortal({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const siteHeader = document.querySelector("header") as HTMLElement | null;
-    const siteNav    = document.querySelector("nav")    as HTMLElement | null;
-    if (siteHeader) siteHeader.style.display = "none";
-    if (siteNav)    siteNav.style.display    = "none";
-    document.body.style.overflow = "hidden";
-    setMounted(true);
-    return () => {
-      if (siteHeader) siteHeader.style.display = "";
-      if (siteNav)    siteNav.style.display    = "";
-      document.body.style.overflow = "";
-    };
-  }, []);
-  if (!mounted) return null;
-  return createPortal(children, document.body);
+  return <>{children}</>;
 }
 
 // ─── AUTH HOOK (PENGGANTI sessionStorage — server-side verified) ──────────────
