@@ -34,9 +34,9 @@ const ROLES_INFO: Record<
     iconBg: "var(--gold-dim, rgba(180, 83, 9, 0.12))",
     color: "var(--gold, #b45309)",
     perks: [
-      "Tim pengurus & perencana resmi Cavallery",
-      "6 Divisi: Video Editor, Script Writer, Sosmed, Voice Over, Admin & Editor Esport",
-      "Pengalaman manajemen organisasi fanbase profesional",
+      "Menjadi bagian dari perjalanan Cavallery",
+      "Pengembangan skill sesuai role",
+      "Berkolaborasi, Membangun networking, dan ruang berkreasi.",
     ],
   },
   volunteer: {
