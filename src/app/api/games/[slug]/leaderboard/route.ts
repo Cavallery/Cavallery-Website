@@ -54,9 +54,29 @@ function writeLocalSessions(data: GameSessionItem[]) {
 }
 
 let tablesChecked = false;
-async function ensureTablesExist() {
+async function ensureTablesAndGamesExist() {
   if (tablesChecked || !isMySqlConfigured()) return;
   try {
+    // 1. Pastikan tabel `games` ada dan terisi agar foreign key tidak gagal
+    await query(`
+      CREATE TABLE IF NOT EXISTS \`games\` (
+        \`id\` VARCHAR(100) PRIMARY KEY,
+        \`title\` VARCHAR(150) NOT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await query(`
+      INSERT INTO \`games\` (\`id\`, \`title\`) VALUES 
+      ('grasshopper-collector', 'Game Belalang Yang Membangkang'),
+      ('jumping-adventure', 'Game Bibir Yang Telah Dicuri'),
+      ('zombie-escape', 'Game Erine In Etherland'),
+      ('dress-up-erine', 'Game DressUp Erine'),
+      ('love-erine-meter', 'Love Erine Meter')
+      ON DUPLICATE KEY UPDATE \`title\`=VALUES(\`title\`);
+    `);
+
+    // 2. Pastikan tabel `players` ada
     await query(`
       CREATE TABLE IF NOT EXISTS \`players\` (
         \`id\` VARCHAR(100) PRIMARY KEY,
@@ -65,6 +85,7 @@ async function ensureTablesExist() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    // 3. Pastikan tabel `game_sessions` ada
     await query(`
       CREATE TABLE IF NOT EXISTS \`game_sessions\` (
         \`id\` BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -77,9 +98,10 @@ async function ensureTablesExist() {
         INDEX \`idx_player\` (\`player_id\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
     tablesChecked = true;
   } catch (e) {
-    console.warn("[MySQL] ensureTablesExist warning:", e);
+    console.warn("[MySQL] ensureTablesAndGamesExist warning:", e);
   }
 }
 
@@ -90,7 +112,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    await ensureTablesExist();
+    await ensureTablesAndGamesExist();
 
     let stats = {
       rekor_teratas: 0,
@@ -108,7 +130,7 @@ export async function GET(
 
     if (isMySqlConfigured()) {
       try {
-        // 1. Ambil Statistik Agregat
+        // 1. Ambil Statistik Agregat dari MySQL
         const statsRows = await query<any[]>(
           `SELECT 
             COALESCE(MAX(score), 0) AS rekor_teratas,
@@ -130,31 +152,48 @@ export async function GET(
           };
         }
 
-        // 2. Ambil Leaderboard Top 10 (Skor Tertinggi Tiap Pemain)
-        const lbRows = await query<any[]>(
+        // 2. Ambil Riwayat Skor Tertinggi
+        const rawScores = await query<any[]>(
           `SELECT 
             COALESCE(p.username, s.player_id) AS username,
-            MAX(s.score) AS top_score,
-            MAX(s.played_at) AS last_played
+            s.score AS top_score,
+            s.played_at AS last_played
           FROM game_sessions s
           LEFT JOIN players p ON s.player_id = p.id
           WHERE s.game_id = ?
-          GROUP BY s.player_id, p.username
-          ORDER BY top_score DESC, last_played ASC
-          LIMIT 10`,
+          ORDER BY s.score DESC, s.played_at DESC
+          LIMIT 50`,
           [slug]
         );
 
-        if (lbRows && Array.isArray(lbRows)) {
-          leaderboard = lbRows.map((r, idx) => ({
-            rank: idx + 1,
-            username: r.username || "Pemain",
-            score: Number(r.top_score) || 0,
-            played_at: r.last_played ? new Date(r.last_played).toISOString() : new Date().toISOString(),
-          }));
+        if (rawScores && Array.isArray(rawScores) && rawScores.length > 0) {
+          // Deduplikasi di JS agar 1 player hanya ambil high score terbaiknya
+          const userBestMap = new Map<string, { username: string; score: number; played_at: string }>();
+          for (const row of rawScores) {
+            const uname = String(row.username || "Pemain").trim();
+            const key = uname.toLowerCase();
+            const scoreVal = Number(row.top_score) || 0;
+            if (!userBestMap.has(key) || scoreVal > userBestMap.get(key)!.score) {
+              userBestMap.set(key, {
+                username: uname,
+                score: scoreVal,
+                played_at: row.last_played ? new Date(row.last_played).toISOString() : new Date().toISOString(),
+              });
+            }
+          }
+
+          leaderboard = Array.from(userBestMap.values())
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 10)
+            .map((item, idx) => ({
+              rank: idx + 1,
+              username: item.username,
+              score: item.score,
+              played_at: item.played_at,
+            }));
         }
 
-        if (statsRows !== null && lbRows !== null) {
+        if (statsRows !== null && rawScores !== null) {
           return NextResponse.json({
             status: true,
             slug,
@@ -174,7 +213,7 @@ export async function GET(
 
     if (gameSessions.length > 0) {
       const scores = gameSessions.map((s) => s.score);
-      const uniquePlayers = new Set(gameSessions.map((s) => s.player_id || s.username));
+      const uniquePlayers = new Set(gameSessions.map((s) => s.username.toLowerCase()));
       const totalScore = scores.reduce((a, b) => a + b, 0);
 
       stats = {
@@ -229,9 +268,10 @@ export async function POST(
 ) {
   try {
     const { slug } = await params;
-    await ensureTablesExist();
+    await ensureTablesAndGamesExist();
 
     const body = await request.json();
+    // Mendukung nama dengan spasi seperti "CATHERINA VALLENCIA"
     const rawName = (body.username || body.name || body.playerName || "Pemain").trim().slice(0, 50);
     const username = rawName || "Pemain";
     const score = parseInt(String(body.score), 10);
@@ -245,33 +285,42 @@ export async function POST(
     }
 
     const playedAt = new Date().toISOString();
-    const playerId = username.toLowerCase().replace(/[^a-z0-9_]/g, "_") || "pemain";
+    // ID unik untuk relasi database, spasi diubah ke underscore untuk ID, nama asli tetap tersimpan dengan spasi
+    const playerId = username.toLowerCase().replace(/[^a-z0-9_]/g, "_").slice(0, 50) || "pemain";
 
     if (isMySqlConfigured()) {
       try {
+        // 1. Pastikan game_id ada di tabel games
         await query(
-          `INSERT INTO players (id, username) VALUES (?, ?) 
-           ON DUPLICATE KEY UPDATE username = VALUES(username)`,
+          `INSERT INTO \`games\` (\`id\`, \`title\`) VALUES (?, ?) ON DUPLICATE KEY UPDATE \`id\`=\`id\``,
+          [slug, slug.replace(/-/g, " ").toUpperCase()]
+        );
+
+        // 2. Simpan pemain dengan username lengkap (termasuk spasi, misal: "CATHERINA VALLENCIA")
+        await query(
+          `INSERT INTO \`players\` (\`id\`, \`username\`) VALUES (?, ?) 
+           ON DUPLICATE KEY UPDATE \`username\` = VALUES(\`username\`)`,
           [playerId, username]
         );
 
+        // 3. Simpan sesi skor
         await query(
-          `INSERT INTO game_sessions (player_id, game_id, score, duration_seconds) 
+          `INSERT INTO \`game_sessions\` (\`player_id\`, \`game_id\`, \`score\`, \`duration_seconds\`) 
            VALUES (?, ?, ?, ?)`,
           [playerId, slug, score, duration]
         );
-      } catch (dbErr) {
-        console.error("MySQL Insert game session failed:", dbErr);
+      } catch (dbErr: any) {
+        console.error("[MySQL] Insert game session failed:", dbErr?.message);
       }
     }
 
-    // Simpan ke local cache juga
+    // Simpan ke local cache JSON juga agar selalu sinkron
     const sessions = readLocalSessions();
     const newSession: GameSessionItem = {
       id: Date.now(),
       game_id: slug,
       player_id: playerId,
-      username,
+      username, // username asli dengan spasi
       score,
       duration_seconds: duration,
       played_at: playedAt,
@@ -281,7 +330,7 @@ export async function POST(
 
     return NextResponse.json({
       status: true,
-      message: "Skor berhasil disimpan!",
+      message: `Skor ${score} untuk "${username}" berhasil disimpan!`,
       data: newSession,
     });
   } catch (error: any) {
