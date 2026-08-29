@@ -83,7 +83,8 @@ const navLinks: NavLink[] = [
   {
     label: "Corner",
     children: [
-      { href: "/games", label: "GameRine", icon: "bx-joystick", desc: "Mini games seru bertema Erine" },
+      { href: "/games",  label: "GameRine",     icon: "bx-joystick", desc: "Mini games seru bertema Erine" },
+      { href: "/fanart", label: "Fanart Erine", icon: "bx-palette",  desc: "Sudut pameran ilustrasi & karya kreatif komunitas" },
     ],
   },
 ];

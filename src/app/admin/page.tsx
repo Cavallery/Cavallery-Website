@@ -20,7 +20,7 @@ type Section =
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
   | "bot"       | "tickets"     | "calendar" | "updates" 
-  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations";
+  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart";
 
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -7057,6 +7057,542 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   );
 }
 
+// ─── FANART MANAGER ──────────────────────────────────────────
+function FanartManager() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [confirm, setConfirm] = useState<{ msg: string; onConfirm: () => void } | null>(null);
+  const [previewModal, setPreviewModal] = useState<any | null>(null);
+  const [addModal, setAddModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form states for manual add
+  const [artTitle, setArtTitle] = useState("");
+  const [artArtist, setArtArtist] = useState("");
+  const [artSocial, setArtSocial] = useState("");
+  const [artDesc, setArtDesc] = useState("");
+  const [artImage, setArtImage] = useState("");
+  const [artHighres, setArtHighres] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("status", "all");
+      if (search.trim()) params.set("search", search.trim());
+      const res = await fetch(`/api/fanart?${params.toString()}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setItems(json.data);
+      }
+    } catch {
+      showToast("Gagal memuat data fanart", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const updateStatus = async (id: number | string, status: "approved" | "rejected" | "pending") => {
+    try {
+      const res = await fetch("/api/fanart", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(
+          status === "approved"
+            ? "Karya fanart BERHASIL DISETUJUI & terbit di web!"
+            : status === "rejected"
+            ? "Karya ditolak."
+            : "Status diubah ke pending.",
+          "success"
+        );
+        loadData();
+      } else {
+        showToast(json.message || "Gagal mengubah status", "error");
+      }
+    } catch {
+      showToast("Terjadi kendala jaringan", "error");
+    }
+  };
+
+  const deleteItem = async (id: number | string) => {
+    setConfirm(null);
+    try {
+      const res = await fetch(`/api/fanart?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Karya fanart berhasil dihapus", "success");
+        loadData();
+      } else {
+        showToast(json.message || "Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImg(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/fanart/upload", { method: "POST", body: formData });
+      const json = await res.json();
+      if (res.ok && json.status) {
+        setArtImage(json.data.image_url);
+        showToast("Gambar berhasil diunggah", "success");
+      } else {
+        showToast(json.message || "Gagal mengunggah gambar", "error");
+      }
+    } catch {
+      showToast("Error saat mengunggah", "error");
+    } finally {
+      setUploadingImg(false);
+    }
+  };
+
+  const handleCreateFanart = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!artTitle.trim() || !artArtist.trim() || !artImage.trim()) {
+      showToast("Judul, nama seniman, dan gambar wajib diisi", "error");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/fanart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: artTitle.trim(),
+          artist_name: artArtist.trim(),
+          artist_social: artSocial.trim() || null,
+          description: artDesc.trim() || null,
+          image_url: artImage.trim(),
+          highres_url: artHighres.trim() || null,
+          status: "approved", // direct from admin = approved
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast("Fanart berhasil ditambahkan & langsung aktif di web!", "success");
+        setAddModal(false);
+        setArtTitle("");
+        setArtArtist("");
+        setArtSocial("");
+        setArtDesc("");
+        setArtImage("");
+        setArtHighres("");
+        loadData();
+      } else {
+        showToast(json.message || "Gagal menambahkan fanart", "error");
+      }
+    } catch {
+      showToast("Error jaringan", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const pendingCount = items.filter((i) => i.status === "pending").length;
+  const approvedCount = items.filter((i) => i.status === "approved").length;
+  const rejectedCount = items.filter((i) => i.status === "rejected").length;
+
+  const filteredItems = items.filter((item) => {
+    if (tab === "all") return true;
+    return item.status === tab;
+  });
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && (
+        <ConfirmModal
+          msg={confirm.msg}
+          onConfirm={confirm.onConfirm}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+
+      {/* Header */}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-palette" /> Fanart Erine
+          <span className={styles.count}>{items.length} karya</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={styles.btnGhost} onClick={loadData}>
+            <i className="bx bx-refresh" /> Refresh
+          </button>
+          <button className={styles.btnPrimary} onClick={() => setAddModal(true)}>
+            <i className="bx bx-plus" /> Tambah Fanart
+          </button>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 16 }}>
+        <div
+          onClick={() => setTab("pending")}
+          style={{
+            background: tab === "pending" ? "rgba(245, 158, 11, 0.25)" : "var(--adm-surface)",
+            border: "1px solid " + (tab === "pending" ? "#f59e0b" : "var(--adm-border)"),
+            borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <i className="bx bx-time" style={{ fontSize: "1.8rem", color: "#f59e0b" }} />
+          <div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#f59e0b" }}>{pendingCount}</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Menunggu Review</div>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setTab("approved")}
+          style={{
+            background: tab === "approved" ? "rgba(16, 185, 129, 0.25)" : "var(--adm-surface)",
+            border: "1px solid " + (tab === "approved" ? "#10b981" : "var(--adm-border)"),
+            borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <i className="bx bx-check-circle" style={{ fontSize: "1.8rem", color: "#10b981" }} />
+          <div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#10b981" }}>{approvedCount}</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Disetujui / Tayang</div>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setTab("rejected")}
+          style={{
+            background: tab === "rejected" ? "rgba(239, 68, 68, 0.25)" : "var(--adm-surface)",
+            border: "1px solid " + (tab === "rejected" ? "#ef4444" : "var(--adm-border)"),
+            borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <i className="bx bx-x-circle" style={{ fontSize: "1.8rem", color: "#ef4444" }} />
+          <div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#ef4444" }}>{rejectedCount}</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Ditolak</div>
+          </div>
+        </div>
+
+        <div
+          onClick={() => setTab("all")}
+          style={{
+            background: tab === "all" ? "rgba(201, 168, 76, 0.25)" : "var(--adm-surface)",
+            border: "1px solid " + (tab === "all" ? "var(--gold)" : "var(--adm-border)"),
+            borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <i className="bx bx-palette" style={{ fontSize: "1.8rem", color: "var(--gold)" }} />
+          <div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--gold)" }}>{items.length}</div>
+            <div style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Total Semua</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter & Search */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Cari judul karya atau nama seniman..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 220,
+            background: "var(--adm-surface)", color: "var(--adm-text)",
+            border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px",
+          }}
+        />
+        <div style={{ display: "flex", gap: 6 }}>
+          {(["all", "pending", "approved", "rejected"] as const).map((t) => (
+            <button
+              key={t}
+              className={tab === t ? styles.btnPrimary : styles.btnGhost}
+              style={{ padding: "6px 12px", fontSize: "0.82rem" }}
+              onClick={() => setTab(t)}
+            >
+              {t === "all" ? "Semua" : t === "pending" ? "Pending" : t === "approved" ? "Disetujui" : "Ditolak"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Table / Cards */}
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data fanart...</div>
+      ) : filteredItems.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "50px 0", opacity: 0.5 }}>
+          <i className="bx bx-palette" style={{ fontSize: "3rem" }} />
+          <p>Tidak ada karya fanart untuk filter ini.</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 80 }}>Karya</th>
+                <th>Judul & Seniman</th>
+                <th>Deskripsi</th>
+                <th style={{ width: 90 }}>Suka</th>
+                <th style={{ width: 110 }}>Status</th>
+                <th style={{ width: 120 }}>Tanggal</th>
+                <th style={{ width: 170 }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <div
+                      style={{
+                        width: 60, height: 60, borderRadius: 8, overflow: "hidden",
+                        background: "#000", cursor: "pointer", border: "1px solid var(--adm-border)",
+                      }}
+                      onClick={() => setPreviewModal(item)}
+                    >
+                      <img src={item.image_url} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 700, color: "var(--adm-text)" }}>{item.title}</div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--gold)" }}>
+                      <i className="bx bx-user" /> {item.artist_name}
+                      {item.artist_social && (
+                        <a
+                          href={item.artist_social.startsWith("http") ? item.artist_social : `https://x.com/${item.artist_social.replace(/^@/, "")}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ marginLeft: 6, color: "var(--adm-muted)" }}
+                        >
+                          <i className="bx bx-link-external" />
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ fontSize: "0.82rem", color: "var(--adm-muted)", maxWidth: 220 }}>
+                    {item.description || "—"}
+                  </td>
+                  <td style={{ fontWeight: 700, color: "#ef4444" }}>
+                    <i className="bx bxs-heart" /> {item.likes || 0}
+                  </td>
+                  <td>
+                    {item.status === "approved" ? (
+                      <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: "0.75rem", background: "rgba(16,185,129,0.2)", color: "#10b981", fontWeight: 700 }}>
+                        <i className="bx bx-check" /> Tayang
+                      </span>
+                    ) : item.status === "pending" ? (
+                      <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: "0.75rem", background: "rgba(245,158,11,0.2)", color: "#f59e0b", fontWeight: 700 }}>
+                        <i className="bx bx-time" /> Pending
+                      </span>
+                    ) : (
+                      <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: "0.75rem", background: "rgba(239,68,68,0.2)", color: "#ef4444", fontWeight: 700 }}>
+                        <i className="bx bx-x" /> Ditolak
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ fontSize: "0.78rem", color: "var(--adm-muted)" }}>
+                    {new Date(item.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {item.status !== "approved" && (
+                        <button
+                          className={styles.btnPrimary}
+                          style={{ padding: "4px 8px", fontSize: "0.76rem" }}
+                          onClick={() => updateStatus(item.id, "approved")}
+                          title="Setujui dan tayangkan di web"
+                        >
+                          <i className="bx bx-check" /> Setujui
+                        </button>
+                      )}
+                      {item.status !== "rejected" && (
+                        <button
+                          className={styles.btnGhost}
+                          style={{ padding: "4px 8px", fontSize: "0.76rem", color: "#ef4444" }}
+                          onClick={() => updateStatus(item.id, "rejected")}
+                          title="Tolak karya"
+                        >
+                          <i className="bx bx-x" /> Tolak
+                        </button>
+                      )}
+                      <button
+                        className={styles.btnDel}
+                        style={{ padding: "4px 8px" }}
+                        onClick={() =>
+                          setConfirm({
+                            msg: `Hapus karya fanart "${item.title}" oleh ${item.artist_name}?`,
+                            onConfirm: () => deleteItem(item.id),
+                          })
+                        }
+                        title="Hapus permanen"
+                      >
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODAL: PREVIEW FANART */}
+      {previewModal && (
+        <div className={styles.modalOverlay} onClick={() => setPreviewModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 650 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-palette" /> {previewModal.title}</h3>
+              <button className={styles.closeX} onClick={() => setPreviewModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img src={previewModal.image_url} alt={previewModal.title} style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }} />
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: "0.9rem", color: "var(--gold)", fontWeight: 700 }}>
+                  Seniman: {previewModal.artist_name} {previewModal.artist_social && `(${previewModal.artist_social})`}
+                </div>
+                {previewModal.description && (
+                  <p style={{ fontSize: "0.85rem", color: "var(--adm-text)", marginTop: 6 }}>{previewModal.description}</p>
+                )}
+                {previewModal.highres_url && (
+                  <div style={{ marginTop: 8 }}>
+                    <a href={previewModal.highres_url} target="_blank" rel="noreferrer" style={{ color: "var(--gold)", fontSize: "0.82rem" }}>
+                      <i className="bx bx-link-external" /> Link Versi HD / Drive
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className={styles.formFooter}>
+              {previewModal.status !== "approved" && (
+                <button
+                  className={styles.btnPrimary}
+                  onClick={() => {
+                    updateStatus(previewModal.id, "approved");
+                    setPreviewModal(null);
+                  }}
+                >
+                  <i className="bx bx-check" /> Setujui & Terbitkan
+                </button>
+              )}
+              <button className={styles.btnGhost} onClick={() => setPreviewModal(null)}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TAMBAH FANART MANUAL DARI ADMIN */}
+      {addModal && (
+        <div className={styles.modalOverlay} onClick={() => setAddModal(false)}>
+          <div className={styles.formModal} style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-plus-circle" /> Tambah Fanart Erine</h3>
+              <button className={styles.closeX} onClick={() => setAddModal(false)}><i className="bx bx-x" /></button>
+            </div>
+            <form onSubmit={handleCreateFanart}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Judul Karya Seni <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Chibi Erine Summer Festival"
+                    value={artTitle}
+                    onChange={(e) => setArtTitle(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Nama Seniman / Kredit <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: @seniman_cava (X) atau Nama Seniman"
+                    value={artArtist}
+                    onChange={(e) => setArtArtist(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Link Akun Media Sosial (Opsional)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: https://x.com/username"
+                    value={artSocial}
+                    onChange={(e) => setArtSocial(e.target.value)}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Deskripsi Singkat Karya</label>
+                  <textarea
+                    placeholder="Ceritakan sedikit inspirasi di balik pembuatan ilustrasi ini..."
+                    value={artDesc}
+                    onChange={(e) => setArtDesc(e.target.value)}
+                    style={{ minHeight: 60 }}
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Upload File Gambar <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFileUpload}
+                    disabled={uploadingImg}
+                  />
+                  {uploadingImg && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}><i className="bx bx-loader-alt bx-spin" /> Mengunggah gambar...</span>}
+                  {artImage && (
+                    <div style={{ marginTop: 8, width: 100, height: 100, borderRadius: 8, overflow: "hidden", border: "1px solid var(--adm-border)" }}>
+                      <img src={artImage} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.field}>
+                  <label>Link File Resolusi HD (Opsional)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Link Google Drive versi HD"
+                    value={artHighres}
+                    onChange={(e) => setArtHighres(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setAddModal(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={submitting || uploadingImg}>
+                  {submitting ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Terbitkan Fanart</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── NAV GROUPS WITH ACCORDION COLLAPSIBLE ────────────────────
 interface NavGroup {
   id: string;
@@ -7108,6 +7644,7 @@ const navGroups: NavGroup[] = [
     label: "Komunitas & Interaksi",
     icon: "bx-conversation",
     items: [
+      { key: "fanart",      icon: "bx-palette",      label: "Fanart Erine" },
       { key: "esport",      icon: "bx-trophy",       label: "Esport"      },
       { key: "journal",     icon: "bx-book-open",    label: "MemoRine"    },
       { key: "discord",     icon: "bxl-discord-alt", label: "Discord"     },
@@ -7266,6 +7803,7 @@ export default function AdminPage() {
             : active === "abouterine" ? <AboutErineManager />
             : active === "anggotakota"? <AnggotaKotaManager />
             : active === "merch"      ? <MerchandiseManager />
+            : active === "fanart"     ? <FanartManager />
             : <SectionManager section={active} />}
           </div>
         </div>
