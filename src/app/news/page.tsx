@@ -7,15 +7,10 @@ import styles from "./page.module.css";
 const DEFAULT_IMG =
   "https://res.cloudinary.com/haymzm4wp/image/upload/v1760105848/bi5ej2hgh0cc2uowu5xr.jpg";
 
-// Proxy untuk gambar dari jkt48.com
 function proxyImg(url: string): string {
   if (!url) return DEFAULT_IMG;
-
   if (!url.includes("jkt48.com")) return url;
-
-  return `https://autumn-limit-898f.aslannarnia806.workers.dev/?url=${encodeURIComponent(
-    url,
-  )}`;
+  return `https://autumn-limit-898f.aslannarnia806.workers.dev/?url=${encodeURIComponent(url)}`;
 }
 
 interface NewsItem {
@@ -26,56 +21,52 @@ interface NewsItem {
   link_url: string;
   image_url?: string;
   description?: string;
+  is_internal?: boolean;
 }
 
+type Tab = "all" | "cavallery" | "jkt48";
+
 export default function NewsPage() {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [cavNews, setCavNews] = useState<NewsItem[]>([]);
+  const [jktNews, setJktNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [tab, setTab] = useState<Tab>("all");
 
   useEffect(() => {
-    fetch(`/api/news?type=jkt48&v=${new Date().getTime()}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success && d.data?.news && Array.isArray(d.data.news)) {
-          const items: NewsItem[] = d.data.news.map((n: any) => ({
-            id: n.id,
-            title: n.title,
-            label: n.label || n.category || "Berita",
-            date: n.date || n.published_at || new Date().toISOString(),
-            link_url: n.link_url || n.url || "#",
-            image_url: n.image_url || n.background_image || DEFAULT_IMG,
-            description: n.description || n.summary || undefined,
-          }));
-          setNews(items);
-        } else {
-          setError(d.message || "Gagal memuat berita");
-          setNews([]);
-        }
-      })
-      .catch((e) => {
-        setError(String(e));
-        setNews([]);
-      })
-      .finally(() => setLoading(false));
+    setLoading(true);
+    Promise.all([
+      fetch(`/api/news?type=cavallery&v=${Date.now()}`).then((r) => r.json()).catch(() => ({ data: { news: [] } })),
+      fetch(`/api/news?type=jkt48&v=${Date.now()}`).then((r) => r.json()).catch(() => ({ data: { news: [] } })),
+    ]).then(([cavData, jktData]) => {
+      const mapItem = (n: any): NewsItem => ({
+        id: String(n.id || Math.random()),
+        title: n.title || "",
+        label: n.label || n.category || "Berita",
+        date: n.date || n.published_at || new Date().toISOString(),
+        link_url: n.link_url || n.url || "#",
+        image_url: n.image_url || n.background_image || DEFAULT_IMG,
+        description: n.description || n.summary || undefined,
+        is_internal: !!n.is_internal,
+      });
+      setCavNews((cavData?.data?.news ?? []).map(mapItem));
+      setJktNews((jktData?.data?.news ?? []).map(mapItem));
+      setLoading(false);
+    });
   }, []);
 
-  // Komponen image card dengan fallback
+  const allNews: NewsItem[] = [
+    ...cavNews.map((n) => ({ ...n, label: "Cavallery" })),
+    ...jktNews,
+  ];
+
+  const displayed = tab === "cavallery" ? cavNews : tab === "jkt48" ? jktNews : allNews;
+
   const CardImage = ({ item }: { item: NewsItem }) => {
     const [imgError, setImgError] = useState(false);
-
-    const imgSrc =
-      imgError || !item.image_url ? DEFAULT_IMG : proxyImg(item.image_url);
-
+    const imgSrc = imgError || !item.image_url ? DEFAULT_IMG : proxyImg(item.image_url);
     return (
       <div className={styles.imgWrap}>
-        <img
-          src={imgSrc}
-          alt={item.title}
-          loading="lazy"
-          onError={() => setImgError(true)}
-        />
-
+        <img src={imgSrc} alt={item.title} loading="lazy" onError={() => setImgError(true)} />
         <div className={styles.labelBadge}>{item.label || "Terkini"}</div>
       </div>
     );
@@ -84,26 +75,17 @@ export default function NewsPage() {
   const cardContent = (item: NewsItem) => (
     <>
       <CardImage item={item} />
-
       <div className={styles.cardBody}>
         <div className={styles.date}>
           <i className="bx bx-calendar" />
-
           {new Date(item.date).toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
+            day: "numeric", month: "long", year: "numeric",
           })}
         </div>
-
         <h2 className={styles.cardTitle}>{item.title}</h2>
-
-        {item.description && (
-          <p className={styles.cardDesc}>{item.description}</p>
-        )}
-
+        {item.description && <p className={styles.cardDesc}>{item.description}</p>}
         <div className={styles.readMore}>
-          Baca Selengkapnya <i className="bx bx-right-arrow-alt" />
+          Baca Selengkapnya <i className={`bx ${item.is_internal ? "bx-right-arrow-alt" : "bx-link-external"}`} />
         </div>
       </div>
     </>
@@ -113,39 +95,49 @@ export default function NewsPage() {
     <div className={styles.page}>
       <div className={styles.hero}>
         <div className={styles.heroBg} />
-
         <div className={styles.heroInner}>
           <div className="badge">
             <i className="bx bx-news" /> Berita Terbaru
           </div>
-
           <h1 className={styles.heroTitle}>
             News <span className="textGold">JKT48</span>
           </h1>
-
-          <p className={styles.heroSub}>Informasi terkini seputar JKT48.</p>
+          <p className={styles.heroSub}>Informasi terkini seputar JKT48 & Cavallery.</p>
         </div>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className={styles.tabsWrap}>
+        {(["all", "cavallery", "jkt48"] as Tab[]).map((t) => (
+          <button
+            key={t}
+            className={`${styles.tabBtn} ${tab === t ? styles.tabBtnActive : ""}`}
+            onClick={() => setTab(t)}
+          >
+            {t === "all" ? (
+              <><i className="bx bx-globe" /> Semua</>
+            ) : t === "cavallery" ? (
+              <><i className="bx bx-star" /> Cavallery</>
+            ) : (
+              <><i className="bx bx-news" /> JKT48</>
+            )}
+          </button>
+        ))}
       </div>
 
       <div className={styles.content}>
         {loading ? (
           <div className={styles.skeletons}>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className={styles.skeleton} />
-            ))}
+            {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className={styles.skeleton} />)}
           </div>
-        ) : error ? (
-          <div className={styles.errorBox}>
-            <i className="bx bx-error-circle" /> {error}
-          </div>
-        ) : news.length === 0 ? (
+        ) : displayed.length === 0 ? (
           <div className={styles.empty}>
             <i className="bx bx-news" />
             <p>Belum ada berita yang tersedia.</p>
           </div>
         ) : (
           <div className={styles.grid}>
-            {news.map((item, idx) =>
+            {displayed.map((item, idx) =>
               item.link_url?.startsWith("/") ? (
                 <Link
                   key={item.id || String(idx)}
@@ -164,7 +156,7 @@ export default function NewsPage() {
                 >
                   {cardContent(item)}
                 </a>
-              ),
+              )
             )}
           </div>
         )}

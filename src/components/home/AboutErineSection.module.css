@@ -287,133 +287,276 @@
 
 /* 2. EW SECTION */
 .ewContainer {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   width: 95%;
 }
 
 .ewIntro {
   background: var(--surface);
-  border: 2px solid var(--border-color);
-  padding: 30px;
-  border-radius: 12px;
-  margin-bottom: 40px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--gold);
+  padding: 28px 32px;
+  border-radius: 16px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
 }
 
-.ewIntro h3 {
+.ewIntroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  padding: 5px 14px;
+  border-radius: 50px;
+  margin-bottom: 14px;
+}
+
+.ewHighlight {
+  color: var(--gold);
+  font-style: normal;
   font-weight: 900;
-  font-size: 1.5rem;
-  margin-bottom: 15px;
 }
 
 .ewIntro p {
   text-align: justify;
-  line-height: 1.6;
+  line-height: 1.8;
+  color: var(--fg-muted);
+  font-size: 1rem;
 }
 
 .ewSplit {
   display: flex;
-  gap: 40px;
-  margin-bottom: 40px;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
+@media (max-width: 768px) {
+  .ewSplit { flex-direction: column; }
+}
+
+/* Bio Card */
 .ewBio {
   flex: 1.2;
   background: var(--surface);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
 }
 
-.ewBio table {
-  width: 100%;
-}
-
-.ewBio td {
-  padding: 10px 15px;
-}
-
-.lbl {
+.ewBioHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
   font-weight: 800;
-  width: 40%;
+  font-size: 0.9rem;
+  color: var(--fg);
+  background: var(--surface-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.ewHt {
-  flex: 1;
-  background: var(--bg-card);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  padding: 25px;
-}
-
-.ewHtTitle {
-  font-weight: 800;
-  text-align: center;
-  border-bottom: 2px dashed #d6c9b6;
-  padding-bottom: 12px;
-  margin-bottom: 20px;
-}
-
-.ewHt ul {
-  list-style: none;
+.ewBioGrid {
   display: flex;
   flex-direction: column;
-  gap: 15px;
 }
 
-.ewHt li {
+.ewBioRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 0.9rem;
+  gap: 14px;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
 }
 
-.lbl2 { opacity: 0.6; }
-
-.tag {
-  background: #e1ddd2;
-  color: inherit;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 800;
-  text-decoration: none;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-  display: inline-block;
+.ewBioRow:last-child {
+  border-bottom: none;
 }
 
-.tag:hover {
-  filter: brightness(0.9);
+.ewBioRow:hover {
+  background: var(--gold-dim);
 }
 
-[data-theme="dark"] .tag {
-  background: #292524;
-  color: #f5f5f4;
-}
-
-.ewPm {
-  margin-top: 25px;
+.ewBioIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 15px;
-  background: #fff;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #d6c9b6;
+  color: var(--gold);
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
-[data-theme="dark"] .ewPm {
-  background: var(--bg-card);
-  border-color: var(--border-color);
+.ewBioContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ewBioLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ewBioValue {
+  font-size: 0.92rem;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.ewBioLink {
+  color: var(--gold);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.ewBioLink:hover { text-decoration: underline; }
+
+.ewColors {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.colorDotPink {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #f9a8d4;
+  border: 2px solid rgba(0,0,0,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.colorDotBlue {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #93c5fd;
+  border: 2px solid rgba(0,0,0,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.colorDotTosca {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #5eead4;
+  border: 2px solid rgba(0,0,0,0.1);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Hashtag Card */
+.ewHt {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.ewHtHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--fg);
+  background: var(--surface-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ewHtList {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.ewHtRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.ewHtRow:last-child { border-bottom: none; }
+
+.ewHtRow:hover { background: var(--gold-dim); }
+
+.lbl { font-weight: 800; width: 40%; }
+
+.lbl2 {
+  font-size: 0.85rem;
+  color: var(--fg-dim);
+  font-weight: 500;
+}
+
+.tag {
+  background: var(--gold-dim);
+  color: var(--gold);
+  border: 1px solid var(--border-gold);
+  padding: 5px 12px;
+  border-radius: 50px;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: inline-block;
+  letter-spacing: 0.01em;
+}
+
+.tag:hover {
+  background: var(--gold);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--gold-glow);
+}
+
+.ewPm {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
 }
 
 .ewPm img {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid var(--border-gold);
 }
+
+.ewPmContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+
 
 .ewFf {
   background: var(--surface);
