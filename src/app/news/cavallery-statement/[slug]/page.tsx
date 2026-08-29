@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import styles from "../page.module.css";
@@ -13,13 +12,17 @@ interface NewsDetail {
   content: string;
   image_url: string;
   images: string;
+  author?: string;
   published_at: string;
 }
 
 async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
   try {
     if (isMySqlConfigured()) {
-      const rows = await query<any[]>("SELECT * FROM `news` WHERE `slug`=? OR `id`=? LIMIT 1", [slug, slug]);
+      const rows = await query<any[]>(
+        "SELECT * FROM `news` WHERE `slug`=? OR `id`=? LIMIT 1",
+        [slug, slug]
+      );
       if (rows && rows.length > 0) {
         const r = rows[0];
         return {
@@ -28,10 +31,13 @@ async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
           title: r.title || "",
           label: r.category || r.label || "Statement",
           description: r.summary || r.description || "",
-          content: r.content || r.description || "",
+          content: r.content || r.description || r.summary || "",
           image_url: r.image_url || "/images/cava-logo.jpg",
           images: r.images || "",
-          published_at: r.published_at ? new Date(r.published_at).toISOString() : new Date().toISOString(),
+          author: r.author || "Cavallery Staff",
+          published_at: r.published_at
+            ? new Date(r.published_at).toISOString()
+            : new Date().toISOString(),
         };
       }
     }
@@ -41,8 +47,9 @@ async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
       {
         cache: "no-store",
         headers: {
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+          Accept: "application/json",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
         },
       }
     );
@@ -54,9 +61,16 @@ async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
   }
 }
 
-// Parse "{url1,url2}" → ["url1", "url2"]
+// Parse "{url1,url2}" or "url1, url2" or JSON array → ["url1", "url2"]
 function parseImageArray(raw: string): string[] {
   if (!raw) return [];
+  try {
+    if (raw.startsWith("[")) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    }
+  } catch {}
+
   return raw
     .replace(/^\{/, "")
     .replace(/\}$/, "")
@@ -65,11 +79,34 @@ function parseImageArray(raw: string): string[] {
     .filter(Boolean);
 }
 
-// Render content dengan \n\n sebagai paragraf terpisah
-function renderContent(content: string) {
-  return content.split("\n\n").map((para, i) => (
-    <p key={i}>{para}</p>
-  ));
+// Render content dengan multi-paragraph handling yang rapi
+function renderParagraphs(content: string) {
+  if (!content) return <p>Tidak ada konten yang tersedia.</p>;
+
+  // Split by double newline or single newline
+  const paragraphs = content
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length === 0) {
+    return <p>{content}</p>;
+  }
+
+  return paragraphs.map((para, i) => {
+    // If paragraph contains single newlines within itself, render with line breaks
+    const lines = para.split("\n");
+    return (
+      <p key={i}>
+        {lines.map((line, lineIdx) => (
+          <span key={lineIdx}>
+            {line}
+            {lineIdx < lines.length - 1 && <br />}
+          </span>
+        ))}
+      </p>
+    );
+  });
 }
 
 export const dynamicParams = true;
@@ -81,10 +118,10 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const news = await getNewsDetail(slug);
-  if (!news) return { title: "Berita Tidak Ditemukan" };
+  if (!news) return { title: "Berita Tidak Ditemukan — Cavallery" };
   return {
-    title: `${news.title} — Cavallery`,
-    description: news.description,
+    title: `${news.title} — Cavallery Statement`,
+    description: news.description || news.content?.slice(0, 160),
   };
 }
 
@@ -100,68 +137,106 @@ export default async function NewsDetailPage({
 
   const galleryImages = parseImageArray(news.images);
 
+  const formattedDate = new Date(news.published_at).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <div className={styles.page}>
-      <div className={styles.detailContainer}>
+      <article className={styles.detailContainer}>
         {/* Back button */}
         <Link href="/news" className={styles.backBtn}>
           <i className="bx bx-arrow-back" /> Kembali ke News
         </Link>
 
-        {/* Header */}
-        <div className={styles.detailHeader}>
-          <div className={styles.labelBadge}>{news.label}</div>
-          <h1 className={styles.detailTitle}>{news.title}</h1>
-          <div className={styles.detailDate}>
-            <i className="bx bx-calendar" />
-            {new Date(news.published_at).toLocaleDateString("id-ID", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
+        {/* Header Section */}
+        <header className={styles.articleHeader}>
+          <div className={styles.badgeWrap}>
+            <span className={styles.labelBadge}>
+              <i className="bx bx-file-blank" /> {news.label || "Cavallery Statement"}
+            </span>
           </div>
-        </div>
 
-        {/* Main image */}
+          <h1 className={styles.detailTitle}>{news.title}</h1>
+
+          {/* Meta Author / Date Bar */}
+          <div className={styles.metaBar}>
+            <div className={styles.metaAuthor}>
+              <img
+                src="/images/cava-logo.jpg"
+                alt="Cavallery"
+                className={styles.authorAvatar}
+              />
+              <div className={styles.authorInfo}>
+                <span className={styles.authorName}>
+                  {news.author || "Cavallery Staff"}
+                </span>
+                <span className={styles.authorRole}>Official Fanbase Erine JKT48</span>
+              </div>
+            </div>
+
+            <div className={styles.metaDate}>
+              <i className="bx bx-calendar-event" style={{ color: "var(--gold)" }} />
+              <time dateTime={news.published_at}>{formattedDate}</time>
+            </div>
+          </div>
+        </header>
+
+        {/* Featured Main Image */}
         {news.image_url && (
           <div className={styles.detailMainImg}>
-            <Image
+            <img
               src={news.image_url}
               alt={news.title}
-              width={800}
-              height={450}
-              style={{ width: "100%", height: "auto" }}
-              priority
+              loading="eager"
             />
           </div>
         )}
 
-        {/* Content */}
-        <div className={styles.detailContent}>
-          {renderContent(news.content)}
-        </div>
+        {/* Article Body Content */}
+        <section className={styles.detailContent}>
+          <div className={styles.contentBody}>
+            {renderParagraphs(news.content)}
+          </div>
 
-        {/* Image gallery jika ada gambar tambahan */}
+          {/* Signature & Official Stamp */}
+          <footer className={styles.signatureBox}>
+            <div className={styles.signatureText}>
+              <span className={styles.sigSalute}>Hormat Kami,</span>
+              <span className={styles.sigName}>Cavallery</span>
+              <span className={styles.sigOrg}>
+                Official Fanbase of Catherina Vallencia (Erine JKT48)
+              </span>
+            </div>
+            <div className={styles.officialStamp}>
+              <i className="bx bx-check-shield" /> Official Statement
+            </div>
+          </footer>
+        </section>
+
+        {/* Image Gallery / Lampiran jika ada */}
         {galleryImages.length > 0 && (
-          <div className={styles.detailGallery}>
-            <h2 className={styles.galleryTitle}>Dokumentasi</h2>
+          <section className={styles.detailGallery}>
+            <h2 className={styles.galleryTitle}>
+              <i className="bx bx-images" /> Dokumentasi & Lampiran
+            </h2>
             <div className={styles.detailGalleryGrid}>
               {galleryImages.map((url, i) => (
                 <div key={i} className={styles.galleryImgWrap}>
-                  <Image
+                  <img
                     src={url}
                     alt={`Dokumentasi ${i + 1}`}
-                    width={400}
-                    height={300}
-                    style={{ width: "100%", height: "auto" }}
+                    loading="lazy"
                   />
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
-      </div>
+      </article>
     </div>
   );
 }

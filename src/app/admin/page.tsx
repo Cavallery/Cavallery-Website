@@ -1128,13 +1128,20 @@ function DiscordManager() {
       let imgVal   = image.trim();
       if (imgVal && !imgVal.startsWith("http")) imgVal = "https://" + imgVal;
 
-      const payload = {
-        title: "📌 " + title.trim(),
+      const payload: Record<string, any> = {
+        title: title.trim(),
         description: desc.trim() + "\n\n🕐 " + time,
-        url: urlVal, link: urlVal,
-        mention: mention || "",
-        image: imgVal, image_url: imgVal, imageUrl: imgVal,
+        url: urlVal,
       };
+
+      if (mention && mention !== "Tanpa Mention") {
+        payload.mention = mention;
+      }
+
+      if (imgVal) {
+        payload.image = imgVal;
+        payload.image_url = imgVal;
+      }
 
       const res = await fetch(DISCORD_API, {
         method: "POST",
@@ -1142,14 +1149,16 @@ function DiscordManager() {
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
+      const resData = await res.json().catch(() => null);
+
+      if (res.ok && resData?.success !== false) {
         showToast("✅ Berhasil dikirim ke Discord!", "success");
-        const newLog: DiscordLog = { time, title: title.trim(), mention: mention || "—", hasImage: !!image.trim() };
+        const newLog: DiscordLog = { time, title: title.trim(), mention: mention || "—", hasImage: !!imgVal };
         saveLogs([newLog, ...logs].slice(0, 30));
         setTitle(""); setDesc(""); setImage(""); setMention("");
       } else {
-        const body = await res.text();
-        showToast(`❌ Gagal (${res.status}): ${body.slice(0, 80)}`, "error");
+        const errMsg = resData?.message || resData?.error || "Gagal mengirim ke Discord";
+        showToast(`❌ Gagal (${res.status}): ${errMsg}`, "error");
       }
     } catch (e: any) {
       showToast("❌ Error jaringan: " + (e?.message ?? "unknown"), "error");
