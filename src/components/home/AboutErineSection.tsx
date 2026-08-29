@@ -452,53 +452,91 @@ export default function AboutErineSection() {
 
       {/* 2. Intro & Hashtags Section */}
       <div className={styles.ewContainer}>
+        {/* Introduction */}
         <div className={styles.ewIntro}>
-          <h3>Introduction</h3>
+          <div className={styles.ewIntroBadge}>
+            <i className="bx bx-user-circle" style={{ color: "var(--gold)" }} />
+            <span>Introduction</span>
+          </div>
           <p>
-            Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai
-            {" "}&quot;Putri Bebek&quot; oleh fans karena kepribadiannya yang unik dan menggemaskan.
+            Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai{" "}
+            <strong className={styles.ewHighlight}>&quot;Putri Bebek&quot;</strong>{" "}
+            oleh fans karena kepribadiannya yang unik dan menggemaskan.
           </p>
         </div>
 
         <div className={styles.ewSplit}>
+          {/* Bio Cards */}
           <div className={styles.ewBio}>
-            <table>
-              <tbody>
-                <tr><td className={styles.lbl}>Debut</td><td>18 November 2023</td></tr>
-                <tr><td className={styles.lbl}>Tahun Aktif</td><td>Member JKT48 Gen 12</td></tr>
-                <tr>
-                  <td className={styles.lbl}>Member Favorit</td>
-                  <td>
-                    <a href="https://x.com/I_KathrinaJKT48" target="_blank" rel="noopener noreferrer">
-                      Kathrina Irene
-                    </a>
-                  </td>
-                </tr>
-                <tr><td className={styles.lbl}>MBTI</td><td>ISFP / INFP</td></tr>
-                <tr><td className={styles.lbl}>Shio</td><td>Babi</td></tr>
-                <tr><td className={styles.lbl}>Hobi</td><td>Bermain Piano, Menari</td></tr>
-                <tr><td className={styles.lbl}>Angka Favorit</td><td>7</td></tr>
-                <tr><td className={styles.lbl}>Warna Favorit</td><td>Pink, Blue, Tosca</td></tr>
-              </tbody>
-            </table>
+            <div className={styles.ewBioHeader}>
+              <i className="bx bx-id-card" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
+              <span>Profil Erine</span>
+            </div>
+            <div className={styles.ewBioGrid}>
+              {[
+                { icon: "bx-calendar-star", label: "Debut", value: "18 November 2023" },
+                { icon: "bx-group", label: "Tahun Aktif", value: "Member JKT48 Gen 12" },
+                { icon: "bx-heart", label: "Member Favorit", value: <a href="https://x.com/I_KathrinaJKT48" target="_blank" rel="noopener noreferrer" className={styles.ewBioLink}>Kathrina Irene</a> },
+                { icon: "bx-brain", label: "MBTI", value: "ISFP / INFP" },
+                { icon: "bx-meteor", label: "Shio", value: "🐷 Babi" },
+                { icon: "bx-music", label: "Hobi", value: "Bermain Piano, Menari" },
+                { icon: "bx-hash", label: "Angka Favorit", value: "7" },
+                { icon: "bx-palette", label: "Warna Favorit", value: <span className={styles.ewColors}><span className={styles.colorDotPink} />Pink<span className={styles.colorDotBlue} />Blue<span className={styles.colorDotTosca} />Tosca</span> },
+              ].map((row, i) => (
+                <div key={i} className={styles.ewBioRow}>
+                  <div className={styles.ewBioIcon}>
+                    <i className={`bx ${row.icon}`} />
+                  </div>
+                  <div className={styles.ewBioContent}>
+                    <span className={styles.ewBioLabel}>{row.label}</span>
+                    <span className={styles.ewBioValue}>{row.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
+          {/* Hashtags */}
           <div className={styles.ewHt}>
-            <p className={styles.ewHtTitle}># Official Hashtags</p>
-            <ul>
-              <li>
-                <span className={styles.lbl2}>Setiap Hari Jumat</span>
-                <span className={styles.tag}>#DiesVenErine</span>
-              </li>
-              <li><span className={styles.lbl2}>Setiap Jurnal</span><span className={styles.tag}>#MemoRine</span></li>
-              <li><span className={styles.lbl2}>Setiap Sahur</span><span className={styles.tag}>#SahuRine</span></li>
-              <li><span className={styles.lbl2}>Sebelum Berbuka</span><span className={styles.tag}>#Ngabuburine</span></li>
-              <li><span className={styles.lbl2}>Setiap Berbuka</span><span className={styles.tag}>#BukbeRine</span></li>
-              <li><span className={styles.lbl2}>Setiap Game</span><span className={styles.tag}>#GameRine</span></li>
-            </ul>
+            <div className={styles.ewHtHeader}>
+              <i className="bx bxl-twitter" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
+              <span># Official Hashtags</span>
+            </div>
+            <div className={styles.ewHtList}>
+              {[
+                { when: "Setiap Hari Jumat", tag: "#DiesVenErine" },
+                { when: "Setiap Jurnal", tag: "#MemoRine" },
+                { when: "Setiap Sahur", tag: "#SahuRine" },
+                { when: "Sebelum Berbuka", tag: "#Ngabuburine" },
+                { when: "Setiap Berbuka", tag: "#BukbeRine" },
+                { when: "Setiap Game", tag: "#GameRine" },
+              ].map((h, i) => (
+                <div key={i} className={styles.ewHtRow}>
+                  <span className={styles.lbl2}>{h.when}</span>
+                  <a
+                    href={`https://x.com/search?q=${encodeURIComponent(h.tag)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.tag}
+                  >
+                    {h.tag}
+                  </a>
+                </div>
+              ))}
+            </div>
             <div className={styles.ewPm}>
               <img src="/images/pm.png" alt="PM" />
-              <span className={styles.tag}>#NgabaRine</span>
+              <div className={styles.ewPmContent}>
+                <span className={styles.lbl2}>Personal Massage</span>
+                <a
+                  href="https://x.com/search?q=%23NgabaRine"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.tag}
+                >
+                  #NgabaRine
+                </a>
+              </div>
             </div>
           </div>
         </div>
