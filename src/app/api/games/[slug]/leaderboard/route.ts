@@ -53,6 +53,36 @@ function writeLocalSessions(data: GameSessionItem[]) {
   }
 }
 
+let tablesChecked = false;
+async function ensureTablesExist() {
+  if (tablesChecked || !isMySqlConfigured()) return;
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS \`players\` (
+        \`id\` VARCHAR(100) PRIMARY KEY,
+        \`username\` VARCHAR(100) NOT NULL,
+        \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS \`game_sessions\` (
+        \`id\` BIGINT AUTO_INCREMENT PRIMARY KEY,
+        \`player_id\` VARCHAR(100) NOT NULL,
+        \`game_id\` VARCHAR(100) NOT NULL,
+        \`score\` INT NOT NULL DEFAULT 0,
+        \`duration_seconds\` INT DEFAULT 0,
+        \`played_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX \`idx_game_score\` (\`game_id\`, \`score\`),
+        INDEX \`idx_player\` (\`player_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    tablesChecked = true;
+  } catch (e) {
+    console.warn("[MySQL] ensureTablesExist warning:", e);
+  }
+}
+
 // GET /api/games/[slug]/leaderboard
 export async function GET(
   request: Request,
@@ -60,6 +90,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+    await ensureTablesExist();
 
     let stats = {
       rekor_teratas: 0,
@@ -123,19 +154,22 @@ export async function GET(
           }));
         }
 
-        return NextResponse.json({
-          status: true,
-          slug,
-          stats,
-          leaderboard,
-          source: "database",
-        });
+        // Jika di DB ada data, kembalikan langsung
+        if (stats.sesi_dimainkan > 0 || leaderboard.length > 0) {
+          return NextResponse.json({
+            status: true,
+            slug,
+            stats,
+            leaderboard,
+            source: "database",
+          });
+        }
       } catch (dbErr) {
         console.error("MySQL Leaderboard query failed, fallback to local:", dbErr);
       }
     }
 
-    // Fallback: Local JSON Storage
+    // Fallback / Local Storage
     const allSessions = readLocalSessions();
     const gameSessions = allSessions.filter((s) => s.game_id === slug);
 
@@ -151,7 +185,6 @@ export async function GET(
         rata_rata_skor: Math.round((totalScore / gameSessions.length) * 10) / 10,
       };
 
-      // Top scores per user
       const userBest: Record<string, { username: string; score: number; played_at: string }> = {};
       gameSessions.forEach((s) => {
         const key = s.username.toLowerCase();
@@ -197,9 +230,11 @@ export async function POST(
 ) {
   try {
     const { slug } = await params;
-    const body = await request.json();
+    await ensureTablesExist();
 
-    const username = (body.username || body.name || "Anonim").trim().slice(0, 50);
+    const body = await request.json();
+    const rawName = (body.username || body.name || body.playerName || "Anonim").trim().slice(0, 50);
+    const username = rawName || "Pemain";
     const score = parseInt(body.score, 10);
     const duration = parseInt(body.duration_seconds || "0", 10) || 0;
 
@@ -215,14 +250,12 @@ export async function POST(
 
     if (isMySqlConfigured()) {
       try {
-        // Pastikan tabel ada / insert pemain jika belum ada
         await query(
           `INSERT INTO players (id, username) VALUES (?, ?) 
            ON DUPLICATE KEY UPDATE username = VALUES(username)`,
           [playerId, username]
         );
 
-        // Catat sesi permainan
         await query(
           `INSERT INTO game_sessions (player_id, game_id, score, duration_seconds) 
            VALUES (?, ?, ?, ?)`,
@@ -233,7 +266,7 @@ export async function POST(
       }
     }
 
-    // Simpan ke local cache/fallback
+    // Simpan ke local cache juga
     const sessions = readLocalSessions();
     const newSession: GameSessionItem = {
       id: Date.now(),

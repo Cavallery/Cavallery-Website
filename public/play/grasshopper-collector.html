@@ -333,17 +333,25 @@
       }
 
       function saveToLeaderboard(name, score) {
+        const cleanName = (name || "Pemain").trim();
         const data =
           JSON.parse(localStorage.getItem("belalang_leaderboard")) || [];
-        data.push({ name, score });
+        data.push({ name: cleanName, score: score });
         data.sort((a, b) => b.score - a.score);
         localStorage.setItem(
           "belalang_leaderboard",
           JSON.stringify(data.slice(0, 10))
         );
         try {
+          fetch("/api/games/grasshopper-collector/leaderboard", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: cleanName, score: score }),
+          }).catch(() => {});
+        } catch (e) {}
+        try {
           if (window.parent && window.parent !== window) {
-            window.parent.postMessage({ type: "GAME_OVER", score: score, playerName: name, gameId: "grasshopper-collector" }, "*");
+            window.parent.postMessage({ type: "GAME_OVER", score: score, playerName: cleanName, gameId: "grasshopper-collector" }, "*");
           }
         } catch (e) {}
       }
