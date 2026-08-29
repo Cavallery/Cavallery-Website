@@ -37,7 +37,7 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
   };
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div ref={wrapperRef} style={{ position: "relative", width: "100%", height: "75vh", minHeight: 600 }}>
       {showMusicToggle && (
         <button
           onClick={toggleMusic}
@@ -69,7 +69,7 @@ export default function GameFrame({ src, title, showMusicToggle }: GameFrameProp
         title={title}
         allowFullScreen
         sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads"
-        style={{ width: "100%", height: "100%", border: "none", display: "block", minHeight: "600px" }}
+        style={{ width: "100%", height: "100%", border: "none", display: "block" }}
        onLoad={(e) => {
   const iframe = e.currentTarget;
   

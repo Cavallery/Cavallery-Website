@@ -1,12 +1,11 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
-  overflow: hidden;
   background-color: var(--bg);
-  padding-top: var(--nav-h); /* wajib untuk fixed nav */
-  box-sizing: border-box;   /* tambah ini biar 100vh sudah include padding */
+  padding-top: var(--nav-h);
+  box-sizing: border-box;
 }
 
 .header {
@@ -18,6 +17,8 @@
   padding: 0 24px;
   flex-shrink: 0;
   z-index: 10;
+  position: sticky;
+  top: var(--nav-h);
 }
 
 .headerInner {
@@ -60,10 +61,13 @@
 }
 
 .frameWrapper {
-  flex: 1;
   width: 100%;
-  min-height: 0;
-  overflow-y: auto;
   background-color: var(--bg);
-  height: 0; /* trick: flex:1 butuh ini agar min-height:0 bekerja */
 }
+
+/* Game iframe area */
+.frameWrapper > :first-child {
+  min-height: 600px;
+  height: 75vh;
+}
+
