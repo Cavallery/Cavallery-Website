@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import styles from "./page.module.css";
 import PetaDomisili from "@/components/PetaDomisili/PetaDomisili";
 import SectionDivider from "@/components/SectionDivider";
@@ -58,14 +59,12 @@ export default function AboutCavalleryPage() {
               simbol kemenangan dalam strategi.
             </p>
             <div style={{ marginTop: 32 }}>
-              <a 
-                href="https://docs.google.com/forms/d/e/1FAIpQLSeOs9IDpoOzifnSgBGFvj74MSbyGb7gu_r6ntG5fjV0znVLkQ/closedform" 
-                target="_blank" 
-                rel="noreferrer" 
+              <Link 
+                href="/join" 
                 className="btnPrimary"
               >
                 <i className="bx bxs-user-plus" /> Bergabung dengan Cavallery
-              </a>
+              </Link>
             </div>
           </div>
 
