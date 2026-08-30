@@ -266,10 +266,17 @@ export default function FanartPage() {
               >
                 <div className={styles.cardImgWrap}>
                   <img
-                    src={item.image_url}
+                    src={item.image_url && !item.image_url.endsWith("/") ? item.image_url : "/images/erine1.jpg"}
                     alt={item.title}
                     className={styles.cardImg}
                     loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = "true";
+                        target.src = "/images/erine1.jpg";
+                      }
+                    }}
                   />
                   <div className={styles.overlayZoom}>
                     <i className="bx bx-expand-alt" />
@@ -507,9 +514,16 @@ export default function FanartPage() {
           >
             <div className={styles.lightboxImgWrap}>
               <img
-                src={activeLightbox.image_url}
+                src={activeLightbox.image_url && !activeLightbox.image_url.endsWith("/") ? activeLightbox.image_url : "/images/erine1.jpg"}
                 alt={activeLightbox.title}
                 className={styles.lightboxImg}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = "true";
+                    target.src = "/images/erine1.jpg";
+                  }
+                }}
               />
             </div>
 
