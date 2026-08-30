@@ -182,18 +182,16 @@ export default function Footer() {
 
         {/* ── BOTTOM ROW ────────────────────────────── */}
         <div className={styles.bottom}>
-          <p className={styles.copy}>
-            &copy; {currentYear} Cavallery. All Rights Reserved.
-          </p>
-
-          <p className={styles.madeBy}>
-            Made with <span className={styles.heart}>♡</span> by Cavallery
-          </p>
-
           <div className={styles.bottomLinks}>
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
           </div>
+
+          <p className={styles.copy}>
+            &copy; 2026 Cavallery. All Rights Reserved.
+          </p>
+
+          <div className={styles.bottomRightSpacer} />
         </div>
       </div>
     </footer>

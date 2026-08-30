@@ -20,7 +20,7 @@ type Section =
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
   | "bot"       | "tickets"     | "calendar" | "updates" 
-  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart";
+  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot";
 
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -7593,6 +7593,504 @@ function FanartManager() {
   );
 }
 
+// ─── 2S WITH ERINE MANAGER ─────────────────────────────────────
+function TwoShotManager() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [confirm, setConfirm] = useState<{ msg: string; onConfirm: () => void } | null>(null);
+  const [previewModal, setPreviewModal] = useState<any | null>(null);
+  const [addModal, setAddModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form states for manual add
+  const [shotUser, setShotUser] = useState("");
+  const [shotSocial, setShotSocial] = useState("");
+  const [shotEvent, setShotEvent] = useState("");
+  const [shotDate, setShotDate] = useState("");
+  const [shotMsg, setShotMsg] = useState("");
+  const [shotImage, setShotImage] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("status", "all");
+      if (search.trim()) params.set("search", search.trim());
+      const res = await fetch(`/api/twoshot?${params.toString()}`);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setItems(json.data);
+      }
+    } catch {
+      showToast("Gagal memuat data 2-Shot", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const updateStatus = async (id: number | string, status: "approved" | "rejected" | "pending") => {
+    try {
+      const res = await fetch("/api/twoshot", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(
+          status === "approved"
+            ? "Foto 2-Shot BERHASIL DISETUJUI & terbit di web!"
+            : status === "rejected"
+            ? "Foto 2-Shot ditolak."
+            : "Status diubah ke pending.",
+          "success"
+        );
+        loadData();
+      } else {
+        showToast(json.message || "Gagal mengubah status", "error");
+      }
+    } catch {
+      showToast("Terjadi kendala jaringan", "error");
+    }
+  };
+
+  const deleteItem = async (id: number | string) => {
+    setConfirm(null);
+    try {
+      const res = await fetch(`/api/twoshot?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Foto 2-Shot berhasil dihapus", "success");
+        loadData();
+      } else {
+        showToast(json.message || "Gagal menghapus", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImg(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/twoshot/upload", { method: "POST", body: formData });
+      const json = await res.json();
+      if (res.ok && json.status) {
+        setShotImage(json.data.image_url);
+        showToast("Foto 2-Shot berhasil diunggah", "success");
+      } else {
+        showToast(json.message || "Gagal mengunggah foto", "error");
+      }
+    } catch {
+      showToast("Error saat mengunggah", "error");
+    } finally {
+      setUploadingImg(false);
+    }
+  };
+
+  const handleCreateTwoShot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shotUser.trim() || !shotImage || !shotMsg.trim()) {
+      showToast("Nama penggemar, foto, dan pesan untuk Erine wajib diisi!", "error");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/twoshot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_name: shotUser.trim(),
+          user_social: shotSocial.trim() || null,
+          event_name: shotEvent.trim() || "2-Shot with Erine",
+          event_date: shotDate.trim() || null,
+          message: shotMsg.trim(),
+          image_url: shotImage,
+          status: "approved",
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast("Foto 2-Shot berhasil ditambahkan & langsung aktif di web!", "success");
+        setAddModal(false);
+        setShotUser("");
+        setShotSocial("");
+        setShotEvent("");
+        setShotDate("");
+        setShotMsg("");
+        setShotImage("");
+        loadData();
+      } else {
+        showToast(json.message || "Gagal menambahkan 2-Shot", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const filtered = items.filter((i) => {
+    if (tab === "all") return true;
+    return i.status === tab;
+  });
+
+  const pendingCount = items.filter((i) => i.status === "pending").length;
+  const approvedCount = items.filter((i) => i.status === "approved").length;
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {confirm && <ConfirmModal msg={confirm.msg} onConfirm={confirm.onConfirm} onCancel={() => setConfirm(null)} />}
+
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionHeaderLeft}>
+          <h2 className={styles.sectionTitle}>
+            <i className="bx bx-camera" /> 2S with Erine
+          </h2>
+          <span className={styles.countBadge}>{items.length} foto</span>
+        </div>
+        <div className={styles.actions}>
+          <button className={styles.btnPrimary} onClick={() => setAddModal(true)}>
+            <i className="bx bx-plus" /> Tambah 2-Shot
+          </button>
+        </div>
+      </div>
+
+      {/* FILTER TABS */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            className={`${styles.filterBtn} ${tab === "all" ? styles.filterBtnActive : ""}`}
+            onClick={() => setTab("all")}
+          >
+            Semua ({items.length})
+          </button>
+          <button
+            className={`${styles.filterBtn} ${tab === "pending" ? styles.filterBtnActive : ""}`}
+            onClick={() => setTab("pending")}
+            style={pendingCount > 0 ? { borderColor: "var(--gold)", color: "var(--gold)" } : {}}
+          >
+            <i className="bx bx-time" /> Menunggu ({pendingCount})
+          </button>
+          <button
+            className={`${styles.filterBtn} ${tab === "approved" ? styles.filterBtnActive : ""}`}
+            onClick={() => setTab("approved")}
+          >
+            <i className="bx bx-check" /> Disetujui ({approvedCount})
+          </button>
+          <button
+            className={`${styles.filterBtn} ${tab === "rejected" ? styles.filterBtnActive : ""}`}
+            onClick={() => setTab("rejected")}
+          >
+            <i className="bx bx-x" /> Ditolak ({items.filter((i) => i.status === "rejected").length})
+          </button>
+        </div>
+
+        <div style={{ position: "relative", minWidth: 220 }}>
+          <input
+            type="text"
+            placeholder="Cari fans / pesan / event..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "6px 12px 6px 30px",
+              background: "var(--adm-surface)",
+              border: "1px solid var(--adm-border)",
+              borderRadius: 6,
+              color: "var(--adm-text)",
+              fontSize: "0.85rem",
+            }}
+          />
+          <i className="bx bx-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--adm-muted)" }} />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data 2-Shot...</div>
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <i className="bx bx-camera" style={{ fontSize: "2.5rem", color: "var(--adm-muted)", marginBottom: 8, display: "block" }} />
+          <p>Tidak ada foto 2-Shot untuk filter ini.</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 80 }}>Foto</th>
+                <th>Penggemar</th>
+                <th>Event / Tanggal</th>
+                <th>Pesan untuk Erine</th>
+                <th style={{ width: 70 }}>Likes</th>
+                <th style={{ width: 110 }}>Status</th>
+                <th style={{ width: 180, textAlign: "right" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <div
+                      style={{ width: 64, height: 64, borderRadius: 8, overflow: "hidden", background: "#000", cursor: "pointer", border: "1px solid var(--adm-border)" }}
+                      onClick={() => setPreviewModal(item)}
+                      title="Klik untuk pratinjau"
+                    >
+                      <img src={item.image_url} alt={item.user_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 700, color: "var(--adm-text)" }}>{item.user_name}</div>
+                    {item.user_social && (
+                      <div style={{ fontSize: "0.78rem", color: "var(--gold)" }}>{item.user_social}</div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ fontSize: "0.85rem", color: "var(--adm-text)" }}>{item.event_name || "-"}</div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--adm-muted)" }}>
+                      {item.event_date || new Date(item.created_at).toLocaleDateString("id-ID")}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: "0.82rem", color: "var(--adm-muted)", fontStyle: "italic", maxWidth: 260, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      "{item.message}"
+                    </div>
+                  </td>
+                  <td>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.85rem", color: "#e11d48" }}>
+                      <i className="bx bxs-heart" /> {item.likes || 0}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "3px 8px",
+                        borderRadius: 4,
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        background:
+                          item.status === "approved"
+                            ? "rgba(16, 185, 129, 0.15)"
+                            : item.status === "rejected"
+                            ? "rgba(239, 68, 68, 0.15)"
+                            : "rgba(245, 158, 11, 0.15)",
+                        color:
+                          item.status === "approved"
+                            ? "#10b981"
+                            : item.status === "rejected"
+                            ? "#ef4444"
+                            : "#f59e0b",
+                      }}
+                    >
+                      {item.status === "approved" ? "Disetujui" : item.status === "rejected" ? "Ditolak" : "Pending"}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                      <button
+                        className={styles.btnGhost}
+                        style={{ padding: "4px 8px" }}
+                        onClick={() => setPreviewModal(item)}
+                        title="Lihat Pratinjau & Pesan"
+                      >
+                        <i className="bx bx-show" />
+                      </button>
+                      {item.status !== "approved" && (
+                        <button
+                          className={styles.btnPrimary}
+                          style={{ padding: "4px 8px", fontSize: "0.78rem" }}
+                          onClick={() => updateStatus(item.id, "approved")}
+                          title="Setujui dan tampilkan di web"
+                        >
+                          <i className="bx bx-check" /> Setujui
+                        </button>
+                      )}
+                      {item.status !== "rejected" && (
+                        <button
+                          className={styles.btnGhost}
+                          style={{ padding: "4px 8px", color: "#ef4444", borderColor: "#ef4444" }}
+                          onClick={() => updateStatus(item.id, "rejected")}
+                          title="Tolak 2-Shot"
+                        >
+                          <i className="bx bx-x" /> Tolak
+                        </button>
+                      )}
+                      <button
+                        className={styles.btnDel}
+                        style={{ padding: "4px 8px" }}
+                        onClick={() =>
+                          setConfirm({
+                            msg: `Hapus foto 2-Shot oleh ${item.user_name}?`,
+                            onConfirm: () => deleteItem(item.id),
+                          })
+                        }
+                        title="Hapus permanen"
+                      >
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODAL: PREVIEW 2-SHOT */}
+      {previewModal && (
+        <div className={styles.modalOverlay} onClick={() => setPreviewModal(null)}>
+          <div className={styles.formModal} style={{ maxWidth: 650 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-camera" /> 2-Shot by {previewModal.user_name}</h3>
+              <button className={styles.closeX} onClick={() => setPreviewModal(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img src={previewModal.image_url} alt={previewModal.user_name} style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }} />
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: "0.95rem", color: "var(--gold)", fontWeight: 700 }}>
+                  Penggemar: {previewModal.user_name} {previewModal.user_social && `(${previewModal.user_social})`}
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--adm-muted)", marginTop: 4 }}>
+                  Event: {previewModal.event_name || "-"} | Tanggal: {previewModal.event_date || "-"}
+                </div>
+                <div style={{ background: "rgba(225, 29, 72, 0.08)", borderLeft: "3px solid #e11d48", padding: "10px 14px", borderRadius: "0 8px 8px 0", marginTop: 10, fontSize: "0.9rem", color: "var(--adm-text)", fontStyle: "italic" }}>
+                  "{previewModal.message}"
+                </div>
+              </div>
+            </div>
+            <div className={styles.formFooter}>
+              {previewModal.status !== "approved" && (
+                <button
+                  className={styles.btnPrimary}
+                  onClick={() => {
+                    updateStatus(previewModal.id, "approved");
+                    setPreviewModal(null);
+                  }}
+                >
+                  <i className="bx bx-check" /> Setujui & Terbitkan
+                </button>
+              )}
+              <button className={styles.btnGhost} onClick={() => setPreviewModal(null)}>Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TAMBAH 2-SHOT MANUAL DARI ADMIN */}
+      {addModal && (
+        <div className={styles.modalOverlay} onClick={() => setAddModal(false)}>
+          <div className={styles.formModal} style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.formModalHeader}>
+              <h3><i className="bx bx-plus-circle" /> Tambah 2-Shot with Erine</h3>
+              <button className={styles.closeX} onClick={() => setAddModal(false)}><i className="bx bx-x" /></button>
+            </div>
+            <form onSubmit={handleCreateTwoShot}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Nama Penggemar / Member <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Aditya / Cavalliers"
+                    value={shotUser}
+                    onChange={(e) => setShotUser(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Akun Media Sosial (Opsional)</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: @username (X / IG)"
+                    value={shotSocial}
+                    onChange={(e) => setShotSocial(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className={styles.field}>
+                    <label>Event / Sesi</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Seitansai Erine"
+                      value={shotEvent}
+                      onChange={(e) => setShotEvent(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Tanggal 2-Shot</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: 22 Agustus 2026"
+                      value={shotDate}
+                      onChange={(e) => setShotDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label>Pesan untuk Erine <span style={{ color: "#ef4444" }}>*</span></label>
+                  <textarea
+                    placeholder="Tuliskan ucapan atau kenangan seru 2-Shot untuk Erine..."
+                    value={shotMsg}
+                    onChange={(e) => setShotMsg(e.target.value)}
+                    style={{ minHeight: 70 }}
+                    required
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Upload Foto 2-Shot <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFileUpload}
+                    disabled={uploadingImg}
+                  />
+                  {uploadingImg && <span style={{ fontSize: "0.8rem", color: "var(--gold)" }}><i className="bx bx-loader-alt bx-spin" /> Mengunggah foto...</span>}
+                  {shotImage && (
+                    <div style={{ marginTop: 8, width: 100, height: 100, borderRadius: 8, overflow: "hidden", border: "1px solid var(--adm-border)" }}>
+                      <img src={shotImage} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setAddModal(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={submitting || uploadingImg}>
+                  {submitting ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Terbitkan 2-Shot</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── NAV GROUPS WITH ACCORDION COLLAPSIBLE ────────────────────
 interface NavGroup {
   id: string;
@@ -7644,6 +8142,7 @@ const navGroups: NavGroup[] = [
     label: "Komunitas & Interaksi",
     icon: "bx-conversation",
     items: [
+      { key: "twoshot",     icon: "bx-camera",       label: "2S with Erine" },
       { key: "fanart",      icon: "bx-palette",      label: "Fanart Erine" },
       { key: "esport",      icon: "bx-trophy",       label: "Esport"      },
       { key: "journal",     icon: "bx-book-open",    label: "MemoRine"    },
@@ -7804,6 +8303,7 @@ export default function AdminPage() {
             : active === "anggotakota"? <AnggotaKotaManager />
             : active === "merch"      ? <MerchandiseManager />
             : active === "fanart"     ? <FanartManager />
+            : active === "twoshot"    ? <TwoShotManager />
             : <SectionManager section={active} />}
           </div>
         </div>

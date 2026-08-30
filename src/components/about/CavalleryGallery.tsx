@@ -19,7 +19,8 @@ interface MediaItem {
   updated_at: string;
 }
 
-const API_URL = "/api/media?limit=100";
+// Fetch only published media directly from the server
+const API_URL = "/api/media?published_only=true&limit=100";
 
 export default function CavalleryGallery() {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
@@ -35,18 +36,9 @@ export default function CavalleryGallery() {
         setLoading(true);
         setError(null);
 
-        let publishedSet = new Set<string>();
-        try {
-          const pubRes = await fetch("/api/published-media");
-          if (pubRes.ok) {
-            const pubJson = await pubRes.json();
-            if (Array.isArray(pubJson?.publishedIds)) {
-              publishedSet = new Set(pubJson.publishedIds);
-            }
-          }
-        } catch {}
-
         let items: MediaItem[] = [];
+
+        // Fetch published media from our API (MySQL-backed)
         try {
           const res = await fetch(API_URL);
           if (res.ok) {
@@ -57,6 +49,7 @@ export default function CavalleryGallery() {
           }
         } catch {}
 
+        // Fallback: try external API if local returns nothing
         if (items.length === 0) {
           try {
             const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT&limit=100");
@@ -69,6 +62,7 @@ export default function CavalleryGallery() {
           } catch {}
         }
 
+        // Normalize items: detect video type properly
         const normalizedItems: MediaItem[] = items
           .filter((item) => item && !item.deleted_at)
           .map((item) => {
@@ -82,25 +76,7 @@ export default function CavalleryGallery() {
             };
           });
 
-        let filtered: MediaItem[] = [];
-        if (publishedSet.size > 0) {
-          filtered = normalizedItems.filter(
-            (item) =>
-              publishedSet.has(String(item.id)) ||
-              publishedSet.has(String(item.public_url)) ||
-              publishedSet.has(String(item.file_name)) ||
-              publishedSet.has(String(item.r2_key)) ||
-              (item as any).is_published === 1 ||
-              (item as any).is_published === true
-          );
-        }
-
-        // If publishedSet has no matches or is empty, show all active media
-        if (filtered.length === 0 && normalizedItems.length > 0) {
-          filtered = normalizedItems;
-        }
-
-        setMediaItems(filtered);
+        setMediaItems(normalizedItems);
       } catch (err: unknown) {
         setError((err as Error).message || "Terjadi kesalahan");
       } finally {

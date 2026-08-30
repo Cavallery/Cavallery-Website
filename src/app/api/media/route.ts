@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const folder = searchParams.get("folder") || "";
     const type = searchParams.get("type") || "";
+    const publishedOnly = searchParams.get("published_only") === "true";
     const limit = Number(searchParams.get("limit") || 50);
     const offset = Number(searchParams.get("offset") || 0);
 
@@ -43,6 +44,9 @@ export async function GET(request: NextRequest) {
       if (type) {
         conditions.push("type = ?");
         params.push(type);
+      }
+      if (publishedOnly) {
+        conditions.push("is_published = 1");
       }
 
       const whereClause = conditions.join(" AND ");
