@@ -420,7 +420,7 @@ export default function JoinPage() {
     }
     if (!feeAgreed) {
       setFormError(
-        "Anda wajib menyetujui ketentuan iuran Rp75.000 untuk melanjutkan pendaftaran.",
+        "Anda wajib menyetujui ketentuan iuran Rp60.000 untuk melanjutkan pendaftaran.",
       );
       return;
     }
@@ -475,7 +475,7 @@ export default function JoinPage() {
       }
       if (!feeAgreed) {
         setFormError(
-          "Anda wajib menyetujui ketentuan iuran Rp75.000 untuk melanjutkan pendaftaran.",
+          "Anda wajib menyetujui ketentuan iuran Rp60.000 untuk melanjutkan pendaftaran.",
         );
         return;
       }
@@ -2057,16 +2057,29 @@ export default function JoinPage() {
                         {/* DISCLAIMER IURAN */}
                         <div className={styles.disclaimerBox}>
                           <div className={styles.disclaimerTitle}>
-                            <i className="bx bx-info-circle" /> DISCLAIMER IURAN
-                            KEANGGOTAAN
+                            <i className="bx bx-info-circle" /> DISCLAIMER
                           </div>
                           <div className={styles.disclaimerText}>
-                            Sebelum melanjutkan pendaftaran, harap diperhatikan
-                            bahwa calon anggota Cavallery yang terpilih memiliki
-                            kewajiban untuk membayar iuran sebesar{" "}
-                            <strong>Rp75.000</strong>. Iuran tersebut digunakan
-                            untuk keperluan operasional fanbase dan pembelian
-                            atribut resmi anggota.
+                            <p style={{ margin: "0 0 8px" }}>
+                              Sebelum melanjutkan pendaftaran, harap diperhatikan
+                              bahwa calon anggota Cavallery yang terpilih memiliki
+                              kewajiban untuk membayar iuran sebesar{" "}
+                              <strong>Rp60.000</strong>.
+                            </p>
+                            <p style={{ margin: "0 0 8px" }}>
+                              Dengan pembayaran ini, anggota baru tidak perlu
+                              melakukan pembayaran kas hingga akhir Desember 2026,
+                              dan akan mulai aktif kembali pada periode berikutnya
+                              yaitu Januari 2027.
+                            </p>
+                            <p style={{ margin: "0 0 8px" }}>
+                              Jika Anda tidak bersedia berpartisipasi dalam iuran
+                              ini, Anda dipersilakan untuk tidak melanjutkan proses
+                              pendaftaran.
+                            </p>
+                            <p style={{ margin: "0", fontStyle: "italic" }}>
+                              Terima kasih atas pengertiannya.
+                            </p>
                           </div>
                           <label className={styles.checkboxLabel}>
                             <input
@@ -2077,7 +2090,7 @@ export default function JoinPage() {
                             />
                             <span>
                               Saya bersedia dan menyetujui kewajiban membayar
-                              iuran sebesar Rp75.000 jika terpilih sebagai
+                              iuran sebesar Rp60.000 jika terpilih sebagai
                               anggota resmi. <span>*</span>
                             </span>
                           </label>
