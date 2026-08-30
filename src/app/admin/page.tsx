@@ -8011,7 +8011,7 @@ function TwoShotManager() {
                   <label>Nama Penggemar / Member <span style={{ color: "#ef4444" }}>*</span></label>
                   <input
                     type="text"
-                    placeholder="Contoh: Aditya / Cavalliers"
+                    placeholder="Contoh: Erine"
                     value={shotUser}
                     onChange={(e) => setShotUser(e.target.value)}
                     required

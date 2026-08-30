@@ -511,7 +511,7 @@ export default function TwoShotPage() {
                     <input
                       type="text"
                       className={styles.formInput}
-                      placeholder="Contoh: Aditya / Cavalliers"
+                      placeholder="Contoh: Erine"
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
                       required
