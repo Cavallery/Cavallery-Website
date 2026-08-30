@@ -34,6 +34,32 @@ export async function GET(
     const filePath = path.join(process.cwd(), "public", "uploads", ...safeSegments);
 
     if (!fs.existsSync(filePath)) {
+      // Fallback: proxy from live production website if running on local dev
+      try {
+        const remoteUrl = `https://cavallery.id/uploads/${safeSegments.join("/")}`;
+        const remoteRes = await fetch(remoteUrl);
+        if (remoteRes.ok) {
+          const arrayBuffer = await remoteRes.arrayBuffer();
+          const ext = path.extname(filePath).toLowerCase();
+          const contentType = remoteRes.headers.get("content-type") || MIME_MAP[ext] || "application/octet-stream";
+          
+          // Optionally cache locally
+          try {
+            const dir = path.dirname(filePath);
+            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
+          } catch {}
+
+          return new NextResponse(arrayBuffer, {
+            status: 200,
+            headers: {
+              "Content-Type": contentType,
+              "Cache-Control": "public, max-age=31536000, immutable",
+            },
+          });
+        }
+      } catch {}
+
       return new NextResponse("File Not Found", { status: 404 });
     }
 

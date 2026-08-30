@@ -7367,7 +7367,18 @@ function FanartManager() {
                       }}
                       onClick={() => setPreviewModal(item)}
                     >
-                      <img src={item.image_url} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img
+                        src={item.image_url && !item.image_url.endsWith("/") ? item.image_url : "/images/erine1.jpg"}
+                        alt={item.title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = "true";
+                            target.src = "/images/erine1.jpg";
+                          }
+                        }}
+                      />
                     </div>
                   </td>
                   <td>
@@ -7464,7 +7475,18 @@ function FanartManager() {
             </div>
             <div className={styles.formBody}>
               <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src={previewModal.image_url} alt={previewModal.title} style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }} />
+                <img
+                  src={previewModal.image_url && !previewModal.image_url.endsWith("/") ? previewModal.image_url : "/images/erine1.jpg"}
+                  alt={previewModal.title}
+                  style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = "true";
+                      target.src = "/images/erine1.jpg";
+                    }
+                  }}
+                />
               </div>
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: "0.9rem", color: "var(--gold)", fontWeight: 700 }}>
@@ -7852,7 +7874,18 @@ function TwoShotManager() {
                       onClick={() => setPreviewModal(item)}
                       title="Klik untuk pratinjau"
                     >
-                      <img src={item.image_url} alt={item.user_name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img
+                        src={item.image_url && !item.image_url.endsWith("/") ? item.image_url : "/images/erine3.jpg"}
+                        alt={item.user_name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = "true";
+                            target.src = "/images/erine3.jpg";
+                          }
+                        }}
+                      />
                     </div>
                   </td>
                   <td>
@@ -7965,7 +7998,18 @@ function TwoShotManager() {
             </div>
             <div className={styles.formBody}>
               <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <img src={previewModal.image_url} alt={previewModal.user_name} style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }} />
+                <img
+                  src={previewModal.image_url && !previewModal.image_url.endsWith("/") ? previewModal.image_url : "/images/erine3.jpg"}
+                  alt={previewModal.user_name}
+                  style={{ maxWidth: "100%", maxHeight: 380, objectFit: "contain" }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = "true";
+                      target.src = "/images/erine3.jpg";
+                    }
+                  }}
+                />
               </div>
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: "0.95rem", color: "var(--gold)", fontWeight: 700 }}>

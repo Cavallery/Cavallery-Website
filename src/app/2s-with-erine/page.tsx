@@ -350,10 +350,17 @@ export default function TwoShotPage() {
                   {/* Photo Frame */}
                   <div className={styles.photoFrame}>
                     <img
-                      src={item.image_url}
+                      src={item.image_url && !item.image_url.endsWith("/") ? item.image_url : "/images/erine3.jpg"}
                       alt={`2-Shot Erine oleh ${item.user_name}`}
                       className={styles.photoImg}
                       loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.dataset.fallback) {
+                          target.dataset.fallback = "true";
+                          target.src = "/images/erine3.jpg";
+                        }
+                      }}
                     />
                     {item.event_name && (
                       <div className={styles.eventSticker}>
@@ -611,9 +618,16 @@ export default function TwoShotPage() {
           >
             <div className={styles.lightboxImageWrap}>
               <img
-                src={activeLightbox.image_url}
+                src={activeLightbox.image_url && !activeLightbox.image_url.endsWith("/") ? activeLightbox.image_url : "/images/erine3.jpg"}
                 alt={`2-Shot oleh ${activeLightbox.user_name}`}
                 className={styles.lightboxImage}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = "true";
+                    target.src = "/images/erine3.jpg";
+                  }
+                }}
               />
             </div>
 
