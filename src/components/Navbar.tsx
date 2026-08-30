@@ -46,10 +46,11 @@ const navLinks: NavLink[] = [
   {
     label: "Community",
     children: [
-      { href: "/join",    label: "Join Cavallery",   icon: "bx-group",             desc: "Daftarkan dirimu sebagai member resmi" },
-      { href: "/esport",  label: "Cavallery Esport", icon: "bx-trophy",            desc: "Divisi gaming kompetitif Cavallery" },
-      { href: "/#tickets",label: "Ticketing",        icon: "bx-message-square-edit", desc: "Kotak kritik, saran & aspirasi fanbase" },
-      { href: "/journal", label: "Journal MemoRine", icon: "bx-book-heart",        desc: "Tulis pesan & dukungan untuk Erine" },
+      { href: "/join",         label: "Join Cavallery",   icon: "bx-group",             desc: "Daftarkan dirimu sebagai member resmi" },
+      { href: "/esport",       label: "Cavallery Esport", icon: "bx-trophy",            desc: "Divisi gaming kompetitif Cavallery" },
+      { href: "/2s-with-erine",label: "2S with Erine",    icon: "bx-camera",            desc: "Koleksi foto 2-Shot & pesan manis untuk Erine" },
+      { href: "/#tickets",     label: "Ticketing",        icon: "bx-message-square-edit", desc: "Kotak kritik, saran & aspirasi fanbase" },
+      { href: "/journal",      label: "Journal MemoRine", icon: "bx-book-heart",        desc: "Tulis pesan & dukungan untuk Erine" },
     ],
   },
   { href: "/merchandise", label: "Merchandise" },

@@ -203,46 +203,34 @@
 
 /* ── BOTTOM ROW ───────────────────────────────────────────── */
 .bottom {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  flex-wrap: wrap;
   gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(180, 83, 9, 0.1);
+}
+
+[data-theme="dark"] .bottom {
+  border-top-color: rgba(255, 255, 255, 0.05);
 }
 
 .copy {
   font-size: 0.85rem;
   color: var(--fg-dim);
-  font-weight: 400;
+  font-weight: 500;
   margin: 0;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.madeBy {
-  font-size: 0.82rem;
-  color: var(--fg-muted);
-  font-weight: 400;
-  margin: 0;
-  letter-spacing: 0.02em;
-}
-
-.heart {
-  color: #e53e3e;
-  font-style: normal;
-  display: inline-block;
-  animation: heartbeat 1.6s ease-in-out infinite;
-}
-
-@keyframes heartbeat {
-  0%, 100% { transform: scale(1); }
-  14%       { transform: scale(1.25); }
-  28%       { transform: scale(1); }
-  42%       { transform: scale(1.15); }
-  70%       { transform: scale(1); }
+.bottomRightSpacer {
+  display: block;
 }
 
 .bottomLinks {
   display: flex;
-  gap: 24px;
+  gap: 20px;
 }
 
 .bottomLinks a {
