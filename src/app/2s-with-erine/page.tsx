@@ -218,8 +218,8 @@ export default function TwoShotPage() {
             <span className={styles.heroTitleHighlight}>Erine</span>
           </h1>
           <p className={styles.heroSub}>
-            Papan mading polaroid kenangan 2-Shot bersama Catherina Vallencia (Erine) JKT48. 
-            Semua momen hangat, tawa, dan pesan manis dari para Cavalliers tertempel di sini!
+            <strong style={{ display: "block", marginBottom: "4px" }}>Papan Mading Polaroid</strong>
+            Kumpulan foto, cerita, dan pesan manis yang mengabadikan berbagai momen bersama Erine. Semua momen hangat, tawa, dan cerita indah tertempel di sini!
           </p>
 
           <button
@@ -305,7 +305,7 @@ export default function TwoShotPage() {
               </li>
               <li className={styles.ruleItem}>
                 <span className={styles.ruleNumber}>4</span>
-                <span><strong>Pesan Positif:</strong> Tuliskan pesan yang hangat, memotivasi, dan menghargai Erine sebagai idol.</span>
+                <span><strong>Pesan & Kenangan:</strong> Tuliskan pesan, cerita, atau kenangan berkesan bersama Erine.</span>
               </li>
             </ul>
           </div>
