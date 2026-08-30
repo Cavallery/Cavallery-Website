@@ -225,7 +225,7 @@ export async function POST(request: Request) {
         reason: reason ? reason.trim() : "",
         support_type: formattedSupport || "",
         activity_suggestion: activity_suggestion ? activity_suggestion.trim() : "",
-        fee_agreed: fee_agreed ? "Ya (Rp75.000)" : "Tidak",
+        fee_agreed: fee_agreed ? "Ya (Rp60.000)" : "Tidak",
         extra_data: typeof body.extra_data === "object" ? body.extra_data : null,
       });
 

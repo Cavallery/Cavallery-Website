@@ -5161,7 +5161,7 @@ function RecruitmentManager() {
       `"${(s.reason || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       `"${(s.support_type || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       `"${(s.activity_suggestion || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
-      s.fee_agreed ? "Bersedia (Rp75.000)" : "-",
+      s.fee_agreed ? "Bersedia (Rp60.000)" : "-",
       s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending",
     ]);
 
@@ -5656,7 +5656,7 @@ function RecruitmentManager() {
 
                 {detailModal.role_id === "member" && (
                   <>
-                    <span style={{ color: "var(--adm-muted)" }}>Iuran Rp75.000:</span>
+                    <span style={{ color: "var(--adm-muted)" }}>Iuran Rp60.000:</span>
                     <span style={{ color: detailModal.fee_agreed ? "#10b981" : "#ef4444", fontWeight: 700 }}>
                       {detailModal.fee_agreed ? "✓ Bersedia" : "✗ Belum / Tidak"}
                     </span>
