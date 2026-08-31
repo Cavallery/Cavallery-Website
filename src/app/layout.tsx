@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SplashScreen from "@/components/SplashScreen";
 import Chatbot from "@/components/Chatbot/Chatbot";
+import ScrollRevealProvider from "@/components/ScrollRevealProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -47,10 +48,10 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-
         <div className="knight-watermark" />
         <div className="board-watermark" />
         <SplashScreen />
+        <ScrollRevealProvider />
         <Navbar />
         <main>{children}</main>
         <Footer />
