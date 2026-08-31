@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     const folder = searchParams.get("folder") || "";
     const type = searchParams.get("type") || "";
     const publishedOnly = searchParams.get("published_only") === "true";
-    const limit = Number(searchParams.get("limit") || 100);
+    const limit = Number(searchParams.get("limit") || 500);
     const offset = Number(searchParams.get("offset") || 0);
 
     // 1. MySQL Storage

@@ -429,8 +429,9 @@ function MediaPickerModal({
       if (search) params.set("search", search);
       if (folder) params.set("folder", folder);
       if (type !== "all") params.set("type", type);
-      params.set("limit", "100");
-      const res  = await fetch(`/api/media?${params.toString()}`);
+      params.set("limit", "500");
+      params.set("_t", String(Date.now()));
+      const res  = await fetch(`/api/media?${params.toString()}`, { cache: "no-store" });
       const json = await res.json();
       setItems(json?.data?.items ?? []);
     } catch { setItems([]); }
@@ -757,8 +758,9 @@ function MediaManager() {
       if (search)     params.set("search", search);
       if (folder)     params.set("folder", folder);
       if (filterType) params.set("type",   filterType);
-      params.set("limit", "100");
-      const res  = await fetch(`/api/media?${params.toString()}`);
+      params.set("limit", "500");
+      params.set("_t", String(Date.now()));
+      const res  = await fetch(`/api/media?${params.toString()}`, { cache: "no-store" });
       const json = await res.json();
       setItems(json?.data?.items ?? []);
       setTotal(json?.data?.total ?? 0);
