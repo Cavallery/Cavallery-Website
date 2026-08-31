@@ -38,34 +38,16 @@ export default function CavalleryGallery() {
 
         let items: MediaItem[] = [];
 
-        // Fetch published media from our API
+        // Fetch strictly published media from our API
         try {
           const res = await fetch(API_URL);
           if (res.ok) {
             const json = await res.json();
             if (json.status && Array.isArray(json.data?.items)) {
-              items = json.data.items;
+              items = json.data.items.filter((it: any) => Number(it.is_published) === 1);
             }
           }
         } catch {}
-
-        // Secondary check with published-media if items is empty
-        if (items.length === 0) {
-          try {
-            const allRes = await fetch("/api/media?limit=100");
-            const pubRes = await fetch("/api/published-media");
-            if (allRes.ok && pubRes.ok) {
-              const allJson = await allRes.json();
-              const pubJson = await pubRes.json();
-              const pubSet = new Set(pubJson.publishedIds || []);
-              if (Array.isArray(allJson.data?.items)) {
-                items = allJson.data.items.filter(
-                  (it: any) => pubSet.has(it.id) || pubSet.has(it.public_url) || Number(it.is_published) === 1
-                );
-              }
-            }
-          } catch {}
-        }
 
         // Normalize items: detect video type properly
         const normalizedItems: MediaItem[] = items
