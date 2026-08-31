@@ -38,7 +38,7 @@ export default function CavalleryGallery() {
 
         let items: MediaItem[] = [];
 
-        // Fetch published media from our API (MySQL-backed)
+        // Fetch published media from our API
         try {
           const res = await fetch(API_URL);
           if (res.ok) {
@@ -49,14 +49,19 @@ export default function CavalleryGallery() {
           }
         } catch {}
 
-        // Fallback: try external API if local returns nothing
+        // Secondary check with published-media if items is empty
         if (items.length === 0) {
           try {
-            const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/media?apikey=JKTCONNECT&limit=100");
-            if (extRes.ok) {
-              const extJson = await extRes.json();
-              if (extJson.status && Array.isArray(extJson.data?.items)) {
-                items = extJson.data.items;
+            const allRes = await fetch("/api/media?limit=100");
+            const pubRes = await fetch("/api/published-media");
+            if (allRes.ok && pubRes.ok) {
+              const allJson = await allRes.json();
+              const pubJson = await pubRes.json();
+              const pubSet = new Set(pubJson.publishedIds || []);
+              if (Array.isArray(allJson.data?.items)) {
+                items = allJson.data.items.filter(
+                  (it: any) => pubSet.has(it.id) || pubSet.has(it.public_url) || Number(it.is_published) === 1
+                );
               }
             }
           } catch {}
@@ -220,6 +225,13 @@ export default function CavalleryGallery() {
                     alt={item.alt_text || "Dokumentasi Cavallery"}
                     className={styles.galleryGridImage}
                     loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = "true";
+                        target.src = "/images/gallery/erine-gallery-1.jpg";
+                      }
+                    }}
                   />
                   <div className={styles.photoOverlay}>
                     <div className={styles.zoomIconCircle}>
@@ -270,6 +282,13 @@ export default function CavalleryGallery() {
                 src={lightboxItem.public_url}
                 alt={lightboxItem.alt_text || "Dokumentasi Cavallery"}
                 className={styles.lightboxImage}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.fallback) {
+                    target.dataset.fallback = "true";
+                    target.src = "/images/gallery/erine-gallery-1.jpg";
+                  }
+                }}
               />
             )}
 

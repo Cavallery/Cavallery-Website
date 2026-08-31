@@ -1,17 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
-function getDB() {
-  return mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 3306),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  });
+const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+
+function readJsonFallback(): any[] {
+  try {
+    if (fs.existsSync(JSON_FILE_PATH)) {
+      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+function saveJsonFallback(data: any[]) {
+  try {
+    const dir = path.dirname(JSON_FILE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch {}
 }
 
 export async function POST(request: NextRequest) {
@@ -56,43 +67,52 @@ export async function POST(request: NextRequest) {
 
     const mediaId = crypto.randomUUID();
 
-    const db = await getDB();
-    try {
-      await db.query(
-        `INSERT INTO media (id, original_name, file_name, folder, type, mime_type, file_size, public_url, alt_text, is_published)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-        [
-          mediaId,
-          file.name,
-          randomName,
-          folder,
-          fileType,
-          mimeType,
-          file.size,
-          publicUrl,
-          altText || file.name,
-        ]
-      );
-    } finally {
-      await db.end();
-    }
-
     const mediaItem = {
       id: mediaId,
       original_name: file.name,
       file_name: randomName,
-      public_url: publicUrl,
-      mime_type: mimeType,
-      type: fileType,
-      file_size: file.size,
       folder: folder,
+      type: fileType,
+      mime_type: mimeType,
+      file_size: file.size,
+      public_url: publicUrl,
       alt_text: altText || file.name,
+      is_published: 1,
+      deleted_at: null,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
     };
 
+    if (isMySqlConfigured()) {
+      try {
+        await query(
+          `INSERT INTO \`media\` (\`id\`, \`original_name\`, \`file_name\`, \`folder\`, \`type\`, \`mime_type\`, \`file_size\`, \`public_url\`, \`alt_text\`, \`is_published\`)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          [
+            mediaId,
+            file.name,
+            randomName,
+            folder,
+            fileType,
+            mimeType,
+            file.size,
+            publicUrl,
+            altText || file.name,
+          ]
+        );
+      } catch (dbErr: any) {
+        console.warn("MySQL Media Insert Warn:", dbErr.message);
+      }
+    }
+
+    // Always update JSON fallback as well
+    const items = readJsonFallback();
+    items.unshift(mediaItem);
+    saveJsonFallback(items);
+
     return NextResponse.json({
       status: true,
+      success: true,
       message: "File berhasil diunggah",
       data: mediaItem,
     });

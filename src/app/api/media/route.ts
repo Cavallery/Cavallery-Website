@@ -1,17 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { query, isMySqlConfigured } from "@/lib/mysql";
+import fs from "fs";
+import path from "path";
 
-const MEDIA_API_BASE = "https://v5.jkt48connect.com/api/cavallery";
-const MEDIA_API_KEY = "JKTCONNECT";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-function getDB() {
-  return mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 3306),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  });
+const noCacheHeaders = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
+
+const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+
+function readJsonFallback(): any[] {
+  try {
+    if (fs.existsSync(JSON_FILE_PATH)) {
+      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+function saveJsonFallback(data: any[]) {
+  try {
+    const dir = path.dirname(JSON_FILE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch {}
+}
+
+let tableEnsured = false;
+export async function ensureMediaTable() {
+  if (tableEnsured || !isMySqlConfigured()) return;
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS \`media\` (
+        \`id\` VARCHAR(64) PRIMARY KEY,
+        \`original_name\` VARCHAR(255) NOT NULL,
+        \`file_name\` VARCHAR(255) NOT NULL,
+        \`folder\` VARCHAR(100) DEFAULT 'cavallery/images',
+        \`type\` ENUM('image', 'video', 'document') DEFAULT 'image',
+        \`mime_type\` VARCHAR(100) NOT NULL,
+        \`file_size\` INT DEFAULT 0,
+        \`public_url\` TEXT NOT NULL,
+        \`alt_text\` VARCHAR(255) NULL,
+        \`is_published\` TINYINT(1) DEFAULT 1,
+        \`deleted_at\` DATETIME NULL,
+        \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX \`idx_media_folder\` (\`folder\`),
+        INDEX \`idx_media_type\` (\`type\`),
+        INDEX \`idx_media_published\` (\`is_published\`),
+        INDEX \`idx_media_created\` (\`created_at\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    tableEnsured = true;
+  } catch (err: any) {
+    console.warn("Ensure media table warn:", err.message);
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -21,98 +71,117 @@ export async function GET(request: NextRequest) {
     const folder = searchParams.get("folder") || "";
     const type = searchParams.get("type") || "";
     const publishedOnly = searchParams.get("published_only") === "true";
-    const limit = Number(searchParams.get("limit") || 50);
+    const limit = Number(searchParams.get("limit") || 100);
     const offset = Number(searchParams.get("offset") || 0);
 
-    // 1. Ambil data lokal dari MySQL
-    const db = await getDB();
-    let localItems: any[] = [];
-    let localTotal = 0;
+    // 1. MySQL Storage
+    if (isMySqlConfigured()) {
+      await ensureMediaTable();
+      try {
+        const conditions: string[] = ["`deleted_at` IS NULL"];
+        const params: any[] = [];
 
-    try {
-      const conditions: string[] = ["1=1"];
-      const params: any[] = [];
-
-      if (search) {
-        conditions.push("(original_name LIKE ? OR alt_text LIKE ?)");
-        params.push(`%${search}%`, `%${search}%`);
-      }
-      if (folder) {
-        conditions.push("folder = ?");
-        params.push(folder);
-      }
-      if (type) {
-        conditions.push("type = ?");
-        params.push(type);
-      }
-      if (publishedOnly) {
-        conditions.push("is_published = 1");
-      }
-
-      const whereClause = conditions.join(" AND ");
-      const [countRows]: any = await db.query(
-        `SELECT COUNT(*) AS total FROM media WHERE ${whereClause}`,
-        params
-      );
-      localTotal = countRows[0]?.total || 0;
-
-      const [rows]: any = await db.query(
-        `SELECT * FROM media WHERE ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-        [...params, limit, offset]
-      );
-      localItems = rows;
-    } catch (e: any) {
-      console.warn("Local MySQL media query error:", e.message);
-    } finally {
-      await db.end();
-    }
-
-    // 2. Jika ada data remote dari JKTConnect, ambil juga untuk melengkapi
-    let remoteItems: any[] = [];
-    try {
-      const targetUrl = `${MEDIA_API_BASE}/media?apikey=${MEDIA_API_KEY}&${searchParams.toString()}`;
-      const res = await fetch(targetUrl, {
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
-        },
-        next: { revalidate: 30 },
-      });
-      if (res.ok) {
-        const remoteData = await res.json();
-        if (Array.isArray(remoteData?.data?.items)) {
-          remoteItems = remoteData.data.items;
+        if (search) {
+          conditions.push("(`original_name` LIKE ? OR `alt_text` LIKE ? OR `file_name` LIKE ?)");
+          params.push(`%${search}%`, `%${search}%`, `%${search}%`);
         }
+        if (folder) {
+          conditions.push("`folder` = ?");
+          params.push(folder);
+        }
+        if (type) {
+          conditions.push("`type` = ?");
+          params.push(type);
+        }
+        if (publishedOnly) {
+          conditions.push("`is_published` = 1");
+        }
+
+        const whereClause = conditions.join(" AND ");
+        const countRows = await query<any[]>(
+          `SELECT COUNT(*) AS total FROM \`media\` WHERE ${whereClause}`,
+          params
+        );
+        const total = countRows?.[0]?.total || 0;
+
+        const rows = await query<any[]>(
+          `SELECT * FROM \`media\` WHERE ${whereClause} ORDER BY \`created_at\` DESC LIMIT ? OFFSET ?`,
+          [...params, limit, offset]
+        );
+
+        if (rows && Array.isArray(rows)) {
+          return NextResponse.json(
+            {
+              status: true,
+              success: true,
+              message: "Data media berhasil diambil dari MySQL",
+              data: {
+                total,
+                limit,
+                offset,
+                items: rows,
+              },
+            },
+            { headers: noCacheHeaders }
+          );
+        }
+      } catch (dbErr: any) {
+        console.warn("MySQL Media Query Error:", dbErr.message);
       }
-    } catch (e) {
-      // Remote unavailable, ignore
     }
 
-    // Gabungkan list: local items diutamakan di paling atas
-    const seenIds = new Set(localItems.map((i) => i.id));
-    const combined = [...localItems];
-    for (const r of remoteItems) {
-      if (!seenIds.has(r.id)) {
-        combined.push(r);
-        seenIds.add(r.id);
-      }
+    // 2. JSON Fallback
+    let items = readJsonFallback().filter((i) => !i.deleted_at);
+
+    if (search) {
+      const q = search.toLowerCase();
+      items = items.filter(
+        (i) =>
+          i.original_name?.toLowerCase().includes(q) ||
+          i.alt_text?.toLowerCase().includes(q) ||
+          i.file_name?.toLowerCase().includes(q)
+      );
+    }
+    if (folder) {
+      items = items.filter((i) => i.folder === folder);
+    }
+    if (type) {
+      items = items.filter((i) => i.type === type);
+    }
+    if (publishedOnly) {
+      items = items.filter((i) => Number(i.is_published) === 1);
     }
 
-    return NextResponse.json({
-      status: true,
-      message: "Data media berhasil diambil",
-      data: {
-        total: Math.max(localTotal, combined.length),
-        limit,
-        offset,
-        items: combined,
+    items.sort(
+      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    );
+
+    const paginated = items.slice(offset, offset + limit);
+
+    return NextResponse.json(
+      {
+        status: true,
+        success: true,
+        message: "Data media berhasil diambil",
+        data: {
+          total: items.length,
+          limit,
+          offset,
+          items: paginated,
+        },
       },
-    });
+      { headers: noCacheHeaders }
+    );
   } catch (error: any) {
     console.error("Media API GET Error:", error);
     return NextResponse.json(
-      { status: false, message: error.message || "Gagal memuat media", data: { items: [], total: 0 } },
-      { status: 500 }
+      {
+        status: false,
+        success: false,
+        message: error.message || "Gagal memuat media",
+        data: { items: [], total: 0 },
+      },
+      { status: 500, headers: noCacheHeaders }
     );
   }
 }

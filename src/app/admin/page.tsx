@@ -732,12 +732,21 @@ function MediaManager() {
           if (newStatus) {
             next.add(item.id);
             next.add(item.public_url);
+            if (item.file_name) next.add(item.file_name);
           } else {
             next.delete(item.id);
             next.delete(item.public_url);
+            if (item.file_name) next.delete(item.file_name);
           }
           return next;
         });
+        setItems(prev =>
+          prev.map(i =>
+            i.id === item.id || i.public_url === item.public_url
+              ? { ...i, is_published: newStatus ? 1 : 0 }
+              : i
+          )
+        );
         showToast(
           newStatus
             ? `"${item.original_name}" DITERBITKAN ke About Cavallery!`
@@ -1014,7 +1023,19 @@ function MediaManager() {
                     <i className="bx bx-video-recording" style={{ fontSize: "2.5rem" }} />
                   </div>
                 ) : (
-                  <img src={item.public_url} alt={item.alt_text || item.original_name} className={styles.mediaCardImg} loading="lazy" />
+                  <img
+                    src={item.public_url}
+                    alt={item.alt_text || item.original_name}
+                    className={styles.mediaCardImg}
+                    loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = "true";
+                        target.src = "/images/gallery/erine-gallery-1.jpg";
+                      }
+                    }}
+                  />
                 )}
                 <div className={styles.mediaCardInfo}>
                   <div className={styles.mediaCardName} title={item.original_name}>

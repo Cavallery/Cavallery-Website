@@ -1,38 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
 
-function getDB() {
-  return mysql.createConnection({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT || 3306),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  });
+const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+
+function readJsonFallback(): any[] {
+  try {
+    if (fs.existsSync(JSON_FILE_PATH)) {
+      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+function saveJsonFallback(data: any[]) {
+  try {
+    const dir = path.dirname(JSON_FILE_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch {}
 }
 
 async function handleBulkDelete(ids: string[]) {
   if (!Array.isArray(ids) || ids.length === 0) return;
-  const db = await getDB();
-  try {
-    const placeholders = ids.map(() => "?").join(",");
-    const [rows]: any = await db.query(`SELECT * FROM media WHERE id IN (${placeholders})`, ids);
-    for (const item of rows) {
-      if (item.public_url && item.public_url.startsWith("/uploads/")) {
-        const localPath = path.join(process.cwd(), "public", item.public_url.replace(/^\//, ""));
-        if (fs.existsSync(localPath)) {
-          try {
-            fs.unlinkSync(localPath);
-          } catch {}
+
+  if (isMySqlConfigured()) {
+    try {
+      const placeholders = ids.map(() => "?").join(",");
+      const rows = await query<any[]>(`SELECT * FROM \`media\` WHERE \`id\` IN (${placeholders})`, ids);
+      if (rows && Array.isArray(rows)) {
+        for (const item of rows) {
+          if (item.public_url && item.public_url.startsWith("/uploads/")) {
+            const localPath = path.join(process.cwd(), "public", item.public_url.replace(/^\//, ""));
+            if (fs.existsSync(localPath)) {
+              try {
+                fs.unlinkSync(localPath);
+              } catch {}
+            }
+          }
         }
       }
+      await query(`DELETE FROM \`media\` WHERE \`id\` IN (${placeholders})`, ids);
+    } catch (dbErr: any) {
+      console.warn("MySQL Bulk Delete Warn:", dbErr.message);
     }
-    await db.query(`DELETE FROM media WHERE id IN (${placeholders})`, ids);
-  } finally {
-    await db.end();
   }
+
+  // JSON fallback
+  let items = readJsonFallback();
+  for (const id of ids) {
+    const target = items.find((i) => String(i.id) === String(id));
+    if (target && target.public_url && target.public_url.startsWith("/uploads/")) {
+      const localPath = path.join(process.cwd(), "public", target.public_url.replace(/^\//, ""));
+      if (fs.existsSync(localPath)) {
+        try {
+          fs.unlinkSync(localPath);
+        } catch {}
+      }
+    }
+  }
+  items = items.filter((i) => !ids.map(String).includes(String(i.id)));
+  saveJsonFallback(items);
 }
 
 export async function POST(request: NextRequest) {
