@@ -51,7 +51,7 @@ export async function GET() {
     // Primary: read from MySQL
     if (isMySqlConfigured()) {
       const rows = await query<any[]>(
-        "SELECT `id`, `public_url`, `file_name` FROM `media` WHERE `is_published` = 1 AND `deleted_at` IS NULL"
+        "SELECT `id`, `public_url`, `file_name` FROM `media` WHERE `is_published` = 1"
       );
       if (rows && Array.isArray(rows)) {
         const publishedIds: string[] = [];

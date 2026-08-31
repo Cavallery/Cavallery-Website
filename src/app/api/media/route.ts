@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     if (isMySqlConfigured()) {
       await ensureMediaTable();
       try {
-        const conditions: string[] = ["`deleted_at` IS NULL"];
+        const conditions: string[] = ["1=1"];
         const params: any[] = [];
 
         if (search) {
