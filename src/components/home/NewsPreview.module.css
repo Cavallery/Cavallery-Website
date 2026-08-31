@@ -144,3 +144,12 @@
 @media (max-width: 600px) {
   .grid, .loadWrap { grid-template-columns: 1fr; }
 }
+
+
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .newsCard { flex-direction: column; }
+  .newsImg { width: 100%; height: 200px; }
+  .newsContent { padding: 16px; }
+}

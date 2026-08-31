@@ -1318,3 +1318,14 @@
     font-size: 1.2rem;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; gap: 24px; }
+  .bioTable { display: block; width: 100%; }
+  .bioTable tr { display: flex; flex-direction: column; margin-bottom: 12px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: 8px; }
+  .bioTable td { padding: 4px 8px; border: none; }
+  .bioTable td:first-child { font-weight: bold; color: var(--gold); font-size: 0.8rem; text-transform: uppercase; }
+  .statsGrid, .electionGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}

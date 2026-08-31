@@ -380,3 +380,14 @@
   .tabBtn { flex: 1; justify-content: center; padding: 9px 12px; }
 }
 
+
+
+
+@media (max-width: 768px) {
+  .hero { padding: 48px 16px 56px; }
+  .heroTitle { margin: 16px 0 12px; }
+  .content { padding: 0 16px 60px; }
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .tabsWrap { padding: 0 16px; }
+  .tabBtn { font-size: 0.82rem; padding: 8px 16px; }
+}

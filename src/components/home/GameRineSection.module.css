@@ -185,3 +185,11 @@
   opacity: 0.6;
   pointer-events: none;
 }
+
+
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .gameCard { padding: 16px; }
+  .gameIcon { width: 48px; height: 48px; font-size: 1.5rem; }
+}

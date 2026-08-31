@@ -142,6 +142,13 @@
   gap: 14px;
 }
 
-@media (max-width: 760px) {
-  .grid { grid-template-columns: 1fr; }
+@media (max-width: 768px) {
+  .hero { padding: 48px 16px 56px; }
+  .heroTitle { font-size: 2rem; }
+  .content { padding: 0 16px 60px; }
+  .videoWrap { padding: 0 16px; margin-bottom: 40px; }
+  .videoOverlay { left: 16px; right: 16px; padding: 20px; }
+  .videoTitle { font-size: 1.3rem; }
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .card { padding: 24px 20px; }
 }

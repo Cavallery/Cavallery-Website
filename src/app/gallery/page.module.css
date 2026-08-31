@@ -148,3 +148,14 @@
     margin-top: 4px;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .hero { padding: 48px 16px 24px; }
+  .grid { padding: 0 12px 60px; gap: 10px; }
+  .lightbox { padding: 16px; }
+  .lightboxImg { max-width: 96vw; max-height: 75vh; }
+  .lightboxCaption { bottom: 16px; font-size: 0.85rem; padding: 8px 16px; }
+  .lightboxClose { top: 12px; right: 12px; font-size: 2rem; }
+}

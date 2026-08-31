@@ -306,3 +306,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .footer { padding: 40px 16px 20px; }
+  .grid { grid-template-columns: 1fr; gap: 32px; }
+  .brandSection { text-align: center; align-items: center; }
+  .linksSection { text-align: center; }
+  .bottomBar { flex-direction: column; text-align: center; gap: 12px; }
+}
