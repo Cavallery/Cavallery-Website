@@ -678,8 +678,67 @@ function MediaManager() {
   const [pubDate, setPubDate]           = useState("");
   const [pubActive, setPubActive]       = useState(true);
   const [pubSaving, setPubSaving]       = useState(false);
+  const [draggedIdx, setDraggedIdx]     = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx]   = useState<number | null>(null);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const handleReorder = async (newItems: any[]) => {
+    setItems(newItems);
+    const orderedIds = newItems.map((i) => i.id).filter(Boolean);
+    try {
+      const res = await fetch("/api/media/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
+      });
+      const json = await res.json();
+      if (json.status || res.ok) {
+        showToast("Urutan foto diperbarui & otomatis aktif di web!", "success");
+      }
+    } catch {
+      showToast("Gagal menyimpan urutan media", "error");
+    }
+  };
+
+  const moveItem = (index: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(index, 1);
+    next.splice(targetIndex, 0, moved);
+    handleReorder(next);
+  };
+
+  const onDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const onDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIdx !== index) {
+      setDragOverIdx(index);
+    }
+  };
+
+  const onDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIdx(null);
+    if (draggedIdx === null || draggedIdx === dropIndex) return;
+    const next = [...items];
+    const [moved] = next.splice(draggedIdx, 1);
+    next.splice(dropIndex, 0, moved);
+    setDraggedIdx(null);
+    handleReorder(next);
+  };
+
+  const onDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -718,24 +777,24 @@ function MediaManager() {
   };
 
   const togglePublish = async (item: any) => {
-    const isCurrentlyPub = publishedIds.has(item.id) || publishedIds.has(item.public_url);
-    const newStatus = !isCurrentlyPub;
+    const isCurrentlyPub = Number(item.is_published) === 1 || publishedIds.has(item.id);
+    const targetStatus = !isCurrentlyPub;
     try {
       const res = await fetch("/api/published-media", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "toggle", id: item.id }),
       });
-      if (res.ok) {
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const finalStatus = json.newStatus !== undefined ? json.newStatus : targetStatus;
         setPublishedIds(prev => {
           const next = new Set(prev);
-          if (newStatus) {
+          if (finalStatus) {
             next.add(item.id);
-            next.add(item.public_url);
-            if (item.file_name) next.add(item.file_name);
           } else {
             next.delete(item.id);
-            next.delete(item.public_url);
+            if (item.public_url) next.delete(item.public_url);
             if (item.file_name) next.delete(item.file_name);
           }
           return next;
@@ -743,16 +802,18 @@ function MediaManager() {
         setItems(prev =>
           prev.map(i =>
             i.id === item.id || i.public_url === item.public_url
-              ? { ...i, is_published: newStatus ? 1 : 0 }
+              ? { ...i, is_published: finalStatus ? 1 : 0 }
               : i
           )
         );
         showToast(
-          newStatus
+          finalStatus
             ? `"${item.original_name}" DITERBITKAN ke About Cavallery!`
-            : `"${item.original_name}" DISEMBUNYIKAN (hanya tersimpan di media)`,
+            : `"${item.original_name}" DISEMBUNYIKAN dari Web!`,
           "success"
         );
+      } else {
+        showToast(json.message || "Gagal mengubah status publikasi", "error");
       }
     } catch {
       showToast("Gagal mengubah status publikasi", "error");
@@ -762,13 +823,10 @@ function MediaManager() {
   const deleteOne = async (item: any) => {
     setConfirm(null);
     try {
-      const res  = await fetch(mediaApi(`/media/${item.id}`), { method: "DELETE" });
+      const res  = await fetch(mediaApi(`/media/${encodeURIComponent(item.id)}`), { method: "DELETE" });
       const json = await res.json();
-      if (json.status) {
+      if (json.status || res.ok) {
         showToast("Media berhasil dihapus", "success");
-        load();
-      } else if (res.status === 404 || (json.message && json.message.toLowerCase().includes("tidak ditemukan"))) {
-        showToast("File sudah tidak ada di server, dibersihkan dari tampilan.", "success");
         setItems(prev => prev.filter(i => i.id !== item.id));
         setTotal(prev => Math.max(0, prev - 1));
       } else {
@@ -780,22 +838,19 @@ function MediaManager() {
   };
 
   const deleteBulk = async () => {
+    const idsToDelete = Array.from(selected);
     setConfirm(null);
     try {
       const res  = await fetch(mediaApi("/media/bulk"), {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selected) }),
+        body: JSON.stringify({ ids: idsToDelete }),
       });
       const json = await res.json();
-      if (json.status) {
-        showToast(`${selected.size} media dihapus`, "success");
-        setSelected(new Set());
-        load();
-      } else if (res.status === 404 || (json.message && json.message.toLowerCase().includes("tidak ditemukan"))) {
-        showToast("File yang tidak ditemukan telah dibersihkan dari daftar.", "success");
+      if (json.status || res.ok) {
+        showToast(`${idsToDelete.length} media berhasil dihapus`, "success");
         setItems(prev => prev.filter(i => !selected.has(i.id)));
-        setTotal(prev => Math.max(0, prev - selected.size));
+        setTotal(prev => Math.max(0, prev - idsToDelete.length));
         setSelected(new Set());
       } else {
         showToast(json.message || "Gagal menghapus", "error");
@@ -1010,14 +1065,32 @@ function MediaManager() {
         </div>
       ) : (
         <div className={styles.mediaGrid}>
-          {items.map(item => {
+          {items.map((item, idx) => {
             const sel = selected.has(item.id);
-            const isPub = publishedIds.has(item.id) || publishedIds.has(item.public_url) || publishedIds.has(item.file_name);
+            const isPub = Number(item.is_published) === 1 || (item.is_published === undefined && (publishedIds.has(item.id) || publishedIds.has(item.public_url)));
+            const isDragging = draggedIdx === idx;
+            const isDragOver = dragOverIdx === idx && draggedIdx !== idx;
+
             return (
-              <div key={item.id} className={`${styles.mediaCard} ${sel ? styles.mediaCardSelected : ""}`}>
+              <div
+                key={item.id}
+                draggable
+                onDragStart={(e) => onDragStart(e, idx)}
+                onDragOver={(e) => onDragOver(e, idx)}
+                onDrop={(e) => onDrop(e, idx)}
+                onDragEnd={onDragEnd}
+                className={`${styles.mediaCard} ${sel ? styles.mediaCardSelected : ""} ${isDragging ? styles.mediaCardDragging : ""} ${isDragOver ? styles.mediaCardDragOver : ""}`}
+              >
                 <div className={styles.mediaCheckbox} onClick={() => toggleSelect(item.id)}>
                   <i className={`bx ${sel ? "bx-checkbox-checked" : "bx-checkbox"}`} />
                 </div>
+                <div className={styles.orderBadge} title={`Urutan ke-${idx + 1}`}>
+                  #{idx + 1}
+                </div>
+                <div className={styles.dragHandle} title="Tahan dan geser (drag) untuk mengubah urutan foto">
+                  <i className="bx bx-grid-vertical" />
+                </div>
+
                 {item.type === "video" ? (
                   <div className={styles.videoThumb}>
                     <i className="bx bx-video-recording" style={{ fontSize: "2.5rem" }} />
@@ -1065,7 +1138,26 @@ function MediaManager() {
                     </span>
                   </div>
                 </div>
+
                 <div className={styles.mediaCardActions}>
+                  <button
+                    title="Geser ke kiri / lebih awal"
+                    disabled={idx === 0}
+                    onClick={() => moveItem(idx, "left")}
+                    className={styles.btnEdit}
+                    style={{ opacity: idx === 0 ? 0.3 : 1 }}
+                  >
+                    <i className="bx bx-chevron-left" />
+                  </button>
+                  <button
+                    title="Geser ke kanan / setelahnya"
+                    disabled={idx === items.length - 1}
+                    onClick={() => moveItem(idx, "right")}
+                    className={styles.btnEdit}
+                    style={{ opacity: idx === items.length - 1 ? 0.3 : 1 }}
+                  >
+                    <i className="bx bx-chevron-right" />
+                  </button>
                   <button
                     title={isPub ? "Sembunyikan dari About Cavallery" : "Terbitkan ke About Cavallery"}
                     onClick={() => togglePublish(item)}
@@ -1085,7 +1177,6 @@ function MediaManager() {
                     </button>
                   )}
                   <button title="Salin URL" onClick={() => navigator.clipboard.writeText(item.public_url)} className={styles.btnEdit}><i className="bx bx-copy" /></button>
-                  <a href={item.public_url} target="_blank" rel="noreferrer" className={styles.btnEdit} title="Buka"><i className="bx bx-link-external" /></a>
                   <button className={styles.btnDel} onClick={() => setConfirm(item)} title="Hapus"><i className="bx bx-trash" /></button>
                 </div>
               </div>

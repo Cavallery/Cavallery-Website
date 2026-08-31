@@ -49,15 +49,24 @@ export async function ensureMediaTable() {
         \`public_url\` TEXT NOT NULL,
         \`alt_text\` VARCHAR(255) NULL,
         \`is_published\` TINYINT(1) DEFAULT 1,
+        \`sort_order\` INT DEFAULT 0,
         \`deleted_at\` DATETIME NULL,
         \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX \`idx_media_folder\` (\`folder\`),
         INDEX \`idx_media_type\` (\`type\`),
         INDEX \`idx_media_published\` (\`is_published\`),
-        INDEX \`idx_media_created\` (\`created_at\`)
+        INDEX \`idx_media_created\` (\`created_at\`),
+        INDEX \`idx_media_sort\` (\`sort_order\`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
+    // Add sort_order column if table existed before without it
+    try {
+      await query("ALTER TABLE `media` ADD COLUMN `sort_order` INT DEFAULT 0 AFTER `is_published`");
+    } catch {}
+    try {
+      await query("CREATE INDEX `idx_media_sort` ON `media` (`sort_order`)");
+    } catch {}
     tableEnsured = true;
   } catch (err: any) {
     console.warn("Ensure media table warn:", err.message);
@@ -105,7 +114,7 @@ export async function GET(request: NextRequest) {
         const total = countRows?.[0]?.total || 0;
 
         const rows = await query<any[]>(
-          `SELECT * FROM \`media\` WHERE ${whereClause} ORDER BY \`created_at\` DESC LIMIT ? OFFSET ?`,
+          `SELECT * FROM \`media\` WHERE ${whereClause} ORDER BY \`sort_order\` ASC, \`created_at\` DESC LIMIT ? OFFSET ?`,
           [...params, limit, offset]
         );
 
@@ -152,9 +161,12 @@ export async function GET(request: NextRequest) {
       items = items.filter((i) => Number(i.is_published) === 1);
     }
 
-    items.sort(
-      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-    );
+    items.sort((a, b) => {
+      const orderA = a.sort_order ?? 99999;
+      const orderB = b.sort_order ?? 99999;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+    });
 
     const paginated = items.slice(offset, offset + limit);
 
