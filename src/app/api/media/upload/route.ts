@@ -1,27 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 
-const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+const VALLZY_UPLOAD_URL = "https://v5.jkt48connect.com/api/cavallery/media/upload?apikey=JKTCONNECT";
+const LOCAL_JSON_PATH = path.join(process.cwd(), "src", "data", "media.json");
 
-function readJsonFallback(): any[] {
+function saveToLocalFallback(mediaItem: any) {
   try {
-    if (fs.existsSync(JSON_FILE_PATH)) {
-      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+    let items = [];
+    if (fs.existsSync(LOCAL_JSON_PATH)) {
+      items = JSON.parse(fs.readFileSync(LOCAL_JSON_PATH, "utf-8"));
     }
-  } catch {}
-  return [];
-}
-
-function saveJsonFallback(data: any[]) {
-  try {
-    const dir = path.dirname(JSON_FILE_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+    items.unshift(mediaItem);
+    fs.writeFileSync(LOCAL_JSON_PATH, JSON.stringify(items, null, 2), "utf-8");
   } catch {}
 }
 
@@ -36,39 +27,56 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: false, message: "File tidak ditemukan" }, { status: 400 });
     }
 
+    // 1. Try forwarding to Vallzy's server
+    try {
+      const outFd = new FormData();
+      outFd.append("file", file);
+      outFd.append("folder", folder);
+      outFd.append("alt_text", altText || file.name);
+
+      const res = await fetch(VALLZY_UPLOAD_URL, {
+        method: "POST",
+        body: outFd,
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && json.data) {
+          saveToLocalFallback(json.data);
+          return NextResponse.json({
+            status: true,
+            success: true,
+            message: "File berhasil diunggah ke server Vallzy",
+            data: json.data,
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn("Vallzy upload forward warn:", e.message);
+    }
+
+    // 2. Local fallback if external upload fails
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // Folder structure: public/uploads/{folder}/YYYY/MM/
     const now = new Date();
     const year = String(now.getFullYear());
     const month = String(now.getMonth() + 1).padStart(2, "0");
 
     const relFolder = path.join("uploads", folder, year, month).replace(/\\/g, "/");
     const absFolder = path.join(process.cwd(), "public", relFolder);
-
-    if (!fs.existsSync(absFolder)) {
-      fs.mkdirSync(absFolder, { recursive: true });
-    }
+    if (!fs.existsSync(absFolder)) fs.mkdirSync(absFolder, { recursive: true });
 
     const ext = path.extname(file.name) || ".jpg";
-    const randomName = `${crypto.randomBytes(8).toString("hex")}${ext}`;
+    const randomName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     const absFilePath = path.join(absFolder, randomName);
-
     fs.writeFileSync(absFilePath, buffer);
 
     const publicUrl = `/${relFolder}/${randomName}`.replace(/\\/g, "/");
     const mimeType = file.type || "image/jpeg";
-    const fileType = mimeType.startsWith("video/")
-      ? "video"
-      : mimeType.startsWith("image/")
-      ? "image"
-      : "document";
-
-    const mediaId = crypto.randomUUID();
+    const fileType = mimeType.startsWith("video/") ? "video" : "image";
 
     const mediaItem = {
-      id: mediaId,
+      id: String(Date.now()),
       original_name: file.name,
       file_name: randomName,
       folder: folder,
@@ -78,37 +86,11 @@ export async function POST(request: NextRequest) {
       public_url: publicUrl,
       alt_text: altText || file.name,
       is_published: 1,
-      deleted_at: null,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
     };
 
-    if (isMySqlConfigured()) {
-      try {
-        await query(
-          `INSERT INTO \`media\` (\`id\`, \`original_name\`, \`file_name\`, \`folder\`, \`type\`, \`mime_type\`, \`file_size\`, \`public_url\`, \`alt_text\`, \`is_published\`)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-          [
-            mediaId,
-            file.name,
-            randomName,
-            folder,
-            fileType,
-            mimeType,
-            file.size,
-            publicUrl,
-            altText || file.name,
-          ]
-        );
-      } catch (dbErr: any) {
-        console.warn("MySQL Media Insert Warn:", dbErr.message);
-      }
-    }
-
-    // Always update JSON fallback as well
-    const items = readJsonFallback();
-    items.unshift(mediaItem);
-    saveJsonFallback(items);
+    saveToLocalFallback(mediaItem);
 
     return NextResponse.json({
       status: true,
@@ -119,7 +101,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Upload error:", error);
     return NextResponse.json(
-      { status: false, message: error.message || "Gagal mengunggah file" },
+      { status: false, message: error.message || "Gagal mengunggah berkas" },
       { status: 500 }
     );
   }
