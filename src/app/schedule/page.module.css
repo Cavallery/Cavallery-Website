@@ -54,3 +54,13 @@
   flex-direction: column;
   gap: 80px;
 }
+
+
+
+@media (max-width: 768px) {
+  .hero { padding: 40px 16px; height: auto; min-height: 300px; }
+  .heroTitle { font-size: 2rem; }
+  .content { padding: 40px 16px 60px; gap: 40px; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  table { min-width: 500px; }
+}

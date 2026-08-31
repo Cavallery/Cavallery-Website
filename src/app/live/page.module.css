@@ -296,3 +296,28 @@
   font-size: 4rem;
   opacity: .3;
 }
+
+
+
+@media (max-width: 768px) {
+  .hero { padding: 40px 16px 48px; }
+  .heroTitle { font-size: 2rem; margin: 16px 0 12px; }
+  .content { padding: 0 16px 60px; }
+  .topBar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px 14px;
+  }
+  .grid, .skeletons {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .memberName { font-size: 1rem; }
+  .cardBody { padding: 12px; gap: 8px; }
+  .sectionLabel { font-size: 1.2rem; }
+}
+
+@media (max-width: 480px) {
+  .grid, .skeletons { grid-template-columns: 1fr; }
+}

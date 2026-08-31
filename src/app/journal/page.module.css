@@ -2,3 +2,12 @@
   min-height: 100vh;
   padding-top: var(--nav-h);
 }
+
+
+
+@media (max-width: 768px) {
+  .page { padding-top: calc(var(--nav-h) - 10px); }
+  .hero { padding: 40px 16px; }
+  .content { padding: 0 16px 60px; }
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+}

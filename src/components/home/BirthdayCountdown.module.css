@@ -410,3 +410,12 @@
   75% { transform: skewX(-10deg); box-shadow: 0 0 10px rgba(255, 165, 0, 0.4), 0 0 20px rgba(255, 165, 0, 0.4), 0 0 60px rgba(255, 165, 0, 0.4), 0 0 80px rgba(255, 165, 0, 0.4); }
   100% { transform: skewX(5deg); box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 165, 0, 0.5), 0 0 80px rgba(255, 165, 0, 0.5); }
 }
+
+
+
+@media (max-width: 768px) {
+  .timerGrid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .timerBox { padding: 12px 8px; }
+  .timerNum { font-size: 1.5rem; }
+  .timerLabel { font-size: 0.65rem; }
+}

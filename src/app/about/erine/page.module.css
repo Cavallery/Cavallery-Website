@@ -211,3 +211,15 @@
     margin: 0 auto;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .bioGrid { grid-template-columns: 1fr; gap: 32px; }
+  .hero { padding: 48px 16px 60px; }
+  .heroTitle { font-size: 2rem; }
+  .content { padding: 0 16px 60px; }
+  .tableWrap, .tableContainer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 500px; }
+  .bioTable td, .bioTable th { display: block; width: 100%; }
+}

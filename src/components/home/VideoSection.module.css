@@ -96,3 +96,10 @@
     margin-bottom: 40px;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .videoWrap { padding-bottom: 56.25%; height: 0; }
+}

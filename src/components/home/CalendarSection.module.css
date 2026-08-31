@@ -271,3 +271,11 @@
     padding: 2px 4px;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .calendarWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
+  .calendarGrid { min-width: 600px; }
+  .eventCard { padding: 8px; font-size: 0.8rem; }
+}

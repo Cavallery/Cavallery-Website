@@ -1013,3 +1013,11 @@
   background: rgba(239, 68, 68, 0.12);
   border-color: rgba(239, 68, 68, 0.3);
 }
+
+
+
+@media (max-width: 480px) {
+  .heroTitle { font-size: 1.8rem; }
+  .stepperLabel { display: none; }
+  .stepperBar { gap: 4px; }
+}

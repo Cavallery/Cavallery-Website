@@ -185,3 +185,12 @@
 .modalDesc { font-size: 1.1rem; line-height: 1.6; color: var(--fg); }
 @media (max-width: 900px) { .modalContent { flex-direction: column; } .modalDetails { padding: 25px; } .modalImgWrapper img { max-height: 50vh; } }
 
+
+
+
+@media (max-width: 768px) {
+  .timeline { padding-left: 12px; }
+  .timelineItem { grid-template-columns: 48px 16px 1fr; gap: 10px; padding: 12px 0; }
+  .timelineYear { font-size: 0.75rem; }
+  .timelineDot { left: -25px; width: 10px; height: 10px; }
+}

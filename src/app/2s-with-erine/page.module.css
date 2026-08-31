@@ -1129,3 +1129,18 @@
     line-height: 1.6;
   }
 }
+
+
+
+@media (max-width: 768px) {
+  .hero { padding: 40px 16px; }
+  .heroTitle { font-size: 1.8rem; }
+  .container { padding: 0 12px; }
+  .madingBoard { padding: 1.5rem 1rem 2rem; border-width: 8px; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .boardHeaderBanner { flex-direction: column; align-items: stretch; gap: 10px; }
+  .stickyMemo { font-size: 0.8rem; padding: 6px 8px; }
+}
+@media (max-width: 480px) {
+  .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}

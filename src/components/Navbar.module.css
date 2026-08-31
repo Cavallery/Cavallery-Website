@@ -532,3 +532,12 @@
   .burger { display: flex; }
   .inner { padding: 0 20px; }
 }
+
+
+
+@media (max-width: 768px) {
+  .desktopMenu { display: none; }
+  .mobileMenuBtn { display: flex; }
+  .drawer { width: 100%; max-width: 300px; padding: 20px; }
+  .nav { padding: 12px 16px; }
+}
