@@ -3,8 +3,8 @@ import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
 
-// Fallback JSON path (legacy, used only when MySQL is not configured)
 const staticPath = path.join(process.cwd(), "src", "data", "published-media.json");
+const mediaJsonPath = path.join(process.cwd(), "src", "data", "media.json");
 
 function readFallbackIds(): string[] {
   try {
@@ -19,13 +19,35 @@ function readFallbackIds(): string[] {
   return [];
 }
 
+function updateMediaJson(id: string, isPublished: boolean) {
+  try {
+    if (fs.existsSync(mediaJsonPath)) {
+      const raw = fs.readFileSync(mediaJsonPath, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        const item = parsed.find((i) => String(i.id) === String(id));
+        if (item) {
+          item.is_published = isPublished ? 1 : 0;
+          item.updated_at = new Date().toISOString();
+          fs.writeFileSync(mediaJsonPath, JSON.stringify(parsed, null, 2), "utf-8");
+        }
+      }
+    }
+  } catch {}
+}
+
 export async function GET() {
   try {
     // Primary: read from MySQL
     if (isMySqlConfigured()) {
-      const rows = await query<any[]>("SELECT `id` FROM `media` WHERE `is_published` = 1");
+      const rows = await query<any[]>("SELECT `id`, `public_url`, `file_name` FROM `media` WHERE `is_published` = 1 AND `deleted_at` IS NULL");
       if (rows && Array.isArray(rows)) {
-        const publishedIds = rows.map((r: any) => String(r.id));
+        const publishedIds: string[] = [];
+        rows.forEach((r: any) => {
+          if (r.id) publishedIds.push(String(r.id));
+          if (r.public_url) publishedIds.push(String(r.public_url));
+          if (r.file_name) publishedIds.push(String(r.file_name));
+        });
         return NextResponse.json({ success: true, publishedIds }, { status: 200 });
       }
     }
@@ -44,36 +66,43 @@ export async function POST(req: NextRequest) {
     const { action, id, ids, isPublished } = body;
 
     if (isMySqlConfigured()) {
-      // Use MySQL as source of truth
-      if (action === "toggle" && id) {
-        // Toggle is_published for a single media item
-        await query(
-          "UPDATE `media` SET `is_published` = IF(`is_published` = 1, 0, 1) WHERE `id` = ?",
-          [id]
-        );
-      } else if (action === "set" && id) {
-        // Set is_published to a specific value
-        const newVal = isPublished ? 1 : 0;
-        await query(
-          "UPDATE `media` SET `is_published` = ? WHERE `id` = ?",
-          [newVal, id]
-        );
-      } else if (action === "setAll" && Array.isArray(ids)) {
-        // Unpublish all first, then publish only the specified IDs
-        await query("UPDATE `media` SET `is_published` = 0");
-        if (ids.length > 0) {
-          const placeholders = ids.map(() => "?").join(",");
+      try {
+        if (action === "toggle" && id) {
+          // Toggle is_published for a single media item
           await query(
-            `UPDATE \`media\` SET \`is_published\` = 1 WHERE \`id\` IN (${placeholders})`,
-            ids
+            "UPDATE `media` SET `is_published` = IF(`is_published` = 1, 0, 1) WHERE `id` = ?",
+            [id]
           );
+        } else if (action === "set" && id) {
+          const newVal = isPublished ? 1 : 0;
+          await query(
+            "UPDATE `media` SET `is_published` = ? WHERE `id` = ?",
+            [newVal, id]
+          );
+        } else if (action === "setAll" && Array.isArray(ids)) {
+          await query("UPDATE `media` SET `is_published` = 0");
+          if (ids.length > 0) {
+            const placeholders = ids.map(() => "?").join(",");
+            await query(
+              `UPDATE \`media\` SET \`is_published\` = 1 WHERE \`id\` IN (${placeholders})`,
+              ids
+            );
+          }
         }
-      }
 
-      // Return updated list of published IDs
-      const rows = await query<any[]>("SELECT `id` FROM `media` WHERE `is_published` = 1");
-      const publishedIds = (rows && Array.isArray(rows)) ? rows.map((r: any) => String(r.id)) : [];
-      return NextResponse.json({ success: true, publishedIds }, { status: 200 });
+        const rows = await query<any[]>("SELECT `id`, `public_url`, `file_name` FROM `media` WHERE `is_published` = 1 AND `deleted_at` IS NULL");
+        const publishedIds: string[] = [];
+        if (rows && Array.isArray(rows)) {
+          rows.forEach((r: any) => {
+            if (r.id) publishedIds.push(String(r.id));
+            if (r.public_url) publishedIds.push(String(r.public_url));
+            if (r.file_name) publishedIds.push(String(r.file_name));
+          });
+        }
+        return NextResponse.json({ success: true, publishedIds }, { status: 200 });
+      } catch (dbErr: any) {
+        console.warn("MySQL Published Media Post Warn:", dbErr.message);
+      }
     }
 
     // Fallback: JSON file (legacy)
@@ -82,14 +111,18 @@ export async function POST(req: NextRequest) {
     if (action === "toggle" && id) {
       if (current.includes(id)) {
         current = current.filter((item) => item !== id);
+        updateMediaJson(id, false);
       } else {
         current.push(id);
+        updateMediaJson(id, true);
       }
     } else if (action === "set" && id) {
       if (isPublished) {
         if (!current.includes(id)) current.push(id);
+        updateMediaJson(id, true);
       } else {
         current = current.filter((item) => item !== id);
+        updateMediaJson(id, false);
       }
     } else if (action === "setAll" && Array.isArray(ids)) {
       current = ids;
