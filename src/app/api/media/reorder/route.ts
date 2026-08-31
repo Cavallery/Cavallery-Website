@@ -1,34 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
 
-const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+const ORDER_FILE_PATH = path.join(process.cwd(), "src", "data", "media-order.json");
+const VALLZY_BASE = "https://v5.jkt48connect.com/api/cavallery/media";
+const API_KEY = "JKTCONNECT";
 
-function readJsonFallback(): any[] {
-  try {
-    if (fs.existsSync(JSON_FILE_PATH)) {
-      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-    }
-  } catch {}
-  return [];
-}
-
-function saveJsonFallback(data: any[]) {
-  try {
-    const dir = path.dirname(JSON_FILE_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
-  } catch {}
-}
-
-/**
- * POST /api/media/reorder
- * Body: { orderedIds: string[] }
- * Updates sort_order for each media item based on its index in the array.
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -41,40 +18,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update MySQL
-    if (isMySqlConfigured()) {
-      try {
-        for (let i = 0; i < orderedIds.length; i++) {
-          await query(
-            "UPDATE `media` SET `sort_order` = ? WHERE `id` = ?",
-            [i, orderedIds[i]]
-          );
-        }
-      } catch (dbErr: any) {
-        console.warn("MySQL Media Reorder Warn:", dbErr.message);
-      }
-    }
+    // 1. Save local custom order
+    try {
+      const dir = path.dirname(ORDER_FILE_PATH);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(ORDER_FILE_PATH, JSON.stringify({ orderedIds }, null, 2), "utf-8");
+    } catch {}
 
-    // Update JSON fallback
-    const items = readJsonFallback();
-    for (let i = 0; i < orderedIds.length; i++) {
-      const item = items.find((it) => String(it.id) === String(orderedIds[i]));
-      if (item) {
-        item.sort_order = i;
-        item.updated_at = new Date().toISOString();
-      }
+    // 2. Forward to Vallzy server if supported
+    try {
+      await fetch(`${VALLZY_BASE}/reorder?apikey=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedIds }),
+      });
+    } catch (e: any) {
+      console.warn("Vallzy reorder forward warn:", e.message);
     }
-    // Sort the JSON items by sort_order
-    items.sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999));
-    saveJsonFallback(items);
 
     return NextResponse.json({
       status: true,
       success: true,
-      message: `Urutan ${orderedIds.length} media berhasil diperbarui`,
+      message: `Urutan ${orderedIds.length} foto & video berhasil disimpan`,
     });
   } catch (error: any) {
-    console.error("Media Reorder Error:", error);
     return NextResponse.json(
       { status: false, message: error.message || "Gagal mengubah urutan media" },
       { status: 500 }

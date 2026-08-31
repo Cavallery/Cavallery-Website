@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query, isMySqlConfigured } from "@/lib/mysql";
 import fs from "fs";
 import path from "path";
 
@@ -12,65 +11,48 @@ const noCacheHeaders = {
   Expires: "0",
 };
 
-const JSON_FILE_PATH = path.join(process.cwd(), "src", "data", "media.json");
+const VALLZY_BASE = "https://v5.jkt48connect.com/api/cavallery/media";
+const API_KEY = "JKTCONNECT";
 
-function readJsonFallback(): any[] {
+const PUB_FILE_PATH = path.join(process.cwd(), "src", "data", "published-media.json");
+const ORDER_FILE_PATH = path.join(process.cwd(), "src", "data", "media-order.json");
+const LOCAL_JSON_PATH = path.join(process.cwd(), "src", "data", "media.json");
+
+function readPublishedIds(): string[] {
   try {
-    if (fs.existsSync(JSON_FILE_PATH)) {
-      const raw = fs.readFileSync(JSON_FILE_PATH, "utf-8");
+    if (fs.existsSync(PUB_FILE_PATH)) {
+      const raw = fs.readFileSync(PUB_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed?.publishedIds)) {
+        return parsed.publishedIds.map(String);
+      }
     }
   } catch {}
   return [];
 }
 
-function saveJsonFallback(data: any[]) {
+function readCustomOrder(): string[] {
   try {
-    const dir = path.dirname(JSON_FILE_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+    if (fs.existsSync(ORDER_FILE_PATH)) {
+      const raw = fs.readFileSync(ORDER_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed?.orderedIds)) {
+        return parsed.orderedIds.map(String);
+      }
+    }
   } catch {}
+  return [];
 }
 
-let tableEnsured = false;
-export async function ensureMediaTable() {
-  if (tableEnsured || !isMySqlConfigured()) return;
+function readLocalFallback(): any[] {
   try {
-    await query(`
-      CREATE TABLE IF NOT EXISTS \`media\` (
-        \`id\` VARCHAR(64) PRIMARY KEY,
-        \`original_name\` VARCHAR(255) NOT NULL,
-        \`file_name\` VARCHAR(255) NOT NULL,
-        \`folder\` VARCHAR(100) DEFAULT 'cavallery/images',
-        \`type\` ENUM('image', 'video', 'document') DEFAULT 'image',
-        \`mime_type\` VARCHAR(100) NOT NULL,
-        \`file_size\` INT DEFAULT 0,
-        \`public_url\` TEXT NOT NULL,
-        \`alt_text\` VARCHAR(255) NULL,
-        \`is_published\` TINYINT(1) DEFAULT 1,
-        \`sort_order\` INT DEFAULT 0,
-        \`deleted_at\` DATETIME NULL,
-        \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        \`updated_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX \`idx_media_folder\` (\`folder\`),
-        INDEX \`idx_media_type\` (\`type\`),
-        INDEX \`idx_media_published\` (\`is_published\`),
-        INDEX \`idx_media_created\` (\`created_at\`),
-        INDEX \`idx_media_sort\` (\`sort_order\`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-    `);
-    // Add sort_order column if table existed before without it
-    try {
-      await query("ALTER TABLE `media` ADD COLUMN `sort_order` INT DEFAULT 0 AFTER `is_published`");
-    } catch {}
-    try {
-      await query("CREATE INDEX `idx_media_sort` ON `media` (`sort_order`)");
-    } catch {}
-    tableEnsured = true;
-  } catch (err: any) {
-    console.warn("Ensure media table warn:", err.message);
-  }
+    if (fs.existsSync(LOCAL_JSON_PATH)) {
+      const raw = fs.readFileSync(LOCAL_JSON_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
 }
 
 export async function GET(request: NextRequest) {
@@ -83,65 +65,68 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get("limit") || 500);
     const offset = Number(searchParams.get("offset") || 0);
 
-    // 1. MySQL Storage
-    if (isMySqlConfigured()) {
-      await ensureMediaTable();
-      try {
-        const conditions: string[] = ["1=1"];
-        const params: any[] = [];
+    let items: any[] = [];
 
-        if (search) {
-          conditions.push("(`original_name` LIKE ? OR `alt_text` LIKE ? OR `file_name` LIKE ?)");
-          params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-        }
-        if (folder) {
-          conditions.push("`folder` = ?");
-          params.push(folder);
-        }
-        if (type) {
-          conditions.push("`type` = ?");
-          params.push(type);
-        }
-        if (publishedOnly) {
-          conditions.push("`is_published` = 1");
-        }
+    // 1. Fetch all complete photos and videos from Vallzy's server
+    try {
+      const vallzyUrl = `${VALLZY_BASE}?apikey=${API_KEY}&limit=500`;
+      const res = await fetch(vallzyUrl, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+        },
+        cache: "no-store",
+      });
 
-        const whereClause = conditions.join(" AND ");
-        const countRows = await query<any[]>(
-          `SELECT COUNT(*) AS total FROM \`media\` WHERE ${whereClause}`,
-          params
-        );
-        const total = countRows?.[0]?.total || 0;
-
-        const rows = await query<any[]>(
-          `SELECT * FROM \`media\` WHERE ${whereClause} ORDER BY \`sort_order\` ASC, \`created_at\` DESC LIMIT ? OFFSET ?`,
-          [...params, limit, offset]
-        );
-
-        if (rows && Array.isArray(rows)) {
-          return NextResponse.json(
-            {
-              status: true,
-              success: true,
-              message: "Data media berhasil diambil dari MySQL",
-              data: {
-                total,
-                limit,
-                offset,
-                items: rows,
-              },
-            },
-            { headers: noCacheHeaders }
-          );
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && Array.isArray(json.data?.items)) {
+          items = json.data.items;
+        } else if (Array.isArray(json?.data)) {
+          items = json.data;
+        } else if (Array.isArray(json?.items)) {
+          items = json.items;
         }
-      } catch (dbErr: any) {
-        console.warn("MySQL Media Query Error:", dbErr.message);
       }
+    } catch (e: any) {
+      console.warn("Vallzy media fetch warn:", e.message);
     }
 
-    // 2. JSON Fallback
-    let items = readJsonFallback().filter((i) => !i.deleted_at);
+    // 2. If Vallzy API failed or returned empty, fallback to local backup
+    if (items.length === 0) {
+      items = readLocalFallback();
+    }
 
+    const publishedIds = readPublishedIds();
+    const publishedSet = new Set(publishedIds);
+    const customOrder = readCustomOrder();
+    const orderMap = new Map<string, number>();
+    customOrder.forEach((id, idx) => orderMap.set(String(id), idx));
+
+    // Normalize and attach publication status + custom order
+    items = items.map((item: any, idx: number) => {
+      const isVideo =
+        item.type === "video" ||
+        item.mime_type?.startsWith("video/") ||
+        /\.(mp4|webm|ogg|mov)$/i.test(item.public_url || item.file_name || "");
+
+      // If publishedIds is not empty, check membership; otherwise default to item.is_published != 0
+      const isPub =
+        publishedSet.size > 0
+          ? publishedSet.has(String(item.id)) || publishedSet.has(String(item.public_url)) || publishedSet.has(String(item.file_name))
+          : item.is_published !== 0 && item.is_published !== false;
+
+      const customSort = orderMap.get(String(item.id)) ?? orderMap.get(String(item.public_url)) ?? (idx + 1000);
+
+      return {
+        ...item,
+        type: isVideo ? "video" : "image",
+        is_published: isPub ? 1 : 0,
+        sort_order: customSort,
+      };
+    });
+
+    // Filtering
     if (search) {
       const q = search.toLowerCase();
       items = items.filter(
@@ -161,22 +146,19 @@ export async function GET(request: NextRequest) {
       items = items.filter((i) => Number(i.is_published) === 1);
     }
 
-    items.sort((a, b) => {
-      const orderA = a.sort_order ?? 99999;
-      const orderB = b.sort_order ?? 99999;
-      if (orderA !== orderB) return orderA - orderB;
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    });
+    // Sort according to custom order
+    items.sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999));
 
+    const total = items.length;
     const paginated = items.slice(offset, offset + limit);
 
     return NextResponse.json(
       {
         status: true,
         success: true,
-        message: "Data media berhasil diambil",
+        message: "Data media lengkap berhasil dimuat dari server Vallzy",
         data: {
-          total: items.length,
+          total,
           limit,
           offset,
           items: paginated,
@@ -185,7 +167,7 @@ export async function GET(request: NextRequest) {
       { headers: noCacheHeaders }
     );
   } catch (error: any) {
-    console.error("Media API GET Error:", error);
+    console.error("Media GET error:", error);
     return NextResponse.json(
       {
         status: false,
