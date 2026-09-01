@@ -9,16 +9,22 @@
 .inner {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 36px;
+}
+
+.headerWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
 }
 
 .header {
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto;
+  text-align: left;
+  max-width: 650px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .title {
@@ -33,18 +39,70 @@
   line-height: 1.7;
 }
 
-.container {
-  width: 100%;
+.navButtons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 24px;
+.navBtn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.4rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.navBtn:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px var(--gold-glow);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.container {
   width: 100%;
+  position: relative;
+}
+
+/* ── Carousel Viewport & Track ── */
+.carouselViewport {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  display: flex;
+  width: 100%;
+  padding: 12px 4px 28px;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.carouselViewport::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 24px;
 }
 
 .card {
+  flex: 0 0 340px;
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   border-radius: 20px;
@@ -60,7 +118,7 @@
   transform: translateY(-6px);
   border-color: var(--gold);
   box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.12),
+    0 16px 36px rgba(0, 0, 0, 0.12),
     0 0 20px var(--gold-glow);
 }
 
@@ -177,6 +235,7 @@
 
 /* Skeleton Loading */
 .skeletonCard {
+  flex: 0 0 340px;
   border-radius: 20px;
   overflow: hidden;
   background: var(--surface);
@@ -206,7 +265,7 @@
   100% { background-position: 200% 0; }
 }
 
-/* Wrapper untuk state loading / error / empty */
+/* State wrapper */
 .stateWrapper {
   display: flex;
   flex-direction: column;
@@ -256,22 +315,28 @@
 }
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-  }
-}
-
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .section {
     padding: 60px 16px;
   }
-  .grid {
-    grid-template-columns: 1fr;
+  .headerWrapper {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 16px;
+  }
+  .navButtons {
+    align-self: flex-end;
+  }
+  .card, .skeletonCard {
+    flex: 0 0 280px;
   }
   .cardTitle {
     font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card, .skeletonCard {
+    flex: 0 0 260px;
   }
 }

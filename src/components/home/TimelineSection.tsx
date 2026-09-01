@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import styles from "./TimelineSection.module.css";
+import initialMilestones from "@/data/milestone.json";
 
 interface TimelineEvent {
   id: string;
@@ -11,6 +12,7 @@ interface TimelineEvent {
   title: string;
   description: string;
   image_url: string | null;
+  handwriting_caption?: string;
   sort_order?: number;
 }
 
@@ -19,11 +21,22 @@ interface TimelineData {
   events: TimelineEvent[];
 }
 
+const ROTATIONS = [-2.4, 1.8, -1.6, 2.5, -2.8, 1.4, -2.1, 2.2];
+
+function buildDefaultTimelineData(): TimelineData {
+  const events = (initialMilestones || []) as TimelineEvent[];
+  const yearsSet = new Set<string>();
+  events.forEach((ev) => {
+    yearsSet.add(String(ev.year || "2026"));
+  });
+  const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+  return { years, events };
+}
+
 function groupByYear(events: TimelineEvent[]) {
   const map = new Map<string, TimelineEvent[]>();
   for (const ev of events) {
     const yr = String(ev.year || "2026");
-    // Fix known typo if date_label says 2025 under year 2024
     let dateLabel = ev.date_label || "";
     if (yr === "2024" && dateLabel.includes("2025")) {
       dateLabel = dateLabel.replace("2025", "2024");
@@ -40,7 +53,6 @@ function groupByYear(events: TimelineEvent[]) {
 
   return sortedYears.map((year) => {
     const evList = map.get(year) || [];
-    // Sort events within each year (latest first or by sort_order)
     evList.sort((a, b) => {
       if (a.event_date && b.event_date) {
         return new Date(b.event_date).getTime() - new Date(a.event_date).getTime();
@@ -55,8 +67,8 @@ function groupByYear(events: TimelineEvent[]) {
 }
 
 export default function TimelineSection() {
-  const [timelineData, setTimelineData] = useState<TimelineData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [timelineData, setTimelineData] = useState<TimelineData>(buildDefaultTimelineData);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", title: "", desc: "" });
 
@@ -94,13 +106,11 @@ export default function TimelineSection() {
           }
         }
 
-        if (loadedData) {
+        if (loadedData && loadedData.events?.length > 0) {
           setTimelineData(loadedData);
         }
       } catch (err) {
         console.error("Timeline loading error:", err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -112,11 +122,17 @@ export default function TimelineSection() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.header}>
-            <div className="badge"><i className="bx bx-history" /> Journey</div>
-            <h2 className="sectionTitle">Timeline <span className="textGold">Erine</span></h2>
+            <div className="badge"><i className="bx bx-map-pin" /> Milestone</div>
+            <h2 className={`sectionTitle ${styles.title}`}>
+              Milestone <span className="textGold">Perjalanan Erine</span>
+            </h2>
+            <p className={styles.subtitle}>
+              Menyusuri setiap jejak langkah, panggung, dan momen berharga Erine bersama JKT48 dan Cavallery.
+            </p>
           </div>
-          <div style={{ color: "var(--gold)", padding: "2rem", textAlign: "center" }}>
-            <i className="bx bx-loader-alt bx-spin" /> Memuat timeline...
+          <div style={{ color: "var(--gold)", padding: "3rem", textAlign: "center" }}>
+            <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", marginBottom: "8px" }} />
+            <div>Memuat milestone...</div>
           </div>
         </div>
       </section>
@@ -128,11 +144,17 @@ export default function TimelineSection() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.header}>
-            <div className="badge"><i className="bx bx-history" /> Journey</div>
-            <h2 className="sectionTitle">Timeline <span className="textGold">Erine</span></h2>
+            <div className="badge"><i className="bx bx-map-pin" /> Milestone</div>
+            <h2 className={`sectionTitle ${styles.title}`}>
+              Milestone <span className="textGold">Perjalanan Erine</span>
+            </h2>
+            <p className={styles.subtitle}>
+              Menyusuri setiap jejak langkah, panggung, dan momen berharga Erine bersama JKT48 dan Cavallery.
+            </p>
           </div>
-          <div style={{ color: "var(--gold)", padding: "2rem", textAlign: "center" }}>
-            <i className="bx bx-calendar-x" /> Belum ada data timeline.
+          <div style={{ color: "var(--gold)", padding: "3rem", textAlign: "center" }}>
+            <i className="bx bx-calendar-x" style={{ fontSize: "2.5rem", marginBottom: "8px" }} />
+            <div>Belum ada data milestone perjalanan.</div>
           </div>
         </div>
       </section>
@@ -140,13 +162,19 @@ export default function TimelineSection() {
   }
 
   const yearGroups = groupByYear(timelineData.events);
+  let globalItemIndex = 0;
 
   return (
     <section className={styles.section}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <div className="badge"><i className="bx bx-history" /> Journey</div>
-          <h2 className="sectionTitle">Timeline <span className="textGold">Erine</span></h2>
+          <div className="badge"><i className="bx bx-map-pin" /> Milestone</div>
+          <h2 className={`sectionTitle ${styles.title}`}>
+            Milestone <span className="textGold">Perjalanan Erine</span>
+          </h2>
+          <p className={styles.subtitle}>
+            Menyusuri setiap jejak langkah, panggung, dan momen berharga Erine bersama JKT48 dan Cavallery.
+          </p>
         </div>
 
         {yearGroups.map((group) => (
@@ -157,53 +185,90 @@ export default function TimelineSection() {
             </div>
 
             <div className={styles.timeline}>
-              {group.events.map((event) => (
-                <div key={event.id} className={styles.item}>
-                  <div className={styles.dot} />
-                  <div className={styles.content}>
-                    <div className={styles.cardInner}>
-                      <div
-                        className={styles.imgPlaceholder}
-                        style={{ cursor: event.image_url ? "pointer" : "default" }}
-                        onClick={() => event.image_url && openModal(event.image_url, event.date_label, event.title, event.description)}
-                      >
-                        {event.image_url ? (
-                          <img src={event.image_url} alt={event.title} />
-                        ) : (
-                          <div className={styles.noImg}>
-                            <i className="bx bx-image" />
+              {group.events.map((event) => {
+                const rotation = ROTATIONS[globalItemIndex % ROTATIONS.length];
+                globalItemIndex++;
+
+                const captionText = event.handwriting_caption || event.date_label || event.title;
+
+                return (
+                  <div key={event.id} className={styles.item}>
+                    <div className={styles.dot} />
+                    <div className={`glassCard ${styles.content}`}>
+                      <div className={styles.cardInner}>
+                        {/* Polaroid Photo Frame */}
+                        <div className={styles.polaroidWrap}>
+                          <div
+                            className={styles.polaroidFrame}
+                            style={{ transform: `rotate(${rotation}deg)` }}
+                            onClick={() =>
+                              event.image_url &&
+                              openModal(event.image_url, event.date_label, event.title, event.description)
+                            }
+                            title="Klik untuk memperbesar foto"
+                          >
+                            <div className={styles.polaroidTape} />
+                            <div className={styles.polaroidPhoto}>
+                              {event.image_url ? (
+                                <img src={event.image_url} alt={event.title} loading="lazy" />
+                              ) : (
+                                <div className={styles.noImg}>
+                                  <i className="bx bx-image" />
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.polaroidCaption}>
+                              {captionText}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div className={styles.textSide}>
-                        <div className={styles.date}>{event.date_label}</div>
-                        <h3 className={styles.title}>{event.title}</h3>
-                        <p className={styles.desc}>{event.description}</p>
+                        </div>
+
+                        {/* Text Narrative Side */}
+                        <div className={styles.textSide}>
+                          <div className={styles.dateBadge}>
+                            <i className="bx bx-calendar" /> {event.date_label}
+                          </div>
+                          <h3 className={styles.title}>{event.title}</h3>
+                          <p className={styles.desc}>{event.description}</p>
+                          {event.image_url && (
+                            <span
+                              className={styles.expandHint}
+                              onClick={() =>
+                                openModal(event.image_url!, event.date_label, event.title, event.description)
+                              }
+                            >
+                              <i className="bx bx-zoom-in" /> Lihat Foto Polaroid
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
 
+      {/* Lightbox Modal */}
       {isModalOpen && (
         <div
           className={`${styles.modalOverlay} ${styles.active}`}
           onClick={() => setIsModalOpen(false)}
         >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)} aria-label="Tutup">
               &times;
             </button>
             <div className={styles.modalImgWrapper}>
               <img src={modalData.image} alt={modalData.title} />
             </div>
             <div className={styles.modalDetails}>
-              <span className={styles.modalDate}>{modalData.date}</span>
-              <h3 style={{ fontSize: "1.5rem", marginBottom: "10px", color: "var(--primary)" }}>{modalData.title}</h3>
+              <div className={styles.modalDate}>
+                <i className="bx bx-calendar" /> {modalData.date}
+              </div>
+              <h3 className={styles.modalTitle}>{modalData.title}</h3>
               <p className={styles.modalDesc}>{modalData.desc}</p>
             </div>
           </div>

@@ -1,7 +1,30 @@
 import { NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
+import fs from "fs";
+import path from "path";
 
 const EXTERNAL_TIMELINE_URL = "https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT";
+
+function getLocalMilestones() {
+  try {
+    const filePath = path.join(process.cwd(), "src", "data", "milestone.json");
+    if (fs.existsSync(filePath)) {
+      const fileData = fs.readFileSync(filePath, "utf-8");
+      const list = JSON.parse(fileData);
+      if (Array.isArray(list) && list.length > 0) {
+        const yearsSet = new Set<string>();
+        list.forEach((item: any) => {
+          yearsSet.add(String(item.year || "2026"));
+        });
+        const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+        return { years, events: list };
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read local milestone.json:", e);
+  }
+  return null;
+}
 
 async function fetchExternalTimeline() {
   try {
@@ -43,6 +66,7 @@ export async function GET() {
             title: r.title || "",
             description: r.description || "",
             image_url: r.image_url || null,
+            handwriting_caption: r.handwriting_caption || r.date_label || "",
             sort_order: r.sort_order || 0,
             is_active: Boolean(r.is_active),
           };
@@ -56,6 +80,12 @@ export async function GET() {
       }
     }
 
+    // Check local milestone.json
+    const local = getLocalMilestones();
+    if (local) {
+      return NextResponse.json({ status: true, success: true, data: local });
+    }
+
     // Fallback to external timeline
     const external = await fetchExternalTimeline();
     if (external) {
@@ -64,6 +94,10 @@ export async function GET() {
 
     return NextResponse.json({ status: true, success: true, data: { years: [], events: [] } });
   } catch (error: any) {
+    const local = getLocalMilestones();
+    if (local) {
+      return NextResponse.json({ status: true, success: true, data: local });
+    }
     const external = await fetchExternalTimeline();
     if (external) {
       return NextResponse.json({ status: true, success: true, data: external });

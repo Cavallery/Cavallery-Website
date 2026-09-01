@@ -1,0 +1,122 @@
+[
+  {
+    "id": "1",
+    "year": "2023",
+    "date_label": "18 November 2023",
+    "event_date": "2023-11-18",
+    "title": "Pengumuman Generasi 12 JKT48",
+    "description": "Catherina Vallencia resmi diperkenalkan sebagai member Generasi ke-12 JKT48 pada panggung Jak-Japan Matsuri 2023, memulai langkah awal perjalanan idol-nya.",
+    "image_url": "/images/about/timeline-other-1.jpeg",
+    "handwriting_caption": "First Step • JakJapan Matsuri ✨",
+    "sort_order": 1,
+    "is_active": 1
+  },
+  {
+    "id": "2",
+    "year": "2023",
+    "date_label": "17 Desember 2023",
+    "event_date": "2023-12-17",
+    "title": "Perkenalan Perdana di Theater JKT48",
+    "description": "Tampil pertama kali di panggung Theater JKT48 menyapa penonton dengan senyuman hangat dan jikoshoukai khas 'Checkmate' yang berkesan.",
+    "image_url": "/images/about/timeline-other-2.jpeg",
+    "handwriting_caption": "First Theater Stage 🏛️",
+    "sort_order": 2,
+    "is_active": 1
+  },
+  {
+    "id": "3",
+    "year": "2024",
+    "date_label": "27 April 2024",
+    "event_date": "2024-04-27",
+    "title": "Shonichi Cara Meminum Ramune",
+    "description": "Debut panggung shonichi setlist Ramune no Nomikata (Cara Meminum Ramune) bersama rekan Trainee, menampilkan energi ceria dan vokal yang memukau.",
+    "image_url": "/images/about/timeline-2024-1.jpeg",
+    "handwriting_caption": "Shonichi Ramune 🥤",
+    "sort_order": 3,
+    "is_active": 1
+  },
+  {
+    "id": "4",
+    "year": "2024",
+    "date_label": "1 Mei 2024",
+    "event_date": "2024-05-01",
+    "title": "Shonichi Aitakatta (Ingin Bertemu)",
+    "description": "Membawakan setlist legendaris Aitakatta di panggung Theater JKT48 dengan koreografi yang lincah dan penuh penjiwaan.",
+    "image_url": "/images/about/timeline-2024-2.jpeg",
+    "handwriting_caption": "Aitakatta Debut 💖",
+    "sort_order": 4,
+    "is_active": 1
+  },
+  {
+    "id": "5",
+    "year": "2024",
+    "date_label": "28 September 2024",
+    "event_date": "2024-09-28",
+    "title": "Perayaan Sweet Seventeen (Seitansai ke-17)",
+    "description": "Momen berharga perayaan ulang tahun ke-17 di Theater JKT48 bersama keluarga besar Cavallery dengan project bunga dan banner spesial.",
+    "image_url": "/images/about/timeline-2024-5.jpeg",
+    "handwriting_caption": "17th Birthday • Seitansai 🎂",
+    "sort_order": 5,
+    "is_active": 1
+  },
+  {
+    "id": "6",
+    "year": "2024",
+    "date_label": "15 Desember 2024",
+    "event_date": "2024-12-15",
+    "title": "Sousenkyo SSK JKT48 2024",
+    "description": "Pencapaian membanggakan dalam Pemilihan Member Single ke-26 JKT48 (Sousenkyo 2024), buah dari kerja keras dan kekompakan Cavallery.",
+    "image_url": "/images/about/timeline-2024-8.jpeg",
+    "handwriting_caption": "Sousenkyo Under Girls 🏆",
+    "sort_order": 6,
+    "is_active": 1
+  },
+  {
+    "id": "7",
+    "year": "2025",
+    "date_label": "26 Januari 2025",
+    "event_date": "2025-01-26",
+    "title": "Promosi Resmi ke Team Passion",
+    "description": "Langkah besar dalam karir idol Erine dengan resmi dipromosikan menjadi member inti JKT48 di Team Passion, siap mengukir prestasi lebih tinggi.",
+    "image_url": "/images/about/timeline-passion.jpg",
+    "handwriting_caption": "Team Passion Day! 💛",
+    "sort_order": 7,
+    "is_active": 1
+  },
+  {
+    "id": "8",
+    "year": "2025",
+    "date_label": "19 Juli 2025",
+    "event_date": "2025-07-19",
+    "title": "100th Show Theater Erine",
+    "description": "Mencapai tonggak sejarah 100 kali penampilan di Theater JKT48, membuktikan dedikasi tinggi dan konsistensi di setiap penampilannya.",
+    "image_url": "/images/about/timeline-other-6.jpeg",
+    "handwriting_caption": "100 Shows Milestone 💯",
+    "sort_order": 8,
+    "is_active": 1
+  },
+  {
+    "id": "9",
+    "year": "2025",
+    "date_label": "28 September 2025",
+    "event_date": "2025-09-28",
+    "title": "Seitansai ke-18 Tahun di Theater",
+    "description": "Perayaan ulang tahun ke-18 yang penuh haru dan tawa bersama para fans, didukung dengan persembahan istimewa dari Cavallery.",
+    "image_url": "/images/about/timeline-other-7.jpeg",
+    "handwriting_caption": "18th Birthday Celebration 🎉",
+    "sort_order": 9,
+    "is_active": 1
+  },
+  {
+    "id": "10",
+    "year": "2026",
+    "date_label": "Tahun 2026",
+    "event_date": "2026-02-01",
+    "title": "Langkah Baru & Masa Depan Bersama Erine",
+    "description": "Terus melaju di barisan terdepan bersama Team Passion, mempersembahkan karya, senyum, dan kehangatan bagi seluruh penggemar.",
+    "image_url": "/images/about/timeline-other-9.jpeg",
+    "handwriting_caption": "Continuing the Journey ✨",
+    "sort_order": 10,
+    "is_active": 1
+  }
+]
