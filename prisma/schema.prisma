@@ -1,0 +1,90 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Anggota {
+  id              Int                @id @default(autoincrement())
+  noAnggota       String?            @unique @map("no_anggota")
+  namaLengkap     String             @map("nama_lengkap")
+  idLine          String             @unique @map("id_line")
+  displayLine     String?            @map("display_line")
+  discord         String?
+  gender          String
+  domisili        String
+  kontakPlatform  String             @map("kontak_platform")
+  kontakId        String             @map("kontak_id")
+  status          String             @default("pending")
+  jabatan         String             @default("Anggota")
+  anggotaSejak    DateTime?          @map("anggota_sejak")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  kas             KonfirmasiKas[]
+  donasi          KonfirmasiDonasi[]
+
+  @@map("anggota")
+}
+
+model Donatur {
+  id              Int                @id @default(autoincrement())
+  nama            String
+  kontakPlatform  String             @map("kontak_platform")
+  kontakId        String             @map("kontak_id")
+  discord         String?
+  status          String             @default("aktif")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  donasi          KonfirmasiDonasi[]
+
+  @@map("donatur")
+}
+
+model KonfirmasiKas {
+  id              Int       @id @default(autoincrement())
+  anggotaId       Int       @map("anggota_id")
+  periode         String
+  nominal         Int
+  buktiBayarUrl   String    @map("bukti_bayar_url")
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  verifiedAt      DateTime? @map("verified_at")
+  verifiedBy      String?   @map("verified_by")
+
+  anggota         Anggota   @relation(fields: [anggotaId], references: [id], onDelete: Cascade)
+
+  @@map("konfirmasi_kas")
+}
+
+model KonfirmasiDonasi {
+  id              Int       @id @default(autoincrement())
+  anggotaId       Int?      @map("anggota_id")
+  donaturId       Int?      @map("donatur_id")
+  tipeDonasi      String    @default("General") @map("tipe_donasi")
+  nominal         Int
+  buktiBayarUrl   String    @map("bukti_bayar_url")
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  verifiedAt      DateTime? @map("verified_at")
+  verifiedBy      String?   @map("verified_by")
+
+  anggota         Anggota?  @relation(fields: [anggotaId], references: [id], onDelete: SetNull)
+  donatur         Donatur?  @relation(fields: [donaturId], references: [id], onDelete: SetNull)
+
+  @@map("konfirmasi_donasi")
+}
+
+model Admin {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique
+  passwordHash    String    @map("password_hash")
+  nama            String
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("admin")
+}

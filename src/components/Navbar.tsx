@@ -46,6 +46,7 @@ const navLinks: NavLink[] = [
   {
     label: "Community",
     children: [
+      { href: "/cavallery-kas", label: "Kas Cavallery",    icon: "bx-wallet",            desc: "Portal kas, donasi & keanggotaan" },
       { href: "/join",         label: "Join Cavallery",   icon: "bx-group",             desc: "Daftarkan dirimu sebagai member resmi" },
       { href: "/esport",       label: "Cavallery Esport", icon: "bx-trophy",            desc: "Divisi gaming kompetitif Cavallery" },
       { href: "/2s-with-erine",label: "2S with Erine",    icon: "bx-camera",            desc: "Koleksi foto 2-Shot & pesan manis untuk Erine" },

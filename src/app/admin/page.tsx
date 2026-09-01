@@ -3232,14 +3232,18 @@ function SectionManager({ section }: { section: Section }) {
     youtube: { endpoint: "/youtube", listKey: "videos", cols: [{ key: "title", label: "Judul" }, { key: "category", label: "Kategori" }, { key: "video_id", label: "Video ID" }, { key: "is_active", label: "Aktif" }], fields: [{ key: "title", label: "Judul" }, { key: "url", label: "URL YouTube" }, { key: "category", label: "Kategori" }, { key: "sort_order", label: "Urutan", type: "number" }, { key: "is_active", label: "Aktif", type: "checkbox" }] },
     funfacts: { endpoint: "/funfacts", listKey: "", cols: [{ key: "content", label: "Konten" }, { key: "sort_order", label: "Urutan" }, { key: "is_active", label: "Aktif" }], fields: [{ key: "content", label: "Konten Funfact", type: "textarea", rows: 3 }, { key: "sort_order", label: "Urutan", type: "number" }, { key: "is_active", label: "Aktif", type: "checkbox" }] },
     kabesha: { endpoint: "/kabesha", listKey: "", cols: [{ key: "image_url", label: "Gambar" }, { key: "year_label", label: "Tahun" }, { key: "title", label: "Judul" }, { key: "is_active", label: "Aktif" }], fields: [{ key: "year_label", label: "Label Tahun" }, { key: "title", label: "Judul" }, { key: "description", label: "Deskripsi", type: "textarea", rows: 3 }, { key: "image_url", label: "URL Gambar" }, { key: "sort_order", label: "Urutan", type: "number" }, { key: "is_active", label: "Aktif", type: "checkbox" }] },
-    dashboard: { endpoint: "", listKey: "", cols: [], fields: [] },
-    media:     { endpoint: "", listKey: "", cols: [], fields: [] },
-    discord:   { endpoint: "", listKey: "", cols: [], fields: [] },
-    journal:   { endpoint: "", listKey: "", cols: [], fields: [] },
-    tickets:   { endpoint: "", listKey: "", cols: [], fields: [] },
+    dashboard:        { endpoint: "", listKey: "", cols: [], fields: [] },
+    media:            { endpoint: "", listKey: "", cols: [], fields: [] },
+    discord:          { endpoint: "", listKey: "", cols: [], fields: [] },
+    journal:          { endpoint: "", listKey: "", cols: [], fields: [] },
+    tickets:          { endpoint: "", listKey: "", cols: [], fields: [] },
+    keanggotaan:      { endpoint: "", listKey: "", cols: [], fields: [] },
+    adminkas:         { endpoint: "", listKey: "", cols: [], fields: [] },
+    admindonasi:      { endpoint: "", listKey: "", cols: [], fields: [] },
+    adminspreadsheet: { endpoint: "", listKey: "", cols: [], fields: [] },
   };
 
-  const c = cfg[section];
+  const c = cfg[section] || { endpoint: "", listKey: "", cols: [], fields: [] };
 
   const load = useCallback(async () => {
     if (["dashboard","media","discord","journal","tickets"].includes(section)) return;
@@ -7128,6 +7132,10 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
   }, []);
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
+    { key: "keanggotaan" as any, icon: "bx-user-check",   label: "Keanggotaan", color: "#10b981" },
+    { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
+    { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
+    { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
     { key: "recruitment",icon: "bx-group",        label: "Recruitment",color: "#10b981" },
     { key: "esport",     icon: "bx-trophy",       label: "Esport",     color: "#f59e0b" },
     { key: "invitations",icon: "bx-envelope",     label: "Undangan",   color: "#c9a84c" },
@@ -8259,6 +8267,17 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
+    id: "keuangan_member",
+    label: "Keanggotaan & Keuangan",
+    icon: "bx-wallet",
+    items: [
+      { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
+      { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
+      { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
+      { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
+    ],
+  },
+  {
     id: "utama",
     label: "Utama",
     icon: "bx-grid-alt",
@@ -8339,6 +8358,22 @@ export default function AdminPage() {
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
 
   const navigate = (section: Section) => {
+    if ((section as string) === "keanggotaan") {
+      window.location.href = "/admin/keanggotaan";
+      return;
+    }
+    if ((section as string) === "adminkas") {
+      window.location.href = "/admin/kas";
+      return;
+    }
+    if ((section as string) === "admindonasi") {
+      window.location.href = "/admin/donasi";
+      return;
+    }
+    if ((section as string) === "adminspreadsheet") {
+      window.location.href = "/admin/spreadsheet";
+      return;
+    }
     setActive(section);
     setDrawerOpen(false);
   };
@@ -8445,7 +8480,7 @@ export default function AdminPage() {
           </header>
 
           <div className={styles.content}>
-            {active === "dashboard"   ? <DashboardHome onNav={setActive} />
+            {active === "dashboard"   ? <DashboardHome onNav={navigate} />
             : active === "recruitment"? <RecruitmentManager />
             : active === "esport"     ? <EsportManager />
             : active === "invitations"? <InvitationsManager />
