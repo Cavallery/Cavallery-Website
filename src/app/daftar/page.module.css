@@ -1,0 +1,357 @@
+.page {
+  min-height: 100vh;
+  padding: calc(var(--nav-h, 72px) + 32px) 16px 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: radial-gradient(circle at 50% 20%, rgba(180, 83, 9, 0.08) 0%, transparent 60%);
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold, rgba(180, 83, 9, 0.25));
+  border-radius: 28px;
+  padding: 40px 32px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 0 24px var(--gold-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+:global([data-theme="dark"]) .card {
+  background: rgba(26, 23, 20, 0.95);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(180, 83, 9, 0.15);
+}
+
+.logoWrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--gold, #b45309), #f59e0b);
+  box-shadow: 0 8px 24px var(--gold-glow);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.brandTitle {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--primary, #b45309);
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.subtitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.subtitleLine {
+  height: 1px;
+  width: 36px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+.subtitleText {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--fg, #372e27);
+}
+
+.instruction {
+  font-size: 0.88rem;
+  color: var(--fg-muted, #574d44);
+  text-align: center;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* ── Pill Toggle (Anggota | Donatur) ── */
+.togglePill {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  padding: 5px;
+  width: 100%;
+  margin-bottom: 28px;
+  gap: 6px;
+}
+
+:global([data-theme="dark"]) .togglePill {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggleBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: none;
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: var(--fg-muted);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.toggleBtnActive {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(30, 58, 138, 0.35);
+}
+
+:global([data-theme="dark"]) .toggleBtnActive {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
+}
+
+/* ── Form Styling ── */
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--fg, #372e27);
+}
+
+.badgeWajib {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(225, 29, 72, 0.12);
+  color: #e11d48;
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  padding: 1px 8px;
+  border-radius: 50px;
+}
+
+.badgeOpsional {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  padding: 1px 8px;
+  border-radius: 50px;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(55, 46, 39, 0.15);
+  background: #ffffff;
+  color: var(--fg, #372e27);
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+:global([data-theme="dark"]) .input,
+:global([data-theme="dark"]) .select {
+  background: #141210;
+  border-color: rgba(201, 168, 76, 0.2);
+  color: #f5f5f4;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--gold, #b45309);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+
+.inputGroup {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--fg-dim, #8c7e73);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.submitBtn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  color: #ffffff;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+:global([data-theme="dark"]) .submitBtn {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.45);
+}
+
+:global([data-theme="dark"]) .submitBtn:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.5);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.footerLinks {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.86rem;
+  color: var(--fg-muted);
+}
+
+.link {
+  color: var(--gold, #b45309);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.helpText {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.78rem;
+  color: var(--fg-dim);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Alert Box ── */
+.errorBox {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.successBox {
+  width: 100%;
+  padding: 24px 20px;
+  border-radius: 16px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.successIcon {
+  font-size: 3rem;
+  color: #10b981;
+}
+
+.successTitle {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #10b981;
+  margin: 0;
+}
+
+.successDesc {
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 20px;
+    border-radius: 22px;
+  }
+  .inputGroup {
+    grid-template-columns: 1fr;
+  }
+  .brandTitle {
+    font-size: 1.7rem;
+  }
+}

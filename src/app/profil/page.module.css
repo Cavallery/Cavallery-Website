@@ -1,0 +1,374 @@
+.page {
+  min-height: 100vh;
+  padding: calc(var(--nav-h, 72px) + 36px) 20px 80px;
+  position: relative;
+  background: radial-gradient(circle at 50% 15%, rgba(180, 83, 9, 0.08) 0%, transparent 60%);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Identity Member Card ── */
+.idCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold, rgba(180, 83, 9, 0.3));
+  border-radius: 28px;
+  padding: 36px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 24px var(--gold-dim);
+}
+
+:global([data-theme="dark"]) .idCard {
+  background: linear-gradient(135deg, rgba(30, 26, 22, 0.95) 0%, rgba(18, 15, 12, 0.98) 100%);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(180, 83, 9, 0.15);
+}
+
+.cardWatermark {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 200px;
+  height: 200px;
+  opacity: 0.04;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+:global([data-theme="dark"]) .cardWatermark {
+  opacity: 0.06;
+}
+
+.idTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--gold, #b45309);
+  text-transform: uppercase;
+}
+
+.brandBadge img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 4px 12px;
+  border-radius: 50px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.idBody {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold, #b45309), #f59e0b);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 900;
+  box-shadow: 0 8px 24px var(--gold-glow);
+  flex-shrink: 0;
+  border: 3px solid var(--surface);
+}
+
+.infoWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.userName {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--fg);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.noAnggotaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono, monospace);
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--gold, #b45309);
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  padding: 3px 10px;
+  border-radius: 8px;
+  width: fit-content;
+  letter-spacing: 0.05em;
+}
+
+.userMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.84rem;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+
+.userMeta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── ID Card Footer Details ── */
+.idFooter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border);
+}
+
+.idFooterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.idFooterLabel {
+  font-size: 0.75rem;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.idFooterVal {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+/* ── Action Buttons Row ── */
+.actionsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.actionBtn {
+  padding: 16px 24px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+
+.kasBtn {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.25);
+}
+
+:global([data-theme="dark"]) .kasBtn {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.3);
+}
+
+.donasiBtn {
+  background: var(--surface);
+  border-color: var(--border-gold);
+  color: var(--gold, #b45309);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="dark"]) .donasiBtn {
+  background: rgba(30, 26, 22, 0.9);
+  color: #f59e0b;
+}
+
+.actionBtn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
+}
+
+.btnContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btnContent i {
+  font-size: 1.4rem;
+}
+
+/* ── Financial Stats ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.statCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.statIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.statIconKas {
+  background: rgba(30, 58, 138, 0.1);
+  color: #1e3a8a;
+}
+
+:global([data-theme="dark"]) .statIconKas {
+  background: rgba(180, 83, 9, 0.15);
+  color: #f59e0b;
+}
+
+.statIconDonasi {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.statInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statVal {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+/* ── Logout Button ── */
+.logoutWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 600px) {
+  .idCard {
+    padding: 24px 18px;
+  }
+  .idBody {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    gap: 16px;
+  }
+  .infoWrap {
+    align-items: center;
+  }
+  .userMeta {
+    justify-content: center;
+  }
+  .actionsRow,
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
