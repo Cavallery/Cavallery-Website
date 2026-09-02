@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota } from "@/lib/membership";
-import { appendAnggotaRow } from "@/lib/googleSheets";
+import { appendAnggotaRow, deleteAnggotaRow } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
 function formatAnggotaRow(r: any) {
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
       const s = `%${search}%`;
       params.push(s, s, s, s);
     }
-    direktoriSql += " ORDER BY id DESC";
+    direktoriSql += " ORDER BY CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END, no_anggota ASC, id ASC";
 
     const direktoriRaw = (await query<any[]>(direktoriSql, params)) || [];
 
@@ -156,6 +156,23 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Realtime auto-push ke Google Sheets
+      appendAnggotaRow({
+        noAnggota: finalNo,
+        namaLengkap: namaLengkap.trim(),
+        idLine: idLine.trim(),
+        displayLine: displayLine?.trim() || "-",
+        discord: discord?.trim() || "-",
+        gender: gender || "Laki-laki",
+        domisili: domisili?.trim() || "-",
+        kontakPlatform: kontakPlatform || "X (Twitter)",
+        kontakId: kontakId?.trim() || idLine.trim(),
+        status: "aktif",
+        jabatan: jabatanBaru || "Anggota",
+        anggotaSejak: now,
+        createdAt: now,
+      }).catch((err) => console.error("Realtime push anggota manual ke Sheets error:", err));
+
       return NextResponse.json({
         status: true,
         message: `Anggota ${namaLengkap} (${finalNo}) berhasil ditambahkan!`,
@@ -232,10 +249,33 @@ export async function POST(req: NextRequest) {
 
     // 4. UBAH JABATAN (Jadikan Admin Fanbase / Pengurus / Anggota)
     if (action === "update_jabatan" && jabatan) {
-      await query("UPDATE anggota SET jabatan = ? WHERE id = ?", [jabatan, id]);
+      const { divisi } = body;
+      try {
+        if (jabatan === "Admin Fanbase" && divisi) {
+          await query("UPDATE anggota SET jabatan = ?, divisi = ? WHERE id = ?", [jabatan, divisi, id]);
+        } else if (jabatan === "Anggota") {
+          await query("UPDATE anggota SET jabatan = ?, divisi = NULL WHERE id = ?", [jabatan, id]);
+        } else {
+          await query("UPDATE anggota SET jabatan = ? WHERE id = ?", [jabatan, id]);
+        }
+      } catch {
+        await query("UPDATE anggota SET jabatan = ? WHERE id = ?", [jabatan, id]);
+      }
       return NextResponse.json({
         status: true,
-        message: `Jabatan anggota ${anggota.nama_lengkap} berhasil diubah menjadi "${jabatan}".`,
+        message: `Jabatan anggota ${anggota.nama_lengkap} berhasil diubah menjadi "${jabatan}"${divisi && jabatan === "Admin Fanbase" ? ` (Divisi: ${divisi})` : ""}.`,
+      });
+    }
+
+    // 5. HAPUS ANGGOTA
+    if (action === "delete") {
+      await query("DELETE FROM anggota WHERE id = ?", [id]);
+      if (anggota && anggota.no_anggota) {
+        deleteAnggotaRow(anggota.no_anggota).catch((e) => console.error("Delete anggota in sheets error:", e));
+      }
+      return NextResponse.json({
+        status: true,
+        message: `Data anggota ${anggota.nama_lengkap} (${anggota.no_anggota || "-"}) berhasil dihapus dari sistem & spreadsheet.`,
       });
     }
 

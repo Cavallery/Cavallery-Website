@@ -4,13 +4,11 @@ import { useEffect, useState, useRef } from "react";
 import styles from "./page.module.css";
 
 const PLATFORMS = [
+  "LINE",
   "X (Twitter)",
   "Instagram",
-  "WhatsApp",
-  "Telegram",
-  "Discord",
   "TikTok",
-  "Lainnya",
+  "Discord",
 ];
 
 const GENDERS = ["Laki-laki", "Perempuan"];
@@ -522,88 +520,92 @@ export default function CavalleryKasPage() {
 
             <p className={styles.instruction}>
               {authMode === "masuk"
-                ? "Pilih masuk sebagai anggota atau donatur terlebih dahulu."
-                : "Pilih daftar sebagai anggota atau donatur terlebih dahulu."}
+                ? "Pilih bagaimana kamu ingin masuk ke portal Cavallery."
+                : "Pilih bagaimana kamu ingin bergabung dengan Cavallery."}
             </p>
 
-            {/* Mode Switch (Masuk | Daftar) */}
-            <div className={styles.modeSwitch}>
-              <button
-                type="button"
-                className={`${styles.modeBtn} ${authMode === "masuk" ? styles.modeBtnActive : ""}`}
-                onClick={() => {
-                  setAuthMode("masuk");
-                  setAuthError("");
-                  setRegSuccess(null);
-                }}
-              >
-                <i className="bx bx-log-in" /> Masuk
-              </button>
-              <button
-                type="button"
-                className={`${styles.modeBtn} ${authMode === "daftar" ? styles.modeBtnActive : ""}`}
-                onClick={() => {
-                  setAuthMode("daftar");
-                  setAuthError("");
-                  setRegSuccess(null);
-                }}
-              >
-                <i className="bx bx-user-plus" /> Daftar
-              </button>
-            </div>
-
-            {/* Role Switch Pill (Anggota | Donatur) */}
-            <div className={styles.togglePill}>
-              <button
-                type="button"
-                className={`${styles.toggleBtn} ${tipe === "anggota" ? styles.toggleBtnActive : ""}`}
-                onClick={() => {
-                  setTipe("anggota");
-                  setAuthError("");
-                  setRegSuccess(null);
-                }}
-              >
-                <i className="bx bx-user" /> Anggota
-              </button>
-              <button
-                type="button"
-                className={`${styles.toggleBtn} ${tipe === "donatur" ? styles.toggleBtnActive : ""}`}
-                onClick={() => {
-                  setTipe("donatur");
-                  setAuthError("");
-                  setRegSuccess(null);
-                }}
-              >
-                <i className="bx bx-donate-heart" /> Donatur
-              </button>
-            </div>
-
-            {/* Error Message */}
-            {authError && (
-              <div className={styles.errorBox} style={{ marginBottom: 14 }}>
-                <i className="bx bx-error-circle" /> {authError}
-              </div>
-            )}
-
-            {/* Success Message for Registration */}
+            {/* Success State After Registration */}
             {regSuccess ? (
-              <div className={styles.successBox}>
+              <div className={styles.successBox} style={{ margin: "20px 0" }}>
                 <i className={`bx bx-check-circle ${styles.successIcon}`} />
-                <h3 className={styles.successTitle}>Pendaftaran Diterima</h3>
+                <h3 className={styles.successTitle}>Pendaftaran Berhasil!</h3>
                 <p className={styles.successDesc}>{regSuccess}</p>
                 <button
                   type="button"
                   className={styles.submitBtn}
+                  style={{ marginTop: 12 }}
                   onClick={() => {
                     setAuthMode("masuk");
                     setRegSuccess(null);
                   }}
                 >
-                  <i className="bx bx-log-in" /> Lanjut ke Form Masuk
+                  <i className="bx bx-log-in" /> Menuju Halaman Masuk
                 </button>
               </div>
-            ) : authMode === "masuk" ? (
-              // ── FORM MASUK ──
+            ) : (
+              <>
+                {/* Mode Switch (Masuk | Daftar) */}
+                <div className={styles.modeSwitch}>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${authMode === "masuk" ? styles.modeBtnActive : ""}`}
+                    onClick={() => {
+                      setAuthMode("masuk");
+                      setAuthError("");
+                      setRegSuccess(null);
+                    }}
+                  >
+                    <i className="bx bx-log-in" /> Masuk
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.modeBtn} ${authMode === "daftar" ? styles.modeBtnActive : ""}`}
+                    onClick={() => {
+                      setAuthMode("daftar");
+                      setAuthError("");
+                      setRegSuccess(null);
+                    }}
+                  >
+                    <i className="bx bx-user-plus" /> Daftar
+                  </button>
+                </div>
+
+                {/* Role Switch Pill (Anggota | Kontributor) */}
+                <div className={styles.togglePill}>
+                  <button
+                    type="button"
+                    className={`${styles.toggleBtn} ${tipe === "anggota" ? styles.toggleBtnActive : ""}`}
+                    onClick={() => {
+                      setTipe("anggota");
+                      setAuthError("");
+                      setRegSuccess(null);
+                    }}
+                  >
+                    <i className="bx bx-user" /> Anggota
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.toggleBtn} ${tipe === "donatur" ? styles.toggleBtnActive : ""}`}
+                    onClick={() => {
+                      setTipe("donatur");
+                      setAuthError("");
+                      setRegSuccess(null);
+                    }}
+                  >
+                    <i className="bx bx-user-heart" /> Kontributor
+                  </button>
+                </div>
+
+                {/* Error Message */}
+                {authError && (
+                  <div className={styles.errorBox} style={{ marginBottom: 14 }}>
+                    <i className="bx bx-error-circle" /> {authError}
+                  </div>
+                )}
+
+            {/* ── FORM CONTAINER ── */}
+            {authMode === "masuk" ? (
+              // ── FORM MASUK / LOGIN ──
               <form onSubmit={handleLoginSubmit} className={styles.form}>
                 {tipe === "anggota" ? (
                   <>
@@ -617,7 +619,7 @@ export default function CavalleryKasPage() {
                         className={styles.input}
                         placeholder="Contoh: CAVA-0001"
                         value={loginNoAnggota}
-                        onChange={(e) => setLoginNoAnggota(e.target.value)}
+                        onChange={(e) => setLoginNoAnggota(e.target.value.toUpperCase())}
                         required
                       />
                     </div>
@@ -641,28 +643,27 @@ export default function CavalleryKasPage() {
                   <>
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>Nama / Alias</label>
+                        <label className={styles.label}>Nama Kontributor</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Nama yang didaftarkan"
+                        placeholder="Nama yang Anda daftarkan"
                         value={loginNamaDonatur}
                         onChange={(e) => setLoginNamaDonatur(e.target.value)}
                         required
                       />
                     </div>
-
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>ID / Nomor Kontak</label>
+                        <label className={styles.label}>ID Kontak / Username</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="ID / Nomor Kontak terdaftar"
+                        placeholder="ID LINE / X / WA yang terdaftar"
                         value={loginKontakDonatur}
                         onChange={(e) => setLoginKontakDonatur(e.target.value)}
                         required
@@ -671,7 +672,11 @@ export default function CavalleryKasPage() {
                   </>
                 )}
 
-                <button type="submit" className={styles.submitBtn} disabled={authLoading}>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={authLoading}
+                >
                   {authLoading ? (
                     <>
                       <i className="bx bx-loader-alt bx-spin" /> Memeriksa...
@@ -690,15 +695,15 @@ export default function CavalleryKasPage() {
                   <i className="bx bxs-lock-alt" />
                 </div>
                 <h3 className={styles.closedStateTitle}>
-                  Pendaftaran {tipe === "anggota" ? "Anggota Baru" : "Donatur"} Sedang Ditutup
+                  Pendaftaran {tipe === "anggota" ? "Anggota Baru" : "Kontributor"} Sedang Ditutup
                 </h3>
                 <p className={styles.closedStateDesc}>
-                  Mohon maaf, saat ini pendaftaran {tipe === "anggota" ? "anggota baru" : "donatur"} Cavallery sedang tidak menerima pendaftar baru. Silakan pantau informasi resmi terbaru melalui media sosial kami.
+                  Mohon maaf, saat ini pendaftaran {tipe === "anggota" ? "anggota baru" : "kontributor"} Cavallery sedang tidak menerima pendaftar baru. Silakan pantau informasi resmi terbaru melalui media sosial kami.
                 </p>
                 <button
                   type="button"
                   className={styles.backBtn}
-                  onClick={() => setAuthMode("login")}
+                  onClick={() => setAuthMode("masuk")}
                   style={{ marginTop: 10 }}
                 >
                   <i className="bx bx-log-in" /> Kembali ke Halaman Masuk
@@ -711,33 +716,34 @@ export default function CavalleryKasPage() {
                   <>
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>Nomor Anggota</label>
+                        <label className={styles.label}>No Anggota</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Contoh: CAVA-0001"
+                        placeholder="CAVA-0001"
                         value={regNoAnggota}
                         onChange={(e) => setRegNoAnggota(e.target.value.toUpperCase())}
                         required
                       />
-                      <span className={styles.hint}>Masukkan nomor anggota Cavallery Anda (format: CAVA-xxxx)</span>
+                      <span className={styles.hint}>Sesuaikan dengan nomor anggota lama menggunakan format 4 digit.</span>
                     </div>
 
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>Nama Lengkap</label>
+                        <label className={styles.label}>Nama</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Nama lengkap atau alias"
+                        placeholder="Nama kamu"
                         value={regNamaLengkap}
                         onChange={(e) => setRegNamaLengkap(e.target.value)}
                         required
                       />
+                      <span className={styles.hint}>Nama yang biasa kamu gunakan di Cavallery.</span>
                     </div>
 
                     <div className={styles.field}>
@@ -748,11 +754,12 @@ export default function CavalleryKasPage() {
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="ID LINE aktif Anda"
+                        placeholder="ID LINE aktif kamu"
                         value={regIdLine}
                         onChange={(e) => setRegIdLine(e.target.value)}
                         required
                       />
+                      <span className={styles.hint}>Masukkan ID LINE yang aktif.</span>
                     </div>
 
                     <div className={styles.field}>
@@ -763,29 +770,31 @@ export default function CavalleryKasPage() {
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Nama tampilan di LINE"
+                        placeholder="Display Name LINE kamu"
                         value={regDisplayLine}
                         onChange={(e) => setRegDisplayLine(e.target.value)}
                       />
+                      <span className={styles.hint}>Nama yang tampil di akun LINE kamu.</span>
                     </div>
 
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>ID / Nama Discord</label>
+                        <label className={styles.label}>Username Discord</label>
                         <span className={styles.badgeOpsional}>OPSIONAL</span>
                       </div>
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="Contoh: user#1234 atau username"
+                        placeholder="username_discord"
                         value={regDiscord}
                         onChange={(e) => setRegDiscord(e.target.value)}
                       />
+                      <span className={styles.hint}>Masukkan username Discord kamu.</span>
                     </div>
 
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>Jenis Kelamin</label>
+                        <label className={styles.label}>Gender</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <select
@@ -836,20 +845,21 @@ export default function CavalleryKasPage() {
                         <input
                           type="text"
                           className={styles.input}
-                          placeholder="@username atau nomor WA"
+                          placeholder="ID / Username akun kontak"
                           value={regKontakId}
                           onChange={(e) => setRegKontakId(e.target.value)}
                           required
                         />
                       </div>
+                      <span className={styles.hint}>Pilih setidaknya satu akun yang bisa dihubungi.</span>
                     </div>
                   </>
                 ) : (
-                  // ── Form Donatur ──
+                  // ── Form Kontributor ──
                   <>
                     <div className={styles.field}>
                       <div className={styles.labelRow}>
-                        <label className={styles.label}>Nama Donatur</label>
+                        <label className={styles.label}>Nama Kontributor</label>
                         <span className={styles.badgeWajib}>WAJIB</span>
                       </div>
                       <input
@@ -917,11 +927,13 @@ export default function CavalleryKasPage() {
                     </>
                   ) : (
                     <>
-                      <i className="bx bx-user-plus" /> Daftar {tipe === "anggota" ? "Anggota" : "Donatur"}
+                      <i className="bx bx-user-plus" /> Daftar {tipe === "anggota" ? "Anggota" : "Kontributor"}
                     </>
                   )}
                 </button>
               </form>
+            )}
+              </>
             )}
 
             <div className={styles.helpText}>

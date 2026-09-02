@@ -2163,7 +2163,7 @@ export default function JoinPage() {
 
                         <div className={styles.field}>
                           <label>
-                            Jenis Kelamin <span>*</span>
+                            Gender <span>*</span>
                           </label>
                           <div className={styles.optionsGrid}>
                             {["Perempuan", "Laki-laki"].map((g) => (
@@ -2618,10 +2618,10 @@ export default function JoinPage() {
                       </div>
                     </div>
 
-                    {/* 1. Jenis Kelamin */}
+                    {/* 1. Gender */}
                     <div className={styles.field}>
                       <label>
-                        Jenis Kelamin <span>*</span>
+                        Gender <span>*</span>
                       </label>
                       <div className={styles.optionsGrid}>
                         {["Laki Laki", "Perempuan"].map((g) => (

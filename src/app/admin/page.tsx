@@ -7133,6 +7133,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
     { key: "keanggotaan" as any, icon: "bx-user-check",   label: "Keanggotaan", color: "#10b981" },
+    { key: "adminkontributor" as any, icon: "bx-user-heart", label: "Kontributor", color: "#6366f1" },
     { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
     { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
     { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
@@ -8272,6 +8273,7 @@ const navGroups: NavGroup[] = [
     icon: "bx-wallet",
     items: [
       { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
+      { key: "adminkontributor" as any, icon: "bx-user-heart",   label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
@@ -8362,6 +8364,10 @@ export default function AdminPage() {
       window.location.href = "/admin/keanggotaan";
       return;
     }
+    if ((section as string) === "adminkontributor") {
+      window.location.href = "/admin/kontributor";
+      return;
+    }
     if ((section as string) === "adminkas") {
       window.location.href = "/admin/kas";
       return;
@@ -8371,7 +8377,11 @@ export default function AdminPage() {
       return;
     }
     if ((section as string) === "adminspreadsheet") {
-      window.location.href = "/admin/spreadsheet";
+      window.open(
+        "https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647",
+        "_blank",
+        "noopener,noreferrer"
+      );
       return;
     }
     setActive(section);

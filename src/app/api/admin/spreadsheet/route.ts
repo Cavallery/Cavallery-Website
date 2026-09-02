@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { appendAnggotaRow, appendKasRow, appendDonasiRow } from "@/lib/googleSheets";
+import { syncAllToSheets, appendAnggotaRow, appendKasRow, appendDonasiRow } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
 // ── GET: Info Spreadsheet & Link Viewer ──
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ── POST: Trigger Full Sync dari MySQL ke Google Sheets ──
+// ── POST: Trigger Full Sync dari MySQL ke Google Sheets (Anti-Duplikasi) ──
 export async function POST(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -41,32 +41,73 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
     }
 
-    // 1. Sync Anggota Aktif
-    const anggotaList = (await query<any[]>(
-      "SELECT * FROM anggota WHERE status = 'aktif' ORDER BY id ASC"
-    )) || [];
+    // 1. Ambil Semua Anggota Aktif (Diurutkan dari 0001)
+    const anggotaList = (await query<any[]>(`
+      SELECT * FROM anggota 
+      WHERE status = 'aktif' 
+      ORDER BY 
+        CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
+        no_anggota ASC,
+        id ASC
+    `)) || [];
 
-    let countAnggota = 0;
-    for (const a of anggotaList) {
-      await appendAnggotaRow({
-        noAnggota: a.no_anggota || "-",
-        namaLengkap: a.nama_lengkap,
-        idLine: a.id_line,
-        displayLine: a.display_line,
-        discord: a.discord,
-        gender: a.gender,
-        domisili: a.domisili,
-        kontakPlatform: a.kontak_platform,
-        kontakId: a.kontak_id,
-        status: a.status,
-        jabatan: a.jabatan,
-        anggotaSejak: a.anggota_sejak,
-        createdAt: a.created_at,
-      });
-      countAnggota++;
-    }
+    const anggotaRows = anggotaList.map((a) => {
+      const formattedDate = a.created_at
+        ? new Date(a.created_at).toISOString().replace("T", " ").substring(0, 19)
+        : "-";
+      const formattedSejak = a.anggota_sejak
+        ? new Date(a.anggota_sejak).toLocaleDateString("id-ID")
+        : "-";
+      return [
+        a.no_anggota || "-",
+        a.nama_lengkap,
+        a.id_line,
+        a.display_line || "-",
+        a.discord || "-",
+        a.gender || "-",
+        a.domisili || "-",
+        `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
+        a.status || "aktif",
+        a.jabatan || "Anggota",
+        formattedSejak,
+        formattedDate,
+      ];
+    });
 
-    // 2. Sync Kas
+    // 2. Ambil Semua Kontributor Terdaftar
+    const kontributorList = (await query<any[]>(`
+      SELECT 
+        d.id,
+        d.nama,
+        d.kontak_platform,
+        d.kontak_id,
+        d.discord,
+        d.status,
+        d.created_at,
+        COALESCE(SUM(CASE WHEN kd.status = 'diverifikasi' THEN kd.nominal ELSE 0 END), 0) AS total_kontribusi
+      FROM donatur d
+      LEFT JOIN konfirmasi_donasi kd ON kd.donatur_id = d.id
+      GROUP BY d.id
+      ORDER BY d.id ASC
+    `)) || [];
+
+    const kontributorRows = kontributorList.map((c) => {
+      const formattedDate = c.created_at
+        ? new Date(c.created_at).toISOString().replace("T", " ").substring(0, 19)
+        : "-";
+      return [
+        String(c.id),
+        c.nama,
+        c.kontak_platform || "X (Twitter)",
+        c.kontak_id,
+        c.discord || "-",
+        c.status || "aktif",
+        Number(c.total_kontribusi || 0),
+        formattedDate,
+      ];
+    });
+
+    // 3. Ambil Semua Kas Diverifikasi / Riwayat Kas
     const kasList = (await query<any[]>(`
       SELECT k.*, a.no_anggota, a.nama_lengkap, a.id_line 
       FROM konfirmasi_kas k
@@ -74,59 +115,70 @@ export async function POST(req: NextRequest) {
       ORDER BY k.id ASC
     `)) || [];
 
-    let countKas = 0;
-    for (const k of kasList) {
-      await appendKasRow({
-        id: k.id,
-        noAnggota: k.no_anggota || "-",
-        namaAnggota: k.nama_lengkap,
-        idLine: k.id_line,
-        periode: k.periode,
-        nominal: Number(k.nominal),
-        status: k.status,
-        buktiBayarUrl: k.bukti_bayar_url,
-        createdAt: k.created_at,
-      });
-      countKas++;
-    }
+    const kasRows = kasList.map((k) => {
+      const formattedDate = k.created_at
+        ? new Date(k.created_at).toISOString().replace("T", " ").substring(0, 19)
+        : "-";
+      return [
+        String(k.id),
+        k.no_anggota || "-",
+        k.nama_lengkap,
+        k.id_line,
+        k.periode,
+        Number(k.nominal),
+        k.status,
+        k.bukti_bayar_url,
+        formattedDate,
+      ];
+    });
 
-    // 3. Sync Donasi
+    // 4. Ambil Semua Donasi / Kontribusi
     const donasiList = (await query<any[]>(`
       SELECT d.*, 
-        COALESCE(a.nama_lengkap, don.nama, 'Donatur') AS donor_name,
+        COALESCE(a.nama_lengkap, don.nama, 'Kontributor') AS donor_name,
         COALESCE(a.no_anggota, don.kontak_id, '-') AS donor_identitas,
         COALESCE(a.kontak_id, don.kontak_id, '-') AS donor_kontak,
-        CASE WHEN a.id IS NOT NULL THEN 'Anggota' ELSE 'Donatur' END AS donor_type
+        CASE WHEN a.id IS NOT NULL THEN 'Anggota' ELSE 'Kontributor' END AS donor_type
       FROM konfirmasi_donasi d
       LEFT JOIN anggota a ON d.anggota_id = a.id
       LEFT JOIN donatur don ON d.donatur_id = don.id
       ORDER BY d.id ASC
     `)) || [];
 
-    let countDonasi = 0;
-    for (const d of donasiList) {
-      await appendDonasiRow({
-        id: d.id,
-        tipeDonatur: d.donor_type as any,
-        identitas: d.donor_identitas,
-        nama: d.donor_name,
-        kontak: d.donor_kontak,
-        tipeDonasi: d.tipe_donasi,
-        nominal: Number(d.nominal),
-        status: d.status,
-        buktiBayarUrl: d.bukti_bayar_url,
-        createdAt: d.created_at,
-      });
-      countDonasi++;
-    }
+    const donasiRows = donasiList.map((d) => {
+      const formattedDate = d.created_at
+        ? new Date(d.created_at).toISOString().replace("T", " ").substring(0, 19)
+        : "-";
+      return [
+        String(d.id),
+        d.donor_type,
+        d.donor_identitas,
+        d.donor_name,
+        d.donor_kontak,
+        d.tipe_donasi,
+        Number(d.nominal),
+        d.status,
+        d.bukti_bayar_url,
+        formattedDate,
+      ];
+    });
+
+    // Kirim sinkronisasi batch ke Google Apps Script (Replace data lama agar tidak duplikat)
+    await syncAllToSheets({
+      anggotaRows,
+      kontributorRows,
+      kasRows,
+      donasiRows,
+    });
 
     return NextResponse.json({
       status: true,
-      message: `Full Backup Berhasil! Disinkronkan: ${countAnggota} Anggota, ${countKas} Data Kas, ${countDonasi} Data Donasi ke Google Spreadsheet.`,
+      message: `Full Backup Berhasil (Anti-Duplikat)! Data telah diperbarui: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Data Kontribusi ke Google Spreadsheet.`,
       synced: {
-        anggota: countAnggota,
-        kas: countKas,
-        donasi: countDonasi,
+        anggota: anggotaRows.length,
+        kontributor: kontributorRows.length,
+        kas: kasRows.length,
+        donasi: donasiRows.length,
       },
     });
   } catch (error: any) {

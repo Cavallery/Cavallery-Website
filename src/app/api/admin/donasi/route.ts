@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
+import { appendDonasiRow, updateDonasiStatusInSheet, deleteDonasiRow } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi donasi ──
@@ -92,11 +93,49 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ status: false, message: "Nominal dan Tipe Donasi wajib diisi" }, { status: 400 });
       }
 
-      await query(
+      const res = await query<any>(
         `INSERT INTO konfirmasi_donasi (anggota_id, donatur_id, tipe_donasi, nominal, bukti_bayar_url, status, verified_at, verified_by) 
          VALUES (?, ?, ?, ?, ?, 'diverifikasi', NOW(), ?)`,
         [anggotaId || null, donaturId || null, tipeDonasi, Number(nominal), buktiBayarUrl || "", admin.nama]
       );
+
+      const insertedId = res?.insertId || Date.now();
+
+      // Realtime push ke Google Sheets
+      let donorName = "Kontributor";
+      let donorIdentitas = "-";
+      let donorKontak = "-";
+      let donorType: "Anggota" | "Donatur" = "Donatur";
+
+      if (anggotaId) {
+        const angRows = await query<any[]>("SELECT no_anggota, nama_lengkap, kontak_id, id_line FROM anggota WHERE id = ? LIMIT 1", [anggotaId]);
+        if (angRows && angRows.length > 0) {
+          donorName = angRows[0].nama_lengkap;
+          donorIdentitas = angRows[0].no_anggota || "-";
+          donorKontak = angRows[0].kontak_id || angRows[0].id_line;
+          donorType = "Anggota";
+        }
+      } else if (donaturId) {
+        const donRows = await query<any[]>("SELECT nama, kontak_id FROM donatur WHERE id = ? LIMIT 1", [donaturId]);
+        if (donRows && donRows.length > 0) {
+          donorName = donRows[0].nama;
+          donorIdentitas = donRows[0].kontak_id;
+          donorKontak = donRows[0].kontak_id;
+        }
+      }
+
+      appendDonasiRow({
+        id: insertedId,
+        tipeDonatur: donorType,
+        identitas: donorIdentitas,
+        nama: donorName,
+        kontak: donorKontak,
+        tipeDonasi,
+        nominal: Number(nominal),
+        status: "diverifikasi",
+        buktiBayarUrl: buktiBayarUrl || "",
+        createdAt: new Date(),
+      }).catch((err) => console.error("Realtime push donasi manual ke Sheets error:", err));
 
       return NextResponse.json({
         status: true,
@@ -104,23 +143,70 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // DELETE DONASI
+    if (action === "delete") {
+      await query("DELETE FROM konfirmasi_donasi WHERE id = ?", [id]);
+      deleteDonasiRow(id).catch((e) => console.error("Delete donasi from sheets error:", e));
+      return NextResponse.json({
+        status: true,
+        message: `Data donasi / kontribusi #${id} berhasil dihapus dari sistem & spreadsheet.`,
+      });
+    }
+
     if (!id || !action) {
       return NextResponse.json({ status: false, message: "Parameter id dan action wajib dikirim" }, { status: 400 });
     }
 
-    const newStatus = action === "verifikasi" ? "diverifikasi" : "ditolak";
+    let targetStatus = "diverifikasi";
+    if (action === "update_status") {
+      targetStatus = body.status || "diverifikasi";
+    } else if (action === "tolak") {
+      targetStatus = "ditolak";
+    } else if (action === "pending") {
+      targetStatus = "pending";
+    }
+
     const now = new Date();
 
     await query(
       `UPDATE konfirmasi_donasi 
        SET status = ?, verified_at = ?, verified_by = ? 
        WHERE id = ?`,
-      [newStatus, now, admin.nama, id]
+      [targetStatus, targetStatus === "diverifikasi" ? now : null, targetStatus === "diverifikasi" ? admin.nama : null, id]
     );
+
+    // Update status baris di Google Sheets tanpa duplikasi baris
+    const donDetail = await query<any[]>(`
+      SELECT d.*, 
+        COALESCE(a.nama_lengkap, don.nama, 'Kontributor') AS donor_name,
+        COALESCE(a.no_anggota, don.kontak_id, '-') AS donor_identitas,
+        COALESCE(a.kontak_id, don.kontak_id, '-') AS donor_kontak,
+        CASE WHEN a.id IS NOT NULL THEN 'Anggota' ELSE 'Donatur' END AS donor_type
+      FROM konfirmasi_donasi d
+      LEFT JOIN anggota a ON d.anggota_id = a.id
+      LEFT JOIN donatur don ON d.donatur_id = don.id
+      WHERE d.id = ? LIMIT 1
+    `, [id]);
+
+    if (donDetail && donDetail.length > 0) {
+      const d = donDetail[0];
+      updateDonasiStatusInSheet(id, targetStatus, {
+        tipeDonatur: d.donor_type,
+        identitas: d.donor_identitas,
+        nama: d.donor_name,
+        kontak: d.donor_kontak,
+        tipeDonasi: d.tipe_donasi,
+        nominal: d.nominal,
+        buktiBayarUrl: d.bukti_bayar_url,
+        createdAt: d.created_at,
+      }).catch((err) =>
+        console.error("Realtime update status donasi di Sheets error:", err)
+      );
+    }
 
     return NextResponse.json({
       status: true,
-      message: `Konfirmasi donasi #${id} berhasil di-${newStatus}.`,
+      message: `Status donasi #${id} berhasil diubah menjadi "${targetStatus}".`,
     });
   } catch (error: any) {
     console.error("Action donasi error:", error);
@@ -175,10 +261,11 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM konfirmasi_donasi WHERE id = ?", [id]);
+    deleteDonasiRow(id).catch((e) => console.error("Delete donasi row in sheets error:", e));
 
     return NextResponse.json({
       status: true,
-      message: `Data donasi #${id} berhasil dihapus dari database.`,
+      message: `Data donasi #${id} berhasil dihapus dari database & spreadsheet.`,
     });
   } catch (error: any) {
     console.error("Delete donasi error:", error);

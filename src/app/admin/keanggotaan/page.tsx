@@ -292,19 +292,24 @@ export default function AdminKeanggotaanPage() {
             >
               <i className="bx bx-user-plus" /> Tambah Anggota Manual
             </button>
+            <Link href="/admin/kontributor" className={styles.backBtn}>
+              <i className="bx bx-user-heart" /> Kontributor
+            </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
             </Link>
             <Link href="/admin/donasi" className={styles.backBtn}>
               <i className="bx bx-donate-heart" /> Verifikasi Donasi
             </Link>
-            <Link
-              href="/admin/spreadsheet"
+            <a
+              href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
+              target="_blank"
+              rel="noopener noreferrer"
               className={styles.backBtn}
               style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}
             >
               <i className="bx bx-table" /> Live Spreadsheet
-            </Link>
+            </a>
             <ThemeToggle />
           </div>
         </div>
@@ -358,12 +363,12 @@ export default function AdminKeanggotaanPage() {
           <div className={styles.toggleCard}>
             <div className={styles.toggleInfo}>
               <span className={styles.toggleTitle}>
-                <i className="bx bx-donate-heart" style={{ color: "var(--gold)" }} /> Pendaftaran Donatur
+                <i className="bx bx-user-heart" style={{ color: "var(--gold)" }} /> Pendaftaran Kontributor
               </span>
               <span className={styles.toggleDesc}>
                 {regDonaturOpen
-                  ? "Pendaftaran donatur baru sedang DIBUKA"
-                  : "Pendaftaran donatur baru sedang DITUTUP"}
+                  ? "Pendaftaran kontributor baru sedang DIBUKA"
+                  : "Pendaftaran kontributor baru sedang DITUTUP"}
               </span>
             </div>
             <button
@@ -563,20 +568,45 @@ export default function AdminKeanggotaanPage() {
                           </span>
                         </td>
                         <td>
-                          <select
-                            value={jabatan}
-                            onChange={(e) =>
-                              handleAction(a.id, "update_jabatan", { jabatan: e.target.value })
-                            }
-                            className={isAdminRole ? styles.selectJabatanAdmin : styles.selectJabatanMember}
-                            title="Ubah Jabatan / Role Anggota"
-                          >
-                            {JABATAN_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                            <select
+                              value={jabatan}
+                              onChange={(e) =>
+                                handleAction(a.id, "update_jabatan", {
+                                  jabatan: e.target.value,
+                                  divisi: e.target.value === "Admin Fanbase" ? (a.divisi || "Ketua") : undefined,
+                                })
+                              }
+                              className={isAdminRole ? styles.selectJabatanAdmin : styles.selectJabatanMember}
+                              title="Ubah Jabatan / Role Anggota"
+                            >
+                              {JABATAN_OPTIONS.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+
+                            {isAdminRole && (
+                              <select
+                                value={a.divisi || "Ketua"}
+                                onChange={(e) =>
+                                  handleAction(a.id, "update_jabatan", {
+                                    jabatan: "Admin Fanbase",
+                                    divisi: e.target.value,
+                                  })
+                                }
+                                className={styles.selectDivisiAdmin}
+                                title="Ubah Divisi Pengurus"
+                              >
+                                {DIVISI_OPTIONS.map((div) => (
+                                  <option key={div} value={div}>
+                                    {div}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <div className={styles.actionButtonGroup}>
@@ -598,6 +628,7 @@ export default function AdminKeanggotaanPage() {
                                   kontakId: a.kontakId || a.kontak_id || "",
                                   status: a.status || "aktif",
                                   jabatan,
+                                  divisi: a.divisi || "Ketua",
                                   fotoProfil: avatarUrl || "",
                                   anggotaSejak: a.anggotaSejak || a.anggota_sejak,
                                 })

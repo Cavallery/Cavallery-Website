@@ -81,12 +81,21 @@ export default function AdminDonasiPage() {
             <Link href="/admin/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
+            <Link href="/admin/kontributor" className={styles.backBtn}>
+              <i className="bx bx-user-heart" /> Kontributor
+            </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
             </Link>
-            <Link href="/admin/spreadsheet" className={styles.backBtn} style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}>
+            <a
+              href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.backBtn}
+              style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}
+            >
               <i className="bx bx-table" /> Live Spreadsheet
-            </Link>
+            </a>
             <ThemeToggle />
           </div>
         </div>
