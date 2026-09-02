@@ -139,8 +139,19 @@ export default function AdminKasPage() {
     try {
       const res = await fetch("/api/admin/keanggotaan");
       const json = await res.json();
-      if (json.status && json.data) setAnggotaList(json.data);
-    } catch (e) { console.error(e); }
+      if (json.status && json.data) {
+        if (Array.isArray(json.data)) {
+          setAnggotaList(json.data);
+        } else if (Array.isArray(json.data.direktori)) {
+          setAnggotaList(json.data.direktori);
+        } else {
+          setAnggotaList([]);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      setAnggotaList([]);
+    }
   };
 
   useEffect(() => {
@@ -1204,7 +1215,7 @@ export default function AdminKasPage() {
                   required
                 >
                   <option value="">-- Pilih Anggota --</option>
-                  {anggotaList.map((a) => (
+                  {(Array.isArray(anggotaList) ? anggotaList : []).map((a) => (
                     <option key={a.id} value={a.no_anggota || a.noAnggota}>
                       {a.no_anggota || a.noAnggota || "Tanpa No"} - {a.nama_lengkap || a.namaLengkap}
                     </option>

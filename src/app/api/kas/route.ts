@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { appendKasRow } from "@/lib/googleSheets";
-import { query } from "@/lib/mysql";
+import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
 
 // ── GET: Ambil riwayat kas user yang sedang login ──
 export async function GET(req: NextRequest) {
@@ -63,14 +63,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Simpan ke Database
-    const insertRes: any = await query(
-      `INSERT INTO konfirmasi_kas (anggota_id, periode, nominal, bukti_bayar_url, status) 
-       VALUES (?, ?, ?, ?, 'pending')`,
-      [session.id, periode.trim(), Number(nominal), buktiBayarUrl.trim()]
+    // 1. Simpan ke Database dengan ID terkecil yang tersedia (tidak lompat ID)
+    const nextId = await getNextAvailableId("konfirmasi_kas");
+
+    await query(
+      `INSERT INTO konfirmasi_kas (id, anggota_id, periode, nominal, bukti_bayar_url, status) 
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
+      [nextId, session.id, periode.trim(), Number(nominal), buktiBayarUrl.trim()]
     );
 
-    const insertedId = insertRes?.insertId;
+    await resetAutoIncrement("konfirmasi_kas");
+    const insertedId = nextId;
 
     // 2. Fetch data anggota untuk Google Sheets
     const anggotaRows = await query<any[]>(
