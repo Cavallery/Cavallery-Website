@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/mysql";
 import { getSetting } from "@/lib/settings";
+import { appendKontributorRow } from "@/lib/googleSheets";
 
 export async function POST(req: NextRequest) {
   try {
@@ -112,15 +113,27 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      await query(
+      const insertRes = await query<any>(
         `INSERT INTO donatur (nama, kontak_platform, kontak_id, discord, status) 
          VALUES (?, ?, ?, ?, 'aktif')`,
         [nama.trim(), kontakPlatform, kontakId.trim(), discord?.trim() || null]
       );
 
+      // Realtime auto-push ke Google Sheets
+      appendKontributorRow({
+        id: insertRes?.insertId || Date.now(),
+        nama: nama.trim(),
+        kontakPlatform,
+        kontakId: kontakId.trim(),
+        discord: discord?.trim() || null,
+        status: "aktif",
+        totalKontribusi: 0,
+        createdAt: new Date(),
+      }).catch((err) => console.error("Realtime push daftar kontributor ke Sheets error:", err));
+
       return NextResponse.json({
         status: true,
-        message: "Pendaftaran donatur berhasil! Anda sekarang dapat masuk menggunakan Nama dan ID Kontak.",
+        message: "Pendaftaran kontributor berhasil! Anda sekarang dapat masuk menggunakan Nama dan ID Kontak.",
       });
     }
   } catch (error: any) {

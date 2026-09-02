@@ -157,3 +157,151 @@ export async function appendDonasiRow(data: {
     object: data,
   });
 }
+
+/**
+ * 4. Push data Kontributor ke tab "Kontributor" di Google Sheets
+ */
+export async function appendKontributorRow(data: {
+  id: number | string;
+  nama: string;
+  kontakPlatform: string;
+  kontakId: string;
+  discord?: string | null;
+  status: string;
+  totalKontribusi?: number;
+  createdAt?: string | Date;
+}) {
+  const formattedDate = data.createdAt
+    ? new Date(data.createdAt).toISOString().replace("T", " ").substring(0, 19)
+    : new Date().toISOString().replace("T", " ").substring(0, 19);
+
+  const row = [
+    String(data.id),
+    data.nama,
+    data.kontakPlatform,
+    data.kontakId,
+    data.discord || "-",
+    data.status,
+    Number(data.totalKontribusi || 0),
+    formattedDate,
+  ];
+
+  await sendToAppsScript("append_kontributor", {
+    tab: "Kontributor",
+    row,
+    object: data,
+  });
+}
+
+/**
+ * 5. Sync All (Full Backup) - Mengirim semua rows sekaligus agar di-replace tanpa duplikasi
+ */
+export async function syncAllToSheets(payload: {
+  anggotaRows: any[][];
+  kontributorRows?: any[][];
+  kasRows: any[][];
+  donasiRows: any[][];
+}): Promise<boolean> {
+  return await sendToAppsScript("sync_all", payload);
+}
+
+/**
+ * 6. Hapus baris dari Google Sheets berdasarkan nilai kolom tertentu
+ */
+export async function deleteFromSheets(tab: string, matchColumn: number, matchValue: string | number): Promise<boolean> {
+  return await sendToAppsScript("delete_row", {
+    tab,
+    matchColumn,
+    matchValue: String(matchValue).trim(),
+  });
+}
+
+export async function deleteAnggotaRow(noAnggota: string): Promise<boolean> {
+  return await sendToAppsScript("delete_anggota", {
+    tab: "Anggota",
+    noAnggota: String(noAnggota).trim(),
+  });
+}
+
+export async function deleteKontributorRow(id: number | string): Promise<boolean> {
+  return await sendToAppsScript("delete_kontributor", {
+    tab: "Kontributor",
+    id: String(id).trim(),
+  });
+}
+
+export async function deleteKasRow(id: number | string): Promise<boolean> {
+  return await sendToAppsScript("delete_kas", {
+    tab: "Kas",
+    id: String(id).trim(),
+  });
+}
+
+export async function deleteDonasiRow(id: number | string): Promise<boolean> {
+  return await sendToAppsScript("delete_donasi", {
+    tab: "Donasi",
+    id: String(id).trim(),
+  });
+}
+
+/**
+ * 7. Update status baris secara langsung di Google Sheets tanpa duplikasi
+ */
+export async function updateKasStatusInSheet(id: number | string, newStatus: string, fullData?: any): Promise<boolean> {
+  let row: any[] | undefined;
+  if (fullData) {
+    const formattedDate = fullData.createdAt
+      ? new Date(fullData.createdAt).toISOString().replace("T", " ").substring(0, 19)
+      : new Date().toISOString().replace("T", " ").substring(0, 19);
+    row = [
+      String(id),
+      fullData.noAnggota || "-",
+      fullData.namaAnggota || fullData.namaLengkap,
+      fullData.idLine,
+      fullData.periode,
+      Number(fullData.nominal),
+      newStatus,
+      fullData.buktiBayarUrl || "",
+      formattedDate,
+    ];
+  }
+
+  return await sendToAppsScript("update_status", {
+    tab: "Kas",
+    id: String(id).trim(),
+    status: newStatus,
+    row,
+  });
+}
+
+export async function updateDonasiStatusInSheet(id: number | string, newStatus: string, fullData?: any): Promise<boolean> {
+  let row: any[] | undefined;
+  if (fullData) {
+    const formattedDate = fullData.createdAt
+      ? new Date(fullData.createdAt).toISOString().replace("T", " ").substring(0, 19)
+      : new Date().toISOString().replace("T", " ").substring(0, 19);
+    row = [
+      String(id),
+      fullData.tipeDonatur || "Donatur",
+      fullData.identitas || "-",
+      fullData.nama,
+      fullData.kontak,
+      fullData.tipeDonasi,
+      Number(fullData.nominal),
+      newStatus,
+      fullData.buktiBayarUrl || "",
+      formattedDate,
+    ];
+  }
+
+  return await sendToAppsScript("update_status", {
+    tab: "Donasi",
+    id: String(id).trim(),
+    status: newStatus,
+    row,
+  });
+}
+
+
+
+

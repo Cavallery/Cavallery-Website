@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
+import { appendKasRow, updateKasStatusInSheet, deleteKasRow } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi kas ──
@@ -78,11 +79,30 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ status: false, message: "Anggota, Periode, dan Nominal wajib diisi" }, { status: 400 });
       }
 
-      await query(
+      const res = await query<any>(
         `INSERT INTO konfirmasi_kas (anggota_id, periode, nominal, bukti_bayar_url, status, verified_at, verified_by) 
          VALUES (?, ?, ?, ?, 'diverifikasi', NOW(), ?)`,
         [anggotaId, periode, Number(nominal), buktiBayarUrl || "", admin.nama]
       );
+
+      const insertedId = res?.insertId || Date.now();
+
+      // Realtime push ke Google Sheets
+      const angRows = await query<any[]>("SELECT no_anggota, nama_lengkap, id_line FROM anggota WHERE id = ? LIMIT 1", [anggotaId]);
+      if (angRows && angRows.length > 0) {
+        const a = angRows[0];
+        appendKasRow({
+          id: insertedId,
+          noAnggota: a.no_anggota || "-",
+          namaAnggota: a.nama_lengkap,
+          idLine: a.id_line,
+          periode,
+          nominal: Number(nominal),
+          status: "diverifikasi",
+          buktiBayarUrl: buktiBayarUrl || "",
+          createdAt: new Date(),
+        }).catch((err) => console.error("Realtime push kas manual ke Sheets error:", err));
+      }
 
       return NextResponse.json({
         status: true,
@@ -90,23 +110,56 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // DELETE KAS
+    if (action === "delete") {
+      await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
+      deleteKasRow(id).catch((e) => console.error("Delete kas from sheets error:", e));
+      return NextResponse.json({
+        status: true,
+        message: `Data kas #${id} berhasil dihapus dari sistem & spreadsheet.`,
+      });
+    }
+
     if (!id || !action) {
       return NextResponse.json({ status: false, message: "Parameter id dan action wajib dikirim" }, { status: 400 });
     }
 
-    const newStatus = action === "verifikasi" ? "diverifikasi" : "ditolak";
+    let targetStatus = "diverifikasi";
+    if (action === "update_status") {
+      targetStatus = body.status || "diverifikasi";
+    } else if (action === "tolak") {
+      targetStatus = "ditolak";
+    } else if (action === "pending") {
+      targetStatus = "pending";
+    }
+
     const now = new Date();
 
     await query(
       `UPDATE konfirmasi_kas 
        SET status = ?, verified_at = ?, verified_by = ? 
        WHERE id = ?`,
-      [newStatus, now, admin.nama, id]
+      [targetStatus, targetStatus === "diverifikasi" ? now : null, targetStatus === "diverifikasi" ? admin.nama : null, id]
     );
+
+    // Update status baris di Google Sheets tanpa duplikasi baris
+    const kasDetail = await query<any[]>(`
+      SELECT k.*, a.no_anggota, a.nama_lengkap, a.id_line 
+      FROM konfirmasi_kas k
+      JOIN anggota a ON k.anggota_id = a.id
+      WHERE k.id = ? LIMIT 1
+    `, [id]);
+
+    if (kasDetail && kasDetail.length > 0) {
+      const k = kasDetail[0];
+      updateKasStatusInSheet(id, targetStatus, k).catch((err) =>
+        console.error("Realtime update status kas di Sheets error:", err)
+      );
+    }
 
     return NextResponse.json({
       status: true,
-      message: `Pembayaran kas #${id} berhasil di-${newStatus}.`,
+      message: `Status kas #${id} berhasil diubah menjadi "${targetStatus}".`,
     });
   } catch (error: any) {
     console.error("Action kas error:", error);
@@ -161,10 +214,11 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
+    deleteKasRow(id).catch((e) => console.error("Delete kas row in sheets error:", e));
 
     return NextResponse.json({
       status: true,
-      message: `Data kas #${id} berhasil dihapus dari database.`,
+      message: `Data kas #${id} berhasil dihapus dari database & spreadsheet.`,
     });
   } catch (error: any) {
     console.error("Delete kas error:", error);

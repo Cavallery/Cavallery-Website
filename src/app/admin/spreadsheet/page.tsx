@@ -108,6 +108,9 @@ export default function AdminSpreadsheetPage() {
             <Link href="/admin/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
+            <Link href="/admin/kontributor" className={styles.backBtn}>
+              <i className="bx bx-user-heart" /> Kontributor
+            </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Kas
             </Link>
@@ -138,32 +141,18 @@ export default function AdminSpreadsheetPage() {
                   <i className="bx bx-check-circle" /> Terhubung ke Google Apps Script Web App
                 </span>
               </p>
-              {info?.appsScriptUrl && (
-                <p
-                  style={{
-                    margin: "6px 0 0",
-                    fontSize: "0.78rem",
-                    color: "var(--fg-dim)",
-                    wordBreak: "break-all",
-                  }}
-                >
-                  Endpoint: <code>{info.appsScriptUrl}</code>
-                </p>
-              )}
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-              {directSheetUrl && (
-                <a
-                  href={directSheetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.backBtn}
-                  style={{ background: "#10b981", color: "#fff", border: "none", fontWeight: 800 }}
-                >
-                  <i className="bx bx-link-external" /> Buka Spreadsheet di Tab Baru
-                </a>
-              )}
+              <a
+                href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.backBtn}
+                style={{ background: "#10b981", color: "#fff", border: "none", fontWeight: 800 }}
+              >
+                <i className="bx bx-link-external" /> Buka Spreadsheet di Tab Baru
+              </a>
               <button
                 type="button"
                 className={styles.btnCreate}
