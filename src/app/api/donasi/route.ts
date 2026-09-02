@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { appendDonasiRow } from "@/lib/googleSheets";
-import { query } from "@/lib/mysql";
+import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
 
 // ── GET: Leaderboard donasi & riwayat donasi user ──
 export async function GET(req: NextRequest) {
@@ -86,14 +86,17 @@ export async function POST(req: NextRequest) {
     const donaturId = session.type === "donatur" ? session.id : null;
     const selectedTipeDonasi = tipeDonasi || "General Support";
 
-    // 1. Simpan ke Database
-    const insertRes: any = await query(
-      `INSERT INTO konfirmasi_donasi (anggota_id, donatur_id, tipe_donasi, nominal, bukti_bayar_url, status) 
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [anggotaId, donaturId, selectedTipeDonasi, Number(nominal), buktiBayarUrl.trim()]
+    // 1. Simpan ke Database dengan ID terkecil yang tersedia (tidak melompat)
+    const nextId = await getNextAvailableId("konfirmasi_donasi");
+
+    await query(
+      `INSERT INTO konfirmasi_donasi (id, anggota_id, donatur_id, tipe_donasi, nominal, bukti_bayar_url, status) 
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+      [nextId, anggotaId, donaturId, selectedTipeDonasi, Number(nominal), buktiBayarUrl.trim()]
     );
 
-    const insertedId = insertRes?.insertId;
+    await resetAutoIncrement("konfirmasi_donasi");
+    const insertedId = nextId;
 
     // 2. Fire-and-forget: Push ke Google Sheets Tab "Donasi"
     appendDonasiRow({

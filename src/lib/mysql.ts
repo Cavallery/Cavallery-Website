@@ -67,4 +67,42 @@ export async function query<T = any>(sql: string, params: any[] = []): Promise<T
   }
 }
 
+export async function resetAutoIncrement(tableName: string): Promise<void> {
+  try {
+    const rows = await query<any[]>(`SELECT COALESCE(MAX(id), 0) AS max_id FROM ${tableName}`);
+    const maxId = rows && rows.length > 0 ? Number(rows[0].max_id || 0) : 0;
+    const nextAutoInc = Math.max(1, maxId + 1);
+    await query(`ALTER TABLE ${tableName} AUTO_INCREMENT = ${nextAutoInc}`);
+  } catch (e: any) {
+    console.error(`[MySQL] Error resetting AUTO_INCREMENT for ${tableName}:`, e?.message);
+  }
+}
+
+export async function getNextAvailableId(tableName: string): Promise<number> {
+  try {
+    // 1. Jika ID 1 tidak ada, selalu mulai dari 1
+    const checkOne = await query<any[]>(`SELECT id FROM ${tableName} WHERE id = 1 LIMIT 1`);
+    if (!checkOne || checkOne.length === 0) {
+      await query(`ALTER TABLE ${tableName} AUTO_INCREMENT = 1`);
+      return 1;
+    }
+    // 2. Cari lubang/gap ID terkecil yang kosong
+    const rows = await query<any[]>(`
+      SELECT t1.id + 1 AS next_id
+      FROM ${tableName} t1
+      LEFT JOIN ${tableName} t2 ON t1.id + 1 = t2.id
+      WHERE t2.id IS NULL
+      ORDER BY t1.id ASC
+      LIMIT 1
+    `);
+    if (rows && rows.length > 0 && rows[0].next_id) {
+      const nextId = Number(rows[0].next_id);
+      return nextId;
+    }
+  } catch (e: any) {
+    console.error(`[MySQL] Error finding next ID for ${tableName}:`, e?.message);
+  }
+  return 1;
+}
+
 export default getPool;

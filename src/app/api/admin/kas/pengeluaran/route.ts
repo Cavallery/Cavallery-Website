@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { query } from "@/lib/mysql";
+import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
 
 // Helper memastikan tabel pengeluaran_kas ada
 async function ensurePengeluaranTable() {
@@ -84,10 +84,14 @@ export async function POST(req: NextRequest) {
     const tahun = !isNaN(tDate.getFullYear()) ? tDate.getFullYear() : new Date().getFullYear();
     const cleanNominal = Number(nominal) || 0;
 
-    const res = await query<any>(
-      `INSERT INTO pengeluaran_kas (tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    // Cari ID terkecil yang belum terpakai (contoh: jika ID 1 kosong, gunakan ID 1)
+    const nextId = await getNextAvailableId("pengeluaran_kas");
+
+    await query(
+      `INSERT INTO pengeluaran_kas (id, tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        nextId,
         tanggal,
         tahun,
         kategori || "Operasional",
@@ -99,10 +103,13 @@ export async function POST(req: NextRequest) {
       ]
     );
 
+    // Sinkronkan AUTO_INCREMENT ke max(id) + 1
+    await resetAutoIncrement("pengeluaran_kas");
+
     return NextResponse.json({
       status: true,
       message: "Pengeluaran kas berhasil dicatat",
-      id: res?.insertId,
+      id: nextId,
     });
   } catch (error: any) {
     console.error("POST pengeluaran error:", error);
@@ -125,6 +132,10 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM pengeluaran_kas WHERE id = ?", [id]);
+
+    // Reset AUTO_INCREMENT agar data berikutnya tidak melompati ID yang dihapus
+    await resetAutoIncrement("pengeluaran_kas");
+
     return NextResponse.json({ status: true, message: "Pengeluaran kas berhasil dihapus" });
   } catch (error: any) {
     console.error("DELETE pengeluaran error:", error);
