@@ -28,6 +28,8 @@ export default function AdminKeanggotaanPage() {
   const [direktoriList, setDirektoriList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterJabatan, setFilterJabatan] = useState<"semua" | "anggota" | "admin">("semua");
+  const [filterGender, setFilterGender] = useState<"semua" | "perempuan" | "laki">("semua");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -484,18 +486,81 @@ export default function AdminKeanggotaanPage() {
               <i className="bx bx-id-card" style={{ color: "var(--gold)" }} />
               Direktori Anggota Resmi
               <span className={`${styles.countBadge} ${styles.countBadgeGreen}`}>
-                {direktoriList.length} Anggota
+                {direktoriList.length} Total
               </span>
             </h2>
 
-            <div className={styles.searchBar}>
-              <i className="bx bx-search" />
-              <input
-                type="text"
-                placeholder="Cari Nama / CAVA-xxxx / Domisili..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            {/* Filter & Search Bar */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
+              {/* Filter Jabatan */}
+              <div style={{ display: "flex", gap: 6 }}>
+                {(["semua", "anggota", "admin"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFilterJabatan(f)}
+                    style={{
+                      padding: "5px 14px",
+                      borderRadius: 50,
+                      border: filterJabatan === f ? "2px solid var(--primary)" : "1.5px solid var(--border)",
+                      background: filterJabatan === f ? "var(--primary)" : "transparent",
+                      color: filterJabatan === f ? "#fff" : "var(--fg-muted)",
+                      fontWeight: 700,
+                      fontSize: "0.78rem",
+                      cursor: "pointer",
+                      transition: "all 0.18s",
+                    }}
+                  >
+                    {f === "semua" ? (
+                      <><i className="bx bx-group" /> Semua ({direktoriList.length})</>
+                    ) : f === "anggota" ? (
+                      <><i className="bx bx-user" /> Anggota ({direktoriList.filter(a => (a.jabatan || "Anggota") === "Anggota").length})</>
+                    ) : (
+                      <><i className="bx bx-shield" /> Admin ({direktoriList.filter(a => (a.jabatan || "Anggota") !== "Anggota").length})</>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Filter Gender */}
+              <div style={{ display: "flex", gap: 6 }}>
+                {(["semua", "laki", "perempuan"] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setFilterGender(g)}
+                    style={{
+                      padding: "5px 14px",
+                      borderRadius: 50,
+                      border: filterGender === g ? "2px solid #e879f9" : "1.5px solid var(--border)",
+                      background: filterGender === g ? "rgba(232,121,249,0.15)" : "transparent",
+                      color: filterGender === g ? "#e879f9" : "var(--fg-muted)",
+                      fontWeight: 700,
+                      fontSize: "0.78rem",
+                      cursor: "pointer",
+                      transition: "all 0.18s",
+                    }}
+                  >
+                    {g === "semua" ? (
+                      <><i className="bx bx-filter-alt" /> Gender</>
+                    ) : g === "perempuan" ? (
+                      <><i className="bx bx-female" /> Perempuan ({direktoriList.filter(a => a.gender === "Perempuan").length})</>
+                    ) : (
+                      <><i className="bx bx-male" /> Laki-laki ({direktoriList.filter(a => a.gender === "Laki-laki").length})</>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.searchBar}>
+                <i className="bx bx-search" />
+                <input
+                  type="text"
+                  placeholder="Cari Nama / CAVA-xxxx / Domisili..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
@@ -509,8 +574,24 @@ export default function AdminKeanggotaanPage() {
               <i className="bx bx-search" />
               <p>Tidak ada data anggota yang cocok.</p>
             </div>
-          ) : (
+          ) : (() => {
+            const filtered = direktoriList.filter((a) => {
+              const jabatan = a.jabatan || "Anggota";
+              if (filterJabatan === "anggota" && jabatan !== "Anggota") return false;
+              if (filterJabatan === "admin" && jabatan === "Anggota") return false;
+              if (filterGender === "perempuan" && a.gender !== "Perempuan") return false;
+              if (filterGender === "laki" && a.gender !== "Laki-laki") return false;
+              return true;
+            });
+            const totalNominal = filtered.length;
+            return (
             <div className={styles.tableWrap}>
+              <div style={{ padding: "6px 12px", marginBottom: 8, background: "rgba(var(--primary-rgb,160,100,30),0.08)", borderRadius: 8, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                <span><i className="bx bx-user-check" style={{ color: "#10b981" }} /> <strong style={{ color: "var(--fg)" }}>{totalNominal}</strong> anggota ditampilkan</span>
+                <span><i className="bx bx-female" style={{ color: "#e879f9" }} /> <strong style={{ color: "#e879f9" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
+                <span><i className="bx bx-male" style={{ color: "#60a5fa" }} /> <strong style={{ color: "#60a5fa" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
+                <span><i className="bx bx-shield" style={{ color: "var(--primary)" }} /> <strong style={{ color: "var(--primary)" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>
+              </div>
               <table className={styles.table}>
                 <thead>
                   <tr>
@@ -527,7 +608,7 @@ export default function AdminKeanggotaanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {direktoriList.map((a) => {
+                  {filtered.map((a) => {
                     const noAnggota = a.noAnggota || a.no_anggota || "-";
                     const namaLengkap = a.namaLengkap || a.nama_lengkap || "-";
                     const idLine = a.idLine || a.id_line || "-";
@@ -551,7 +632,14 @@ export default function AdminKeanggotaanPage() {
                         <td>
                           <span className={styles.noAnggota}>{noAnggota}</span>
                         </td>
-                        <td className={styles.nameCol}>{namaLengkap}</td>
+                        <td className={styles.nameCol}>
+                          {namaLengkap}
+                          {a.gender === "Perempuan" && (
+                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "rgba(232,121,249,0.18)", color: "#e879f9", fontWeight: 700, verticalAlign: "middle" }}>
+                              <i className="bx bx-female" /> P
+                            </span>
+                          )}
+                        </td>
                         <td>{idLine}</td>
                         <td>{a.gender || "-"}</td>
                         <td>{a.domisili || "-"}</td>
@@ -673,7 +761,8 @@ export default function AdminKeanggotaanPage() {
                 </tbody>
               </table>
             </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 

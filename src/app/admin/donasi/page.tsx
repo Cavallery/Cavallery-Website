@@ -15,6 +15,7 @@ export default function AdminDonasiPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [filterTipe, setFilterTipe] = useState<"semua" | "anggota" | "donatur">("semua");
 
   const fetchDonasi = async () => {
     try {
@@ -38,14 +39,14 @@ export default function AdminDonasiPage() {
     fetchDonasi();
   }, []);
 
-  const handleAction = async (id: number, action: "verifikasi" | "tolak") => {
+  const handleAction = async (id: number, action: string, extra: any = {}) => {
     setActionLoading(id);
     setMsg("");
     try {
       const res = await fetch("/api/admin/donasi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id, action, ...extra }),
       });
       const json = await res.json();
       if (json.status) {
@@ -61,8 +62,42 @@ export default function AdminDonasiPage() {
     }
   };
 
-  const pendingDonasi = donasiList.filter((d) => d.status === "pending");
-  const processedDonasi = donasiList.filter((d) => d.status !== "pending");
+  const handleDeleteDonasi = async (id: number) => {
+    if (!confirm(`Hapus data donasi #${id} dari sistem & spreadsheet?`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/donasi?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        fetchDonasi();
+      } else {
+        alert(json.message || "Gagal menghapus donasi");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    }
+  };
+
+  // Filter List
+  const filteredDonasi = donasiList.filter((d) => {
+    const isAnggota = Boolean(d.anggota);
+    if (filterTipe === "anggota" && !isAnggota) return false;
+    if (filterTipe === "donatur" && isAnggota) return false;
+    return true;
+  });
+
+  const pendingDonasi = filteredDonasi.filter((d) => d.status === "pending");
+  const processedDonasi = filteredDonasi.filter((d) => d.status !== "pending");
+
+  // Perhitungan Total Keseluruhan
+  const totalNominalSemua = donasiList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalNominalDiverifikasi = donasiList
+    .filter((d) => d.status === "diverifikasi")
+    .reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalNominalPending = donasiList
+    .filter((d) => d.status === "pending")
+    .reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
 
   return (
     <div className={styles.page}>
@@ -77,7 +112,7 @@ export default function AdminDonasiPage() {
             </h1>
           </div>
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/admin/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
@@ -100,6 +135,94 @@ export default function AdminDonasiPage() {
           </div>
         </div>
 
+        {/* ── STATISTIK TOTAL KESELURUHAN DONASI ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 14,
+            marginBottom: 20,
+          }}
+        >
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-donate-heart" style={{ color: "var(--primary)", marginRight: 5 }} />
+              TOTAL DIVERIFIKASI
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#10b981", marginTop: 4 }}>
+              {formatRupiah(totalNominalDiverifikasi)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {donasiList.filter((d) => d.status === "diverifikasi").length} donasi berhasil diverifikasi
+            </div>
+          </div>
+
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-time" style={{ color: "#f59e0b", marginRight: 5 }} />
+              TOTAL PENDING
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#f59e0b", marginTop: 4 }}>
+              {formatRupiah(totalNominalPending)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {donasiList.filter((d) => d.status === "pending").length} donasi menunggu verifikasi
+            </div>
+          </div>
+
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-calculator" style={{ color: "var(--gold)", marginRight: 5 }} />
+              TOTAL KESELURUHAN
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--primary)", marginTop: 4 }}>
+              {formatRupiah(totalNominalSemua)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {donasiList.length} total transaksi tercatat
+            </div>
+          </div>
+        </div>
+
+        {/* ── FILTER BUTTONS (Semua / Anggota / Kontributor) ── */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+          <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--fg-muted)", marginRight: 4 }}>
+            Filter Donatur:
+          </span>
+          {(["semua", "anggota", "donatur"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setFilterTipe(t)}
+              style={{
+                padding: "6px 16px",
+                borderRadius: 50,
+                border: filterTipe === t ? "2px solid var(--primary)" : "1.5px solid var(--border)",
+                background: filterTipe === t ? "var(--primary)" : "transparent",
+                color: filterTipe === t ? "#fff" : "var(--fg-muted)",
+                fontWeight: 700,
+                fontSize: "0.8rem",
+                cursor: "pointer",
+                transition: "all 0.18s",
+              }}
+            >
+              {t === "semua" ? (
+                <>
+                  <i className="bx bx-layer" /> Semua Donasi ({donasiList.length})
+                </>
+              ) : t === "anggota" ? (
+                <>
+                  <i className="bx bx-user" /> Dari Anggota ({donasiList.filter((d) => Boolean(d.anggota)).length})
+                </>
+              ) : (
+                <>
+                  <i className="bx bx-user-heart" /> Dari Kontributor ({donasiList.filter((d) => !d.anggota).length})
+                </>
+              )}
+            </button>
+          ))}
+        </div>
+
         {msg && (
           <div
             style={{
@@ -110,6 +233,7 @@ export default function AdminDonasiPage() {
               color: "#10b981",
               fontWeight: 700,
               fontSize: "0.9rem",
+              marginBottom: 16,
             }}
           >
             <i className="bx bx-check-circle" /> {msg}
@@ -149,7 +273,8 @@ export default function AdminDonasiPage() {
                     <th>Nominal</th>
                     <th>Tanggal Kirim</th>
                     <th>Bukti</th>
-                    <th>Aksi Verifikasi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,7 +294,7 @@ export default function AdminDonasiPage() {
                               isAnggota ? styles.statusAktif : styles.statusPending
                             }`}
                           >
-                            {isAnggota ? `Anggota (${d.anggota.noAnggota || "-"})` : "Donatur"}
+                            {isAnggota ? `Anggota (${d.anggota.noAnggota || "-"})` : "Kontributor"}
                           </span>
                         </td>
                         <td className={styles.nameCol}>{donorName}</td>
@@ -202,20 +327,50 @@ export default function AdminDonasiPage() {
                           )}
                         </td>
                         <td>
+                          <select
+                            value={d.status}
+                            disabled={actionLoading === d.id}
+                            onChange={(e) =>
+                              handleAction(d.id, "update_status", { status: e.target.value })
+                            }
+                            className={
+                              d.status === "diverifikasi"
+                                ? styles.selectStatusAktif
+                                : d.status === "pending"
+                                ? styles.selectStatusPending
+                                : styles.selectStatusNonaktif
+                            }
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="diverifikasi">Diverifikasi</option>
+                            <option value="ditolak">Ditolak</option>
+                          </select>
+                        </td>
+                        <td>
                           <div className={styles.actionsCell}>
                             <button
                               className={styles.btnAccept}
                               disabled={actionLoading === d.id}
                               onClick={() => handleAction(d.id, "verifikasi")}
+                              title="Verifikasi"
                             >
-                              <i className="bx bx-check" /> Verifikasi
+                              <i className="bx bx-check" />
                             </button>
                             <button
                               className={styles.btnReject}
                               disabled={actionLoading === d.id}
                               onClick={() => handleAction(d.id, "tolak")}
+                              title="Tolak"
                             >
-                              <i className="bx bx-x" /> Tolak
+                              <i className="bx bx-x" />
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.btnDelete}
+                              onClick={() => handleDeleteDonasi(d.id)}
+                              title="Hapus Donasi"
+                            >
+                              <i className="bx bx-trash" />
                             </button>
                           </div>
                         </td>
@@ -252,6 +407,7 @@ export default function AdminDonasiPage() {
                   <th>Status</th>
                   <th>Verifikator</th>
                   <th>Bukti</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -268,20 +424,31 @@ export default function AdminDonasiPage() {
                             isAnggota ? styles.statusAktif : styles.statusPending
                           }`}
                         >
-                          {isAnggota ? "Anggota" : "Donatur"}
+                          {isAnggota ? "Anggota" : "Kontributor"}
                         </span>
                       </td>
                       <td className={styles.nameCol}>{donorName}</td>
                       <td>{d.tipeDonasi}</td>
                       <td style={{ fontWeight: 800 }}>{formatRupiah(d.nominal)}</td>
                       <td>
-                        <span
-                          className={`${styles.badgeStatus} ${
-                            d.status === "diverifikasi" ? styles.statusAktif : styles.statusNonaktif
-                          }`}
+                        <select
+                          value={d.status}
+                          disabled={actionLoading === d.id}
+                          onChange={(e) =>
+                            handleAction(d.id, "update_status", { status: e.target.value })
+                          }
+                          className={
+                            d.status === "diverifikasi"
+                              ? styles.selectStatusAktif
+                              : d.status === "pending"
+                              ? styles.selectStatusPending
+                              : styles.selectStatusNonaktif
+                          }
                         >
-                          {d.status}
-                        </span>
+                          <option value="pending">Pending</option>
+                          <option value="diverifikasi">Diverifikasi</option>
+                          <option value="ditolak">Ditolak</option>
+                        </select>
                       </td>
                       <td>{d.verifiedBy || "-"}</td>
                       <td>
@@ -295,6 +462,18 @@ export default function AdminDonasiPage() {
                             <i className="bx bx-image" />
                           </button>
                         )}
+                      </td>
+                      <td>
+                        <div className={styles.actionsCell}>
+                          <button
+                            type="button"
+                            className={styles.btnDelete}
+                            onClick={() => handleDeleteDonasi(d.id)}
+                            title="Hapus Donasi"
+                          >
+                            <i className="bx bx-trash" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

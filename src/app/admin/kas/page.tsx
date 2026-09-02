@@ -39,14 +39,14 @@ export default function AdminKasPage() {
     fetchKas();
   }, []);
 
-  const handleAction = async (id: number, action: "verifikasi" | "tolak") => {
+  const handleAction = async (id: number, action: string, extra: any = {}) => {
     setActionLoading(id);
     setMsg("");
     try {
       const res = await fetch("/api/admin/kas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id, action, ...extra }),
       });
       const json = await res.json();
       if (json.status) {
@@ -86,7 +86,7 @@ export default function AdminKasPage() {
   };
 
   const handleDeleteKas = async (id: number) => {
-    if (!confirm(`Hapus data pembayaran kas #${id} dari database?`)) return;
+    if (!confirm(`Hapus data pembayaran kas #${id} dari sistem & spreadsheet?`)) return;
 
     try {
       const res = await fetch(`/api/admin/kas?id=${id}`, { method: "DELETE" });
@@ -105,6 +105,14 @@ export default function AdminKasPage() {
   const pendingKas = kasList.filter((k) => k.status === "pending");
   const processedKas = kasList.filter((k) => k.status !== "pending");
 
+  const totalNominalKasDiverifikasi = kasList
+    .filter((k) => k.status === "diverifikasi")
+    .reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalNominalKasPending = kasList
+    .filter((k) => k.status === "pending")
+    .reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalNominalKasSemua = kasList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+
   return (
     <div className={styles.page}>
       <div className={styles.container}>
@@ -114,7 +122,7 @@ export default function AdminKasPage() {
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              Verifikasi & Manajemen Kas Anggota
+              Verifikasi & Manajemen Uang Kas
             </h1>
           </div>
 
@@ -141,6 +149,55 @@ export default function AdminKasPage() {
           </div>
         </div>
 
+        {/* ── STATISTIK TOTAL KAS ── */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 14,
+            marginBottom: 20,
+          }}
+        >
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-check-shield" style={{ color: "#10b981", marginRight: 5 }} />
+              KAS DIVERIFIKASI
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#10b981", marginTop: 4 }}>
+              {formatRupiah(totalNominalKasDiverifikasi)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {kasList.filter((k) => k.status === "diverifikasi").length} transaksi kas terverifikasi
+            </div>
+          </div>
+
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-time" style={{ color: "#f59e0b", marginRight: 5 }} />
+              KAS PENDING
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#f59e0b", marginTop: 4 }}>
+              {formatRupiah(totalNominalKasPending)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {kasList.filter((k) => k.status === "pending").length} transaksi menunggu verifikasi
+            </div>
+          </div>
+
+          <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
+            <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
+              <i className="bx bx-wallet" style={{ color: "var(--gold)", marginRight: 5 }} />
+              TOTAL KESELURUHAN KAS
+            </div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--primary)", marginTop: 4 }}>
+              {formatRupiah(totalNominalKasSemua)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {kasList.length} total pembayaran kas tercatat
+            </div>
+          </div>
+        </div>
+
         {msg && (
           <div
             style={{
@@ -154,6 +211,7 @@ export default function AdminKasPage() {
               display: "flex",
               alignItems: "center",
               gap: 8,
+              marginBottom: 16,
             }}
           >
             <i className="bx bx-check-circle" /> {msg}
@@ -192,7 +250,8 @@ export default function AdminKasPage() {
                     <th>Nominal</th>
                     <th>Tanggal Kirim</th>
                     <th>Bukti Transfer</th>
-                    <th>Aksi Verifikasi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,25 +294,48 @@ export default function AdminKasPage() {
                           )}
                         </td>
                         <td>
+                          <select
+                            value={k.status}
+                            disabled={actionLoading === k.id}
+                            onChange={(e) =>
+                              handleAction(k.id, "update_status", { status: e.target.value })
+                            }
+                            className={
+                              k.status === "diverifikasi"
+                                ? styles.selectStatusAktif
+                                : k.status === "pending"
+                                ? styles.selectStatusPending
+                                : styles.selectStatusNonaktif
+                            }
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="diverifikasi">Diverifikasi</option>
+                            <option value="ditolak">Ditolak</option>
+                          </select>
+                        </td>
+                        <td>
                           <div className={styles.actionsCell}>
                             <button
                               className={styles.btnAccept}
                               disabled={actionLoading === k.id}
                               onClick={() => handleAction(k.id, "verifikasi")}
+                              title="Verifikasi"
                             >
-                              <i className="bx bx-check" /> Verifikasi
+                              <i className="bx bx-check" />
                             </button>
                             <button
                               className={styles.btnReject}
                               disabled={actionLoading === k.id}
                               onClick={() => handleAction(k.id, "tolak")}
+                              title="Tolak"
                             >
-                              <i className="bx bx-x" /> Tolak
+                              <i className="bx bx-x" />
                             </button>
                             <button
                               type="button"
                               className={styles.btnDelete}
                               onClick={() => handleDeleteKas(k.id)}
+                              title="Hapus Kas"
                             >
                               <i className="bx bx-trash" />
                             </button>
@@ -321,13 +403,24 @@ export default function AdminKasPage() {
                         <td>{k.periode}</td>
                         <td style={{ fontWeight: 800 }}>{formatRupiah(k.nominal)}</td>
                         <td>
-                          <span
-                            className={`${styles.badgeStatus} ${
-                              k.status === "diverifikasi" ? styles.statusAktif : styles.statusNonaktif
-                            }`}
+                          <select
+                            value={k.status}
+                            disabled={actionLoading === k.id}
+                            onChange={(e) =>
+                              handleAction(k.id, "update_status", { status: e.target.value })
+                            }
+                            className={
+                              k.status === "diverifikasi"
+                                ? styles.selectStatusAktif
+                                : k.status === "pending"
+                                ? styles.selectStatusPending
+                                : styles.selectStatusNonaktif
+                            }
                           >
-                            {k.status}
-                          </span>
+                            <option value="pending">Pending</option>
+                            <option value="diverifikasi">Diverifikasi</option>
+                            <option value="ditolak">Ditolak</option>
+                          </select>
                         </td>
                         <td>{k.verifiedBy || k.verified_by || "-"}</td>
                         <td>
@@ -356,12 +449,13 @@ export default function AdminKasPage() {
                                 })
                               }
                             >
-                              <i className="bx bx-edit" /> Edit
+                              <i className="bx bx-edit" />
                             </button>
                             <button
                               type="button"
                               className={styles.btnDelete}
                               onClick={() => handleDeleteKas(k.id)}
+                              title="Hapus Kas"
                             >
                               <i className="bx bx-trash" />
                             </button>
