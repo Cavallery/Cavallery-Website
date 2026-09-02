@@ -202,8 +202,45 @@ export async function syncAllToSheets(payload: {
   kasRows: any[][];
   donasiRows: any[][];
   yearlyMatrixTabs?: any[];
+  anggotaAktifRows?: any[][];
+  statusAnggotaRows?: any[][];
+  leaderboardRows?: any[][];
+  pengeluaranRows?: any[][];
 }): Promise<boolean> {
   return await sendToAppsScript("sync_all", payload);
+}
+
+/**
+ * Push data Pengeluaran Kas ke Google Sheets
+ */
+export async function appendPengeluaranRow(data: {
+  id: number | string;
+  tanggal: string;
+  tahun: number;
+  kategori: string;
+  keperluan: string;
+  nominal: number;
+  pjNama: string;
+  buktiNotaUrl?: string;
+  catatan?: string;
+}) {
+  const row = [
+    String(data.id),
+    data.tanggal,
+    data.tahun,
+    data.kategori,
+    data.keperluan,
+    Number(data.nominal),
+    `Rp ${Number(data.nominal).toLocaleString("id-ID")}`,
+    data.pjNama,
+    data.buktiNotaUrl || "-",
+    data.catatan || "-",
+  ];
+
+  await sendToAppsScript("append_pengeluaran", {
+    tab: "Laporan Pengeluaran",
+    row,
+  });
 }
 
 /**

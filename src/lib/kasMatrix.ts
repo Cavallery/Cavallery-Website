@@ -60,6 +60,24 @@ export async function ensureKasMatrixTable(): Promise<void> {
         INDEX idx_no_anggota (no_anggota)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS pengeluaran_kas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tanggal DATE NOT NULL,
+        tahun INT NOT NULL,
+        kategori VARCHAR(100) NOT NULL DEFAULT 'Operasional',
+        keperluan VARCHAR(255) NOT NULL,
+        nominal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        pj_nama VARCHAR(100) NOT NULL,
+        bukti_nota_url VARCHAR(500) NULL,
+        catatan TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_tahun (tahun),
+        INDEX idx_tanggal (tanggal)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
   } catch (err: any) {
     console.error("[KasMatrix] Error ensuring table:", err?.message);
   }
@@ -89,8 +107,6 @@ export function parsePeriodeToMonths(periodeStr: string, nominal: number = 15000
     }
   }
 
-  // Calculate number of months covered based on standard nominal (default 15.000 / month)
-  // e.g. 15.000 = 1 bulan, 30.000 = 2 bulan, 45.000 = 3 bulan, 90.000 = 6 bulan, 180.000 = 12 bulan
   let count = 1;
   if (nominal >= 15000) {
     count = Math.max(1, Math.round(nominal / 15000));
@@ -150,7 +166,6 @@ export async function syncKasToMatrix(params: {
       }).catch((e) => console.error("[Spreadsheet Matrix] Error updating cell:", e));
     }
   } else if (status === "ditolak") {
-    // Jika ditolak, hapus catatan iuran bulanan terkait
     await query(
       `DELETE FROM iuran_kas_bulanan WHERE konfirmasi_kas_id = ?`,
       [konfirmasiKasId]
@@ -249,7 +264,6 @@ export async function getYearlyKasMatrix(tahun: number) {
     WHERE tahun = ? AND status = 'diverifikasi'
   `, [tahun])) || [];
 
-  // Indexing payments by `no_anggota:bulan`
   const paymentMap: Record<string, { nominal: number; verifiedAt: any; verifiedBy: any }> = {};
   payments.forEach((p) => {
     const key = `${p.no_anggota}:${p.bulan}`;
@@ -260,19 +274,53 @@ export async function getYearlyKasMatrix(tahun: number) {
     };
   });
 
-  // 3. Bangun Matriks Baris Tiap Anggota
+  // 3. Bangun Matriks Baris Tiap Anggota dengan Penentuan Bulan Mulai Bergabung
   const matrixRows = anggotaList.map((a, idx) => {
     const noAnggota = a.no_anggota || "-";
     const nama = a.nama_lengkap || "-";
-    const bulanMulai = 1; // default bulan mulai aktif
 
-    const months: Record<number, boolean> = {};
+    // Hitung tahun & bulan saat anggota bergabung ke fanbase
+    let joinYear = 2024;
+    let joinMonth = 1;
+    const rawJoinDate = a.anggota_sejak || a.created_at;
+    if (rawJoinDate) {
+      const jd = new Date(rawJoinDate);
+      if (!isNaN(jd.getTime())) {
+        joinYear = jd.getFullYear();
+        joinMonth = jd.getMonth() + 1; // 1 - 12
+      }
+    }
+
+    // Tentukan bulan mulai aktif pada tahun yang dipilih
+    let bulanMulai = 1;
+    let isAlreadyJoined = true;
+
+    if (tahun < joinYear) {
+      // Anggota belum bergabung di fanbase pada tahun ini
+      bulanMulai = 0;
+      isAlreadyJoined = false;
+    } else if (tahun === joinYear) {
+      // Anggota baru bergabung pada tahun ini, mulai dari bulan bergabung
+      bulanMulai = joinMonth;
+    } else {
+      // Anggota telah bergabung sejak tahun-tahun sebelumnya
+      bulanMulai = 1;
+    }
+
+    const months: Record<number, boolean | "not_joined"> = {};
     let totalKasAnggota = 0;
 
     for (let m = 1; m <= 12; m++) {
       const key = `${noAnggota}:${m}`;
       const isPaid = Boolean(paymentMap[key]);
-      months[m] = isPaid;
+
+      if (!isAlreadyJoined || m < bulanMulai) {
+        // Sebelum resmi bergabung, tidak wajib bayar kas (kecuali sudah bayar duluan)
+        months[m] = isPaid ? true : "not_joined";
+      } else {
+        months[m] = isPaid;
+      }
+
       if (isPaid) {
         totalKasAnggota += paymentMap[key].nominal;
       }
@@ -286,13 +334,16 @@ export async function getYearlyKasMatrix(tahun: number) {
       jabatan: a.jabatan || "Anggota",
       divisi: a.divisi,
       isAdminRole: (a.jabatan || "") !== "Anggota",
-      bulanMulai,
+      joinYear,
+      joinMonth,
+      bulanMulai: bulanMulai > 0 ? bulanMulai : "-",
+      isAlreadyJoined,
       totalKas: totalKasAnggota,
-      months, // { 1: true, 2: true, 3: false, ... 12: false }
+      months,
     };
   });
 
-  // 4. Hitung Akumulasi Total Bulanan (Kolom 1 s/d 12)
+  // 4. Hitung Akumulasi Total Bulanan
   const monthlyTotals: Record<number, number> = {};
   const monthlyPaidCounts: Record<number, number> = {};
   for (let m = 1; m <= 12; m++) {
@@ -305,16 +356,24 @@ export async function getYearlyKasMatrix(tahun: number) {
   matrixRows.forEach((row) => {
     grandTotalPemasukan += row.totalKas;
     for (let m = 1; m <= 12; m++) {
-      if (row.months[m]) {
+      if (row.months[m] === true) {
         monthlyTotals[m] += 15000;
         monthlyPaidCounts[m] += 1;
       }
     }
   });
 
+  // 5. Hitung Total Pengeluaran Kas pada tahun yang dipilih
+  const pengeluaranRows = (await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas WHERE tahun = ?",
+    [tahun]
+  )) || [];
+  const totalPengeluaranKas = Number(pengeluaranRows[0]?.total || 0);
+
   return {
     tahun,
     grandTotalPemasukan,
+    totalPengeluaranKas,
     totalAnggota: matrixRows.length,
     monthlyTotals,
     monthlyPaidCounts,
@@ -323,17 +382,64 @@ export async function getYearlyKasMatrix(tahun: number) {
 }
 
 /**
+ * Fitur Tracker Tagihan & Kewajiban Kas Anggota
+ * HANYA melacak tunggakan sejak bulan anggota resmi bergabung (bukan dari Januari jika baru masuk September)
+ */
+export async function getKasDebtsTracker(tahun: number, upToMonth?: number) {
+  const matrix = await getYearlyKasMatrix(tahun);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  let targetMonth = upToMonth || (tahun === currentYear ? now.getMonth() + 1 : tahun < currentYear ? 12 : 0);
+
+  const debtsList: any[] = [];
+
+  matrix.matrixRows.forEach((row) => {
+    // Admin/Pengurus Fanbase dibebaskan dari iuran kas
+    const isExempt = row.isAdminRole;
+    if (isExempt) return;
+
+    // Jika anggota belum bergabung pada tahun ini, lewati
+    if (!row.isAlreadyJoined) return;
+
+    const startDebtMonth = typeof row.bulanMulai === "number" ? row.bulanMulai : 1;
+    const unpaidMonths: number[] = [];
+
+    for (let m = startDebtMonth; m <= targetMonth; m++) {
+      if (row.months[m] !== true) {
+        unpaidMonths.push(m);
+      }
+    }
+
+    if (unpaidMonths.length > 0) {
+      const unpaidCount = unpaidMonths.length;
+      const tagihanKas = unpaidCount * 15000;
+      const startM = MONTH_NAMES_ID[unpaidMonths[0] - 1];
+      const endM = MONTH_NAMES_ID[unpaidMonths[unpaidCount - 1] - 1];
+      const kewajibanText = `${unpaidCount} Bulan dari ${startM} ${tahun} ke ${endM} ${tahun}`;
+
+      debtsList.push({
+        noAnggota: row.noAnggota,
+        nama: row.nama,
+        jabatan: row.jabatan,
+        divisi: row.divisi,
+        bulanMulai: row.bulanMulai,
+        unpaidMonths,
+        unpaidCount,
+        tagihanKas,
+        kewajibanText,
+      });
+    }
+  });
+
+  return debtsList;
+}
+
+/**
  * Format spreadsheet rows for a given year to send to Google Sheets
  */
 export async function buildSpreadsheetYearlyData(tahun: number) {
   const matrix = await getYearlyKasMatrix(tahun);
-
-  // Row 1: Title & Total Pemasukan
-  // Row 2: Total Pengeluaran
-  // Row 3: Blank
-  // Row 4: Header
-  // Row 5: Monthly Sum Header
-  // Row 6+: Data
 
   const headerRow4 = [
     "No.",
@@ -364,33 +470,147 @@ export async function buildSpreadsheetYearlyData(tahun: number) {
     ...Array.from({ length: 12 }, (_, i) => `Rp ${matrix.monthlyTotals[i + 1].toLocaleString("id-ID")}`),
   ];
 
-  const dataRows = matrix.matrixRows.map((r) => [
-    r.no,
-    r.noAnggota,
-    r.nama,
-    r.totalKas > 0 ? `Rp ${r.totalKas.toLocaleString("id-ID")}` : "Rp -",
-    r.bulanMulai,
-    r.months[1] ? true : false,
-    r.months[2] ? true : false,
-    r.months[3] ? true : false,
-    r.months[4] ? true : false,
-    r.months[5] ? true : false,
-    r.months[6] ? true : false,
-    r.months[7] ? true : false,
-    r.months[8] ? true : false,
-    r.months[9] ? true : false,
-    r.months[10] ? true : false,
-    r.months[11] ? true : false,
-    r.months[12] ? true : false,
-  ]);
+  const dataRows = matrix.matrixRows.map((r) => {
+    const formatCell = (val: any) => {
+      if (val === "not_joined") return "-";
+      return val === true;
+    };
+
+    return [
+      r.no,
+      r.noAnggota,
+      r.nama,
+      r.totalKas > 0 ? `Rp ${r.totalKas.toLocaleString("id-ID")}` : "Rp -",
+      r.bulanMulai,
+      formatCell(r.months[1]),
+      formatCell(r.months[2]),
+      formatCell(r.months[3]),
+      formatCell(r.months[4]),
+      formatCell(r.months[5]),
+      formatCell(r.months[6]),
+      formatCell(r.months[7]),
+      formatCell(r.months[8]),
+      formatCell(r.months[9]),
+      formatCell(r.months[10]),
+      formatCell(r.months[11]),
+      formatCell(r.months[12]),
+    ];
+  });
 
   return {
     tahun,
     tabName: `Kas ${tahun}`,
     grandTotalPemasukan: matrix.grandTotalPemasukan,
+    totalPengeluaranKas: matrix.totalPengeluaranKas,
     headerRow4,
     headerRow5,
     dataRows,
+  };
+}
+
+/**
+ * Membangun Data Sheet Tambahan untuk Google Spreadsheet:
+ * 1. Anggota Aktif
+ * 2. Status Anggota
+ * 3. Leaderboard Donatur / Kontributor
+ * 4. Laporan Pengeluaran
+ */
+export async function buildExtraSheetsData() {
+  await ensureKasMatrixTable();
+
+  // 1. ANGGOTA AKTIF
+  const anggotaAktif = (await query<any[]>(`
+    SELECT no_anggota, nama_lengkap, id_line, kontak_platform, kontak_id, anggota_sejak, created_at
+    FROM anggota
+    WHERE status = 'aktif'
+    ORDER BY 
+      CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
+      id ASC
+  `)) || [];
+
+  const anggotaAktifRows = anggotaAktif.map((a, idx) => [
+    idx + 1,
+    a.no_anggota || "-",
+    a.nama_lengkap,
+    a.id_line,
+    `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
+    a.anggota_sejak ? new Date(a.anggota_sejak).toLocaleDateString("id-ID") : "-",
+    a.created_at ? new Date(a.created_at).toISOString().replace("T", " ").substring(0, 19) : "-",
+  ]);
+
+  // 2. STATUS ANGGOTA (Termasuk Hak/Kewajiban Iuran Kas)
+  const statusAnggota = (await query<any[]>(`
+    SELECT no_anggota, nama_lengkap, jabatan, divisi, status
+    FROM anggota
+    ORDER BY 
+      CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
+      id ASC
+  `)) || [];
+
+  const statusAnggotaRows = statusAnggota.map((a, idx) => {
+    const isAdmin = (a.jabatan || "") !== "Anggota";
+    const ketentuanKas = isAdmin ? "Bebas Iuran Kas Wajib (Pengurus Fanbase)" : "Wajib Iuran Kas Bulanan (Rp 15.000/bln)";
+    const jabatanLengkap = isAdmin && a.divisi ? `${a.jabatan} - ${a.divisi}` : (a.jabatan || "Anggota");
+
+    return [
+      idx + 1,
+      a.no_anggota || "-",
+      a.nama_lengkap,
+      a.status || "aktif",
+      jabatanLengkap,
+      ketentuanKas,
+    ];
+  });
+
+  // 3. LEADERBOARD DONATUR / KONTRIBUTOR (Urut dari donasi terbesar)
+  const leaderboard = (await query<any[]>(`
+    SELECT 
+      d.id,
+      d.nama,
+      d.kontak_platform,
+      d.kontak_id,
+      COALESCE(SUM(kd.nominal), 0) AS total_donasi,
+      COUNT(kd.id) AS frekuensi_donasi
+    FROM donatur d
+    JOIN konfirmasi_donasi kd ON kd.donatur_id = d.id AND kd.status = 'diverifikasi'
+    GROUP BY d.id
+    ORDER BY total_donasi DESC, frekuensi_donasi DESC
+  `)) || [];
+
+  const leaderboardRows = leaderboard.map((l, idx) => [
+    idx + 1,
+    `Rank #${idx + 1}`,
+    l.nama,
+    `${l.kontak_platform || "Kontak"}: ${l.kontak_id || "-"}`,
+    Number(l.total_donasi),
+    `Rp ${Number(l.total_donasi).toLocaleString("id-ID")}`,
+    `${l.frekuensi_donasi}x Kontribusi`,
+  ]);
+
+  // 4. LAPORAN PENGELUARAN KAS
+  const pengeluaran = (await query<any[]>(`
+    SELECT * FROM pengeluaran_kas ORDER BY tanggal DESC, id DESC
+  `)) || [];
+
+  const pengeluaranRows = pengeluaran.map((p, idx) => [
+    idx + 1,
+    `#${p.id}`,
+    new Date(p.tanggal).toLocaleDateString("id-ID"),
+    p.tahun,
+    p.kategori,
+    p.keperluan,
+    Number(p.nominal),
+    `Rp ${Number(p.nominal).toLocaleString("id-ID")}`,
+    p.pj_nama,
+    p.bukti_nota_url || "-",
+    p.catatan || "-",
+  ]);
+
+  return {
+    anggotaAktifRows,
+    statusAnggotaRows,
+    leaderboardRows,
+    pengeluaranRows,
   };
 }
 
@@ -406,7 +626,7 @@ export async function updateSpreadsheetMatrixCell(params: {
   return await sendMatrixToAppsScript("update_kas_matrix_cell", {
     tabName: `Kas ${params.tahun}`,
     noAnggota: params.noAnggota,
-    bulan: params.bulan, // 1 - 12 (Column 6 to 17)
+    bulan: params.bulan,
     isPaid: params.isPaid,
   });
 }

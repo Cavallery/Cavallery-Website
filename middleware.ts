@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // /cavallery-kas: TIDAK di-protect, login/daftar ditampilkan inline di halaman itu sendiri.
-  // Halaman lama /profil, /kas, /donasi, /masuk, /daftar → redirect ke /cavallery-kas
+  // 1. Legacy redirects
   const legacyRedirects = ["/profil", "/kas", "/donasi", "/masuk", "/daftar"];
   for (const legacy of legacyRedirects) {
     if (pathname === legacy || pathname.startsWith(legacy + "/")) {
@@ -12,27 +11,40 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // Admin protected routes: /admin/* (kecuali /admin/login)
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isAdminLogin = pathname === "/admin/login";
-
+  // 2. Proteksi Sub-halaman Admin (/admin/keanggotaan, /admin/kas, dll.)
+  const isAdminSubRoute = pathname.startsWith("/admin/") && pathname !== "/admin/login";
+  
   const adminSession =
     req.cookies.get("cava_session")?.value ||
     req.cookies.get("cavallery_admin_session")?.value;
 
-  if (isAdminRoute && !isAdminLogin) {
+  if (isAdminSubRoute) {
     if (!adminSession) {
-      // In Cavallery, main admin page handles its own login prompt if not authenticated,
-      // but sub-pages (/admin/kas, /admin/keanggotaan, etc.) can stay inside admin layout
-      return NextResponse.next();
+      // Belum login admin -> redirect paksa ke halaman login /admin
+      const redirectRes = NextResponse.redirect(new URL("/admin", req.url));
+      redirectRes.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+      redirectRes.headers.set("Pragma", "no-cache");
+      redirectRes.headers.set("Expires", "0");
+      return redirectRes;
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Pastikan halaman admin tidak di-cache oleh browser (mencegah bug tombol back bfcache)
+  if (pathname.startsWith("/admin")) {
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+  }
+
+  return response;
 }
 
 export const config = {
   matcher: [
+    "/admin/:path*",
+    "/admin",
     "/profil/:path*",
     "/profil",
     "/kas/:path*",

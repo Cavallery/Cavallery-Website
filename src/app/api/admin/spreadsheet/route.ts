@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { syncAllToSheets } from "@/lib/googleSheets";
-import { buildSpreadsheetYearlyData, SUPPORTED_YEARS } from "@/lib/kasMatrix";
+import { buildSpreadsheetYearlyData, buildExtraSheetsData, SUPPORTED_YEARS } from "@/lib/kasMatrix";
 import { query } from "@/lib/mysql";
 
 // ── GET: Info Spreadsheet & Link Viewer ──
@@ -195,6 +195,9 @@ export async function POST(req: NextRequest) {
       yearlyMatrixTabs.push(yearData);
     }
 
+    // 6. Bangun Data Sheet Tambahan (Anggota Aktif, Status Anggota, Leaderboard, Laporan Pengeluaran)
+    const extraSheets = await buildExtraSheetsData();
+
     // Kirim sinkronisasi batch ke Google Apps Script (Replace data lama agar tidak duplikat)
     await syncAllToSheets({
       anggotaRows,
@@ -202,17 +205,25 @@ export async function POST(req: NextRequest) {
       kasRows,
       donasiRows,
       yearlyMatrixTabs,
+      anggotaAktifRows: extraSheets.anggotaAktifRows,
+      statusAnggotaRows: extraSheets.statusAnggotaRows,
+      leaderboardRows: extraSheets.leaderboardRows,
+      pengeluaranRows: extraSheets.pengeluaranRows,
     });
 
     return NextResponse.json({
       status: true,
-      message: `Full Backup Berhasil (Anti-Duplikat)! Data telah diperbarui: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Data Kontribusi, dan 6 Tab Matriks Kas Tahunan (2024 - 2029) ke Google Spreadsheet.`,
+      message: `Full Backup Berhasil (Anti-Duplikat)! Seluruh data telah disinkronkan: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Donasi, 6 Tab Matriks Kas (2024-2029), Tab Anggota Aktif, Status Anggota, Leaderboard Kontributor, dan Laporan Pengeluaran ke Google Spreadsheet.`,
       synced: {
         anggota: anggotaRows.length,
         kontributor: kontributorRows.length,
         kas: kasRows.length,
         donasi: donasiRows.length,
         matriksTahun: SUPPORTED_YEARS,
+        anggotaAktif: extraSheets.anggotaAktifRows.length,
+        statusAnggota: extraSheets.statusAnggotaRows.length,
+        leaderboard: extraSheets.leaderboardRows.length,
+        pengeluaran: extraSheets.pengeluaranRows.length,
       },
     });
   } catch (error: any) {

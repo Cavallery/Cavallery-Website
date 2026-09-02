@@ -12,6 +12,9 @@ interface MasterDataState {
   nominalDonasi: number[];
   platforms: string[];
   defaultNominalKas: number;
+  kategoriPengeluaran: string[];
+  tahunKasAktif: number[];
+  jabatanBebasKas: string[];
 }
 
 export default function AdminMasterDataPage() {
@@ -22,6 +25,9 @@ export default function AdminMasterDataPage() {
     nominalDonasi: [],
     platforms: [],
     defaultNominalKas: 15000,
+    kategoriPengeluaran: [],
+    tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
+    jabatanBebasKas: ["Admin Fanbase", "Pengurus Fanbase"],
   });
 
   const [loading, setLoading] = useState(true);
@@ -34,17 +40,34 @@ export default function AdminMasterDataPage() {
   const [newNominalKas, setNewNominalKas] = useState("");
   const [newNominalDonasi, setNewNominalDonasi] = useState("");
   const [newPlatform, setNewPlatform] = useState("");
+  const [newKategoriPengeluaran, setNewKategoriPengeluaran] = useState("");
+  const [newTahunKas, setNewTahunKas] = useState("");
+  const [newJabatanBebas, setNewJabatanBebas] = useState("");
+  const [editDefaultNominal, setEditDefaultNominal] = useState("");
 
   const fetchData = async () => {
     try {
       const res = await fetch("/api/admin/master-data");
       if (res.status === 401) {
-        window.location.href = "/admin";
+        window.location.replace("/admin");
         return;
       }
       const json = await res.json();
       if (json.status && json.data) {
-        setData(json.data);
+        setData({
+          divisi: json.data.divisi || [],
+          tipeDonasi: json.data.tipeDonasi || [],
+          nominalKas: json.data.nominalKas || [],
+          nominalDonasi: json.data.nominalDonasi || [],
+          platforms: json.data.platforms || [],
+          defaultNominalKas: json.data.defaultNominalKas || 15000,
+          kategoriPengeluaran: json.data.kategoriPengeluaran || [
+            "Operasional Fanbase", "Event / Project Show", "Konsumsi Tim", "Website & Server", "Produksi Merchandise", "Banner & Handbanner", "Dokumentasi & Media", "Lain-lain"
+          ],
+          tahunKasAktif: json.data.tahunKasAktif || [2024, 2025, 2026, 2027, 2028, 2029],
+          jabatanBebasKas: json.data.jabatanBebasKas || ["Admin Fanbase", "Pengurus Fanbase"],
+        });
+        setEditDefaultNominal(Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"));
       }
     } catch (e) {
       console.error(e);
@@ -80,19 +103,15 @@ export default function AdminMasterDataPage() {
     }
   };
 
-  // Helper Add / Remove functions
+  // Helper Divisi
   const addDivisi = () => {
     if (!newDivisi.trim()) return;
-    if (data.divisi.includes(newDivisi.trim())) {
-      alert("Divisi sudah ada!");
-      return;
-    }
+    if (data.divisi.includes(newDivisi.trim())) { alert("Divisi sudah ada!"); return; }
     const updated = { ...data, divisi: [...data.divisi, newDivisi.trim()] };
     setData(updated);
     setNewDivisi("");
     handleSave(updated);
   };
-
   const removeDivisi = (item: string) => {
     if (!confirm(`Hapus divisi "${item}"?`)) return;
     const updated = { ...data, divisi: data.divisi.filter((d) => d !== item) };
@@ -100,95 +119,126 @@ export default function AdminMasterDataPage() {
     handleSave(updated);
   };
 
+  // Helper Tipe Donasi
   const addTipeDonasi = () => {
     if (!newTipeDonasi.trim()) return;
-    if (data.tipeDonasi.includes(newTipeDonasi.trim())) {
-      alert("Kategori donasi sudah ada!");
-      return;
-    }
+    if (data.tipeDonasi.includes(newTipeDonasi.trim())) { alert("Tipe donasi sudah ada!"); return; }
     const updated = { ...data, tipeDonasi: [...data.tipeDonasi, newTipeDonasi.trim()] };
     setData(updated);
     setNewTipeDonasi("");
     handleSave(updated);
   };
-
   const removeTipeDonasi = (item: string) => {
-    if (!confirm(`Hapus kategori donasi "${item}"?`)) return;
+    if (!confirm(`Hapus tipe donasi "${item}"?`)) return;
     const updated = { ...data, tipeDonasi: data.tipeDonasi.filter((t) => t !== item) };
     setData(updated);
     handleSave(updated);
   };
 
+  // Helper Nominal Kas
   const addNominalKas = () => {
     const val = parseInt(newNominalKas.replace(/\D/g, ""), 10);
-    if (!val || val <= 0) return;
-    if (data.nominalKas.includes(val)) {
-      alert("Nominal kas sudah ada!");
-      return;
-    }
-    const updated = {
-      ...data,
-      nominalKas: [...data.nominalKas, val].sort((a, b) => a - b),
-    };
+    if (!val || isNaN(val)) return;
+    if (data.nominalKas.includes(val)) { alert("Nominal kas sudah ada!"); return; }
+    const updated = { ...data, nominalKas: [...data.nominalKas, val].sort((a, b) => a - b) };
     setData(updated);
     setNewNominalKas("");
     handleSave(updated);
   };
-
   const removeNominalKas = (val: number) => {
-    if (data.nominalKas.length <= 1) {
-      alert("Minimal harus ada 1 pilihan nominal kas!");
-      return;
-    }
+    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`)) return;
     const updated = { ...data, nominalKas: data.nominalKas.filter((n) => n !== val) };
     setData(updated);
     handleSave(updated);
   };
 
+  // Helper Nominal Donasi
   const addNominalDonasi = () => {
     const val = parseInt(newNominalDonasi.replace(/\D/g, ""), 10);
-    if (!val || val <= 0) return;
-    if (data.nominalDonasi.includes(val)) {
-      alert("Nominal donasi sudah ada!");
-      return;
-    }
-    const updated = {
-      ...data,
-      nominalDonasi: [...data.nominalDonasi, val].sort((a, b) => a - b),
-    };
+    if (!val || isNaN(val)) return;
+    if (data.nominalDonasi.includes(val)) { alert("Nominal donasi sudah ada!"); return; }
+    const updated = { ...data, nominalDonasi: [...data.nominalDonasi, val].sort((a, b) => a - b) };
     setData(updated);
     setNewNominalDonasi("");
     handleSave(updated);
   };
-
   const removeNominalDonasi = (val: number) => {
-    if (data.nominalDonasi.length <= 1) {
-      alert("Minimal harus ada 1 pilihan nominal donasi!");
-      return;
-    }
+    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`)) return;
     const updated = { ...data, nominalDonasi: data.nominalDonasi.filter((n) => n !== val) };
     setData(updated);
     handleSave(updated);
   };
 
+  // Helper Platform
   const addPlatform = () => {
     if (!newPlatform.trim()) return;
-    if (data.platforms.includes(newPlatform.trim())) {
-      alert("Platform sudah ada!");
-      return;
-    }
+    if (data.platforms.includes(newPlatform.trim())) { alert("Platform sudah ada!"); return; }
     const updated = { ...data, platforms: [...data.platforms, newPlatform.trim()] };
     setData(updated);
     setNewPlatform("");
     handleSave(updated);
   };
-
   const removePlatform = (item: string) => {
-    if (data.platforms.length <= 1) {
-      alert("Minimal harus ada 1 platform kontak!");
-      return;
-    }
+    if (!confirm(`Hapus platform "${item}"?`)) return;
     const updated = { ...data, platforms: data.platforms.filter((p) => p !== item) };
+    setData(updated);
+    handleSave(updated);
+  };
+
+  // Helper Kategori Pengeluaran
+  const addKategoriPengeluaran = () => {
+    if (!newKategoriPengeluaran.trim()) return;
+    if (data.kategoriPengeluaran.includes(newKategoriPengeluaran.trim())) { alert("Kategori pengeluaran sudah ada!"); return; }
+    const updated = { ...data, kategoriPengeluaran: [...data.kategoriPengeluaran, newKategoriPengeluaran.trim()] };
+    setData(updated);
+    setNewKategoriPengeluaran("");
+    handleSave(updated);
+  };
+  const removeKategoriPengeluaran = (item: string) => {
+    if (!confirm(`Hapus kategori pengeluaran "${item}"?`)) return;
+    const updated = { ...data, kategoriPengeluaran: data.kategoriPengeluaran.filter((k) => k !== item) };
+    setData(updated);
+    handleSave(updated);
+  };
+
+  // Helper Tahun Kas Aktif
+  const addTahunKas = () => {
+    const val = parseInt(newTahunKas.replace(/\D/g, ""), 10);
+    if (!val || val < 2020 || val > 2040) { alert("Masukkan tahun valid (2020-2040)"); return; }
+    if (data.tahunKasAktif.includes(val)) { alert("Tahun sudah ada!"); return; }
+    const updated = { ...data, tahunKasAktif: [...data.tahunKasAktif, val].sort((a, b) => a - b) };
+    setData(updated);
+    setNewTahunKas("");
+    handleSave(updated);
+  };
+  const removeTahunKas = (val: number) => {
+    if (!confirm(`Hapus tahun ${val} dari matriks kas?`)) return;
+    const updated = { ...data, tahunKasAktif: data.tahunKasAktif.filter((y) => y !== val) };
+    setData(updated);
+    handleSave(updated);
+  };
+
+  // Helper Jabatan Bebas Kas
+  const addJabatanBebas = () => {
+    if (!newJabatanBebas.trim()) return;
+    if (data.jabatanBebasKas.includes(newJabatanBebas.trim())) { alert("Jabatan sudah ada!"); return; }
+    const updated = { ...data, jabatanBebasKas: [...data.jabatanBebasKas, newJabatanBebas.trim()] };
+    setData(updated);
+    setNewJabatanBebas("");
+    handleSave(updated);
+  };
+  const removeJabatanBebas = (item: string) => {
+    if (!confirm(`Hapus jabatan bebas iuran "${item}"?`)) return;
+    const updated = { ...data, jabatanBebasKas: data.jabatanBebasKas.filter((j) => j !== item) };
+    setData(updated);
+    handleSave(updated);
+  };
+
+  // Save Default Nominal Kas
+  const handleSaveDefaultKas = () => {
+    const val = parseInt(editDefaultNominal.replace(/\D/g, ""), 10);
+    if (!val || isNaN(val)) { alert("Masukkan nominal valid"); return; }
+    const updated = { ...data, defaultNominalKas: val };
     setData(updated);
     handleSave(updated);
   };
@@ -196,21 +246,16 @@ export default function AdminMasterDataPage() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* Header */}
+        {/* TOP BAR */}
         <div className={styles.topHeader}>
           <div>
             <Link href="/admin" className={styles.backBtn}>
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              <i className="bx bx-slider-alt" style={{ color: "var(--primary)", marginRight: 8 }} />
-              Master Data & Pengaturan Dropdown
+              Master Data &amp; Konfigurasi Sistem Cavallery
             </h1>
-            <p style={{ margin: "4px 0 0", fontSize: "0.85rem", color: "var(--fg-muted)" }}>
-              Kelola opsi divisi admin fanbase, kategori donasi, nominal cepat, dan platform kontak secara dinamis.
-            </p>
           </div>
-
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/admin/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
@@ -221,22 +266,11 @@ export default function AdminMasterDataPage() {
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Kas
             </Link>
-            <Link href="/admin/donasi" className={styles.backBtn}>
-              <i className="bx bx-donate-heart" /> Donasi
-            </Link>
-            <a
-              href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.backBtn}
-              style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}
-            >
-              <i className="bx bx-table" /> Live Spreadsheet
-            </a>
             <ThemeToggle />
           </div>
         </div>
 
+        {/* NOTIFICATION */}
         {msg && (
           <div
             style={{
@@ -264,7 +298,222 @@ export default function AdminMasterDataPage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* 1. MASTER DIVISI ADMIN FANBASE */}
+            {/* ── 1. KATEGORI PENGELUARAN KAS (BARU DITAMBAHKAN) ── */}
+            <div className={styles.sectionCard} style={{ border: "1.5px solid rgba(225, 29, 72, 0.3)" }}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-receipt" style={{ color: "#e11d48" }} />
+                  Kategori Pengeluaran Kas Operasional ({data.kategoriPengeluaran.length})
+                </h2>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
+                Pilihan kategori belanja operasional fanbase saat mencatat pengeluaran di halaman kas.
+              </p>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                {data.kategoriPengeluaran.map((kat) => (
+                  <span
+                    key={kat}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 14px",
+                      borderRadius: 50,
+                      background: "rgba(225, 29, 72, 0.1)",
+                      border: "1px solid rgba(225, 29, 72, 0.3)",
+                      color: "#e11d48",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <i className="bx bx-tag" style={{ fontSize: "0.9rem" }} />
+                    {kat}
+                    <button
+                      type="button"
+                      onClick={() => removeKategoriPengeluaran(kat)}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      title="Hapus Kategori"
+                    >
+                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, maxWidth: 380 }}>
+                <input
+                  type="text"
+                  placeholder="Kategori baru (cth: Banner & Project)..."
+                  className={styles.modalInput}
+                  value={newKategoriPengeluaran}
+                  onChange={(e) => setNewKategoriPengeluaran(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addKategoriPengeluaran()}
+                />
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addKategoriPengeluaran}
+                  disabled={saving || !newKategoriPengeluaran.trim()}
+                  style={{ background: "#e11d48", color: "#fff", whiteSpace: "nowrap" }}
+                >
+                  <i className="bx bx-plus" /> Tambah
+                </button>
+              </div>
+            </div>
+
+            {/* ── 2. BESARAN IURAN KAS WAJIB & TAHUN AKTIF ── */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+              {/* Besaran Kas Wajib */}
+              <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>
+                    <i className="bx bx-money" style={{ color: "#10b981" }} />
+                    Tarif Iuran Kas Wajib Bulanan
+                  </h2>
+                </div>
+                <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
+                  Standar nominal kewajiban iuran kas anggota per 1 bulan (digunakan dalam pelacak tagihan kas).
+                </p>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", maxWidth: 340 }}>
+                  <div style={{ position: "relative", flex: 1 }}>
+                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--fg-muted)" }}>Rp</span>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      style={{ paddingLeft: 38 }}
+                      value={editDefaultNominal}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        setEditDefaultNominal(digits ? Number(digits).toLocaleString("id-ID") : "");
+                      }}
+                      onKeyDown={(e) => e.key === "Enter" && handleSaveDefaultKas()}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.btnCreate}
+                    onClick={handleSaveDefaultKas}
+                    disabled={saving}
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </div>
+
+              {/* Tahun Aktif Matriks Kas */}
+              <div className={styles.sectionCard}>
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>
+                    <i className="bx bx-calendar" style={{ color: "var(--gold)" }} />
+                    Tahun Aktif Matriks Kas ({data.tahunKasAktif.length})
+                  </h2>
+                </div>
+                <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
+                  Tahun yang didukung pada pemilih tahun matriks kas dan tab Google Spreadsheet.
+                </p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                  {data.tahunKasAktif.map((yr) => (
+                    <span
+                      key={yr}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        borderRadius: 50,
+                        background: "rgba(201, 168, 76, 0.12)",
+                        border: "1px solid rgba(201, 168, 76, 0.3)",
+                        color: "var(--gold)",
+                        fontWeight: 800,
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      {yr}
+                      {data.tahunKasAktif.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeTahunKas(yr)}
+                          style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, display: "flex" }}
+                        >
+                          <i className="bx bx-x-circle" style={{ fontSize: "1rem" }} />
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 10, maxWidth: 260 }}>
+                  <input
+                    type="number"
+                    placeholder="Tambah Tahun (cth: 2030)"
+                    className={styles.modalInput}
+                    value={newTahunKas}
+                    onChange={(e) => setNewTahunKas(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addTahunKas()}
+                  />
+                  <button type="button" className={styles.btnCreate} onClick={addTahunKas} disabled={saving || !newTahunKas}>
+                    <i className="bx bx-plus" /> Tambah
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 3. JABATAN BEBAS IURAN KAS ── */}
+            <div className={styles.sectionCard}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-user-check" style={{ color: "#3b82f6" }} />
+                  Jabatan Bebas Iuran Kas Wajib ({data.jabatanBebasKas.length})
+                </h2>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
+                Anggota yang memiliki role jabatan ini secara otomatis dibebaskan dari kewajiban iuran kas bulanan.
+              </p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                {data.jabatanBebasKas.map((jab) => (
+                  <span
+                    key={jab}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 14px",
+                      borderRadius: 50,
+                      background: "rgba(59, 130, 246, 0.1)",
+                      border: "1px solid rgba(59, 130, 246, 0.3)",
+                      color: "#3b82f6",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <i className="bx bx-award" />
+                    {jab}
+                    <button
+                      type="button"
+                      onClick={() => removeJabatanBebas(jab)}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, display: "flex" }}
+                    >
+                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
+                <input
+                  type="text"
+                  placeholder="Nama jabatan (cth: Dewan Penasehat)..."
+                  className={styles.modalInput}
+                  value={newJabatanBebas}
+                  onChange={(e) => setNewJabatanBebas(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addJabatanBebas()}
+                />
+                <button type="button" className={styles.btnCreate} onClick={addJabatanBebas} disabled={saving || !newJabatanBebas.trim()}>
+                  <i className="bx bx-plus" /> Tambah
+                </button>
+              </div>
+            </div>
+
+            {/* ── 4. MASTER DIVISI ADMIN FANBASE ── */}
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
@@ -273,10 +522,9 @@ export default function AdminMasterDataPage() {
                 </h2>
               </div>
               <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Divisi ini akan muncul di dropdown saat memilih role <strong>Admin Fanbase</strong> di tabel Keanggotaan & form user.
+                Divisi ini akan muncul di dropdown saat memilih role <strong>Admin Fanbase</strong> di tabel Keanggotaan &amp; form user.
               </p>
 
-              {/* Tag List */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
                 {data.divisi.map((div) => (
                   <span
@@ -287,8 +535,8 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(var(--primary-rgb, 160, 100, 30), 0.12)",
-                      border: "1px solid rgba(var(--primary-rgb, 160, 100, 30), 0.3)",
+                      background: "rgba(201, 168, 76, 0.12)",
+                      border: "1px solid rgba(201, 168, 76, 0.3)",
                       color: "var(--primary)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
@@ -299,16 +547,7 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removeDivisi(div)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        padding: 0,
-                        marginLeft: 4,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
                       title="Hapus Divisi"
                     >
                       <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
@@ -317,74 +556,57 @@ export default function AdminMasterDataPage() {
                 ))}
               </div>
 
-              {/* Form Tambah Divisi */}
-              <div style={{ display: "flex", gap: 10, maxWidth: 480 }}>
+              <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
                 <input
                   type="text"
-                  placeholder="Nama Divisi Baru (cth: Divisi Dokumentasi)"
+                  placeholder="Nama Divisi Baru..."
                   className={styles.modalInput}
                   value={newDivisi}
                   onChange={(e) => setNewDivisi(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addDivisi()}
                 />
-                <button
-                  type="button"
-                  className={styles.btnCreate}
-                  onClick={addDivisi}
-                  disabled={saving || !newDivisi.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
+                <button type="button" className={styles.btnCreate} onClick={addDivisi} disabled={saving || !newDivisi.trim()} style={{ whiteSpace: "nowrap" }}>
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
             </div>
 
-            {/* 2. MASTER KATEGORI / TIPE DONASI */}
+            {/* ── 5. MASTER TIPE DONASI ── */}
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-donate-heart" style={{ color: "#e11d48" }} />
-                  Kategori / Tipe Donasi & Proyek ({data.tipeDonasi.length})
+                  <i className="bx bx-donate-heart" style={{ color: "var(--gold)" }} />
+                  Pilihan Tipe Donasi &amp; Project ({data.tipeDonasi.length})
                 </h2>
               </div>
               <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Pilihan kategori ini akan muncul pada dropdown formulir donasi / kontribusi bagi anggota maupun donatur.
+                Kategori project yang dapat dipilih donatur/anggota saat melakukan donasi.
               </p>
 
-              {/* Tag List */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-                {data.tipeDonasi.map((td) => (
+                {data.tipeDonasi.map((tipe) => (
                   <span
-                    key={td}
+                    key={tipe}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(225, 29, 72, 0.12)",
-                      border: "1px solid rgba(225, 29, 72, 0.3)",
-                      color: "#e11d48",
+                      background: "rgba(201, 168, 76, 0.12)",
+                      border: "1px solid rgba(201, 168, 76, 0.3)",
+                      color: "var(--gold)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
                   >
                     <i className="bx bx-gift" style={{ fontSize: "0.9rem" }} />
-                    {td}
+                    {tipe}
                     <button
                       type="button"
-                      onClick={() => removeTipeDonasi(td)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        padding: 0,
-                        marginLeft: 4,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                      title="Hapus Kategori"
+                      onClick={() => removeTipeDonasi(tipe)}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      title="Hapus Tipe"
                     >
                       <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
                     </button>
@@ -392,179 +614,22 @@ export default function AdminMasterDataPage() {
                 ))}
               </div>
 
-              {/* Form Tambah Kategori Donasi */}
-              <div style={{ display: "flex", gap: 10, maxWidth: 480 }}>
+              <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
                 <input
                   type="text"
-                  placeholder="Kategori Donasi Baru (cth: Project Handshake)"
+                  placeholder="Nama Project / Tipe Donasi Baru..."
                   className={styles.modalInput}
                   value={newTipeDonasi}
                   onChange={(e) => setNewTipeDonasi(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addTipeDonasi()}
                 />
-                <button
-                  type="button"
-                  className={styles.btnCreate}
-                  onClick={addTipeDonasi}
-                  disabled={saving || !newTipeDonasi.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
+                <button type="button" className={styles.btnCreate} onClick={addTipeDonasi} disabled={saving || !newTipeDonasi.trim()} style={{ whiteSpace: "nowrap" }}>
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
             </div>
 
-            {/* 3. MASTER CHIP NOMINAL CEPAT KAS */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-money" style={{ color: "#10b981" }} />
-                  Pilihan Nominal Cepat Kas (Chip Kas)
-                </h2>
-              </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Tombol cepat nominal yang muncul di formulir bayar kas anggota di portal `/cavallery-kas`.
-              </p>
-
-              {/* Tag List */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-                {data.nominalKas.map((nom) => (
-                  <span
-                    key={nom}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "6px 14px",
-                      borderRadius: 50,
-                      background: "rgba(16, 185, 129, 0.12)",
-                      border: "1px solid rgba(16, 185, 129, 0.3)",
-                      color: "#10b981",
-                      fontWeight: 800,
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    <i className="bx bx-wallet" style={{ fontSize: "0.9rem" }} />
-                    Rp {nom.toLocaleString("id-ID")}
-                    <button
-                      type="button"
-                      onClick={() => removeNominalKas(nom)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        padding: 0,
-                        marginLeft: 4,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                      title="Hapus Nominal"
-                    >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              {/* Form Tambah Nominal Kas */}
-              <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
-                <input
-                  type="text"
-                  placeholder="Nominal baru (cth: 25000)"
-                  className={styles.modalInput}
-                  value={newNominalKas}
-                  onChange={(e) => setNewNominalKas(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addNominalKas()}
-                />
-                <button
-                  type="button"
-                  className={styles.btnCreate}
-                  onClick={addNominalKas}
-                  disabled={saving || !newNominalKas.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
-                  <i className="bx bx-plus" /> Tambah
-                </button>
-              </div>
-            </div>
-
-            {/* 4. MASTER CHIP NOMINAL CEPAT DONASI */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-coin-stack" style={{ color: "var(--gold)" }} />
-                  Pilihan Nominal Cepat Donasi (Chip Donasi)
-                </h2>
-              </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Tombol cepat nominal yang muncul di formulir donasi / kontribusi di portal `/cavallery-kas`.
-              </p>
-
-              {/* Tag List */}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
-                {data.nominalDonasi.map((nom) => (
-                  <span
-                    key={nom}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      padding: "6px 14px",
-                      borderRadius: 50,
-                      background: "rgba(217, 119, 6, 0.12)",
-                      border: "1px solid rgba(217, 119, 6, 0.3)",
-                      color: "#d97706",
-                      fontWeight: 800,
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    <i className="bx bx-coin" style={{ fontSize: "0.9rem" }} />
-                    Rp {nom.toLocaleString("id-ID")}
-                    <button
-                      type="button"
-                      onClick={() => removeNominalDonasi(nom)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        padding: 0,
-                        marginLeft: 4,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                      title="Hapus Nominal"
-                    >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              {/* Form Tambah Nominal Donasi */}
-              <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
-                <input
-                  type="text"
-                  placeholder="Nominal donasi baru (cth: 150000)"
-                  className={styles.modalInput}
-                  value={newNominalDonasi}
-                  onChange={(e) => setNewNominalDonasi(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addNominalDonasi()}
-                />
-                <button
-                  type="button"
-                  className={styles.btnCreate}
-                  onClick={addNominalDonasi}
-                  disabled={saving || !newNominalDonasi.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
-                  <i className="bx bx-plus" /> Tambah
-                </button>
-              </div>
-            </div>
-
-            {/* 5. MASTER PLATFORM KONTAK */}
+            {/* ── 6. MASTER PLATFORM KONTAK ── */}
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
@@ -573,10 +638,9 @@ export default function AdminMasterDataPage() {
                 </h2>
               </div>
               <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Platform kontak yang tersedia di form pendaftaran anggota & kontributor (LINE, X, Instagram, TikTok, dll).
+                Platform kontak yang tersedia di form pendaftaran anggota &amp; kontributor (LINE, X, Instagram, TikTok, dll).
               </p>
 
-              {/* Tag List */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
                 {data.platforms.map((plat) => (
                   <span
@@ -599,16 +663,7 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removePlatform(plat)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                        padding: 0,
-                        marginLeft: 4,
-                        display: "flex",
-                        alignItems: "center",
-                      }}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
                       title="Hapus Platform"
                     >
                       <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
@@ -617,7 +672,6 @@ export default function AdminMasterDataPage() {
                 ))}
               </div>
 
-              {/* Form Tambah Platform */}
               <div style={{ display: "flex", gap: 10, maxWidth: 360 }}>
                 <input
                   type="text"
@@ -627,13 +681,7 @@ export default function AdminMasterDataPage() {
                   onChange={(e) => setNewPlatform(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlatform()}
                 />
-                <button
-                  type="button"
-                  className={styles.btnCreate}
-                  onClick={addPlatform}
-                  disabled={saving || !newPlatform.trim()}
-                  style={{ whiteSpace: "nowrap" }}
-                >
+                <button type="button" className={styles.btnCreate} onClick={addPlatform} disabled={saving || !newPlatform.trim()} style={{ whiteSpace: "nowrap" }}>
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
