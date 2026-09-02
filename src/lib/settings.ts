@@ -65,3 +65,76 @@ export async function getAllRegistrationSettings() {
     registerDonaturOpen: donaturOpen,
   };
 }
+
+export interface MasterData {
+  divisi: string[];
+  tipeDonasi: string[];
+  nominalKas: number[];
+  nominalDonasi: number[];
+  platforms: string[];
+  defaultNominalKas: number;
+}
+
+export const DEFAULT_MASTER_DATA: MasterData = {
+  divisi: [
+    "Ketua",
+    "Wakil Ketua",
+    "Sekretariat",
+    "Bendahara",
+    "Divisi Sosial Media",
+    "Divisi Desain",
+    "Divisi IT",
+    "Divisi Kordinator Lapangan",
+    "Divisi Esport",
+    "Divisi Humas",
+  ],
+  tipeDonasi: [
+    "General Support",
+    "Birthday Project",
+    "Event Fanbase",
+    "Merchandise Fanbase",
+    "Project Khusus",
+  ],
+  nominalKas: [10000, 15000, 20000, 50000, 100000],
+  nominalDonasi: [10000, 25000, 50000, 100000, 250000, 500000],
+  platforms: [
+    "LINE",
+    "X (Twitter)",
+    "Instagram",
+    "TikTok",
+    "Discord",
+    "WhatsApp",
+  ],
+  defaultNominalKas: 15000,
+};
+
+export async function getMasterData(): Promise<MasterData> {
+  try {
+    const raw = await getSetting("master_data_json", "");
+    if (raw && raw.trim()) {
+      const parsed = JSON.parse(raw);
+      return {
+        divisi: Array.isArray(parsed.divisi) && parsed.divisi.length > 0 ? parsed.divisi : DEFAULT_MASTER_DATA.divisi,
+        tipeDonasi: Array.isArray(parsed.tipeDonasi) && parsed.tipeDonasi.length > 0 ? parsed.tipeDonasi : DEFAULT_MASTER_DATA.tipeDonasi,
+        nominalKas: Array.isArray(parsed.nominalKas) && parsed.nominalKas.length > 0 ? parsed.nominalKas : DEFAULT_MASTER_DATA.nominalKas,
+        nominalDonasi: Array.isArray(parsed.nominalDonasi) && parsed.nominalDonasi.length > 0 ? parsed.nominalDonasi : DEFAULT_MASTER_DATA.nominalDonasi,
+        platforms: Array.isArray(parsed.platforms) && parsed.platforms.length > 0 ? parsed.platforms : DEFAULT_MASTER_DATA.platforms,
+        defaultNominalKas: typeof parsed.defaultNominalKas === "number" ? parsed.defaultNominalKas : DEFAULT_MASTER_DATA.defaultNominalKas,
+      };
+    }
+  } catch (err) {
+    console.error("Error reading master data from db:", err);
+  }
+  return DEFAULT_MASTER_DATA;
+}
+
+export async function saveMasterData(data: Partial<MasterData>): Promise<MasterData> {
+  const current = await getMasterData();
+  const updated: MasterData = {
+    ...current,
+    ...data,
+  };
+  await setSetting("master_data_json", JSON.stringify(updated));
+  return updated;
+}
+

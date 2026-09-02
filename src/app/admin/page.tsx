@@ -7136,6 +7136,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "adminkontributor" as any, icon: "bx-user-heart", label: "Kontributor", color: "#6366f1" },
     { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
     { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
+    { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6" },
     { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
     { key: "recruitment",icon: "bx-group",        label: "Recruitment",color: "#10b981" },
     { key: "esport",     icon: "bx-trophy",       label: "Esport",     color: "#f59e0b" },
@@ -8276,6 +8277,7 @@ const navGroups: NavGroup[] = [
       { key: "adminkontributor" as any, icon: "bx-user-heart",   label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
+      { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
     ],
   },
@@ -8374,6 +8376,10 @@ export default function AdminPage() {
     }
     if ((section as string) === "admindonasi") {
       window.location.href = "/admin/donasi";
+      return;
+    }
+    if ((section as string) === "adminmasterdata") {
+      window.location.href = "/admin/master-data";
       return;
     }
     if ((section as string) === "adminspreadsheet") {

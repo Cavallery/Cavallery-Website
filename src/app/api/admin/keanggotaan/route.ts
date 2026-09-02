@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota } from "@/lib/membership";
-import { appendAnggotaRow, deleteAnggotaRow } from "@/lib/googleSheets";
+import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
 function formatAnggotaRow(r: any) {
@@ -241,6 +241,11 @@ export async function POST(req: NextRequest) {
     // 3. UBAH STATUS (aktif / nonaktif)
     if (action === "update_status" && status) {
       await query("UPDATE anggota SET status = ? WHERE id = ?", [status, id]);
+      if (anggota && anggota.no_anggota) {
+        updateAnggotaStatusInSheet(anggota.no_anggota, status).catch((e) =>
+          console.error("Update status anggota in sheets error:", e)
+        );
+      }
       return NextResponse.json({
         status: true,
         message: `Status anggota ${anggota.nama_lengkap} berhasil diubah menjadi ${status}.`,
@@ -261,9 +266,20 @@ export async function POST(req: NextRequest) {
       } catch {
         await query("UPDATE anggota SET jabatan = ? WHERE id = ?", [jabatan, id]);
       }
+
+      const fullJabatan = jabatan === "Admin Fanbase" && divisi
+        ? `Admin Fanbase (${divisi})`
+        : jabatan;
+
+      if (anggota && anggota.no_anggota) {
+        updateAnggotaJabatanInSheet(anggota.no_anggota, fullJabatan).catch((e) =>
+          console.error("Update jabatan anggota in sheets error:", e)
+        );
+      }
+
       return NextResponse.json({
         status: true,
-        message: `Jabatan anggota ${anggota.nama_lengkap} berhasil diubah menjadi "${jabatan}"${divisi && jabatan === "Admin Fanbase" ? ` (Divisi: ${divisi})` : ""}.`,
+        message: `Jabatan anggota ${anggota.nama_lengkap} berhasil diubah menjadi "${fullJabatan}".`,
       });
     }
 

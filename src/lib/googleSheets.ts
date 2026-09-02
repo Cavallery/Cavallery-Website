@@ -302,6 +302,18 @@ export async function updateDonasiStatusInSheet(id: number | string, newStatus: 
   });
 }
 
+export async function updateAnggotaJabatanInSheet(noAnggota: string, newJabatan: string): Promise<boolean> {
+  return await sendToAppsScript("update_anggota_jabatan", {
+    tab: "Anggota",
+    noAnggota: String(noAnggota).trim(),
+    jabatan: newJabatan,
+  });
+}
 
-
-
+export async function updateAnggotaStatusInSheet(noAnggota: string, newStatus: string): Promise<boolean> {
+  return await sendToAppsScript("update_anggota_status", {
+    tab: "Anggota",
+    noAnggota: String(noAnggota).trim(),
+    status: newStatus,
+  });
+}

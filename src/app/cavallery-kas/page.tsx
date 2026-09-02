@@ -182,6 +182,19 @@ export default function CavalleryKasPage() {
     }
   };
 
+  // Dynamic Master Data State
+  const [donationTypes, setDonationTypes] = useState<string[]>(DONATION_TYPES);
+  const [chipNominalsKas, setChipNominalsKas] = useState<number[]>([10000, 15000, 20000, 50000, 100000]);
+  const [chipNominalsDonasi, setChipNominalsDonasi] = useState<number[]>([10000, 25000, 50000, 100000, 250000, 500000]);
+  const [platformOptions, setPlatformOptions] = useState<string[]>([
+    "LINE",
+    "X (Twitter)",
+    "Instagram",
+    "TikTok",
+    "Discord",
+    "WhatsApp",
+  ]);
+
   // Check registration open/close & auth on mount
   const checkSettings = async () => {
     try {
@@ -190,6 +203,20 @@ export default function CavalleryKasPage() {
       if (json.status && json.data) {
         setRegAnggotaOpen(json.data.registerAnggotaOpen);
         setRegDonaturOpen(json.data.registerDonaturOpen);
+      }
+    } catch {}
+
+    try {
+      const resMd = await fetch("/api/master-data");
+      const jsonMd = await resMd.json();
+      if (jsonMd.status && jsonMd.data) {
+        if (jsonMd.data.tipeDonasi?.length) {
+          setDonationTypes(jsonMd.data.tipeDonasi);
+          setTipeDonasi(jsonMd.data.tipeDonasi[0]);
+        }
+        if (jsonMd.data.nominalKas?.length) setChipNominalsKas(jsonMd.data.nominalKas);
+        if (jsonMd.data.nominalDonasi?.length) setChipNominalsDonasi(jsonMd.data.nominalDonasi);
+        if (jsonMd.data.platforms?.length) setPlatformOptions(jsonMd.data.platforms);
       }
     } catch {}
   };
@@ -836,7 +863,7 @@ export default function CavalleryKasPage() {
                           value={regKontakPlatform}
                           onChange={(e) => setRegKontakPlatform(e.target.value)}
                         >
-                          {PLATFORMS.map((p) => (
+                          {platformOptions.map((p) => (
                             <option key={p} value={p}>
                               {p}
                             </option>
@@ -883,7 +910,7 @@ export default function CavalleryKasPage() {
                           value={regKontakPlatformDonatur}
                           onChange={(e) => setRegKontakPlatformDonatur(e.target.value)}
                         >
-                          {PLATFORMS.map((p) => (
+                          {platformOptions.map((p) => (
                             <option key={p} value={p}>
                               {p}
                             </option>
@@ -1235,55 +1262,25 @@ export default function CavalleryKasPage() {
                   required
                 />
                 <div className={styles.chipsRow}>
+                  {chipNominalsKas.map((nom) => (
+                    <button
+                      key={nom}
+                      type="button"
+                      className={`${styles.chip} ${selectedChipKas === nom ? styles.chipActive : ""}`}
+                      onClick={() => {
+                        setSelectedChipKas(nom);
+                        setNominalKas(nom.toLocaleString("id-ID"));
+                      }}
+                    >
+                      Rp {nom.toLocaleString("id-ID")}
+                    </button>
+                  ))}
                   <button
                     type="button"
-                    className={`${styles.chip} ${selectedChipKas === 15000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipKas(15000);
-                      setNominalKas("15.000");
-                    }}
+                    className={`${styles.chip} ${selectedChipKas === "custom" ? styles.chipActive : ""}`}
+                    onClick={() => setSelectedChipKas("custom")}
                   >
-                    Rp 15.000 (1 Bln)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipKas === 30000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipKas(30000);
-                      setNominalKas("30.000");
-                    }}
-                  >
-                    Rp 30.000 (2 Bln)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipKas === 45000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipKas(45000);
-                      setNominalKas("45.000");
-                    }}
-                  >
-                    Rp 45.000 (3 Bln)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipKas === 90000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipKas(90000);
-                      setNominalKas("90.000");
-                    }}
-                  >
-                    Rp 90.000 (6 Bln)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipKas === 180000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipKas(180000);
-                      setNominalKas("180.000");
-                    }}
-                  >
-                    Rp 180.000 (1 Thn)
+                    Nominal Lain
                   </button>
                 </div>
               </div>
@@ -1468,7 +1465,7 @@ export default function CavalleryKasPage() {
                   value={tipeDonasi}
                   onChange={(e) => setTipeDonasi(e.target.value)}
                 >
-                  {DONATION_TYPES.map((t) => (
+                  {donationTypes.map((t) => (
                     <option key={t} value={t}>
                       {t}
                     </option>
@@ -1491,45 +1488,25 @@ export default function CavalleryKasPage() {
                   required
                 />
                 <div className={styles.chipsRow}>
+                  {chipNominalsDonasi.map((nom) => (
+                    <button
+                      key={nom}
+                      type="button"
+                      className={`${styles.chip} ${selectedChipDonasi === nom ? styles.chipActive : ""}`}
+                      onClick={() => {
+                        setSelectedChipDonasi(nom);
+                        setNominalDonasi(nom.toLocaleString("id-ID"));
+                      }}
+                    >
+                      Rp {nom.toLocaleString("id-ID")}
+                    </button>
+                  ))}
                   <button
                     type="button"
-                    className={`${styles.chip} ${selectedChipDonasi === 25000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipDonasi(25000);
-                      setNominalDonasi("25.000");
-                    }}
+                    className={`${styles.chip} ${selectedChipDonasi === "custom" ? styles.chipActive : ""}`}
+                    onClick={() => setSelectedChipDonasi("custom")}
                   >
-                    Rp 25.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipDonasi === 50000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipDonasi(50000);
-                      setNominalDonasi("50.000");
-                    }}
-                  >
-                    Rp 50.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipDonasi === 100000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipDonasi(100000);
-                      setNominalDonasi("100.000");
-                    }}
-                  >
-                    Rp 100.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChipDonasi === 250000 ? styles.chipActive : ""}`}
-                    onClick={() => {
-                      setSelectedChipDonasi(250000);
-                      setNominalDonasi("250.000");
-                    }}
-                  >
-                    Rp 250.000
+                    Nominal Lain
                   </button>
                 </div>
               </div>
