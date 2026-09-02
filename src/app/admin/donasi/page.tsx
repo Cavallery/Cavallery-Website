@@ -122,6 +122,9 @@ export default function AdminDonasiPage() {
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
             </Link>
+            <Link href="/admin/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
+              <i className="bx bx-slider-alt" /> Master Data
+            </Link>
             <a
               href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
               target="_blank"

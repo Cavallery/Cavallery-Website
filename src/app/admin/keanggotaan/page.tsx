@@ -33,6 +33,17 @@ export default function AdminKeanggotaanPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
+  // Dynamic Master Data
+  const [divisiOptions, setDivisiOptions] = useState<string[]>(DIVISI_OPTIONS);
+  const [platformOptions, setPlatformOptions] = useState<string[]>([
+    "LINE",
+    "X (Twitter)",
+    "Instagram",
+    "TikTok",
+    "Discord",
+    "WhatsApp",
+  ]);
+
   // Modal States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editMember, setEditMember] = useState<any | null>(null);
@@ -65,6 +76,14 @@ export default function AdminKeanggotaanPage() {
       if (json.status && json.data) {
         setRegAnggotaOpen(json.data.registerAnggotaOpen);
         setRegDonaturOpen(json.data.registerDonaturOpen);
+      }
+
+      // Fetch Master Data
+      const resMd = await fetch("/api/admin/master-data");
+      const jsonMd = await resMd.json();
+      if (jsonMd.status && jsonMd.data) {
+        if (jsonMd.data.divisi?.length) setDivisiOptions(jsonMd.data.divisi);
+        if (jsonMd.data.platforms?.length) setPlatformOptions(jsonMd.data.platforms);
       }
     } catch (e) {
       console.error(e);
@@ -302,6 +321,9 @@ export default function AdminKeanggotaanPage() {
             </Link>
             <Link href="/admin/donasi" className={styles.backBtn}>
               <i className="bx bx-donate-heart" /> Verifikasi Donasi
+            </Link>
+            <Link href="/admin/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
+              <i className="bx bx-slider-alt" /> Master Data
             </Link>
             <a
               href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
@@ -687,7 +709,7 @@ export default function AdminKeanggotaanPage() {
                                 className={styles.selectDivisiAdmin}
                                 title="Ubah Divisi Pengurus"
                               >
-                                {DIVISI_OPTIONS.map((div) => (
+                                {divisiOptions.map((div) => (
                                   <option key={div} value={div}>
                                     {div}
                                   </option>
@@ -819,7 +841,7 @@ export default function AdminKeanggotaanPage() {
                     value={newDivisi}
                     onChange={(e) => setNewDivisi(e.target.value)}
                   >
-                    {DIVISI_OPTIONS.map((div) => (
+                    {divisiOptions.map((div) => (
                       <option key={div} value={div}>
                         {div}
                       </option>
@@ -1033,7 +1055,7 @@ export default function AdminKeanggotaanPage() {
                     value={editMember.divisi || "Tim Inti / Koordinator"}
                     onChange={(e) => setEditMember({ ...editMember, divisi: e.target.value })}
                   >
-                    {DIVISI_OPTIONS.map((div) => (
+                    {divisiOptions.map((div) => (
                       <option key={div} value={div}>
                         {div}
                       </option>

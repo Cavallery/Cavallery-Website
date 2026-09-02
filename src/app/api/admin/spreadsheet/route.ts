@@ -41,15 +41,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
     }
 
-    // 1. Ambil Semua Anggota Aktif (Diurutkan dari 0001)
-    const anggotaList = (await query<any[]>(`
+    // 1. Ambil Semua Anggota Aktif (Diurutkan dari nomor terkecil CAVA-0001)
+    const rawAnggotaList = (await query<any[]>(`
       SELECT * FROM anggota 
       WHERE status = 'aktif' 
       ORDER BY 
         CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
-        no_anggota ASC,
         id ASC
     `)) || [];
+
+    // Natural Numeric Sort (0001, 0002, 0003, ...)
+    const extractNumber = (str: string | null | undefined): number => {
+      if (!str || str === "-") return 99999999;
+      const match = str.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 9999999;
+    };
+
+    const anggotaList = [...rawAnggotaList].sort((a, b) => {
+      const isAEmpty = !a.no_anggota || a.no_anggota === "-" || a.no_anggota === "";
+      const isBEmpty = !b.no_anggota || b.no_anggota === "-" || b.no_anggota === "";
+      if (isAEmpty && !isBEmpty) return 1;
+      if (!isAEmpty && isBEmpty) return -1;
+
+      const numA = extractNumber(a.no_anggota);
+      const numB = extractNumber(b.no_anggota);
+      if (numA !== numB) return numA - numB;
+      return String(a.no_anggota || "").localeCompare(String(b.no_anggota || ""));
+    });
 
     const anggotaRows = anggotaList.map((a) => {
       const formattedDate = a.created_at
@@ -58,6 +76,12 @@ export async function POST(req: NextRequest) {
       const formattedSejak = a.anggota_sejak
         ? new Date(a.anggota_sejak).toLocaleDateString("id-ID")
         : "-";
+
+      const fullJabatan =
+        a.jabatan === "Admin Fanbase" && a.divisi
+          ? `Admin Fanbase (${a.divisi})`
+          : a.jabatan || "Anggota";
+
       return [
         a.no_anggota || "-",
         a.nama_lengkap,
@@ -68,7 +92,7 @@ export async function POST(req: NextRequest) {
         a.domisili || "-",
         `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
         a.status || "aktif",
-        a.jabatan || "Anggota",
+        fullJabatan,
         formattedSejak,
         formattedDate,
       ];
