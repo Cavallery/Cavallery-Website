@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { appendKasRow, updateKasStatusInSheet, deleteKasRow } from "@/lib/googleSheets";
+import { syncKasToMatrix } from "@/lib/kasMatrix";
 import { query } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi kas ──
@@ -102,6 +103,17 @@ export async function POST(req: NextRequest) {
           buktiBayarUrl: buktiBayarUrl || "",
           createdAt: new Date(),
         }).catch((err) => console.error("Realtime push kas manual ke Sheets error:", err));
+
+        // Auto sync ke matriks iuran bulanan
+        syncKasToMatrix({
+          konfirmasiKasId: insertedId,
+          anggotaId: Number(anggotaId),
+          noAnggota: a.no_anggota || "-",
+          periode,
+          nominal: Number(nominal),
+          status: "diverifikasi",
+          verifiedBy: admin.nama || "Admin",
+        }).catch((err) => console.error("Sync kas manual to matrix error:", err));
       }
 
       return NextResponse.json({
@@ -155,6 +167,17 @@ export async function POST(req: NextRequest) {
       updateKasStatusInSheet(id, targetStatus, k).catch((err) =>
         console.error("Realtime update status kas di Sheets error:", err)
       );
+
+      // Auto sync ke matriks iuran bulanan
+      syncKasToMatrix({
+        konfirmasiKasId: k.id,
+        anggotaId: k.anggota_id,
+        noAnggota: k.no_anggota || "-",
+        periode: k.periode,
+        nominal: k.nominal,
+        status: targetStatus,
+        verifiedBy: admin.nama || "Admin",
+      }).catch((err) => console.error("Sync kas to matrix error:", err));
     }
 
     return NextResponse.json({

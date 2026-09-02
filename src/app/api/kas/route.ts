@@ -19,9 +19,20 @@ export async function GET(req: NextRequest) {
       [session.id]
     );
 
+    let monthlyStatus: any[] = [];
+    try {
+      monthlyStatus = (await query<any[]>(
+        "SELECT tahun, bulan, status, nominal FROM iuran_kas_bulanan WHERE anggota_id = ? AND status = 'diverifikasi'",
+        [session.id]
+      )) || [];
+    } catch {
+      // ignore if table not yet populated
+    }
+
     return NextResponse.json({
       status: true,
       data: rows || [],
+      monthlyStatus,
     });
   } catch (error: any) {
     console.error("Get kas history error:", error);

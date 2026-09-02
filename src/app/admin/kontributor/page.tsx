@@ -147,7 +147,7 @@ export default function AdminKontributorPage() {
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              <i className="bx bx-user-heart" style={{ color: "var(--gold)", marginRight: 8 }} />
+              <i className="bx bx-heart-circle" style={{ color: "var(--gold)", marginRight: 8 }} />
               Manajemen Kontributor Cavallery
             </h1>
           </div>

@@ -12,7 +12,7 @@ const APPS_SCRIPT_URL =
 /**
  * Helper kirim data ke Google Apps Script Web App via HTTP POST
  */
-async function sendToAppsScript(action: string, payload: any): Promise<boolean> {
+export async function sendToAppsScript(action: string, payload: any): Promise<boolean> {
   const url = process.env.GOOGLE_APPS_SCRIPT_URL || APPS_SCRIPT_URL;
   if (!url) return false;
 
@@ -201,6 +201,7 @@ export async function syncAllToSheets(payload: {
   kontributorRows?: any[][];
   kasRows: any[][];
   donasiRows: any[][];
+  yearlyMatrixTabs?: any[];
 }): Promise<boolean> {
   return await sendToAppsScript("sync_all", payload);
 }

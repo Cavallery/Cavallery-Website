@@ -109,7 +109,7 @@ export default function AdminSpreadsheetPage() {
               <i className="bx bx-group" /> Keanggotaan
             </Link>
             <Link href="/admin/kontributor" className={styles.backBtn}>
-              <i className="bx bx-user-heart" /> Kontributor
+              <i className="bx bx-heart-circle" /> Kontributor
             </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Kas

@@ -314,7 +314,7 @@ export default function AdminKeanggotaanPage() {
               <i className="bx bx-user-plus" /> Tambah Anggota Manual
             </button>
             <Link href="/admin/kontributor" className={styles.backBtn}>
-              <i className="bx bx-user-heart" /> Kontributor
+              <i className="bx bx-heart-circle" /> Kontributor
             </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
@@ -387,7 +387,7 @@ export default function AdminKeanggotaanPage() {
           <div className={styles.toggleCard}>
             <div className={styles.toggleInfo}>
               <span className={styles.toggleTitle}>
-                <i className="bx bx-user-heart" style={{ color: "var(--gold)" }} /> Pendaftaran Kontributor
+                <i className="bx bx-heart-circle" style={{ color: "var(--gold)" }} /> Pendaftaran Kontributor
               </span>
               <span className={styles.toggleDesc}>
                 {regDonaturOpen

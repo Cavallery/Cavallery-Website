@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { syncAllToSheets, appendAnggotaRow, appendKasRow, appendDonasiRow } from "@/lib/googleSheets";
+import { syncAllToSheets } from "@/lib/googleSheets";
+import { buildSpreadsheetYearlyData, SUPPORTED_YEARS } from "@/lib/kasMatrix";
 import { query } from "@/lib/mysql";
 
 // ── GET: Info Spreadsheet & Link Viewer ──
@@ -187,22 +188,31 @@ export async function POST(req: NextRequest) {
       ];
     });
 
+    // 5. Bangun Matriks Iuran Kas Tahunan (2024 s/d 2029)
+    const yearlyMatrixTabs: any[] = [];
+    for (const y of SUPPORTED_YEARS) {
+      const yearData = await buildSpreadsheetYearlyData(y);
+      yearlyMatrixTabs.push(yearData);
+    }
+
     // Kirim sinkronisasi batch ke Google Apps Script (Replace data lama agar tidak duplikat)
     await syncAllToSheets({
       anggotaRows,
       kontributorRows,
       kasRows,
       donasiRows,
+      yearlyMatrixTabs,
     });
 
     return NextResponse.json({
       status: true,
-      message: `Full Backup Berhasil (Anti-Duplikat)! Data telah diperbarui: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Data Kontribusi ke Google Spreadsheet.`,
+      message: `Full Backup Berhasil (Anti-Duplikat)! Data telah diperbarui: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Data Kontribusi, dan 6 Tab Matriks Kas Tahunan (2024 - 2029) ke Google Spreadsheet.`,
       synced: {
         anggota: anggotaRows.length,
         kontributor: kontributorRows.length,
         kas: kasRows.length,
         donasi: donasiRows.length,
+        matriksTahun: SUPPORTED_YEARS,
       },
     });
   } catch (error: any) {
