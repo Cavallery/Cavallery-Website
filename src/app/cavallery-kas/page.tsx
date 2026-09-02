@@ -100,8 +100,10 @@ export default function CavalleryKasPage() {
   const [uploadingUserAvatar, setUploadingUserAvatar] = useState(false);
   const [avatarToast, setAvatarToast] = useState<string | null>(null);
 
-  // Kas History
+  // Kas History & Monthly Matrix Status
   const [kasHistory, setKasHistory] = useState<any[]>([]);
+  const [monthlyStatus, setMonthlyStatus] = useState<any[]>([]);
+  const [trackerYear, setTrackerYear] = useState<number>(new Date().getFullYear());
   const [loadingKasHistory, setLoadingKasHistory] = useState(false);
 
   // Donasi State
@@ -254,8 +256,9 @@ export default function CavalleryKasPage() {
     try {
       const res = await fetch("/api/kas");
       const json = await res.json();
-      if (json.status && json.data) {
-        setKasHistory(json.data);
+      if (json.status) {
+        if (json.data) setKasHistory(json.data);
+        if (json.monthlyStatus) setMonthlyStatus(json.monthlyStatus);
       }
     } catch {
       console.error("Failed to load kas history");
@@ -619,7 +622,7 @@ export default function CavalleryKasPage() {
                       setRegSuccess(null);
                     }}
                   >
-                    <i className="bx bx-user-heart" /> Kontributor
+                    <i className="bx bx-heart-circle" /> Kontributor
                   </button>
                 </div>
 
@@ -1352,7 +1355,106 @@ export default function CavalleryKasPage() {
                 <i className="bx bx-history" /> Riwayat
               </div>
               <h2 className={styles.title}>Status Pembayaran Kas Anda</h2>
-              <p className={styles.subtitle}>Daftar riwayat konfirmasi kas yang telah Anda kirimkan.</p>
+              <p className={styles.subtitle}>Pantau iuran kas bulanan Anda dan daftar konfirmasi kas yang telah dikirimkan.</p>
+            </div>
+
+            {/* ── TRACKER IURAN BULANAN MEMBER (2024 - 2029) ── */}
+            <div style={{
+              background: "rgba(255, 255, 255, 0.03)",
+              border: "1px solid var(--border)",
+              borderRadius: 16,
+              padding: "16px 20px",
+              marginBottom: 24,
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
+                <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--primary)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="bx bx-calendar-check" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
+                  Matriks Iuran Kas Tahun {trackerYear}
+                </div>
+                <div style={{ display: "flex", gap: 4, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
+                  {[2024, 2025, 2026, 2027, 2028, 2029].map((y) => (
+                    <button
+                      key={y}
+                      type="button"
+                      onClick={() => setTrackerYear(y)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: 6,
+                        border: "none",
+                        background: trackerYear === y ? "var(--gold)" : "transparent",
+                        color: trackerYear === y ? "#1a1612" : "var(--fg-muted)",
+                        fontWeight: trackerYear === y ? 800 : 600,
+                        fontSize: "0.78rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 12 Bulan Grid */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))",
+                gap: 8,
+              }}>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                  const isPaid = monthlyStatus.some((s) => Number(s.tahun) === trackerYear && Number(s.bulan) === m && s.status === "diverifikasi");
+                  const monthShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][m - 1];
+
+                  return (
+                    <div
+                      key={m}
+                      style={{
+                        padding: "10px 4px",
+                        borderRadius: 10,
+                        textAlign: "center",
+                        background: isPaid ? "rgba(16, 185, 129, 0.12)" : "rgba(255, 255, 255, 0.02)",
+                        border: isPaid ? "1.5px solid rgba(16, 185, 129, 0.4)" : "1px solid var(--border)",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--fg-muted)", marginBottom: 4 }}>
+                        {monthShort}
+                      </div>
+                      <div style={{ fontSize: "1.1rem", color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
+                        {isPaid ? (
+                          <i className="bx bx-check-circle" />
+                        ) : (
+                          <span style={{ display: "inline-block", width: 14, height: 14, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3 }} />
+                        )}
+                      </div>
+                      <div style={{ fontSize: "0.65rem", fontWeight: 800, marginTop: 4, color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
+                        {isPaid ? "Lunas" : "Belum"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "var(--fg-muted)" }}>
+                <span>
+                  Total Lunas {trackerYear}: <strong style={{ color: "#10b981" }}>{monthlyStatus.filter((s) => Number(s.tahun) === trackerYear && s.status === "diverifikasi").length} dari 12 Bulan</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPortalTab("bayar")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--gold)",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  Bayar Kas Sekarang <i className="bx bx-right-arrow-alt" />
+                </button>
+              </div>
             </div>
 
             {loadingKasHistory ? (
@@ -1378,13 +1480,21 @@ export default function CavalleryKasPage() {
                     badgeText = "Ditolak";
                   }
 
-                  const dateFormatted = new Date(item.createdAt).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
+                  const rawDate = item.created_at || item.createdAt;
+                  let dateFormatted = "-";
+                  if (rawDate) {
+                    const d = new Date(rawDate);
+                    if (!isNaN(d.getTime())) {
+                      dateFormatted = d.toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                    }
+                  }
+                  const proofUrl = item.bukti_bayar_url || item.buktiBayarUrl;
 
                   return (
                     <div key={item.id} className={styles.historyItem}>
@@ -1396,9 +1506,9 @@ export default function CavalleryKasPage() {
 
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
                         <span className={badgeClass}>{badgeText}</span>
-                        {item.buktiBayarUrl && (
+                        {proofUrl && (
                           <a
-                            href={item.buktiBayarUrl}
+                            href={proofUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={styles.viewProofBtn}

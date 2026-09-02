@@ -11,6 +11,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak. Silakan login sebagai admin." }, { status: 401 });
     }
 
+    // Auto-fix: Jika ID 1 kosong dan donasi pertama tercatat sebagai ID 2, ubah ke ID 1
+    try {
+      const checkOne = await query<any[]>("SELECT id FROM konfirmasi_donasi WHERE id = 1 LIMIT 1");
+      if (!checkOne || checkOne.length === 0) {
+        const checkTwo = await query<any[]>("SELECT id FROM konfirmasi_donasi WHERE id = 2 LIMIT 1");
+        if (checkTwo && checkTwo.length > 0) {
+          await query("UPDATE konfirmasi_donasi SET id = 1 WHERE id = 2");
+          await query("ALTER TABLE konfirmasi_donasi AUTO_INCREMENT = 2");
+        }
+      }
+    } catch (err: any) {
+      console.warn("Donasi renumber check warning:", err?.message);
+    }
+
     const rows = (await query<any[]>(`
       SELECT 
         d.id,
@@ -151,6 +165,14 @@ export async function POST(req: NextRequest) {
         status: true,
         message: `Data donasi / kontribusi #${id} berhasil dihapus dari sistem & spreadsheet.`,
       });
+    }
+
+    if (action === "update_id") {
+      const { oldId, newId } = body;
+      if (oldId && newId) {
+        await query("UPDATE konfirmasi_donasi SET id = ? WHERE id = ?", [newId, oldId]);
+        return NextResponse.json({ status: true, message: `ID donasi #${oldId} berhasil diubah menjadi #${newId}` });
+      }
     }
 
     if (!id || !action) {

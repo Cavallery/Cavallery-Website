@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "Cavallery",
   description:
     "Cavallery adalah fanbase resmi Erine JKT48. Temukan berita, jadwal show theater, live, games, dan proyek eksklusif.",

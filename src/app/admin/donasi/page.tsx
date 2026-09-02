@@ -117,7 +117,7 @@ export default function AdminDonasiPage() {
               <i className="bx bx-group" /> Keanggotaan
             </Link>
             <Link href="/admin/kontributor" className={styles.backBtn}>
-              <i className="bx bx-user-heart" /> Kontributor
+              <i className="bx bx-heart-circle" /> Kontributor
             </Link>
             <Link href="/admin/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
@@ -219,7 +219,7 @@ export default function AdminDonasiPage() {
                 </>
               ) : (
                 <>
-                  <i className="bx bx-user-heart" /> Dari Kontributor ({donasiList.filter((d) => !d.anggota).length})
+                  <i className="bx bx-heart-circle" /> Dari Kontributor ({donasiList.filter((d) => !d.anggota).length})
                 </>
               )}
             </button>

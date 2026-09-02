@@ -7133,7 +7133,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
 
   const cards: { key: Section; icon: string; label: string; color: string }[] = [
     { key: "keanggotaan" as any, icon: "bx-user-check",   label: "Keanggotaan", color: "#10b981" },
-    { key: "adminkontributor" as any, icon: "bx-user-heart", label: "Kontributor", color: "#6366f1" },
+    { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "#6366f1" },
     { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
     { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
     { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6" },
@@ -8274,7 +8274,7 @@ const navGroups: NavGroup[] = [
     icon: "bx-wallet",
     items: [
       { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
-      { key: "adminkontributor" as any, icon: "bx-user-heart",   label: "Kontributor" },
+      { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },

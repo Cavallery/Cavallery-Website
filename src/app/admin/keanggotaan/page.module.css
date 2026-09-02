@@ -743,3 +743,56 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
+/* ─── KAS MATRIX TABLE STYLES ─── */
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.matrixTable th {
+  background: rgba(var(--primary-rgb, 160, 100, 30), 0.12);
+  color: var(--fg);
+  padding: 8px 6px;
+  font-weight: 800;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.matrixTable td {
+  padding: 6px 4px;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.matrixCellPaid {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #2563eb;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.matrixCellPaid:hover {
+  background: rgba(59, 130, 246, 0.3) !important;
+}
+
+.matrixCellUnpaid {
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.matrixCellUnpaid:hover {
+  background: rgba(var(--primary-rgb, 160, 100, 30), 0.08);
+}
+
+:global([data-theme="dark"]) .matrixCellPaid {
+  background: rgba(59, 130, 246, 0.28) !important;
+  color: #60a5fa;
+}
+
+
