@@ -73,6 +73,9 @@ export interface MasterData {
   nominalDonasi: number[];
   platforms: string[];
   defaultNominalKas: number;
+  kategoriPengeluaran: string[];
+  tahunKasAktif: number[];
+  jabatanBebasKas: string[];
 }
 
 export const DEFAULT_MASTER_DATA: MasterData = {
@@ -106,6 +109,18 @@ export const DEFAULT_MASTER_DATA: MasterData = {
     "WhatsApp",
   ],
   defaultNominalKas: 15000,
+  kategoriPengeluaran: [
+    "Operasional Fanbase",
+    "Event / Project Show",
+    "Konsumsi Tim",
+    "Website & Server",
+    "Produksi Merchandise",
+    "Banner & Handbanner",
+    "Dokumentasi & Media",
+    "Lain-lain",
+  ],
+  tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
+  jabatanBebasKas: ["Admin Fanbase", "Pengurus Fanbase"],
 };
 
 export async function getMasterData(): Promise<MasterData> {
@@ -120,6 +135,9 @@ export async function getMasterData(): Promise<MasterData> {
         nominalDonasi: Array.isArray(parsed.nominalDonasi) && parsed.nominalDonasi.length > 0 ? parsed.nominalDonasi : DEFAULT_MASTER_DATA.nominalDonasi,
         platforms: Array.isArray(parsed.platforms) && parsed.platforms.length > 0 ? parsed.platforms : DEFAULT_MASTER_DATA.platforms,
         defaultNominalKas: typeof parsed.defaultNominalKas === "number" ? parsed.defaultNominalKas : DEFAULT_MASTER_DATA.defaultNominalKas,
+        kategoriPengeluaran: Array.isArray(parsed.kategoriPengeluaran) && parsed.kategoriPengeluaran.length > 0 ? parsed.kategoriPengeluaran : DEFAULT_MASTER_DATA.kategoriPengeluaran,
+        tahunKasAktif: Array.isArray(parsed.tahunKasAktif) && parsed.tahunKasAktif.length > 0 ? parsed.tahunKasAktif : DEFAULT_MASTER_DATA.tahunKasAktif,
+        jabatanBebasKas: Array.isArray(parsed.jabatanBebasKas) && parsed.jabatanBebasKas.length > 0 ? parsed.jabatanBebasKas : DEFAULT_MASTER_DATA.jabatanBebasKas,
       };
     }
   } catch (err) {

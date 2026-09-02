@@ -28,8 +28,8 @@ export default function AdminKasPage() {
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
   const [editKas, setEditKas] = useState<any | null>(null);
 
-  // ── STATE: Matriks Tab (DEFAULT UTAMA = "matriks") ──
-  const [activeTab, setActiveTab] = useState<"matriks" | "konfirmasi">("matriks");
+  // ── STATE: Tab Utama ──
+  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "konfirmasi">("matriks");
   const [matrixYear, setMatrixYear] = useState(new Date().getFullYear());
   const [matrixData, setMatrixData] = useState<any | null>(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
@@ -37,6 +37,26 @@ export default function AdminKasPage() {
   const [reSyncing, setReSyncing] = useState(false);
   const [exportingToSheets, setExportingToSheets] = useState(false);
   const [matrixSearch, setMatrixSearch] = useState("");
+
+  // ── STATE: Tagihan & Kewajiban Kas ──
+  const [tagihanList, setTagihanList] = useState<any[]>([]);
+  const [loadingTagihan, setLoadingTagihan] = useState(false);
+  const [tagihanSearch, setTagihanSearch] = useState("");
+
+  // ── STATE: Pengeluaran Kas ──
+  const [pengeluaranList, setPengeluaranList] = useState<any[]>([]);
+  const [totalPengeluaran, setTotalPengeluaran] = useState(0);
+  const [loadingPengeluaran, setLoadingPengeluaran] = useState(false);
+  const [showPengeluaranModal, setShowPengeluaranModal] = useState(false);
+  const [submittingPengeluaran, setSubmittingPengeluaran] = useState(false);
+  const [newPengeluaran, setNewPengeluaran] = useState({
+    tanggal: new Date().toISOString().split("T")[0],
+    kategori: "Operasional",
+    keperluan: "",
+    nominal: "",
+    buktiNotaUrl: "",
+    catatan: "",
+  });
 
   // ── STATE: Modal Input Kas Manual ──
   const [showInputModal, setShowInputModal] = useState(false);
@@ -51,7 +71,7 @@ export default function AdminKasPage() {
   const fetchKas = async () => {
     try {
       const res = await fetch("/api/admin/kas");
-      if (res.status === 401) { window.location.href = "/admin"; return; }
+      if (res.status === 401) { window.location.replace("/admin"); return; }
       const json = await res.json();
       if (json.status && json.data) setKasList(json.data);
     } catch (e) { console.error(e); }
@@ -63,11 +83,56 @@ export default function AdminKasPage() {
     setMatrixLoading(true);
     try {
       const res = await fetch(`/api/admin/kas/matrix?tahun=${year}`);
+      if (res.status === 401) { window.location.replace("/admin"); return; }
       const json = await res.json();
       if (json.status && json.data) setMatrixData(json.data);
     } catch (e) { console.error(e); }
     finally { setMatrixLoading(false); }
   }, []);
+
+  // ── Fetch Tagihan Kas ──
+  const fetchTagihan = useCallback(async (year: number) => {
+    setLoadingTagihan(true);
+    try {
+      const res = await fetch(`/api/admin/kas/tagihan?tahun=${year}`);
+      const json = await res.json();
+      if (json.status && json.data) setTagihanList(json.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingTagihan(false); }
+  }, []);
+
+  // ── Fetch Pengeluaran Kas ──
+  const fetchPengeluaran = useCallback(async (year: number) => {
+    setLoadingPengeluaran(true);
+    try {
+      const res = await fetch(`/api/admin/kas/pengeluaran?tahun=${year}`);
+      const json = await res.json();
+      if (json.status) {
+        setPengeluaranList(json.data || []);
+        setTotalPengeluaran(json.totalPengeluaran || 0);
+      }
+    } catch (e) { console.error(e); }
+    finally { setLoadingPengeluaran(false); }
+  }, []);
+
+  // ── STATE: Master Data Konfigurasi ──
+  const [masterData, setMasterData] = useState<any>({
+    kategoriPengeluaran: [
+      "Operasional Fanbase", "Event / Project Show", "Konsumsi Tim", "Website & Server", "Produksi Merchandise", "Banner & Handbanner", "Dokumentasi & Media", "Lain-lain"
+    ],
+    tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
+    defaultNominalKas: 15000,
+  });
+
+  const fetchMasterData = async () => {
+    try {
+      const res = await fetch("/api/admin/master-data");
+      const json = await res.json();
+      if (json.status && json.data) {
+        setMasterData(json.data);
+      }
+    } catch (e) { console.error(e); }
+  };
 
   // ── Fetch Anggota untuk dropdown manual ──
   const fetchAnggota = async () => {
@@ -81,8 +146,11 @@ export default function AdminKasPage() {
   useEffect(() => {
     fetchKas();
     fetchMatrix(matrixYear);
+    fetchTagihan(matrixYear);
+    fetchPengeluaran(matrixYear);
     fetchAnggota();
-  }, [fetchMatrix, matrixYear]);
+    fetchMasterData();
+  }, [fetchMatrix, fetchTagihan, fetchPengeluaran, matrixYear]);
 
   // ── Handlers: Konfirmasi ──
   const handleAction = async (id: number, action: string, extra: any = {}) => {
@@ -99,6 +167,7 @@ export default function AdminKasPage() {
         setMsg(json.message);
         fetchKas();
         fetchMatrix(matrixYear);
+        fetchTagihan(matrixYear);
       } else {
         alert(json.message || "Gagal memproses aksi");
       }
@@ -142,8 +211,12 @@ export default function AdminKasPage() {
         body: JSON.stringify({ noAnggota, tahun: matrixYear, bulan, isPaid: !isPaid, nominal: 15000 }),
       });
       const json = await res.json();
-      if (json.status) { fetchMatrix(matrixYear); }
-      else alert(json.message || "Gagal mengubah status");
+      if (json.status) {
+        fetchMatrix(matrixYear);
+        fetchTagihan(matrixYear);
+      } else {
+        alert(json.message || "Gagal mengubah status");
+      }
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
     finally { setMatrixToggling(null); }
   };
@@ -155,22 +228,27 @@ export default function AdminKasPage() {
     try {
       const res = await fetch("/api/admin/kas/matrix", { method: "PUT" });
       const json = await res.json();
-      if (json.status) { setMsg(json.message); fetchMatrix(matrixYear); }
-      else alert(json.message || "Gagal sinkronisasi");
+      if (json.status) {
+        setMsg(json.message);
+        fetchMatrix(matrixYear);
+        fetchTagihan(matrixYear);
+      } else {
+        alert(json.message || "Gagal sinkronisasi");
+      }
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
     finally { setReSyncing(false); }
   };
 
-  // ── Handler: Ekspor / Buat Tab Matriks ke Google Sheets ──
+  // ── Handler: Ekspor / Buat Tab Lengkap ke Google Sheets ──
   const handleExportToSheets = async () => {
-    if (!confirm("Kirim dan buat seluruh Tab Matriks Kas 2024 s/d 2029 ke Google Spreadsheet sekarang?")) return;
+    if (!confirm("Kirim dan sinkronkan seluruh Tab Matriks Kas (2024-2029), Anggota Aktif, Status Anggota, Leaderboard Kontributor, dan Laporan Pengeluaran ke Google Spreadsheet sekarang?")) return;
     setExportingToSheets(true);
     setMsg("");
     try {
       const res = await fetch("/api/admin/spreadsheet", { method: "POST" });
       const json = await res.json();
       if (json.status) {
-        setMsg("🎉 Berhasil! Seluruh Tab Kas 2024 s/d 2029 dengan checkbox & subtotal telah dibuat dan disinkronkan ke Google Spreadsheet Anda.");
+        setMsg(json.message || "🎉 Berhasil! Seluruh tab telah disinkronkan ke Google Spreadsheet.");
       } else {
         alert(json.message || "Gagal ekspor ke spreadsheet");
       }
@@ -207,6 +285,7 @@ export default function AdminKasPage() {
         setMsg(`✅ Pembayaran kas ${manualNoAnggota} untuk ${MONTH_NAMES_FULL[manualBulan - 1]} ${manualTahun} berhasil dicentang & dikirim ke Spreadsheet!`);
         setShowInputModal(false);
         fetchMatrix(matrixYear);
+        fetchTagihan(matrixYear);
       } else {
         alert(json.message || "Gagal menyimpan kas");
       }
@@ -217,11 +296,73 @@ export default function AdminKasPage() {
     }
   };
 
+  // ── Handler: Submit Pengeluaran Kas Baru ──
+  const handlePengeluaranSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNominal = Number(newPengeluaran.nominal.replace(/\D/g, ""));
+    if (!cleanNominal || !newPengeluaran.keperluan) {
+      alert("Keperluan dan nominal pengeluaran wajib diisi");
+      return;
+    }
+
+    setSubmittingPengeluaran(true);
+    try {
+      const res = await fetch("/api/admin/kas/pengeluaran", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tanggal: newPengeluaran.tanggal,
+          kategori: newPengeluaran.kategori,
+          keperluan: newPengeluaran.keperluan,
+          nominal: cleanNominal,
+          buktiNotaUrl: newPengeluaran.buktiNotaUrl,
+          catatan: newPengeluaran.catatan,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg("✅ Pengeluaran kas berhasil dicatat!");
+        setShowPengeluaranModal(false);
+        setNewPengeluaran({
+          tanggal: new Date().toISOString().split("T")[0],
+          kategori: "Operasional",
+          keperluan: "",
+          nominal: "",
+          buktiNotaUrl: "",
+          catatan: "",
+        });
+        fetchPengeluaran(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal mencatat pengeluaran");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSubmittingPengeluaran(false);
+    }
+  };
+
+  // ── Handler: Hapus Pengeluaran Kas ──
+  const handleDeletePengeluaran = async (id: number) => {
+    if (!confirm(`Hapus catatan pengeluaran kas #${id}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/kas/pengeluaran?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        fetchPengeluaran(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal menghapus pengeluaran");
+      }
+    } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
+  };
+
   const pendingKas = kasList.filter((k) => k.status === "pending");
   const processedKas = kasList.filter((k) => k.status !== "pending");
-  const totalNominalKasDiverifikasi = kasList.filter((k) => k.status === "diverifikasi").reduce((a, c) => a + (Number(c.nominal) || 0), 0);
-  const totalNominalKasPending = kasList.filter((k) => k.status === "pending").reduce((a, c) => a + (Number(c.nominal) || 0), 0);
-  const totalNominalKasSemua = kasList.reduce((a, c) => a + (Number(c.nominal) || 0), 0);
+  const grandTotalPemasukan = matrixData?.grandTotalPemasukan || 0;
+  const saldoKasBersih = grandTotalPemasukan - totalPengeluaran;
 
   // Filter matrix rows by search query
   const filteredMatrixRows = (matrixData?.matrixRows || []).filter((r: any) => {
@@ -230,6 +371,16 @@ export default function AdminKasPage() {
     return (
       (r.noAnggota || "").toLowerCase().includes(q) ||
       (r.nama || "").toLowerCase().includes(q)
+    );
+  });
+
+  // Filter tagihan kas rows by search query
+  const filteredTagihanRows = tagihanList.filter((d: any) => {
+    if (!tagihanSearch) return true;
+    const q = tagihanSearch.toLowerCase();
+    return (
+      (d.noAnggota || "").toLowerCase().includes(q) ||
+      (d.nama || "").toLowerCase().includes(q)
     );
   });
 
@@ -271,7 +422,7 @@ export default function AdminKasPage() {
           </div>
         </div>
 
-        {/* ── TOMBOL AKSI CEPAT SINKRONISASI & EXPORT KE SPREADSHEET ── */}
+        {/* ── TOMBOL AKSI CEPAT SINKRONISASI & INPUT KAS / PENGELUARAN ── */}
         <div style={{
           background: "linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(17, 85, 204, 0.1) 100%)",
           border: "1.5px solid var(--border-gold, #c9a84c)",
@@ -287,10 +438,10 @@ export default function AdminKasPage() {
           <div>
             <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--primary)" }}>
               <i className="bx bx-spreadsheet" style={{ marginRight: 6, fontSize: "1.2rem", color: "var(--gold)" }} />
-              Sinkronisasi Matriks Kas ke Google Spreadsheet
+              Pusat Manajemen Kas &amp; Sinkronisasi Spreadsheet
             </div>
             <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
-              Ekspor seluruh data centang bulanan ke tab <strong>Kas 2024 s/d Kas 2029</strong> di Google Spreadsheet.
+              Ekspor seluruh data centang bulanan (2024-2029), Anggota Aktif, Status Anggota, Leaderboard, dan Laporan Pengeluaran.
             </div>
           </div>
 
@@ -306,13 +457,22 @@ export default function AdminKasPage() {
 
             <button
               type="button"
+              onClick={() => setShowPengeluaranModal(true)}
+              className={styles.btnCreate}
+              style={{ background: "#e11d48", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <i className="bx bx-receipt" /> + Catat Pengeluaran Kas
+            </button>
+
+            <button
+              type="button"
               onClick={handleExportToSheets}
               disabled={exportingToSheets}
               className={styles.btnCreate}
               style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className={`bx ${exportingToSheets ? "bx-loader-alt bx-spin" : "bx-cloud-upload"}`} />
-              {exportingToSheets ? "Membuat Tab di Google Sheets..." : "Kirim Tab Matriks ke Spreadsheet"}
+              {exportingToSheets ? "Menyinkronkan..." : "Kirim Semua Tab ke Spreadsheet"}
             </button>
           </div>
         </div>
@@ -324,28 +484,93 @@ export default function AdminKasPage() {
           </div>
         )}
 
-        {/* ── TAB SWITCHER (MATRIKS TABEL SEBAGAI PILIHAN UTAMA) ── */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "2px solid var(--border)", paddingBottom: 0 }}>
+        {/* ── STATS RINGKASAN KEUANGAN KAS TAHUNAN ── */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 16,
+          marginBottom: 20,
+        }}>
+          {/* 1. Total Pemasukan */}
+          <div style={{
+            background: "rgba(16, 185, 129, 0.08)",
+            border: "1.5px solid rgba(16, 185, 129, 0.3)",
+            borderRadius: 14,
+            padding: "16px 18px",
+          }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#10b981", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <i className="bx bx-trending-up" /> Total Pemasukan Kas {matrixYear}
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#10b981", marginTop: 4 }}>
+              {formatRupiah(grandTotalPemasukan)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              Akumulasi iuran kas yang tercentang lunas
+            </div>
+          </div>
+
+          {/* 2. Total Pengeluaran */}
+          <div style={{
+            background: "rgba(225, 29, 72, 0.08)",
+            border: "1.5px solid rgba(225, 29, 72, 0.3)",
+            borderRadius: 14,
+            padding: "16px 18px",
+          }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#e11d48", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <i className="bx bx-trending-down" /> Total Pengeluaran Kas {matrixYear}
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#e11d48", marginTop: 4 }}>
+              {formatRupiah(totalPengeluaran)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              {pengeluaranList.length} transaksi belanja operasional fanbase
+            </div>
+          </div>
+
+          {/* 3. Saldo Bersih */}
+          <div style={{
+            background: saldoKasBersih >= 0 ? "rgba(201, 168, 76, 0.1)" : "rgba(239, 68, 68, 0.1)",
+            border: saldoKasBersih >= 0 ? "1.5px solid var(--border-gold, #c9a84c)" : "1.5px solid #ef4444",
+            borderRadius: 14,
+            padding: "16px 18px",
+          }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--gold)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <i className="bx bx-wallet-alt" /> Saldo Bersih Kas {matrixYear}
+            </div>
+            <div style={{ fontSize: "1.6rem", fontWeight: 900, color: saldoKasBersih >= 0 ? "var(--primary)" : "#ef4444", marginTop: 4 }}>
+              {formatRupiah(saldoKasBersih)}
+            </div>
+            <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+              Sisa saldo kas siap pakai untuk fanbase
+            </div>
+          </div>
+        </div>
+
+        {/* ── TAB SWITCHER UTAMA ── */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, borderBottom: "2px solid var(--border)", paddingBottom: 0, overflowX: "auto" }}>
           {[
-            { key: "matriks", label: "Matriks Iuran Kas (Tabel Centang Tahunan)", icon: "bx-grid-alt" },
-            { key: "konfirmasi", label: `Antrean Verifikasi Pembayaran (${pendingKas.length})`, icon: "bx-receipt" },
+            { key: "matriks", label: "Matriks Iuran Kas Bulanan", icon: "bx-grid-alt" },
+            { key: "tagihan", label: `Pelacak Tagihan Kas (${tagihanList.length})`, icon: "bx-user-x" },
+            { key: "pengeluaran", label: `Laporan Pengeluaran (${pengeluaranList.length})`, icon: "bx-receipt" },
+            { key: "konfirmasi", label: `Antrean Verifikasi (${pendingKas.length})`, icon: "bx-check-shield" },
           ].map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key as any)}
               style={{
-                padding: "10px 20px",
+                padding: "10px 18px",
                 border: "none",
                 borderBottom: activeTab === tab.key ? "3px solid var(--gold)" : "3px solid transparent",
                 background: "transparent",
                 color: activeTab === tab.key ? "var(--primary)" : "var(--fg-muted)",
                 fontWeight: activeTab === tab.key ? 800 : 600,
-                fontSize: "0.92rem",
+                fontSize: "0.9rem",
                 cursor: "pointer",
                 display: "flex", alignItems: "center", gap: 6,
                 transition: "all 0.2s",
                 marginBottom: -2,
+                whiteSpace: "nowrap",
               }}
             >
               <i className={`bx ${tab.icon}`} /> {tab.label}
@@ -354,65 +579,16 @@ export default function AdminKasPage() {
         </div>
 
         {/* ════════════════════════════════════════════ */}
-        {/* TAB UTAMA: MATRIKS IURAN BULANAN             */}
+        {/* TAB 1: MATRIKS IURAN BULANAN (TABEL CENTANG)*/}
         {/* ════════════════════════════════════════════ */}
         {activeTab === "matriks" && (
           <div className={styles.sectionCard} style={{ padding: 20 }}>
-            {/* Header Box (Iuran Kas & Total Pemasukan) */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 16,
-              marginBottom: 20,
-              background: "var(--card-bg)",
-              border: "1px solid var(--border)",
-              borderRadius: 14,
-              padding: 16,
-            }}>
-              <div>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--fg-muted)", textTransform: "uppercase" }}>
-                  Judul Rekap Iuran
-                </div>
-                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--primary)", marginTop: 2 }}>
-                  Iuran Kas {matrixYear}
-                </div>
-                <div style={{ fontSize: "0.78rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  {matrixData?.totalAnggota || 0} Total Anggota Aktif Terdata
-                </div>
-              </div>
-
-              <div style={{ background: "rgba(252, 229, 205, 0.2)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: 10, padding: 12 }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#d97706", textTransform: "uppercase" }}>
-                  Total Pemasukan Kas {matrixYear}
-                </div>
-                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "#10b981", marginTop: 2 }}>
-                  {formatRupiah(matrixData?.grandTotalPemasukan || 0)}
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>
-                  Akumulasi kas yang tercentang lunas
-                </div>
-              </div>
-
-              <div style={{ background: "rgba(255, 255, 255, 0.03)", border: "1px solid var(--border)", borderRadius: 10, padding: 12 }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--fg-muted)", textTransform: "uppercase" }}>
-                  Total Pengeluaran Kas {matrixYear}
-                </div>
-                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--fg-muted)", marginTop: 2 }}>
-                  -
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>
-                  Pengeluaran operasional fanbase
-                </div>
-              </div>
-            </div>
-
             {/* Toolbar: Pemilih Tahun & Pencarian */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-              {/* Year Tabs */}
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--fg-muted)" }}>Tahun:</span>
                 <div style={{ display: "flex", gap: 4, background: "var(--card-bg)", borderRadius: 10, padding: 4, border: "1px solid var(--border)" }}>
-                  {SUPPORTED_YEARS.map((y) => (
+                  {(masterData.tahunKasAktif || SUPPORTED_YEARS).map((y: number) => (
                     <button
                       key={y}
                       type="button"
@@ -452,7 +628,7 @@ export default function AdminKasPage() {
                       color: "var(--fg)",
                       fontSize: "0.82rem",
                       outline: "none",
-                      width: 200,
+                      width: 210,
                     }}
                   />
                 </div>
@@ -529,7 +705,6 @@ export default function AdminKasPage() {
               <div className={styles.tableWrap} style={{ maxHeight: "70vh", overflow: "auto" }}>
                 <table className={styles.matrixTable} style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
-                    {/* Header Baris 4 */}
                     <tr>
                       <th style={{ width: 36, background: "#1155cc", color: "#fff", position: "sticky", left: 0, zIndex: 11 }}>No.</th>
                       <th style={{ minWidth: 100, textAlign: "left", background: "#1155cc", color: "#fff", position: "sticky", left: 36, zIndex: 11 }}>Nomor Anggota</th>
@@ -549,51 +724,47 @@ export default function AdminKasPage() {
                   <tbody>
                     {filteredMatrixRows.map((row: any, idx: number) => (
                       <tr key={row.noAnggota}>
-                        {/* No */}
                         <td style={{ textAlign: "center", fontWeight: 700, background: "var(--card-bg)", position: "sticky", left: 0, zIndex: 5 }}>
                           {idx + 1}
                         </td>
-
-                        {/* Nomor Anggota */}
                         <td style={{ textAlign: "left", background: "var(--card-bg)", position: "sticky", left: 36, zIndex: 5 }}>
                           <span className={styles.noAnggota} style={{ fontSize: "0.78rem" }}>{row.noAnggota}</span>
                         </td>
-
-                        {/* Nama */}
                         <td style={{ textAlign: "left", background: "var(--card-bg)", position: "sticky", left: 136, zIndex: 5 }}>
                           <div style={{ fontWeight: 700, fontSize: "0.85rem" }}>{row.nama}</div>
                           {row.isAdminRole && (
-                            <div style={{ fontSize: "0.68rem", color: "var(--primary)", fontWeight: 600 }}>{row.jabatan}</div>
+                            <div style={{ fontSize: "0.68rem", color: "var(--primary)", fontWeight: 600 }}>{row.jabatan} (Bebas Kas)</div>
                           )}
                         </td>
-
-                        {/* Kas Total */}
                         <td style={{ fontWeight: 800, fontSize: "0.85rem", color: row.totalKas > 0 ? "#10b981" : "var(--fg-muted)" }}>
                           {row.totalKas > 0 ? formatRupiah(row.totalKas) : "Rp -"}
                         </td>
-
-                        {/* Bulan Mulai */}
                         <td style={{ color: "var(--fg-muted)", fontWeight: 700 }}>
                           {row.bulanMulai}
                         </td>
-
-                        {/* 12 Bulan Checkboxes */}
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
-                          const isPaid = row.months?.[m] === true;
+                          const status = row.months?.[m];
+                          const isPaid = status === true;
+                          const isNotJoined = status === "not_joined";
                           const key = `${row.noAnggota}:${m}`;
                           const isToggling = matrixToggling === key;
 
                           return (
                             <td
                               key={m}
-                              className={isPaid ? styles.matrixCellPaid : styles.matrixCellUnpaid}
-                              title={`${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): ${isPaid ? "LUNAS" : "Belum Bayar"}. Klik untuk ubah.`}
+                              className={isPaid ? styles.matrixCellPaid : isNotJoined ? "" : styles.matrixCellUnpaid}
+                              title={
+                                isNotJoined
+                                  ? `${row.nama}: Belum Bergabung pada ${MONTH_NAMES_FULL[m - 1]} ${matrixYear} (Bebas Kewajiban Kas)`
+                                  : `${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): ${isPaid ? "LUNAS" : "Belum Bayar"}. Klik untuk ubah.`
+                              }
                               onClick={() => !isToggling && handleToggleMonth(row.noAnggota, m, isPaid)}
                               style={{
                                 cursor: "pointer",
                                 textAlign: "center",
                                 verticalAlign: "middle",
                                 transition: "all 0.15s",
+                                background: isNotJoined ? "rgba(255, 255, 255, 0.02)" : undefined,
                               }}
                             >
                               {isToggling ? (
@@ -611,6 +782,10 @@ export default function AdminKasPage() {
                                   fontSize: "0.85rem",
                                 }}>
                                   <i className="bx bx-check" />
+                                </span>
+                              ) : isNotJoined ? (
+                                <span style={{ color: "var(--fg-muted)", fontSize: "0.9rem", fontWeight: 700 }} title="Belum Bergabung">
+                                  -
                                 </span>
                               ) : (
                                 <span style={{
@@ -635,14 +810,17 @@ export default function AdminKasPage() {
             <div style={{ marginTop: 14, fontSize: "0.8rem", color: "var(--fg-muted)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <i className="bx bx-info-circle" style={{ color: "var(--gold)" }} />
-                <span>Klik langsung pada kotak centang bulan untuk mengubah status lunas / belum bayar. Data tersimpan ke database &amp; otomatis terkirim ke Google Sheets.</span>
+                <span>Anggota hanya wajib membayar kas sejak bulan resmi bergabung (kolom Bulan Mulai). Bulan sebelum bergabung otomatis bebas kewajiban kas.</span>
               </div>
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 16, height: 16, background: "#1155cc", borderRadius: 3, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.65rem" }}><i className="bx bx-check" /></span> Lunas
+                  <span style={{ width: 18, height: 18, background: "#1155cc", borderRadius: 4, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "0.75rem" }}><i className="bx bx-check" /></span> Lunas
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 14, height: 14, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3, display: "inline-block" }} /> Belum Bayar
+                  <span style={{ width: 16, height: 16, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3, display: "inline-block" }} /> Belum Bayar
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <strong style={{ color: "var(--fg-muted)", fontSize: "1rem" }}>-</strong> Belum Bergabung
                 </span>
               </div>
             </div>
@@ -650,7 +828,216 @@ export default function AdminKasPage() {
         )}
 
         {/* ════════════════════════════════════════════ */}
-        {/* TAB 2: ANTREAN VERIFIKASI PEMBAYARAN        */}
+        {/* TAB 2: PELACAK TAGIHAN & KEWAJIBAN KAS       */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "tagihan" && (
+          <div className={styles.sectionCard} style={{ padding: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+              <div>
+                <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+                  <i className="bx bx-user-x" style={{ color: "#ef4444" }} />
+                  Pelacak Tagihan &amp; Kewajiban Kas Anggota Tahun {matrixYear}
+                  <span className={styles.countBadge} style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444" }}>
+                    {tagihanList.length} Menunggak
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 4 }}>
+                  Daftar anggota aktif yang belum melunasi kewajiban kas bulanan (Pengurus fanbase dibebaskan otomatis).
+                </div>
+              </div>
+
+              {/* Search Bar Tagihan */}
+              <div style={{ position: "relative" }}>
+                <i className="bx bx-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--fg-muted)" }} />
+                <input
+                  type="text"
+                  placeholder="Cari nama / nomor anggota..."
+                  value={tagihanSearch}
+                  onChange={(e) => setTagihanSearch(e.target.value)}
+                  style={{
+                    padding: "8px 12px 8px 32px",
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--card-bg)",
+                    color: "var(--fg)",
+                    fontSize: "0.85rem",
+                    outline: "none",
+                    width: 250,
+                  }}
+                />
+              </div>
+            </div>
+
+            {loadingTagihan ? (
+              <div className={styles.emptyBox}><i className="bx bx-loader-alt bx-spin" /><p>Memuat data tagihan kas...</p></div>
+            ) : filteredTagihanRows.length === 0 ? (
+              <div className={styles.emptyBox}>
+                <i className="bx bx-check-shield" style={{ color: "#10b981" }} />
+                <p>Luar biasa! Seluruh anggota telah melunasi kewajiban kas pada tahun {matrixYear}.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Nomor Anggota</th>
+                      <th>Nama Anggota</th>
+                      <th>Tagihan Kas</th>
+                      <th>Kewajiban Kas</th>
+                      <th>Aksi Cepat</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTagihanRows.map((d: any, idx: number) => (
+                      <tr key={d.noAnggota}>
+                        <td style={{ textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
+                        <td><span className={styles.noAnggota}>{d.noAnggota}</span></td>
+                        <td className={styles.nameCol}>
+                          <div style={{ fontWeight: 700 }}>{d.nama}</div>
+                          <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{d.jabatan}</div>
+                        </td>
+                        <td style={{ fontWeight: 900, color: "#ef4444", fontSize: "0.95rem" }}>
+                          {formatRupiah(d.tagihanKas)}
+                        </td>
+                        <td>
+                          <span style={{
+                            display: "inline-block",
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            background: "rgba(239, 68, 68, 0.1)",
+                            color: "#ef4444",
+                            fontWeight: 700,
+                            fontSize: "0.82rem",
+                            border: "1px solid rgba(239, 68, 68, 0.25)",
+                          }}>
+                            {d.kewajibanText}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setManualNoAnggota(d.noAnggota);
+                              setManualTahun(matrixYear);
+                              setManualBulan(d.unpaidMonths?.[0] || 1);
+                              setShowInputModal(true);
+                            }}
+                            className={styles.backBtn}
+                            style={{ fontSize: "0.75rem", padding: "5px 10px", color: "var(--gold)", borderColor: "var(--border-gold)" }}
+                          >
+                            <i className="bx bx-check-circle" /> Bayar Bulan Pertama
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB 3: LAPORAN PENGELUARAN KAS FANBASE       */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "pengeluaran" && (
+          <div className={styles.sectionCard} style={{ padding: 20 }}>
+            <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-receipt" style={{ color: "#e11d48" }} />
+                  Laporan Operasional &amp; Pengeluaran Kas Fanbase
+                  <span className={styles.countBadge} style={{ background: "rgba(225, 29, 72, 0.15)", color: "#e11d48" }}>
+                    {pengeluaranList.length} Transaksi
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  Total pengeluaran tercatat tahun {matrixYear}: <strong style={{ color: "#e11d48" }}>{formatRupiah(totalPengeluaran)}</strong>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowPengeluaranModal(true)}
+                className={styles.btnCreate}
+                style={{ background: "#e11d48", color: "#fff" }}
+              >
+                <i className="bx bx-plus" /> + Catat Pengeluaran Baru
+              </button>
+            </div>
+
+            {loadingPengeluaran ? (
+              <div className={styles.emptyBox}><i className="bx bx-loader-alt bx-spin" /><p>Memuat laporan pengeluaran...</p></div>
+            ) : pengeluaranList.length === 0 ? (
+              <div className={styles.emptyBox}>
+                <i className="bx bx-receipt" />
+                <p>Belum ada catatan pengeluaran kas pada tahun {matrixYear}.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tanggal</th>
+                      <th>Kategori</th>
+                      <th>Keperluan</th>
+                      <th>Nominal</th>
+                      <th>Penanggung Jawab</th>
+                      <th>Bukti Nota</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pengeluaranList.map((p: any) => (
+                      <tr key={p.id}>
+                        <td>#{p.id}</td>
+                        <td>{new Date(p.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                        <td>
+                          <span style={{ padding: "3px 8px", borderRadius: 4, background: "rgba(0,0,0,0.2)", fontSize: "0.75rem", fontWeight: 700 }}>
+                            {p.kategori}
+                          </span>
+                        </td>
+                        <td className={styles.nameCol}>
+                          <div style={{ fontWeight: 700 }}>{p.keperluan}</div>
+                          {p.catatan && <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{p.catatan}</div>}
+                        </td>
+                        <td style={{ fontWeight: 800, color: "#e11d48" }}>{formatRupiah(p.nominal)}</td>
+                        <td>{p.pj_nama}</td>
+                        <td>
+                          {p.bukti_nota_url ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedProof(p.bukti_nota_url)}
+                              className={styles.backBtn}
+                              style={{ fontSize: "0.72rem", padding: "3px 8px" }}
+                            >
+                              <i className="bx bx-image" /> Lihat
+                            </button>
+                          ) : "-"}
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePengeluaran(p.id)}
+                            className={styles.btnDelete}
+                            title="Hapus Pengeluaran"
+                          >
+                            <i className="bx bx-trash" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB 4: ANTREAN VERIFIKASI KAS MASUK         */}
         {/* ════════════════════════════════════════════ */}
         {activeTab === "konfirmasi" && (
           <>
@@ -881,16 +1268,122 @@ export default function AdminKasPage() {
         </div>
       )}
 
+      {/* ── MODAL CATAT PENGELUARAN KAS ── */}
+      {showPengeluaranModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowPengeluaranModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-receipt" /> Catat Pengeluaran Kas Operasional
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowPengeluaranModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePengeluaranSubmit} className={styles.modalForm}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tanggal Pengeluaran</label>
+                  <input
+                    type="date"
+                    className={styles.modalInput}
+                    value={newPengeluaran.tanggal}
+                    onChange={(e) => setNewPengeluaran({ ...newPengeluaran, tanggal: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Kategori</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={newPengeluaran.kategori}
+                    onChange={(e) => setNewPengeluaran({ ...newPengeluaran, kategori: e.target.value })}
+                  >
+                    {(masterData.kategoriPengeluaran || [
+                      "Operasional Fanbase", "Event / Project Show", "Konsumsi Tim", "Website & Server", "Produksi Merchandise", "Banner & Handbanner", "Dokumentasi & Media", "Lain-lain"
+                    ]).map((kat: string) => (
+                      <option key={kat} value={kat}>{kat}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Keperluan / Deskripsi Singkat</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: Banner Erine 200 Show, Snack Gath, dll."
+                  value={newPengeluaran.keperluan}
+                  onChange={(e) => setNewPengeluaran({ ...newPengeluaran, keperluan: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Nominal Pengeluaran (Rp)</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: 150.000"
+                  value={newPengeluaran.nominal}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setNewPengeluaran({
+                      ...newPengeluaran,
+                      nominal: digits ? Number(digits).toLocaleString("id-ID") : "",
+                    });
+                  }}
+                  required
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>URL Bukti Nota / Kwitansi (Opsional)</label>
+                <input
+                  type="url"
+                  className={styles.modalInput}
+                  placeholder="https://..."
+                  value={newPengeluaran.buktiNotaUrl}
+                  onChange={(e) => setNewPengeluaran({ ...newPengeluaran, buktiNotaUrl: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Catatan Tambahan (Opsional)</label>
+                <textarea
+                  className={styles.modalInput}
+                  rows={2}
+                  value={newPengeluaran.catatan}
+                  onChange={(e) => setNewPengeluaran({ ...newPengeluaran, catatan: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.backBtn} onClick={() => setShowPengeluaranModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnCreate} style={{ background: "#e11d48", color: "#fff" }} disabled={submittingPengeluaran}>
+                  <i className={`bx ${submittingPengeluaran ? "bx-loader-alt bx-spin" : "bx-save"}`} />
+                  {submittingPengeluaran ? "Menyimpan..." : "Simpan Pengeluaran"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── MODAL PROOF IMAGE VIEWER ── */}
       {selectedProof && (
         <div className={styles.modalOverlay} onClick={() => setSelectedProof(null)}>
           <div className={styles.modalCard} style={{ maxWidth: 520, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}><i className="bx bx-receipt" /> Bukti Pembayaran Kas</h3>
+              <h3 className={styles.modalTitle}><i className="bx bx-receipt" /> Bukti Pembayaran / Nota</h3>
               <button type="button" className={styles.modalClose} onClick={() => setSelectedProof(null)}><i className="bx bx-x" /></button>
             </div>
             <div style={{ marginTop: 16 }}>
-              <img src={selectedProof} alt="Bukti Transfer" style={{ width: "100%", maxHeight: "65vh", objectFit: "contain", borderRadius: 12, border: "1px solid var(--border)" }} />
+              <img src={selectedProof} alt="Bukti" style={{ width: "100%", maxHeight: "65vh", objectFit: "contain", borderRadius: 12, border: "1px solid var(--border)" }} />
             </div>
             <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
               <a href={selectedProof} target="_blank" rel="noopener noreferrer" className={styles.backBtn}>

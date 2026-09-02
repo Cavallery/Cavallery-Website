@@ -1395,66 +1395,94 @@ export default function CavalleryKasPage() {
               </div>
 
               {/* 12 Bulan Grid */}
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))",
-                gap: 8,
-              }}>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
-                  const isPaid = monthlyStatus.some((s) => Number(s.tahun) === trackerYear && Number(s.bulan) === m && s.status === "diverifikasi");
-                  const monthShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][m - 1];
+              {(() => {
+                let userJoinYear = 2024;
+                let userJoinMonth = 1;
+                const rawJoinDate = sessionUser?.anggotaSejak || sessionUser?.createdAt;
+                if (rawJoinDate) {
+                  const jd = new Date(rawJoinDate);
+                  if (!isNaN(jd.getTime())) {
+                    userJoinYear = jd.getFullYear();
+                    userJoinMonth = jd.getMonth() + 1;
+                  }
+                }
 
-                  return (
-                    <div
-                      key={m}
-                      style={{
-                        padding: "10px 4px",
-                        borderRadius: 10,
-                        textAlign: "center",
-                        background: isPaid ? "rgba(16, 185, 129, 0.12)" : "rgba(255, 255, 255, 0.02)",
-                        border: isPaid ? "1.5px solid rgba(16, 185, 129, 0.4)" : "1px solid var(--border)",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--fg-muted)", marginBottom: 4 }}>
-                        {monthShort}
-                      </div>
-                      <div style={{ fontSize: "1.1rem", color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
-                        {isPaid ? (
-                          <i className="bx bx-check-circle" />
-                        ) : (
-                          <span style={{ display: "inline-block", width: 14, height: 14, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3 }} />
-                        )}
-                      </div>
-                      <div style={{ fontSize: "0.65rem", fontWeight: 800, marginTop: 4, color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
-                        {isPaid ? "Lunas" : "Belum"}
-                      </div>
+                const isBeforeJoinYear = trackerYear < userJoinYear;
+                const isJoinYear = trackerYear === userJoinYear;
+                const startRequiredMonth = isJoinYear ? userJoinMonth : isBeforeJoinYear ? 13 : 1;
+                const totalRequiredMonths = isBeforeJoinYear ? 0 : isJoinYear ? (12 - userJoinMonth + 1) : 12;
+                const totalPaidThisYear = monthlyStatus.filter((s) => Number(s.tahun) === trackerYear && s.status === "diverifikasi").length;
+
+                return (
+                  <>
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))",
+                      gap: 8,
+                    }}>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                        const isPaid = monthlyStatus.some((s) => Number(s.tahun) === trackerYear && Number(s.bulan) === m && s.status === "diverifikasi");
+                        const isBeforeJoined = isBeforeJoinYear || (isJoinYear && m < userJoinMonth);
+                        const monthShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][m - 1];
+
+                        return (
+                          <div
+                            key={m}
+                            style={{
+                              padding: "10px 4px",
+                              borderRadius: 10,
+                              textAlign: "center",
+                              background: isPaid ? "rgba(16, 185, 129, 0.12)" : isBeforeJoined ? "rgba(255, 255, 255, 0.01)" : "rgba(255, 255, 255, 0.03)",
+                              border: isPaid ? "1.5px solid rgba(16, 185, 129, 0.4)" : "1px solid var(--border)",
+                              opacity: isBeforeJoined && !isPaid ? 0.6 : 1,
+                              transition: "all 0.2s",
+                            }}
+                          >
+                            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--fg-muted)", marginBottom: 4 }}>
+                              {monthShort}
+                            </div>
+                            <div style={{ fontSize: "1.1rem", color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
+                              {isPaid ? (
+                                <i className="bx bx-check-circle" />
+                              ) : isBeforeJoined ? (
+                                <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--fg-muted)" }}>-</span>
+                              ) : (
+                                <span style={{ display: "inline-block", width: 14, height: 14, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3 }} />
+                              )}
+                            </div>
+                            <div style={{ fontSize: "0.65rem", fontWeight: 800, marginTop: 4, color: isPaid ? "#10b981" : "var(--fg-muted)" }}>
+                              {isPaid ? "Lunas" : isBeforeJoined ? "Bebas" : "Belum"}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
 
-              <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "var(--fg-muted)" }}>
-                <span>
-                  Total Lunas {trackerYear}: <strong style={{ color: "#10b981" }}>{monthlyStatus.filter((s) => Number(s.tahun) === trackerYear && s.status === "diverifikasi").length} dari 12 Bulan</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPortalTab("bayar")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--gold)",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  Bayar Kas Sekarang <i className="bx bx-right-arrow-alt" />
-                </button>
-              </div>
+                    <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, fontSize: "0.78rem", color: "var(--fg-muted)" }}>
+                      <span>
+                        Total Lunas {trackerYear}: <strong style={{ color: "#10b981" }}>{totalPaidThisYear} dari {totalRequiredMonths} Bulan Wajib</strong>
+                        {isJoinYear && userJoinMonth > 1 && ` (Bergabung sejak ${["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][userJoinMonth - 1]} ${userJoinYear})`}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPortalTab("bayar")}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--gold)",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        Bayar Kas Sekarang <i className="bx bx-right-arrow-alt" />
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {loadingKasHistory ? (
