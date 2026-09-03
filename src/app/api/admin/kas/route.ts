@@ -178,6 +178,13 @@ export async function POST(req: NextRequest) {
         status: targetStatus,
         verifiedBy: admin.nama || "Admin",
       }).catch((err) => console.error("Sync kas to matrix error:", err));
+
+      // Auto-assign kupon jika anggota sekarang memenuhi syarat minimal lunas kas
+      if (targetStatus === "diverifikasi") {
+        import("@/lib/kuponHelper")
+          .then(({ syncCouponsForMember }) => syncCouponsForMember(k.anggota_id))
+          .catch((err) => console.error("Sync coupons on verify error:", err));
+      }
     }
 
     return NextResponse.json({
