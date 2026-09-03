@@ -201,24 +201,10 @@ export async function POST(req: NextRequest) {
     const kuponId = nextId;
 
     // 3. Distribusikan ke Anggota yang memenuhi syarat (Rajin Bayar Kas)
-    // Ambil seluruh anggota aktif
+    const { getAnggotaBulanLunas } = await import("@/lib/kuponHelper");
     const anggotaList = (await query<any[]>(
       "SELECT id, no_anggota, nama_lengkap, jabatan FROM anggota WHERE status = 'aktif'"
     )) || [];
-
-    // Ambil data pembayaran kas per anggota pada tahun tersebut
-    const payments = (await query<any[]>(
-      `SELECT no_anggota, COUNT(DISTINCT bulan) AS total_bulan 
-       FROM iuran_kas_bulanan 
-       WHERE tahun = ? AND status = 'diverifikasi' 
-       GROUP BY no_anggota`,
-      [tahun]
-    )) || [];
-
-    const paymentMap: Record<string, number> = {};
-    payments.forEach((p) => {
-      paymentMap[p.no_anggota] = Number(p.total_bulan || 0);
-    });
 
     let qualifiedCount = 0;
     let unqualifiedCount = 0;
@@ -227,8 +213,7 @@ export async function POST(req: NextRequest) {
       const noAnggota = a.no_anggota;
       if (!noAnggota || noAnggota === "-") continue;
 
-      const bulanLunas = paymentMap[noAnggota] || 0;
-      const isAdminRole = (a.jabatan || "") !== "Anggota";
+      const { bulanLunas, isAdminRole } = await getAnggotaBulanLunas(a.id, tahun);
 
       // Syarat: Anggota harus lunas kas minimal minBulan (atau pengurus fanbase)
       if (isAdminRole || bulanLunas >= minBulan) {

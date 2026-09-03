@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { query } from "@/lib/mysql";
+import { syncCouponsForMember, getAnggotaBulanLunas } from "@/lib/kuponHelper";
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,6 +9,10 @@ export async function GET(req: NextRequest) {
     if (!session || session.type !== "anggota") {
       return NextResponse.json({ status: false, message: "Hanya anggota resmi yang dapat melihat kupon kas" }, { status: 401 });
     }
+
+    // 1. AUTO-CLAIM & SINKRONISASI REALTIME:
+    // Jika anggota sudah bayar kas (terverifikasi), pastikan semua kupon aktif otomatis diberikan
+    await syncCouponsForMember(session.id);
 
     // Ambil seluruh kupon yang dibagikan ke anggota ini
     const kupons = (await query<any[]>(`
@@ -33,20 +38,14 @@ export async function GET(req: NextRequest) {
       ORDER BY ka.created_at DESC
     `, [session.id])) || [];
 
-    // Ambil info pembayaran kas tahun ini untuk user
+    // Ambil info pembayaran kas akurat tahun ini untuk user
     const currentYear = new Date().getFullYear();
-    const kasRows = (await query<any[]>(`
-      SELECT COUNT(DISTINCT bulan) AS total_lunas
-      FROM iuran_kas_bulanan
-      WHERE anggota_id = ? AND tahun = ? AND status = 'diverifikasi'
-    `, [session.id, currentYear])) || [];
-
-    const totalLunasTahunIni = Number(kasRows[0]?.total_lunas || 0);
+    const { bulanLunas } = await getAnggotaBulanLunas(session.id, currentYear);
 
     return NextResponse.json({
       status: true,
       data: kupons,
-      totalLunasTahunIni,
+      totalLunasTahunIni: bulanLunas,
       currentYear,
     });
   } catch (error: any) {

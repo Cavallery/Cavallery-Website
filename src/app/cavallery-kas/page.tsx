@@ -87,7 +87,9 @@ export default function CavalleryKasPage() {
   // Logged-in Dashboard State
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [portalTab, setPortalTab] = useState<"bayar" | "riwayat" | "kupon" | "donasi">("bayar");
-  const [periode, setPeriode] = useState(getDefaultPeriode);
+  const [periodeBulan, setPeriodeBulan] = useState<number>(new Date().getMonth() + 1);
+  const [periodeTahun, setPeriodeTahun] = useState<number>(new Date().getFullYear());
+  const [filterTahunRiwayat, setFilterTahunRiwayat] = useState<number | "semua">(new Date().getFullYear());
   const [nominalKas, setNominalKas] = useState("15.000");
   const [selectedChipKas, setSelectedChipKas] = useState<number | "custom">(15000);
   const [fileKas, setFileKas] = useState<File | null>(null);
@@ -448,12 +450,13 @@ export default function CavalleryKasPage() {
 
       const buktiBayarUrl = uploadJson.url;
 
+      const finalPeriode = `${MONTH_NAMES[periodeBulan - 1]} ${periodeTahun}`;
       // 2. Submit Kas
       const kasRes = await fetch("/api/kas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          periode,
+          periode: finalPeriode,
           nominal: cleanNominal,
           buktiBayarUrl,
         }),
@@ -1270,19 +1273,50 @@ export default function CavalleryKasPage() {
             )}
 
             <form onSubmit={handleKasSubmit} className={styles.form}>
+              {/* DROPDOWN PERIODE KAS (BULAN & TAHUN TERPISAH) */}
               <div className={styles.field}>
                 <div className={styles.labelRow}>
-                  <label className={styles.label}>Periode Kas</label>
+                  <label className={styles.label}>Periode Kas yang Dibayar</label>
                   <span className={styles.badgeWajib}>WAJIB</span>
                 </div>
-                <input
-                  type="text"
-                  className={styles.input}
-                  placeholder="Contoh: Agustus 2026"
-                  value={periode}
-                  onChange={(e) => setPeriode(e.target.value)}
-                  required
-                />
+                <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", color: "var(--fg-muted)", display: "block", marginBottom: 4 }}>
+                      Pilih Bulan
+                    </label>
+                    <select
+                      className={styles.input}
+                      value={periodeBulan}
+                      onChange={(e) => setPeriodeBulan(Number(e.target.value))}
+                    >
+                      {MONTH_NAMES.map((m, idx) => (
+                        <option key={m} value={idx + 1}>
+                          {m}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", color: "var(--fg-muted)", display: "block", marginBottom: 4 }}>
+                      Pilih Tahun
+                    </label>
+                    <select
+                      className={styles.input}
+                      value={periodeTahun}
+                      onChange={(e) => setPeriodeTahun(Number(e.target.value))}
+                    >
+                      {[2024, 2025, 2026, 2027, 2028, 2029].map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--gold)", marginTop: 6, fontWeight: 600 }}>
+                  <i className="bx bx-calendar-check" style={{ marginRight: 4 }} />
+                  Iuran Kas untuk: <strong>{MONTH_NAMES[periodeBulan - 1]} {periodeTahun}</strong>
+                </div>
               </div>
 
               <div className={styles.field}>
@@ -1520,6 +1554,75 @@ export default function CavalleryKasPage() {
               })()}
             </div>
 
+            {/* Filter Bar Riwayat Transaksi Kas Per-Tahun */}
+            {kasHistory.length > 0 && (
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 10,
+                padding: "12px 16px",
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                marginBottom: 16,
+              }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="bx bx-filter-alt" style={{ color: "var(--gold)" }} />
+                  <span>Filter Riwayat Pembayaran:</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setFilterTahunRiwayat("semua")}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 20,
+                      border: "none",
+                      background: filterTahunRiwayat === "semua" ? "var(--gold)" : "rgba(255, 255, 255, 0.06)",
+                      color: filterTahunRiwayat === "semua" ? "#000" : "var(--fg-muted)",
+                      fontWeight: 800,
+                      fontSize: "0.78rem",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    Semua ({kasHistory.length})
+                  </button>
+                  {[2026, 2025, 2024].map((yr) => {
+                    const countInYear = kasHistory.filter((it) => {
+                      const p = String(it.periode || "");
+                      if (p.includes(String(yr))) return true;
+                      const d = new Date(it.created_at || it.createdAt);
+                      return !isNaN(d.getTime()) && d.getFullYear() === yr;
+                    }).length;
+
+                    return (
+                      <button
+                        key={yr}
+                        type="button"
+                        onClick={() => setFilterTahunRiwayat(yr)}
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: 20,
+                          border: "none",
+                          background: filterTahunRiwayat === yr ? "var(--gold)" : "rgba(255, 255, 255, 0.06)",
+                          color: filterTahunRiwayat === yr ? "#000" : "var(--fg-muted)",
+                          fontWeight: 800,
+                          fontSize: "0.78rem",
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        {yr} ({countInYear})
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {loadingKasHistory ? (
               <div style={{ textAlign: "center", padding: "40px", color: "var(--gold)" }}>
                 <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", marginBottom: "8px" }} />
@@ -1530,61 +1633,81 @@ export default function CavalleryKasPage() {
                 <i className="bx bx-wallet" />
                 <p>Belum ada riwayat pembayaran kas tercatat.</p>
               </div>
-            ) : (
-              <div className={styles.historyList}>
-                {kasHistory.map((item) => {
-                  let badgeClass = styles.badgePending;
-                  let badgeText = "Menunggu Verifikasi";
-                  if (item.status === "diverifikasi") {
-                    badgeClass = styles.badgeDiverifikasi;
-                    badgeText = "Diverifikasi";
-                  } else if (item.status === "ditolak") {
-                    badgeClass = styles.badgeDitolak;
-                    badgeText = "Ditolak";
-                  }
+            ) : (() => {
+              const filteredList = filterTahunRiwayat === "semua"
+                ? kasHistory
+                : kasHistory.filter((it) => {
+                    const p = String(it.periode || "");
+                    if (p.includes(String(filterTahunRiwayat))) return true;
+                    const d = new Date(it.created_at || it.createdAt);
+                    return !isNaN(d.getTime()) && d.getFullYear() === filterTahunRiwayat;
+                  });
 
-                  const rawDate = item.created_at || item.createdAt;
-                  let dateFormatted = "-";
-                  if (rawDate) {
-                    const d = new Date(rawDate);
-                    if (!isNaN(d.getTime())) {
-                      dateFormatted = d.toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      });
+              if (filteredList.length === 0) {
+                return (
+                  <div className={styles.emptyState}>
+                    <i className="bx bx-calendar-x" />
+                    <p>Tidak ada riwayat pembayaran kas tercatat pada tahun {filterTahunRiwayat}.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className={styles.historyList}>
+                  {filteredList.map((item) => {
+                    let badgeClass = styles.badgePending;
+                    let badgeText = "Menunggu Verifikasi";
+                    if (item.status === "diverifikasi") {
+                      badgeClass = styles.badgeDiverifikasi;
+                      badgeText = "Diverifikasi";
+                    } else if (item.status === "ditolak") {
+                      badgeClass = styles.badgeDitolak;
+                      badgeText = "Ditolak";
                     }
-                  }
-                  const proofUrl = item.bukti_bayar_url || item.buktiBayarUrl;
 
-                  return (
-                    <div key={item.id} className={styles.historyItem}>
-                      <div className={styles.historyLeft}>
-                        <h4 className={styles.historyPeriode}>{item.periode}</h4>
-                        <span className={styles.historyNominal}>{formatRupiah(item.nominal)}</span>
-                        <span className={styles.historyDate}>{dateFormatted}</span>
-                      </div>
+                    const rawDate = item.created_at || item.createdAt;
+                    let dateFormatted = "-";
+                    if (rawDate) {
+                      const d = new Date(rawDate);
+                      if (!isNaN(d.getTime())) {
+                        dateFormatted = d.toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                      }
+                    }
+                    const proofUrl = item.bukti_bayar_url || item.buktiBayarUrl;
 
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-                        <span className={badgeClass}>{badgeText}</span>
-                        {proofUrl && (
-                          <a
-                            href={proofUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.viewProofBtn}
-                          >
-                            <i className="bx bx-image" /> Lihat Bukti
-                          </a>
-                        )}
+                    return (
+                      <div key={item.id} className={styles.historyItem}>
+                        <div className={styles.historyLeft}>
+                          <h4 className={styles.historyPeriode}>{item.periode}</h4>
+                          <span className={styles.historyNominal}>{formatRupiah(item.nominal)}</span>
+                          <span className={styles.historyDate}>{dateFormatted}</span>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                          <span className={badgeClass}>{badgeText}</span>
+                          {proofUrl && (
+                            <a
+                              href={proofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.viewProofBtn}
+                            >
+                              <i className="bx bx-image" /> Lihat Bukti
+                            </a>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         )}
 
