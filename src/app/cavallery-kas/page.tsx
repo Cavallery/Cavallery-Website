@@ -205,6 +205,9 @@ export default function CavalleryKasPage() {
     "WhatsApp",
   ]);
 
+  // Derived: parsed kas nominal for display hints
+  const cleanNominalKas = parseInt((nominalKas || "").replace(/\D/g, ""), 10) || 0;
+
   // Check registration open/close & auth on mount
   const checkSettings = async () => {
     try {
@@ -291,6 +294,42 @@ export default function CavalleryKasPage() {
     }
   }, []);
 
+  // State Riwayat Donasi User & Leaderboard Donatur
+  const [donasiHistory, setDonasiHistory] = useState<any[]>([]);
+  const [loadingDonasiHistory, setLoadingDonasiHistory] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  const fetchDonasiHistory = useCallback(async () => {
+    setLoadingDonasiHistory(true);
+    try {
+      const res = await fetch("/api/donasi");
+      const json = await res.json();
+      if (json.status && json.data) {
+        setDonasiHistory(json.data);
+      }
+    } catch {
+      console.error("Failed to load user donasi history");
+    } finally {
+      setLoadingDonasiHistory(false);
+    }
+  }, []);
+
+  const fetchLeaderboard = useCallback(async () => {
+    setLoadingLeaderboard(true);
+    try {
+      const res = await fetch("/api/donasi?type=leaderboard");
+      const json = await res.json();
+      if (json.status && json.data) {
+        setLeaderboard(json.data);
+      }
+    } catch {
+      console.error("Failed to load leaderboard");
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (sessionUser && (portalTab === "kupon" || portalTab === "bayar")) {
       fetchUserKupons();
@@ -302,6 +341,13 @@ export default function CavalleryKasPage() {
       loadKasHistory();
     }
   }, [portalTab, sessionUser]);
+
+  useEffect(() => {
+    if (sessionUser && portalTab === "donasi") {
+      fetchDonasiHistory();
+      fetchLeaderboard();
+    }
+  }, [portalTab, sessionUser, fetchDonasiHistory, fetchLeaderboard]);
 
   // Auth: Handle Login
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -534,6 +580,8 @@ export default function CavalleryKasPage() {
 
       setFileDonasi(null);
       setPreviewDonasi(null);
+      fetchDonasiHistory();
+      fetchLeaderboard();
     } catch (err: any) {
       setDonasiAlert({ type: "error", msg: err.message || "Terjadi kesalahan saat memproses donasi." });
     } finally {
@@ -1140,21 +1188,24 @@ export default function CavalleryKasPage() {
               }`}
               onClick={() => setPortalTab("bayar")}
             >
-              <i className="bx bx-wallet" /> Kas
+              <i className="bx bx-wallet" />
+              <span>Kas</span>
             </button>
             <button
               type="button"
               className={`${styles.navPillBtn} ${portalTab === "kupon" ? styles.navPillBtnActive : ""}`}
               onClick={() => setPortalTab("kupon")}
             >
-              <i className="bx bx-gift" /> Kupon Reward {userKupons.length > 0 && `(${userKupons.length})`}
+              <i className="bx bx-gift" />
+              <span>Reward {userKupons.length > 0 ? `(${userKupons.length})` : ""}</span>
             </button>
             <button
               type="button"
               className={`${styles.navPillBtn} ${portalTab === "donasi" ? styles.navPillBtnActive : ""}`}
               onClick={() => setPortalTab("donasi")}
             >
-              <i className="bx bx-donate-heart" /> Donasi
+              <i className="bx bx-donate-heart" />
+              <span>Donasi</span>
             </button>
           </div>
 
@@ -1334,19 +1385,35 @@ export default function CavalleryKasPage() {
                   required
                 />
                 <div className={styles.chipsRow}>
-                  {chipNominalsKas.map((nom) => (
-                    <button
-                      key={nom}
-                      type="button"
-                      className={`${styles.chip} ${selectedChipKas === nom ? styles.chipActive : ""}`}
-                      onClick={() => {
-                        setSelectedChipKas(nom);
-                        setNominalKas(nom.toLocaleString("id-ID"));
-                      }}
-                    >
-                      Rp {nom.toLocaleString("id-ID")}
-                    </button>
-                  ))}
+                  {chipNominalsKas.map((nom) => {
+                    const monthsCount = Math.round(nom / 15000);
+                    const monthLabel =
+                      monthsCount === 1
+                        ? "1 Bln"
+                        : monthsCount === 6
+                        ? "6 Bln (1/2 Thn)"
+                        : monthsCount === 12
+                        ? "12 Bln (1 Thn)"
+                        : `${monthsCount} Bln`;
+
+                    return (
+                      <button
+                        key={nom}
+                        type="button"
+                        className={`${styles.chip} ${selectedChipKas === nom ? styles.chipActive : ""}`}
+                        onClick={() => {
+                          setSelectedChipKas(nom);
+                          setNominalKas(nom.toLocaleString("id-ID"));
+                        }}
+                        title={`Bayar Kas Rp ${nom.toLocaleString("id-ID")} (${monthLabel})`}
+                      >
+                        <span>Rp {nom.toLocaleString("id-ID")}</span>
+                        <span style={{ fontSize: "0.7rem", opacity: 0.85, marginLeft: 4 }}>
+                          ({monthLabel})
+                        </span>
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
                     className={`${styles.chip} ${selectedChipKas === "custom" ? styles.chipActive : ""}`}
@@ -1355,6 +1422,18 @@ export default function CavalleryKasPage() {
                     Nominal Lain
                   </button>
                 </div>
+
+                {cleanNominalKas > 0 && (
+                  <div style={{ fontSize: "0.78rem", color: "#10b981", marginTop: 8, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                    <i className="bx bx-check-circle" />
+                    <span>
+                      Total Iuran Kas: <strong>Rp {cleanNominalKas.toLocaleString("id-ID")}</strong>
+                      {cleanNominalKas % 15000 === 0 && (
+                        <span> — setara {Math.round(cleanNominalKas / 15000)} bulan iuran kas</span>
+                      )}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className={styles.field}>
@@ -1407,7 +1486,7 @@ export default function CavalleryKasPage() {
                   </>
                 ) : (
                   <>
-                    <i className="bx bx-paper-plane" /> Kirim Konfirmasi Kas
+                    <i className="bx bx-paper-plane" /> Kirim Konfirmasi Kas {nominalKas ? `(Rp ${nominalKas})` : ""}
                   </>
                 )}
               </button>
@@ -2079,6 +2158,164 @@ export default function CavalleryKasPage() {
                 )}
               </button>
             </form>
+
+            {/* ── RIWAYAT DONASI SAYA ── */}
+            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--border)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "var(--primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="bx bx-receipt" style={{ color: "var(--gold)" }} />
+                  Riwayat Donasi Saya
+                </h3>
+                <span style={{ fontSize: "0.78rem", color: "var(--fg-muted)" }}>
+                  {donasiHistory.length} kontribusi tercatat
+                </span>
+              </div>
+
+              {loadingDonasiHistory ? (
+                <div style={{ textAlign: "center", padding: "30px 0", color: "var(--gold)" }}>
+                  <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "1.8rem", marginBottom: 6 }} />
+                  <p style={{ margin: 0, fontSize: "0.85rem" }}>Memuat riwayat donasi...</p>
+                </div>
+              ) : donasiHistory.length === 0 ? (
+                <div className={styles.emptyState} style={{ padding: "28px 16px" }}>
+                  <i className="bx bx-donate-heart" style={{ fontSize: "2.2rem" }} />
+                  <p style={{ margin: "6px 0 0", fontSize: "0.85rem" }}>Belum ada riwayat donasi yang Anda kirimkan.</p>
+                </div>
+              ) : (
+                <div className={styles.donasiHistoryList}>
+                  {donasiHistory.map((item) => {
+                    let badgeClass = styles.badgePending;
+                    let badgeText = "Menunggu Verifikasi";
+                    if (item.status === "diverifikasi") {
+                      badgeClass = styles.badgeDiverifikasi;
+                      badgeText = "Diverifikasi";
+                    } else if (item.status === "ditolak") {
+                      badgeClass = styles.badgeDitolak;
+                      badgeText = "Ditolak";
+                    }
+
+                    const rawDate = item.created_at || item.createdAt;
+                    let dateFormatted = "-";
+                    if (rawDate) {
+                      const d = new Date(rawDate);
+                      if (!isNaN(d.getTime())) {
+                        dateFormatted = d.toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                      }
+                    }
+
+                    const proofUrl = item.bukti_bayar_url || item.buktiBayarUrl;
+
+                    return (
+                      <div key={item.id} className={styles.donasiHistoryItem}>
+                        <div className={styles.donasiHistoryLeft}>
+                          <h4 className={styles.donasiTipe}>{item.tipe_donasi || item.tipeDonasi || "General Support"}</h4>
+                          <span className={styles.donasiNominal}>{formatRupiah(item.nominal)}</span>
+                          <span className={styles.donasiDate}>
+                            <i className="bx bx-time-five" style={{ marginRight: 4 }} />
+                            {dateFormatted}
+                          </span>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                          <span className={badgeClass}>{badgeText}</span>
+                          {proofUrl && (
+                            <a
+                              href={proofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.viewProofBtn}
+                            >
+                              <i className="bx bx-image" /> Lihat Bukti
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* ── LEADERBOARD DONATUR CAVALLERY ── */}
+            <div className={styles.leaderboardCard}>
+              <div className={styles.leaderboardHeader}>
+                <h3 className={styles.leaderboardTitle}>
+                  <i className="bx bxs-trophy" style={{ color: "#f59e0b" }} />
+                  Leaderboard Donatur Cavallery
+                </h3>
+                <span style={{ fontSize: "0.78rem", color: "var(--gold)", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                  <i className="bx bx-award" /> Top Kontributor Fanbase
+                </span>
+              </div>
+
+              {loadingLeaderboard ? (
+                <div style={{ textAlign: "center", padding: "30px 0", color: "var(--gold)" }}>
+                  <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "1.8rem", marginBottom: 6 }} />
+                  <p style={{ margin: 0, fontSize: "0.85rem" }}>Memuat leaderboard donatur...</p>
+                </div>
+              ) : leaderboard.length === 0 ? (
+                <div className={styles.emptyState} style={{ padding: "24px 16px" }}>
+                  <i className="bx bx-trophy" style={{ fontSize: "2.2rem" }} />
+                  <p style={{ margin: "6px 0 0", fontSize: "0.85rem" }}>Belum ada donasi terverifikasi di leaderboard.</p>
+                </div>
+              ) : (
+                <div className={styles.leaderboardList}>
+                  {leaderboard.map((item, idx) => {
+                    const rank = idx + 1;
+                    let rankClass = styles.rankBadge;
+                    let itemClass = styles.leaderboardItem;
+
+                    if (rank === 1) {
+                      rankClass = `${styles.rankBadge} ${styles.rankBadge1}`;
+                      itemClass = `${styles.leaderboardItem} ${styles.leaderboardItemTop1}`;
+                    } else if (rank === 2) {
+                      rankClass = `${styles.rankBadge} ${styles.rankBadge2}`;
+                      itemClass = `${styles.leaderboardItem} ${styles.leaderboardItemTop2}`;
+                    } else if (rank === 3) {
+                      rankClass = `${styles.rankBadge} ${styles.rankBadge3}`;
+                      itemClass = `${styles.leaderboardItem} ${styles.leaderboardItemTop3}`;
+                    }
+
+                    return (
+                      <div key={item.id || idx} className={itemClass}>
+                        <div className={rankClass}>
+                          {rank === 1 ? <i className="bx bxs-crown" /> : rank}
+                        </div>
+
+                        <div className={styles.donorInfo}>
+                          <span className={styles.donorName}>
+                            {item.donor_name || "Ksatria Cavallery"}
+                          </span>
+                          <span className={styles.donorMeta}>
+                            <span style={{
+                              padding: "1px 6px",
+                              borderRadius: 4,
+                              background: item.donor_type === "Anggota" ? "rgba(17, 85, 204, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                              color: item.donor_type === "Anggota" ? "#3b82f6" : "#f59e0b",
+                              fontWeight: 700,
+                              fontSize: "0.68rem",
+                            }}>
+                              {item.donor_type || "Donatur"}
+                            </span>
+                            <span>• {item.tipe_donasi || "General Support"}</span>
+                          </span>
+                        </div>
+
+                        <div className={styles.donorNominal}>
+                          {formatRupiah(item.nominal)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

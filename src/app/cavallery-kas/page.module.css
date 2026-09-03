@@ -377,21 +377,29 @@
 /* ── Member Luxury ID Card (Style Cavallery Gold/Dark) ── */
 .memberCard {
   width: 100%;
-  background: linear-gradient(145deg, #1c1813 0%, #100d0a 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #171410;
+  background: linear-gradient(145deg, #1d1914 0%, #110f0c 100%);
   border: 1.5px solid rgba(201, 168, 76, 0.45);
   border-radius: 24px;
   padding: 24px 28px;
   color: #ffffff;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25), 0 0 20px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 0 20px rgba(201, 168, 76, 0.15);
   display: flex;
   flex-direction: column;
   gap: 18px;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
 }
 
 .memberCardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 3;
 }
 
 .brandBadge {
@@ -400,10 +408,12 @@
   font-weight: 800;
   letter-spacing: 0.15em;
   color: #ffffff;
-  border: 1.5px solid rgba(201, 168, 76, 0.5);
+  border: 1.5px solid rgba(201, 168, 76, 0.6);
   padding: 4px 14px;
   border-radius: 50px;
-  background: rgba(201, 168, 76, 0.15);
+  background: #252019;
+  position: relative;
+  z-index: 4;
 }
 
 .memberStatusText {
@@ -1258,10 +1268,269 @@
   color: #ef4444;
 }
 
-@media (max-width: 600px) {
+/* ── Donasi History & Leaderboard Styles ── */
+.donasiHistoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.donasiHistoryItem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.donasiHistoryItem:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-1px);
+}
+
+.donasiHistoryLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.donasiTipe {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+.donasiNominal {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #10b981;
+}
+
+.donasiDate {
+  font-size: 0.76rem;
+  color: var(--fg-muted);
+}
+
+.viewProofBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 50px;
+  border: 1px solid var(--border-gold, #c9a84c);
+  color: var(--gold, #c9a84c);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.viewProofBtn:hover {
+  background: var(--gold-dim);
+  color: var(--primary);
+}
+
+/* Leaderboard Donatur */
+.leaderboardCard {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold, #c9a84c);
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.leaderboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leaderboardTitle {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leaderboardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.leaderboardItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.leaderboardItemTop1 {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.leaderboardItemTop2 {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.12) 0%, rgba(107, 114, 128, 0.06) 100%);
+  border-color: rgba(156, 163, 175, 0.4);
+}
+
+.leaderboardItemTop3 {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.rankBadge {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  background: var(--surface);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+}
+
+.rankBadge1 {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  border: none;
+}
+
+.rankBadge2 {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  color: #fff;
+  border: none;
+}
+
+.rankBadge3 {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+  border: none;
+}
+
+.donorInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.donorName {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.donorMeta {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.donorNominal {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 1rem;
+  color: #10b981;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Mobile Breakpoint Responsiveness (360px - 640px) ── */
+@media (max-width: 640px) {
+  .page {
+    padding: calc(var(--nav-h, 72px) + 20px) 12px 60px;
+    align-items: flex-start;
+  }
+  .containerDashboard {
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .memberCard {
+    padding: 20px 16px;
+    border-radius: 20px;
+    gap: 14px;
+  }
+  .memberCardBody {
+    gap: 14px;
+  }
+  .memberAvatarCircle {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    font-size: 1.8rem;
+  }
+  .memberNameMain {
+    font-size: 1.25rem;
+  }
+  .memberCodeText {
+    font-size: 1rem;
+  }
+  .navPillsCard {
+    padding: 12px 12px;
+    border-radius: 20px;
+    box-sizing: border-box;
+  }
+  .navPillsRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .navPillBtn {
+    padding: 10px 4px;
+    font-size: 0.78rem;
+    gap: 4px;
+    border-radius: 50px;
+    min-width: 0;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .logoutOutlineBtn {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
   .authCard,
   .dashCard {
-    padding: 28px 18px;
+    padding: 22px 14px;
+    border-radius: 20px;
   }
   .inputGroup {
     grid-template-columns: 1fr;
@@ -1277,5 +1546,24 @@
     flex: 1;
     justify-content: center;
     font-size: 0.76rem;
+  }
+  .chipsRow {
+    gap: 6px;
+  }
+  .chip {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+  .donasiHistoryItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .leaderboardItem {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .donorNominal {
+    font-size: 0.9rem;
   }
 }
