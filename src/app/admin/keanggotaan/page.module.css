@@ -795,4 +795,84 @@
   color: #60a5fa;
 }
 
+/* ─── KAS MATRIX STICKY & RESPONSIVE COLUMNS ─── */
+.colStickyNo {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+}
+
+.colStickyNoAnggota {
+  width: 125px;
+  min-width: 125px;
+  text-align: left;
+}
+
+.colStickyNama {
+  width: 190px;
+  min-width: 190px;
+  text-align: left;
+}
+
+@media (min-width: 900px) {
+  .matrixTable th.colStickyNo {
+    position: sticky;
+    left: 0;
+    z-index: 12;
+  }
+  .matrixTable th.colStickyNoAnggota {
+    position: sticky;
+    left: 44px;
+    z-index: 12;
+  }
+  .matrixTable th.colStickyNama {
+    position: sticky;
+    left: 169px;
+    z-index: 12;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.15);
+  }
+
+  .matrixTable td.colStickyNo {
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    background: var(--card-bg, #fff);
+  }
+  .matrixTable td.colStickyNoAnggota {
+    position: sticky;
+    left: 44px;
+    z-index: 6;
+    background: var(--card-bg, #fff);
+  }
+  .matrixTable td.colStickyNama {
+    position: sticky;
+    left: 169px;
+    z-index: 6;
+    background: var(--card-bg, #fff);
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.15);
+  }
+
+  :global([data-theme="dark"]) .matrixTable td.colStickyNo,
+  :global([data-theme="dark"]) .matrixTable td.colStickyNoAnggota,
+  :global([data-theme="dark"]) .matrixTable td.colStickyNama {
+    background: #1e1a16 !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .matrixTable {
+    min-width: 880px !important;
+  }
+  .matrixTable th.colStickyNo,
+  .matrixTable td.colStickyNo,
+  .matrixTable th.colStickyNoAnggota,
+  .matrixTable td.colStickyNoAnggota,
+  .matrixTable th.colStickyNama,
+  .matrixTable td.colStickyNama {
+    position: static !important;
+    left: auto !important;
+    box-shadow: none !important;
+  }
+}
+
 

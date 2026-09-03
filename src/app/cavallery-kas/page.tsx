@@ -86,7 +86,7 @@ export default function CavalleryKasPage() {
 
   // Logged-in Dashboard State
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [portalTab, setPortalTab] = useState<"bayar" | "riwayat" | "donasi">("bayar");
+  const [portalTab, setPortalTab] = useState<"bayar" | "riwayat" | "kupon" | "donasi">("bayar");
   const [periode, setPeriode] = useState(getDefaultPeriode);
   const [nominalKas, setNominalKas] = useState("15.000");
   const [selectedChipKas, setSelectedChipKas] = useState<number | "custom">(15000);
@@ -94,6 +94,12 @@ export default function CavalleryKasPage() {
   const [previewKas, setPreviewKas] = useState<string | null>(null);
   const [kasAlert, setKasAlert] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [submittingKas, setSubmittingKas] = useState(false);
+
+  // User Kupon Reward State
+  const [userKupons, setUserKupons] = useState<any[]>([]);
+  const [userLunasTahunIni, setUserLunasTahunIni] = useState(0);
+  const [loadingUserKupons, setLoadingUserKupons] = useState(false);
+  const [copiedKupon, setCopiedKupon] = useState<string | null>(null);
 
   // Avatar Upload State (User Dashboard)
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
@@ -266,6 +272,28 @@ export default function CavalleryKasPage() {
       setLoadingKasHistory(false);
     }
   };
+
+  const fetchUserKupons = useCallback(async () => {
+    setLoadingUserKupons(true);
+    try {
+      const res = await fetch("/api/kas/kupon");
+      const json = await res.json();
+      if (json.status) {
+        setUserKupons(json.data || []);
+        setUserLunasTahunIni(json.totalLunasTahunIni || 0);
+      }
+    } catch {
+      console.error("Failed to load user kupons");
+    } finally {
+      setLoadingUserKupons(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sessionUser && (portalTab === "kupon" || portalTab === "bayar")) {
+      fetchUserKupons();
+    }
+  }, [portalTab, sessionUser, fetchUserKupons]);
 
   useEffect(() => {
     if (sessionUser && portalTab === "riwayat") {
@@ -1113,6 +1141,13 @@ export default function CavalleryKasPage() {
             </button>
             <button
               type="button"
+              className={`${styles.navPillBtn} ${portalTab === "kupon" ? styles.navPillBtnActive : ""}`}
+              onClick={() => setPortalTab("kupon")}
+            >
+              <i className="bx bx-gift" /> Kupon Reward {userKupons.length > 0 && `(${userKupons.length})`}
+            </button>
+            <button
+              type="button"
               className={`${styles.navPillBtn} ${portalTab === "donasi" ? styles.navPillBtnActive : ""}`}
               onClick={() => setPortalTab("donasi")}
             >
@@ -1544,6 +1579,221 @@ export default function CavalleryKasPage() {
                             <i className="bx bx-image" /> Lihat Bukti
                           </a>
                         )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        {/* ── TAB KUPON REWARD KAS (FITUR BARU APRESIASI KAS) ── */}
+        {portalTab === "kupon" && (
+          <div className={`glassCard ${styles.dashCard}`}>
+            <div className={styles.header}>
+              <div className="badge">
+                <i className="bx bx-gift" /> Reward Kas Eksklusif
+              </div>
+              <h1 className={styles.title}>Kupon &amp; Voucher Reward Kas</h1>
+              <p className={styles.subtitle}>
+                Apresiasi khusus dari fanbase Cavallery untuk anggota yang tertib dan rajin membayar uang kas bulanan.
+              </p>
+            </div>
+
+            {/* Banner Status Kas User */}
+            <div style={{
+              background: "linear-gradient(135deg, rgba(201, 168, 76, 0.15) 0%, rgba(139, 92, 246, 0.12) 100%)",
+              border: "1.5px solid var(--border-gold, #c9a84c)",
+              borderRadius: 14,
+              padding: "16px 20px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 20,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: "var(--gold)",
+                  color: "#1a1612",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.4rem",
+                  fontWeight: 900,
+                }}>
+                  <i className="bx bx-award" />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--primary)" }}>
+                    Status Kas Anda: {sessionUser?.jabatan === "Admin Fanbase" ? "Pengurus Fanbase (Bebas Kas)" : `${userLunasTahunIni} Bulan Lunas di Tahun ${new Date().getFullYear()}`}
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    {sessionUser?.jabatan === "Admin Fanbase"
+                      ? "Sebagai pengurus resmi, Anda berhak menerima seluruh kupon apresiasi fanbase."
+                      : userLunasTahunIni >= 6
+                      ? "Hebat! Anda termasuk anggota super rajin dalam membayar kas."
+                      : userLunasTahunIni > 0
+                      ? "Terima kasih telah membayar kas. Terus jaga keaktifan Anda untuk membuka lebih banyak reward!"
+                      : "Ayo bayar uang kas bulanan Anda untuk membuka berbagai kupon & reward eksklusif."}
+                  </div>
+                </div>
+              </div>
+
+              {sessionUser?.jabatan !== "Admin Fanbase" && userLunasTahunIni < 12 && (
+                <button
+                  type="button"
+                  onClick={() => setPortalTab("bayar")}
+                  className={styles.backBtn}
+                  style={{ color: "var(--gold)", borderColor: "var(--border-gold)", fontSize: "0.82rem" }}
+                >
+                  <i className="bx bx-plus-circle" /> Bayar Kas Tambahan
+                </button>
+              )}
+            </div>
+
+            {loadingUserKupons ? (
+              <div className={styles.emptyState}>
+                <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", color: "var(--gold)" }} />
+                <p>Memeriksa kupon reward Anda...</p>
+              </div>
+            ) : userKupons.length === 0 ? (
+              <div className={styles.emptyState} style={{ padding: "40px 20px" }}>
+                <div style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: "50%",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                  fontSize: "1.8rem",
+                  color: "var(--fg-muted)",
+                }}>
+                  <i className="bx bx-purchase-tag-alt" />
+                </div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--fg)", marginBottom: 6 }}>
+                  Belum Ada Kupon Aktif
+                </h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--fg-muted)", maxWidth: 440, margin: "0 auto 18px", lineHeight: 1.5 }}>
+                  Kupon reward dibagikan secara berkala oleh pengurus fanbase kepada anggota yang aktif membayar kas. Tingkatkan riwayat pembayaran kas Anda agar tidak ketinggalan kupon berikutnya!
+                </p>
+                <button
+                  type="button"
+                  className={styles.submitBtn}
+                  style={{ maxWidth: 240, margin: "0 auto" }}
+                  onClick={() => setPortalTab("bayar")}
+                >
+                  <i className="bx bx-wallet" /> Bayar Uang Kas Sekarang
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+                {userKupons.map((k) => {
+                  const isCopied = copiedKupon === k.kode_kupon;
+                  const isUsed = k.status_kupon === "digunakan";
+
+                  return (
+                    <div
+                      key={k.kupon_anggota_id}
+                      style={{
+                        background: "var(--card-bg, #1a1612)",
+                        border: isUsed ? "1.5px solid var(--border)" : "1.5px dashed var(--gold)",
+                        borderRadius: 16,
+                        padding: 18,
+                        position: "relative",
+                        overflow: "hidden",
+                        opacity: isUsed ? 0.6 : 1,
+                      }}
+                    >
+                      {/* Decorative Notch */}
+                      <div style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        background: isUsed ? "#64748b" : "var(--gold)",
+                        color: "#1a1612",
+                        padding: "4px 12px",
+                        borderBottomLeftRadius: 10,
+                        fontSize: "0.72rem",
+                        fontWeight: 900,
+                        textTransform: "uppercase",
+                      }}>
+                        {isUsed ? "Sudah Digunakan" : k.tipe_reward}
+                      </div>
+
+                      <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--primary)", marginTop: 10, paddingRight: 60 }}>
+                        {k.judul}
+                      </div>
+
+                      <div style={{ fontSize: "1.4rem", fontWeight: 900, color: isUsed ? "var(--fg-muted)" : "var(--gold)", margin: "8px 0" }}>
+                        {k.nilai_reward}
+                      </div>
+
+                      {k.deskripsi && (
+                        <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", marginBottom: 14, lineHeight: 1.4 }}>
+                          {k.deskripsi}
+                        </div>
+                      )}
+
+                      {/* Box Kode Kupon dengan Tombol Salin */}
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 14px",
+                        borderRadius: 10,
+                        background: "rgba(0, 0, 0, 0.3)",
+                        border: "1px solid var(--border)",
+                        marginBottom: 12,
+                      }}>
+                        <div>
+                          <div style={{ fontSize: "0.68rem", color: "var(--fg-muted)", textTransform: "uppercase", fontWeight: 700 }}>
+                            Kode Kupon
+                          </div>
+                          <div style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "1px", color: "#fff" }}>
+                            {k.kode_kupon}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={isUsed}
+                          onClick={() => {
+                            navigator.clipboard.writeText(k.kode_kupon);
+                            setCopiedKupon(k.kode_kupon);
+                            setTimeout(() => setCopiedKupon(null), 2500);
+                          }}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            border: "none",
+                            background: isCopied ? "#10b981" : "var(--gold)",
+                            color: isCopied ? "#fff" : "#1a1612",
+                            fontWeight: 800,
+                            fontSize: "0.78rem",
+                            cursor: isUsed ? "not-allowed" : "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          <i className={`bx ${isCopied ? "bx-check" : "bx-copy"}`} />
+                          {isCopied ? "Tersalin!" : "Salin"}
+                        </button>
+                      </div>
+
+                      {/* Footer Kupon: Kadaluarsa */}
+                      <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", display: "flex", justifyContent: "space-between" }}>
+                        <span>Syarat: Min. {k.min_bulan_kas} Bulan Kas {k.tahun_kas}</span>
+                        <span>
+                          {k.kadaluarsa_pada ? `Exp: ${new Date(k.kadaluarsa_pada).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}` : "Tanpa Kadaluarsa"}
+                        </span>
                       </div>
                     </div>
                   );
