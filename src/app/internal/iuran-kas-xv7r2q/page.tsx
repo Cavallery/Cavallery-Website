@@ -51,7 +51,7 @@ export default function PublicKasMatrixPage() {
   });
 
   return (
-    <div className={styles.page} style={{ paddingTop: "120px" }}>
+    <div className={styles.page} style={{ paddingTop: "calc(var(--nav-h, 72px) + 24px)" }}>
       <div className={styles.container}>
         {/* ── TOP HEADER (SAMA DENGAN ADMIN) ── */}
         <div className={styles.topHeader}>
@@ -96,7 +96,7 @@ export default function PublicKasMatrixPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
               gap: 16,
             }}
           >
@@ -173,8 +173,8 @@ export default function PublicKasMatrixPage() {
               marginBottom: 16,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--fg-muted)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--fg-muted)", whiteSpace: "nowrap" }}>
                 <i className="bx bx-calendar" style={{ marginRight: 4, color: "var(--gold)" }} />
                 Tahun:
               </span>
@@ -186,6 +186,9 @@ export default function PublicKasMatrixPage() {
                   borderRadius: 10,
                   padding: 4,
                   border: "1px solid var(--border)",
+                  overflowX: "auto",
+                  maxWidth: "calc(100vw - 100px)",
+                  WebkitOverflowScrolling: "touch" as any,
                 }}
               >
                 {SUPPORTED_YEARS.map((y) => (
@@ -194,7 +197,7 @@ export default function PublicKasMatrixPage() {
                     type="button"
                     onClick={() => setTahun(y)}
                     style={{
-                      padding: "6px 16px",
+                      padding: "6px 14px",
                       borderRadius: 8,
                       border: "none",
                       background: tahun === y ? "var(--gold)" : "transparent",
@@ -203,6 +206,8 @@ export default function PublicKasMatrixPage() {
                       fontSize: "0.85rem",
                       cursor: "pointer",
                       transition: "all 0.15s",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
                     }}
                   >
                     {y}
@@ -211,7 +216,7 @@ export default function PublicKasMatrixPage() {
               </div>
             </div>
 
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: 180, maxWidth: 280 }}>
               <i
                 className="bx bx-search"
                 style={{
@@ -236,7 +241,8 @@ export default function PublicKasMatrixPage() {
                   color: "var(--fg)",
                   fontSize: "0.82rem",
                   outline: "none",
-                  width: 230,
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
               />
             </div>

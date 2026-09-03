@@ -532,14 +532,13 @@
 @media (max-width: 1180px) {
   .links { display: none; }
   .burger { display: flex; }
-  .inner { padding: 0 20px; }
+  .inner { padding: 0 16px; }
 }
 
-
-
-@media (max-width: 768px) {
-  .desktopMenu { display: none; }
-  .mobileMenuBtn { display: flex; }
-  .drawer { width: 100%; max-width: 300px; padding: 20px; }
-  .nav { padding: 12px 16px; }
+@media (max-width: 600px) {
+  .inner { padding: 0 12px; }
+  .brandText { font-size: 0.95rem; }
+  .brandBadge { padding: 5px 12px 5px 6px; gap: 8px; }
+  .logoImgWrap { width: 32px; height: 32px; }
+  .mobileMenu { padding: 14px 16px; }
 }

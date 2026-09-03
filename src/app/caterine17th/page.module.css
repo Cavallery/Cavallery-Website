@@ -202,9 +202,14 @@
 }
 
 @media (max-width: 768px) {
-  .introBox { padding: 30px 20px; }
-  .introBox p { font-size: 1rem; }
-  .sectionHeader h2 { font-size: 2rem; }
-  .closingBox { padding: 40px 20px; }
-  .closingBox h2 { font-size: 2rem; }
+  .hero { padding: 60px 16px 40px; }
+  .title { font-size: 2.5rem; }
+  .subtitle { font-size: 0.95rem; }
+  .container { padding: 0 14px; }
+  .introBox { padding: 24px 16px; }
+  .introBox p { font-size: 0.95rem; line-height: 1.6; }
+  .sectionHeader h2 { font-size: 1.8rem; }
+  .closingBox { padding: 32px 16px; }
+  .closingBox h2 { font-size: 1.8rem; }
+  .galleryGrid { grid-template-columns: 1fr; gap: 16px; }
 }

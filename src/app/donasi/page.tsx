@@ -20,9 +20,13 @@ export default function DonasiPage() {
   const [activeTab, setActiveTab] = useState<"donasi" | "status" | "leaderboard">("donasi");
 
   // Form State
+  const [donationTypes, setDonationTypes] = useState<string[]>(DONATION_TYPES);
   const [tipeDonasi, setTipeDonasi] = useState(DONATION_TYPES[0]);
   const [nominal, setNominal] = useState("50000");
   const [selectedChip, setSelectedChip] = useState<number | "custom">(50000);
+  const [chipNominalsDonasi, setChipNominalsDonasi] = useState<number[]>([
+    10000, 25000, 50000, 100000, 250000, 500000,
+  ]);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -37,6 +41,29 @@ export default function DonasiPage() {
   // Leaderboard State
   const [leaderboardList, setLeaderboardList] = useState<any[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+
+  useEffect(() => {
+    // Load dynamic master data for donasi
+    fetch("/api/master-data")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status && json.data) {
+          if (json.data.tipeDonasi?.length) {
+            setDonationTypes(json.data.tipeDonasi);
+            setTipeDonasi(json.data.tipeDonasi[0]);
+          }
+          if (json.data.nominalDonasi?.length) {
+            setChipNominalsDonasi(json.data.nominalDonasi);
+            const firstNom = json.data.nominalDonasi[0];
+            if (firstNom) {
+              setNominal(String(firstNom));
+              setSelectedChip(firstNom);
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
@@ -255,7 +282,7 @@ export default function DonasiPage() {
                   value={tipeDonasi}
                   onChange={(e) => setTipeDonasi(e.target.value)}
                 >
-                  {DONATION_TYPES.map((t) => (
+                  {donationTypes.map((t) => (
                     <option key={t} value={t}>
                       {t}
                     </option>
@@ -281,40 +308,22 @@ export default function DonasiPage() {
                   required
                 />
                 <div className={styles.chipsRow}>
+                  {chipNominalsDonasi.map((nom) => (
+                    <button
+                      key={nom}
+                      type="button"
+                      className={`${styles.chip} ${selectedChip === nom ? styles.chipActive : ""}`}
+                      onClick={() => handleChipClick(nom)}
+                    >
+                      Rp {nom.toLocaleString("id-ID")}
+                    </button>
+                  ))}
                   <button
                     type="button"
-                    className={`${styles.chip} ${selectedChip === 25000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(25000)}
+                    className={`${styles.chip} ${selectedChip === "custom" ? styles.chipActive : ""}`}
+                    onClick={() => setSelectedChip("custom")}
                   >
-                    Rp 25.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 50000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(50000)}
-                  >
-                    Rp 50.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 100000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(100000)}
-                  >
-                    Rp 100.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 250000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(250000)}
-                  >
-                    Rp 250.000
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 500000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(500000)}
-                  >
-                    Rp 500.000
+                    Nominal Lain
                   </button>
                 </div>
               </div>
@@ -365,7 +374,7 @@ export default function DonasiPage() {
                   </>
                 ) : (
                   <>
-                    <i className="bx bx-heart" /> Kirim Konfirmasi Donasi
+                    <i className="bx bx-heart" /> Kirim Konfirmasi Donasi {nominal ? `(Rp ${parseInt(nominal || "0", 10).toLocaleString("id-ID")})` : ""}
                   </>
                 )}
               </button>

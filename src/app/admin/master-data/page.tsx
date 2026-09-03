@@ -65,13 +65,34 @@ export default function AdminMasterDataPage() {
           platforms: json.data.platforms || [],
           defaultNominalKas: json.data.defaultNominalKas || 15000,
           kategoriPengeluaran: json.data.kategoriPengeluaran || [
-            "Operasional Fanbase", "Event / Project Show", "Konsumsi Tim", "Website & Server", "Produksi Merchandise", "Banner & Handbanner", "Dokumentasi & Media", "Lain-lain"
+            "Operasional Fanbase",
+            "Event / Project Show",
+            "Konsumsi Tim",
+            "Website & Server",
+            "Produksi Merchandise",
+            "Banner & Handbanner",
+            "Dokumentasi & Media",
+            "Lain-lain",
           ],
-          tahunKasAktif: json.data.tahunKasAktif || [2024, 2025, 2026, 2027, 2028, 2029],
-          jabatanBebasKas: json.data.jabatanBebasKas || ["Admin Fanbase", "Pengurus Fanbase"],
-          tipeRewardKupon: json.data.tipeRewardKupon || ["Diskon Merchandise", "Potongan Iuran Kas", "Photocard / Goodies", "Undian Tiket Show", "Akses Event Eksklusif", "Lainnya"],
+          tahunKasAktif: json.data.tahunKasAktif || [
+            2024, 2025, 2026, 2027, 2028, 2029,
+          ],
+          jabatanBebasKas: json.data.jabatanBebasKas || [
+            "Admin Fanbase",
+            "Pengurus Fanbase",
+          ],
+          tipeRewardKupon: json.data.tipeRewardKupon || [
+            "Diskon Merchandise",
+            "Potongan Iuran Kas",
+            "Photocard / Goodies",
+            "Undian Tiket Show",
+            "Akses Event Eksklusif",
+            "Lainnya",
+          ],
         });
-        setEditDefaultNominal(Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"));
+        setEditDefaultNominal(
+          Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"),
+        );
       }
     } catch (e) {
       console.error(e);
@@ -110,7 +131,10 @@ export default function AdminMasterDataPage() {
   // Helper Divisi
   const addDivisi = () => {
     if (!newDivisi.trim()) return;
-    if (data.divisi.includes(newDivisi.trim())) { alert("Divisi sudah ada!"); return; }
+    if (data.divisi.includes(newDivisi.trim())) {
+      alert("Divisi sudah ada!");
+      return;
+    }
     const updated = { ...data, divisi: [...data.divisi, newDivisi.trim()] };
     setData(updated);
     setNewDivisi("");
@@ -126,15 +150,24 @@ export default function AdminMasterDataPage() {
   // Helper Tipe Donasi
   const addTipeDonasi = () => {
     if (!newTipeDonasi.trim()) return;
-    if (data.tipeDonasi.includes(newTipeDonasi.trim())) { alert("Tipe donasi sudah ada!"); return; }
-    const updated = { ...data, tipeDonasi: [...data.tipeDonasi, newTipeDonasi.trim()] };
+    if (data.tipeDonasi.includes(newTipeDonasi.trim())) {
+      alert("Tipe donasi sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      tipeDonasi: [...data.tipeDonasi, newTipeDonasi.trim()],
+    };
     setData(updated);
     setNewTipeDonasi("");
     handleSave(updated);
   };
   const removeTipeDonasi = (item: string) => {
     if (!confirm(`Hapus tipe donasi "${item}"?`)) return;
-    const updated = { ...data, tipeDonasi: data.tipeDonasi.filter((t) => t !== item) };
+    const updated = {
+      ...data,
+      tipeDonasi: data.tipeDonasi.filter((t) => t !== item),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -143,15 +176,25 @@ export default function AdminMasterDataPage() {
   const addNominalKas = () => {
     const val = parseInt(newNominalKas.replace(/\D/g, ""), 10);
     if (!val || isNaN(val)) return;
-    if (data.nominalKas.includes(val)) { alert("Nominal kas sudah ada!"); return; }
-    const updated = { ...data, nominalKas: [...data.nominalKas, val].sort((a, b) => a - b) };
+    if (data.nominalKas.includes(val)) {
+      alert("Nominal kas sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      nominalKas: [...data.nominalKas, val].sort((a, b) => a - b),
+    };
     setData(updated);
     setNewNominalKas("");
     handleSave(updated);
   };
   const removeNominalKas = (val: number) => {
-    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`)) return;
-    const updated = { ...data, nominalKas: data.nominalKas.filter((n) => n !== val) };
+    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`))
+      return;
+    const updated = {
+      ...data,
+      nominalKas: data.nominalKas.filter((n) => n !== val),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -160,15 +203,25 @@ export default function AdminMasterDataPage() {
   const addNominalDonasi = () => {
     const val = parseInt(newNominalDonasi.replace(/\D/g, ""), 10);
     if (!val || isNaN(val)) return;
-    if (data.nominalDonasi.includes(val)) { alert("Nominal donasi sudah ada!"); return; }
-    const updated = { ...data, nominalDonasi: [...data.nominalDonasi, val].sort((a, b) => a - b) };
+    if (data.nominalDonasi.includes(val)) {
+      alert("Nominal donasi sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      nominalDonasi: [...data.nominalDonasi, val].sort((a, b) => a - b),
+    };
     setData(updated);
     setNewNominalDonasi("");
     handleSave(updated);
   };
   const removeNominalDonasi = (val: number) => {
-    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`)) return;
-    const updated = { ...data, nominalDonasi: data.nominalDonasi.filter((n) => n !== val) };
+    if (!confirm(`Hapus pilihan nominal Rp ${val.toLocaleString("id-ID")}?`))
+      return;
+    const updated = {
+      ...data,
+      nominalDonasi: data.nominalDonasi.filter((n) => n !== val),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -176,15 +229,24 @@ export default function AdminMasterDataPage() {
   // Helper Platform
   const addPlatform = () => {
     if (!newPlatform.trim()) return;
-    if (data.platforms.includes(newPlatform.trim())) { alert("Platform sudah ada!"); return; }
-    const updated = { ...data, platforms: [...data.platforms, newPlatform.trim()] };
+    if (data.platforms.includes(newPlatform.trim())) {
+      alert("Platform sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      platforms: [...data.platforms, newPlatform.trim()],
+    };
     setData(updated);
     setNewPlatform("");
     handleSave(updated);
   };
   const removePlatform = (item: string) => {
     if (!confirm(`Hapus platform "${item}"?`)) return;
-    const updated = { ...data, platforms: data.platforms.filter((p) => p !== item) };
+    const updated = {
+      ...data,
+      platforms: data.platforms.filter((p) => p !== item),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -192,15 +254,27 @@ export default function AdminMasterDataPage() {
   // Helper Kategori Pengeluaran
   const addKategoriPengeluaran = () => {
     if (!newKategoriPengeluaran.trim()) return;
-    if (data.kategoriPengeluaran.includes(newKategoriPengeluaran.trim())) { alert("Kategori pengeluaran sudah ada!"); return; }
-    const updated = { ...data, kategoriPengeluaran: [...data.kategoriPengeluaran, newKategoriPengeluaran.trim()] };
+    if (data.kategoriPengeluaran.includes(newKategoriPengeluaran.trim())) {
+      alert("Kategori pengeluaran sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      kategoriPengeluaran: [
+        ...data.kategoriPengeluaran,
+        newKategoriPengeluaran.trim(),
+      ],
+    };
     setData(updated);
     setNewKategoriPengeluaran("");
     handleSave(updated);
   };
   const removeKategoriPengeluaran = (item: string) => {
     if (!confirm(`Hapus kategori pengeluaran "${item}"?`)) return;
-    const updated = { ...data, kategoriPengeluaran: data.kategoriPengeluaran.filter((k) => k !== item) };
+    const updated = {
+      ...data,
+      kategoriPengeluaran: data.kategoriPengeluaran.filter((k) => k !== item),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -208,16 +282,28 @@ export default function AdminMasterDataPage() {
   // Helper Tahun Kas Aktif
   const addTahunKas = () => {
     const val = parseInt(newTahunKas.replace(/\D/g, ""), 10);
-    if (!val || val < 2020 || val > 2040) { alert("Masukkan tahun valid (2020-2040)"); return; }
-    if (data.tahunKasAktif.includes(val)) { alert("Tahun sudah ada!"); return; }
-    const updated = { ...data, tahunKasAktif: [...data.tahunKasAktif, val].sort((a, b) => a - b) };
+    if (!val || val < 2020 || val > 2040) {
+      alert("Masukkan tahun valid (2020-2040)");
+      return;
+    }
+    if (data.tahunKasAktif.includes(val)) {
+      alert("Tahun sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      tahunKasAktif: [...data.tahunKasAktif, val].sort((a, b) => a - b),
+    };
     setData(updated);
     setNewTahunKas("");
     handleSave(updated);
   };
   const removeTahunKas = (val: number) => {
     if (!confirm(`Hapus tahun ${val} dari matriks kas?`)) return;
-    const updated = { ...data, tahunKasAktif: data.tahunKasAktif.filter((y) => y !== val) };
+    const updated = {
+      ...data,
+      tahunKasAktif: data.tahunKasAktif.filter((y) => y !== val),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -225,15 +311,24 @@ export default function AdminMasterDataPage() {
   // Helper Jabatan Bebas Kas
   const addJabatanBebas = () => {
     if (!newJabatanBebas.trim()) return;
-    if (data.jabatanBebasKas.includes(newJabatanBebas.trim())) { alert("Jabatan sudah ada!"); return; }
-    const updated = { ...data, jabatanBebasKas: [...data.jabatanBebasKas, newJabatanBebas.trim()] };
+    if (data.jabatanBebasKas.includes(newJabatanBebas.trim())) {
+      alert("Jabatan sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      jabatanBebasKas: [...data.jabatanBebasKas, newJabatanBebas.trim()],
+    };
     setData(updated);
     setNewJabatanBebas("");
     handleSave(updated);
   };
   const removeJabatanBebas = (item: string) => {
     if (!confirm(`Hapus jabatan bebas iuran "${item}"?`)) return;
-    const updated = { ...data, jabatanBebasKas: data.jabatanBebasKas.filter((j) => j !== item) };
+    const updated = {
+      ...data,
+      jabatanBebasKas: data.jabatanBebasKas.filter((j) => j !== item),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -241,15 +336,24 @@ export default function AdminMasterDataPage() {
   // Helper Tipe Reward Kupon
   const addTipeReward = () => {
     if (!newTipeReward.trim()) return;
-    if (data.tipeRewardKupon.includes(newTipeReward.trim())) { alert("Tipe reward sudah ada!"); return; }
-    const updated = { ...data, tipeRewardKupon: [...data.tipeRewardKupon, newTipeReward.trim()] };
+    if (data.tipeRewardKupon.includes(newTipeReward.trim())) {
+      alert("Tipe reward sudah ada!");
+      return;
+    }
+    const updated = {
+      ...data,
+      tipeRewardKupon: [...data.tipeRewardKupon, newTipeReward.trim()],
+    };
     setData(updated);
     setNewTipeReward("");
     handleSave(updated);
   };
   const removeTipeReward = (item: string) => {
     if (!confirm(`Hapus tipe reward "${item}"?`)) return;
-    const updated = { ...data, tipeRewardKupon: data.tipeRewardKupon.filter((t) => t !== item) };
+    const updated = {
+      ...data,
+      tipeRewardKupon: data.tipeRewardKupon.filter((t) => t !== item),
+    };
     setData(updated);
     handleSave(updated);
   };
@@ -257,7 +361,10 @@ export default function AdminMasterDataPage() {
   // Save Default Nominal Kas
   const handleSaveDefaultKas = () => {
     const val = parseInt(editDefaultNominal.replace(/\D/g, ""), 10);
-    if (!val || isNaN(val)) { alert("Masukkan nominal valid"); return; }
+    if (!val || isNaN(val)) {
+      alert("Masukkan nominal valid");
+      return;
+    }
     const updated = { ...data, defaultNominalKas: val };
     setData(updated);
     handleSave(updated);
@@ -276,7 +383,14 @@ export default function AdminMasterDataPage() {
               Master Data &amp; Konfigurasi Sistem Cavallery
             </h1>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <Link href="/admin/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
@@ -319,18 +433,37 @@ export default function AdminMasterDataPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* ── 1. KATEGORI PENGELUARAN KAS (BARU DITAMBAHKAN) ── */}
-            <div className={styles.sectionCard} style={{ border: "1.5px solid rgba(225, 29, 72, 0.3)" }}>
+            <div
+              className={styles.sectionCard}
+              style={{ border: "1.5px solid rgba(225, 29, 72, 0.3)" }}
+            >
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   <i className="bx bx-receipt" style={{ color: "#e11d48" }} />
-                  Kategori Pengeluaran Kas Operasional ({data.kategoriPengeluaran.length})
+                  Kategori Pengeluaran Kas Operasional (
+                  {data.kategoriPengeluaran.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Pilihan kategori belanja operasional fanbase saat mencatat pengeluaran di halaman kas.
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Pilihan kategori belanja operasional fanbase saat mencatat
+                pengeluaran di halaman kas.
               </p>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.kategoriPengeluaran.map((kat) => (
                   <span
                     key={kat}
@@ -352,10 +485,22 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removeKategoriPengeluaran(kat)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                       title="Hapus Kategori"
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -368,14 +513,20 @@ export default function AdminMasterDataPage() {
                   className={styles.modalInput}
                   value={newKategoriPengeluaran}
                   onChange={(e) => setNewKategoriPengeluaran(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addKategoriPengeluaran()}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && addKategoriPengeluaran()
+                  }
                 />
                 <button
                   type="button"
                   className={styles.btnCreate}
                   onClick={addKategoriPengeluaran}
                   disabled={saving || !newKategoriPengeluaran.trim()}
-                  style={{ background: "#e11d48", color: "#fff", whiteSpace: "nowrap" }}
+                  style={{
+                    background: "#e11d48",
+                    color: "#fff",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   <i className="bx bx-plus" /> Tambah
                 </button>
@@ -383,7 +534,13 @@ export default function AdminMasterDataPage() {
             </div>
 
             {/* ── 2. BESARAN IURAN KAS WAJIB & TAHUN AKTIF ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: 20,
+              }}
+            >
               {/* Besaran Kas Wajib */}
               <div className={styles.sectionCard}>
                 <div className={styles.sectionHeader}>
@@ -392,12 +549,38 @@ export default function AdminMasterDataPage() {
                     Tarif Iuran Kas Wajib Bulanan
                   </h2>
                 </div>
-                <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                  Standar nominal kewajiban iuran kas anggota per 1 bulan (digunakan dalam pelacak tagihan kas).
+                <p
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--fg-muted)",
+                    marginTop: -6,
+                    marginBottom: 14,
+                  }}
+                >
+                  Standar nominal kewajiban iuran kas anggota per 1 bulan
+                  (digunakan dalam pelacak tagihan kas).
                 </p>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", maxWidth: 340 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "center",
+                    maxWidth: 340,
+                  }}
+                >
                   <div style={{ position: "relative", flex: 1 }}>
-                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontWeight: 700, color: "var(--fg-muted)" }}>Rp</span>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontWeight: 700,
+                        color: "var(--fg-muted)",
+                      }}
+                    >
+                      Rp
+                    </span>
                     <input
                       type="text"
                       className={styles.modalInput}
@@ -405,9 +588,13 @@ export default function AdminMasterDataPage() {
                       value={editDefaultNominal}
                       onChange={(e) => {
                         const digits = e.target.value.replace(/\D/g, "");
-                        setEditDefaultNominal(digits ? Number(digits).toLocaleString("id-ID") : "");
+                        setEditDefaultNominal(
+                          digits ? Number(digits).toLocaleString("id-ID") : "",
+                        );
                       }}
-                      onKeyDown={(e) => e.key === "Enter" && handleSaveDefaultKas()}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleSaveDefaultKas()
+                      }
                     />
                   </div>
                   <button
@@ -425,14 +612,32 @@ export default function AdminMasterDataPage() {
               <div className={styles.sectionCard}>
                 <div className={styles.sectionHeader}>
                   <h2 className={styles.sectionTitle}>
-                    <i className="bx bx-calendar" style={{ color: "var(--gold)" }} />
+                    <i
+                      className="bx bx-calendar"
+                      style={{ color: "var(--gold)" }}
+                    />
                     Tahun Aktif Matriks Kas ({data.tahunKasAktif.length})
                   </h2>
                 </div>
-                <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                  Tahun yang didukung pada pemilih tahun matriks kas dan tab Google Spreadsheet.
+                <p
+                  style={{
+                    fontSize: "0.82rem",
+                    color: "var(--fg-muted)",
+                    marginTop: -6,
+                    marginBottom: 14,
+                  }}
+                >
+                  Tahun yang didukung pada pemilih tahun matriks kas dan tab
+                  Google Spreadsheet.
                 </p>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    marginBottom: 14,
+                  }}
+                >
                   {data.tahunKasAktif.map((yr) => (
                     <span
                       key={yr}
@@ -454,9 +659,19 @@ export default function AdminMasterDataPage() {
                         <button
                           type="button"
                           onClick={() => removeTahunKas(yr)}
-                          style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, display: "flex" }}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: 0,
+                            display: "flex",
+                          }}
                         >
-                          <i className="bx bx-x-circle" style={{ fontSize: "1rem" }} />
+                          <i
+                            className="bx bx-x-circle"
+                            style={{ fontSize: "1rem" }}
+                          />
                         </button>
                       )}
                     </span>
@@ -471,7 +686,12 @@ export default function AdminMasterDataPage() {
                     onChange={(e) => setNewTahunKas(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addTahunKas()}
                   />
-                  <button type="button" className={styles.btnCreate} onClick={addTahunKas} disabled={saving || !newTahunKas}>
+                  <button
+                    type="button"
+                    className={styles.btnCreate}
+                    onClick={addTahunKas}
+                    disabled={saving || !newTahunKas}
+                  >
                     <i className="bx bx-plus" /> Tambah
                   </button>
                 </div>
@@ -482,14 +702,32 @@ export default function AdminMasterDataPage() {
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-user-check" style={{ color: "#3b82f6" }} />
+                  <i
+                    className="bx bx-user-check"
+                    style={{ color: "#3b82f6" }}
+                  />
                   Jabatan Bebas Iuran Kas Wajib ({data.jabatanBebasKas.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Anggota yang memiliki role jabatan ini secara otomatis dibebaskan dari kewajiban iuran kas bulanan.
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Anggota yang memiliki role jabatan ini secara otomatis
+                dibebaskan dari kewajiban iuran kas bulanan.
               </p>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.jabatanBebasKas.map((jab) => (
                   <span
                     key={jab}
@@ -511,9 +749,19 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removeJabatanBebas(jab)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, display: "flex" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        display: "flex",
+                      }}
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -527,7 +775,12 @@ export default function AdminMasterDataPage() {
                   onChange={(e) => setNewJabatanBebas(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addJabatanBebas()}
                 />
-                <button type="button" className={styles.btnCreate} onClick={addJabatanBebas} disabled={saving || !newJabatanBebas.trim()}>
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addJabatanBebas}
+                  disabled={saving || !newJabatanBebas.trim()}
+                >
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
@@ -537,15 +790,34 @@ export default function AdminMasterDataPage() {
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-shield-quarter" style={{ color: "var(--primary)" }} />
+                  <i
+                    className="bx bx-shield-quarter"
+                    style={{ color: "var(--primary)" }}
+                  />
                   Divisi Admin Fanbase ({data.divisi.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Divisi ini akan muncul di dropdown saat memilih role <strong>Admin Fanbase</strong> di tabel Keanggotaan &amp; form user.
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Divisi ini akan muncul di dropdown saat memilih role{" "}
+                <strong>Admin Fanbase</strong> di tabel Keanggotaan &amp; form
+                user.
               </p>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.divisi.map((div) => (
                   <span
                     key={div}
@@ -562,15 +834,30 @@ export default function AdminMasterDataPage() {
                       fontSize: "0.85rem",
                     }}
                   >
-                    <i className="bx bx-check-shield" style={{ fontSize: "0.9rem" }} />
+                    <i
+                      className="bx bx-check-shield"
+                      style={{ fontSize: "0.9rem" }}
+                    />
                     {div}
                     <button
                       type="button"
                       onClick={() => removeDivisi(div)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                       title="Hapus Divisi"
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -585,7 +872,13 @@ export default function AdminMasterDataPage() {
                   onChange={(e) => setNewDivisi(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addDivisi()}
                 />
-                <button type="button" className={styles.btnCreate} onClick={addDivisi} disabled={saving || !newDivisi.trim()} style={{ whiteSpace: "nowrap" }}>
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addDivisi}
+                  disabled={saving || !newDivisi.trim()}
+                  style={{ whiteSpace: "nowrap" }}
+                >
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
@@ -595,15 +888,33 @@ export default function AdminMasterDataPage() {
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-donate-heart" style={{ color: "var(--gold)" }} />
+                  <i
+                    className="bx bx-donate-heart"
+                    style={{ color: "var(--gold)" }}
+                  />
                   Pilihan Tipe Donasi &amp; Project ({data.tipeDonasi.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Kategori project yang dapat dipilih donatur/anggota saat melakukan donasi.
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Kategori project yang dapat dipilih donatur/anggota saat
+                melakukan donasi.
               </p>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.tipeDonasi.map((tipe) => (
                   <span
                     key={tipe}
@@ -625,10 +936,22 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removeTipeDonasi(tipe)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                       title="Hapus Tipe"
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -643,7 +966,13 @@ export default function AdminMasterDataPage() {
                   onChange={(e) => setNewTipeDonasi(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addTipeDonasi()}
                 />
-                <button type="button" className={styles.btnCreate} onClick={addTipeDonasi} disabled={saving || !newTipeDonasi.trim()} style={{ whiteSpace: "nowrap" }}>
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addTipeDonasi}
+                  disabled={saving || !newTipeDonasi.trim()}
+                  style={{ whiteSpace: "nowrap" }}
+                >
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
@@ -657,11 +986,26 @@ export default function AdminMasterDataPage() {
                   Pilihan Platform Kontak ({data.platforms.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Platform kontak yang tersedia di form pendaftaran anggota &amp; kontributor (LINE, X, Instagram, TikTok, dll).
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Platform kontak yang tersedia di form pendaftaran anggota &amp;
+                kontributor (LINE, X, Instagram, TikTok, dll).
               </p>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.platforms.map((plat) => (
                   <span
                     key={plat}
@@ -683,10 +1027,22 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removePlatform(plat)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                       title="Hapus Platform"
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -701,25 +1057,49 @@ export default function AdminMasterDataPage() {
                   onChange={(e) => setNewPlatform(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addPlatform()}
                 />
-                <button type="button" className={styles.btnCreate} onClick={addPlatform} disabled={saving || !newPlatform.trim()} style={{ whiteSpace: "nowrap" }}>
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addPlatform}
+                  disabled={saving || !newPlatform.trim()}
+                  style={{ whiteSpace: "nowrap" }}
+                >
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
             </div>
 
             {/* ── 7. MASTER TIPE REWARD KUPON KAS ── */}
-            <div className={styles.sectionCard} style={{ border: "1.5px solid rgba(139, 92, 246, 0.3)" }}>
+            <div
+              className={styles.sectionCard}
+              style={{ border: "1.5px solid rgba(139, 92, 246, 0.3)" }}
+            >
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
                   Pilihan Tipe Reward Kupon Kas ({data.tipeRewardKupon.length})
                 </h2>
               </div>
-              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
-                Pilihan reward / hadiah apresiasi kas yang tersedia saat admin membuat kupon reward untuk anggota yang rajin bayar kas.
+              <p
+                style={{
+                  fontSize: "0.82rem",
+                  color: "var(--fg-muted)",
+                  marginTop: -6,
+                  marginBottom: 14,
+                }}
+              >
+                Pilihan reward / hadiah apresiasi kas yang tersedia saat admin
+                membuat kupon reward untuk anggota yang rajin bayar kas.
               </p>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
                 {data.tipeRewardKupon.map((rew) => (
                   <span
                     key={rew}
@@ -741,10 +1121,22 @@ export default function AdminMasterDataPage() {
                     <button
                       type="button"
                       onClick={() => removeTipeReward(rew)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
                       title="Hapus Tipe Reward"
                     >
-                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
                     </button>
                   </span>
                 ))}
@@ -764,7 +1156,277 @@ export default function AdminMasterDataPage() {
                   className={styles.btnCreate}
                   onClick={addTipeReward}
                   disabled={saving || !newTipeReward.trim()}
-                  style={{ background: "#8b5cf6", color: "#fff", whiteSpace: "nowrap" }}
+                  style={{
+                    background: "#8b5cf6",
+                    color: "#fff",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <i className="bx bx-plus" /> Tambah
+                </button>
+              </div>
+            </div>
+            {/* ── 8. MASTER NOMINAL KAS (KELIPATAN IURAN KAS 1 - 12 BULAN) ── */}
+            <div
+              className={styles.sectionCard}
+              style={{ border: "1.5px solid rgba(16, 185, 129, 0.3)" }}
+            >
+              <div
+                className={styles.sectionHeader}
+                style={{ flexWrap: "wrap", gap: 10 }}
+              >
+                <div>
+                  <h2 className={styles.sectionTitle}>
+                    <i className="bx bx-wallet" style={{ color: "#10b981" }} />
+                    Pilihan Nominal Iuran Kas ({data.nominalKas.length})
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "var(--fg-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    Pilihan tombol cepat (chips) kelipatan kas 1 s/d 12 bulan di
+                    portal kas anggota &amp; form bayar kas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const default12 = [
+                      15000, 30000, 45000, 60000, 75000, 90000, 105000, 120000,
+                      135000, 150000, 165000, 180000,
+                    ];
+                    const updated = { ...data, nominalKas: default12 };
+                    setData(updated);
+                    handleSave(updated);
+                  }}
+                  className={styles.btnSecondary}
+                  style={{
+                    fontSize: "0.78rem",
+                    padding: "6px 14px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  title="Reset pilihan nominal ke standar 1-12 bulan (15.000 s/d 180.000)"
+                >
+                  <i className="bx bx-reset" /> Reset 1 - 12 Bulan (15k - 180k)
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
+                {data.nominalKas.map((nom) => {
+                  const m = Math.round(nom / 15000);
+                  const mLabel =
+                    m === 1
+                      ? "1 Bulan"
+                      : m === 6
+                        ? "6 Bulan (1/2 Thn)"
+                        : m === 12
+                          ? "12 Bulan (1 Thn)"
+                          : `${m} Bulan`;
+
+                  return (
+                    <span
+                      key={nom}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 14px",
+                        borderRadius: 50,
+                        background: "rgba(16, 185, 129, 0.1)",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        color: "#10b981",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                      }}
+                    >
+                      <i
+                        className="bx bx-check-circle"
+                        style={{ fontSize: "0.9rem" }}
+                      />
+                      Rp {nom.toLocaleString("id-ID")}{" "}
+                      <span style={{ fontSize: "0.72rem", opacity: 0.85 }}>
+                        ({mLabel})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeNominalKas(nom)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#ef4444",
+                          cursor: "pointer",
+                          padding: 0,
+                          marginLeft: 4,
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                        title={`Hapus Rp ${nom.toLocaleString("id-ID")}`}
+                      >
+                        <i
+                          className="bx bx-x-circle"
+                          style={{ fontSize: "1.1rem" }}
+                        />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, maxWidth: 380 }}>
+                <input
+                  type="text"
+                  placeholder="Nominal kas baru (cth: 195000)..."
+                  className={styles.modalInput}
+                  value={newNominalKas}
+                  onChange={(e) => setNewNominalKas(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addNominalKas()}
+                />
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addNominalKas}
+                  disabled={saving || !newNominalKas.trim()}
+                  style={{
+                    background: "#10b981",
+                    color: "#fff",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <i className="bx bx-plus" /> Tambah
+                </button>
+              </div>
+            </div>
+
+            {/* ── 9. MASTER NOMINAL DONASI (CHIPS CEPAT DONASI) ── */}
+            <div
+              className={styles.sectionCard}
+              style={{ border: "1.5px solid rgba(245, 158, 11, 0.3)" }}
+            >
+              <div
+                className={styles.sectionHeader}
+                style={{ flexWrap: "wrap", gap: 10 }}
+              >
+                <div>
+                  <h2 className={styles.sectionTitle}>
+                    <i className="bx bx-heart" style={{ color: "#f59e0b" }} />
+                    Pilihan Nominal Donasi ({data.nominalDonasi.length})
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: "0.82rem",
+                      color: "var(--fg-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    Pilihan tombol cepat (chips) nominal donasi di halaman
+                    donasi publik &amp; portal kas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defaultDonasi = [
+                      10000, 25000, 50000, 100000, 250000, 500000,
+                    ];
+                    const updated = { ...data, nominalDonasi: defaultDonasi };
+                    setData(updated);
+                    handleSave(updated);
+                  }}
+                  className={styles.btnSecondary}
+                  style={{
+                    fontSize: "0.78rem",
+                    padding: "6px 14px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  title="Reset nominal donasi ke default"
+                >
+                  <i className="bx bx-reset" /> Reset Default (10k - 500k)
+                </button>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginBottom: 14,
+                }}
+              >
+                {data.nominalDonasi.map((nom) => (
+                  <span
+                    key={nom}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 14px",
+                      borderRadius: 50,
+                      background: "rgba(245, 158, 11, 0.12)",
+                      border: "1px solid rgba(245, 158, 11, 0.3)",
+                      color: "#d97706",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <i className="bx bx-heart" style={{ fontSize: "0.9rem" }} />
+                    Rp {nom.toLocaleString("id-ID")}
+                    <button
+                      type="button"
+                      onClick={() => removeNominalDonasi(nom)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginLeft: 4,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                      title={`Hapus Rp ${nom.toLocaleString("id-ID")}`}
+                    >
+                      <i
+                        className="bx bx-x-circle"
+                        style={{ fontSize: "1.1rem" }}
+                      />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, maxWidth: 380 }}>
+                <input
+                  type="text"
+                  placeholder="Nominal donasi baru (cth: 1000000)..."
+                  className={styles.modalInput}
+                  value={newNominalDonasi}
+                  onChange={(e) => setNewNominalDonasi(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addNominalDonasi()}
+                />
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addNominalDonasi}
+                  disabled={saving || !newNominalDonasi.trim()}
+                  style={{
+                    background: "#f59e0b",
+                    color: "#fff",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   <i className="bx bx-plus" /> Tambah
                 </button>
