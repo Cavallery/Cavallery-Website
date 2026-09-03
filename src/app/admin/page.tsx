@@ -7138,6 +7138,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
     { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6" },
     { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
+    { key: "adminexcel" as any,       icon: "bxs-file-export", label: "Download Excel", color: "#059669" },
     { key: "recruitment",icon: "bx-group",        label: "Recruitment",color: "#10b981" },
     { key: "esport",     icon: "bx-trophy",       label: "Esport",     color: "#f59e0b" },
     { key: "invitations",icon: "bx-envelope",     label: "Undangan",   color: "#c9a84c" },
@@ -8279,6 +8280,7 @@ const navGroups: NavGroup[] = [
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
+      { key: "adminexcel" as any,        icon: "bxs-file-export", label: "Download Excel" },
     ],
   },
   {
@@ -8388,6 +8390,10 @@ export default function AdminPage() {
         "_blank",
         "noopener,noreferrer"
       );
+      return;
+    }
+    if ((section as string) === "adminexcel") {
+      window.open("/api/admin/export-excel?type=matriks", "_blank");
       return;
     }
     setActive(section);

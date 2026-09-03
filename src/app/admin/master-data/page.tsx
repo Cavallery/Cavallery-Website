@@ -15,6 +15,7 @@ interface MasterDataState {
   kategoriPengeluaran: string[];
   tahunKasAktif: number[];
   jabatanBebasKas: string[];
+  tipeRewardKupon: string[];
 }
 
 export default function AdminMasterDataPage() {
@@ -28,6 +29,7 @@ export default function AdminMasterDataPage() {
     kategoriPengeluaran: [],
     tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
     jabatanBebasKas: ["Admin Fanbase", "Pengurus Fanbase"],
+    tipeRewardKupon: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ export default function AdminMasterDataPage() {
   const [newKategoriPengeluaran, setNewKategoriPengeluaran] = useState("");
   const [newTahunKas, setNewTahunKas] = useState("");
   const [newJabatanBebas, setNewJabatanBebas] = useState("");
+  const [newTipeReward, setNewTipeReward] = useState("");
   const [editDefaultNominal, setEditDefaultNominal] = useState("");
 
   const fetchData = async () => {
@@ -66,6 +69,7 @@ export default function AdminMasterDataPage() {
           ],
           tahunKasAktif: json.data.tahunKasAktif || [2024, 2025, 2026, 2027, 2028, 2029],
           jabatanBebasKas: json.data.jabatanBebasKas || ["Admin Fanbase", "Pengurus Fanbase"],
+          tipeRewardKupon: json.data.tipeRewardKupon || ["Diskon Merchandise", "Potongan Iuran Kas", "Photocard / Goodies", "Undian Tiket Show", "Akses Event Eksklusif", "Lainnya"],
         });
         setEditDefaultNominal(Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"));
       }
@@ -230,6 +234,22 @@ export default function AdminMasterDataPage() {
   const removeJabatanBebas = (item: string) => {
     if (!confirm(`Hapus jabatan bebas iuran "${item}"?`)) return;
     const updated = { ...data, jabatanBebasKas: data.jabatanBebasKas.filter((j) => j !== item) };
+    setData(updated);
+    handleSave(updated);
+  };
+
+  // Helper Tipe Reward Kupon
+  const addTipeReward = () => {
+    if (!newTipeReward.trim()) return;
+    if (data.tipeRewardKupon.includes(newTipeReward.trim())) { alert("Tipe reward sudah ada!"); return; }
+    const updated = { ...data, tipeRewardKupon: [...data.tipeRewardKupon, newTipeReward.trim()] };
+    setData(updated);
+    setNewTipeReward("");
+    handleSave(updated);
+  };
+  const removeTipeReward = (item: string) => {
+    if (!confirm(`Hapus tipe reward "${item}"?`)) return;
+    const updated = { ...data, tipeRewardKupon: data.tipeRewardKupon.filter((t) => t !== item) };
     setData(updated);
     handleSave(updated);
   };
@@ -682,6 +702,70 @@ export default function AdminMasterDataPage() {
                   onKeyDown={(e) => e.key === "Enter" && addPlatform()}
                 />
                 <button type="button" className={styles.btnCreate} onClick={addPlatform} disabled={saving || !newPlatform.trim()} style={{ whiteSpace: "nowrap" }}>
+                  <i className="bx bx-plus" /> Tambah
+                </button>
+              </div>
+            </div>
+
+            {/* ── 7. MASTER TIPE REWARD KUPON KAS ── */}
+            <div className={styles.sectionCard} style={{ border: "1.5px solid rgba(139, 92, 246, 0.3)" }}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
+                  Pilihan Tipe Reward Kupon Kas ({data.tipeRewardKupon.length})
+                </h2>
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: -6, marginBottom: 14 }}>
+                Pilihan reward / hadiah apresiasi kas yang tersedia saat admin membuat kupon reward untuk anggota yang rajin bayar kas.
+              </p>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                {data.tipeRewardKupon.map((rew) => (
+                  <span
+                    key={rew}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "6px 14px",
+                      borderRadius: 50,
+                      background: "rgba(139, 92, 246, 0.12)",
+                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                      color: "#8b5cf6",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <i className="bx bx-award" style={{ fontSize: "0.9rem" }} />
+                    {rew}
+                    <button
+                      type="button"
+                      onClick={() => removeTipeReward(rew)}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 0, marginLeft: 4, display: "flex", alignItems: "center" }}
+                      title="Hapus Tipe Reward"
+                    >
+                      <i className="bx bx-x-circle" style={{ fontSize: "1.1rem" }} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, maxWidth: 380 }}>
+                <input
+                  type="text"
+                  placeholder="Tipe reward baru (cth: Voucher Tiket Event)..."
+                  className={styles.modalInput}
+                  value={newTipeReward}
+                  onChange={(e) => setNewTipeReward(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTipeReward()}
+                />
+                <button
+                  type="button"
+                  className={styles.btnCreate}
+                  onClick={addTipeReward}
+                  disabled={saving || !newTipeReward.trim()}
+                  style={{ background: "#8b5cf6", color: "#fff", whiteSpace: "nowrap" }}
+                >
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>

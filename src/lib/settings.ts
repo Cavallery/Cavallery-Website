@@ -76,6 +76,7 @@ export interface MasterData {
   kategoriPengeluaran: string[];
   tahunKasAktif: number[];
   jabatanBebasKas: string[];
+  tipeRewardKupon: string[];
 }
 
 export const DEFAULT_MASTER_DATA: MasterData = {
@@ -121,6 +122,14 @@ export const DEFAULT_MASTER_DATA: MasterData = {
   ],
   tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
   jabatanBebasKas: ["Admin Fanbase", "Pengurus Fanbase"],
+  tipeRewardKupon: [
+    "Diskon Merchandise",
+    "Potongan Iuran Kas",
+    "Photocard / Goodies",
+    "Undian Tiket Show",
+    "Akses Event Eksklusif",
+    "Lainnya",
+  ],
 };
 
 export async function getMasterData(): Promise<MasterData> {
@@ -138,6 +147,7 @@ export async function getMasterData(): Promise<MasterData> {
         kategoriPengeluaran: Array.isArray(parsed.kategoriPengeluaran) && parsed.kategoriPengeluaran.length > 0 ? parsed.kategoriPengeluaran : DEFAULT_MASTER_DATA.kategoriPengeluaran,
         tahunKasAktif: Array.isArray(parsed.tahunKasAktif) && parsed.tahunKasAktif.length > 0 ? parsed.tahunKasAktif : DEFAULT_MASTER_DATA.tahunKasAktif,
         jabatanBebasKas: Array.isArray(parsed.jabatanBebasKas) && parsed.jabatanBebasKas.length > 0 ? parsed.jabatanBebasKas : DEFAULT_MASTER_DATA.jabatanBebasKas,
+        tipeRewardKupon: Array.isArray(parsed.tipeRewardKupon) && parsed.tipeRewardKupon.length > 0 ? parsed.tipeRewardKupon : DEFAULT_MASTER_DATA.tipeRewardKupon,
       };
     }
   } catch (err) {
