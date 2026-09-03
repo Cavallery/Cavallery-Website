@@ -29,6 +29,7 @@ export async function ensureKuponTables() {
         kupon_id INT NOT NULL,
         anggota_id INT NOT NULL,
         no_anggota VARCHAR(50) NOT NULL,
+        kode_kupon_unik VARCHAR(100) NULL,
         bulan_terbayar INT NOT NULL DEFAULT 0,
         status ENUM('aktif', 'digunakan', 'kadaluarsa') NOT NULL DEFAULT 'aktif',
         digunakan_pada DATETIME NULL,
@@ -40,12 +41,31 @@ export async function ensureKuponTables() {
         INDEX idx_no_anggota (no_anggota)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Pastikan kolom kode_kupon_unik ada jika tabel lama sudah ada
+    try {
+      await query(`
+        ALTER TABLE kupon_anggota ADD COLUMN IF NOT EXISTS kode_kupon_unik VARCHAR(100) NULL AFTER no_anggota
+      `);
+    } catch {}
   } catch (err: any) {
     console.error("[Kupon] ensureKuponTables error:", err?.message);
   }
 }
 
-// ── GET: Ambil daftar seluruh kupon & penerimanya ──
+// Helper generate kode kupon unik per orang
+function generatePersonalCouponCode(baseCode: string, noAnggota: string): string {
+  // Ambil angka atau suffix no anggota, misal CAVA-0001 -> 0001
+  const cleanNo = (noAnggota || "").replace(/[^A-Za-z0-9]/g, "").slice(-4) || "MBR";
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let rand = "";
+  for (let i = 0; i < 4; i++) {
+    rand += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `${baseCode}-${cleanNo}-${rand}`;
+}
+
+// ── GET: Ambil daftar seluruh kupon ATAU detail penerima kupon tertentu ──
 export async function GET(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -55,8 +75,48 @@ export async function GET(req: NextRequest) {
 
     await ensureKuponTables();
     const { searchParams } = new URL(req.url);
-    const tahunParam = searchParams.get("tahun");
+    const detailId = searchParams.get("detailId");
 
+    // Jika meminta detail penerima dari 1 kupon
+    if (detailId) {
+      const kuponInfo = await query<any[]>("SELECT * FROM kupon WHERE id = ? LIMIT 1", [detailId]);
+      if (!kuponInfo || kuponInfo.length === 0) {
+        return NextResponse.json({ status: false, message: "Kupon tidak ditemukan" }, { status: 404 });
+      }
+
+      const penerima = (await query<any[]>(`
+        SELECT 
+          ka.id AS kupon_anggota_id,
+          ka.kupon_id,
+          ka.anggota_id,
+          ka.no_anggota,
+          COALESCE(ka.kode_kupon_unik, CONCAT(k.kode_kupon, '-', ka.id)) AS kode_kupon_unik,
+          ka.bulan_terbayar,
+          ka.status AS status_kupon,
+          ka.digunakan_pada,
+          ka.created_at AS tanggal_diterima,
+          a.nama_lengkap,
+          a.jabatan,
+          a.divisi,
+          a.id_line,
+          a.kontak_platform,
+          a.kontak_id
+        FROM kupon_anggota ka
+        JOIN kupon k ON ka.kupon_id = k.id
+        LEFT JOIN anggota a ON ka.anggota_id = a.id
+        WHERE ka.kupon_id = ?
+        ORDER BY a.nama_lengkap ASC, ka.id ASC
+      `, [detailId])) || [];
+
+      return NextResponse.json({
+        status: true,
+        kupon: kuponInfo[0],
+        data: penerima,
+      });
+    }
+
+    // Default: Ambil daftar seluruh master kupon
+    const tahunParam = searchParams.get("tahun");
     let sql = `
       SELECT 
         k.*,
@@ -84,7 +144,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ── POST: Buat Kupon Baru & Bagikan ke Anggota yang Lunas Kas ──
+// ── POST: Buat Kupon Baru & Generate Kode Kupon Unik Beda-Beda Per Orang ──
 export async function POST(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -109,7 +169,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Kode kupon dan judul hadiah wajib diisi" }, { status: 400 });
     }
 
-    const cleanKode = kodeKupon.trim().toUpperCase();
+    const cleanKode = kodeKupon.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
     const minBulan = Number(minBulanKas) || 1;
     const tahun = Number(tahunKas) || new Date().getFullYear();
 
@@ -129,7 +189,7 @@ export async function POST(req: NextRequest) {
         cleanKode,
         judul.trim(),
         deskripsi || "",
-        tipeReward || "Diskon Merch",
+        tipeReward || "Diskon Merchandise",
         nilaiReward || "10%",
         minBulan,
         tahun,
@@ -172,10 +232,14 @@ export async function POST(req: NextRequest) {
 
       // Syarat: Anggota harus lunas kas minimal minBulan (atau pengurus fanbase)
       if (isAdminRole || bulanLunas >= minBulan) {
+        // GENERATE KODE KUPON UNIK KHUSUS ORANG INI (BEDA-BEDA SETIAP ORANG)
+        const uniqueCode = generatePersonalCouponCode(cleanKode, noAnggota);
+
         await query(
-          `INSERT IGNORE INTO kupon_anggota (kupon_id, anggota_id, no_anggota, bulan_terbayar, status)
-           VALUES (?, ?, ?, ?, 'aktif')`,
-          [kuponId, a.id, noAnggota, bulanLunas]
+          `INSERT INTO kupon_anggota (kupon_id, anggota_id, no_anggota, kode_kupon_unik, bulan_terbayar, status)
+           VALUES (?, ?, ?, ?, ?, 'aktif')
+           ON DUPLICATE KEY UPDATE kode_kupon_unik = VALUES(kode_kupon_unik), bulan_terbayar = VALUES(bulan_terbayar)`,
+          [kuponId, a.id, noAnggota, uniqueCode, bulanLunas]
         );
         qualifiedCount++;
       } else {
@@ -186,7 +250,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: true,
-      message: `Kupon "${cleanKode}" berhasil dibuat dan otomatis dibagikan kepada ${qualifiedCount} anggota yang memenuhi syarat kas! (${unqualifiedCount} anggota yang jarang bayar kas tidak menerima kupon).`,
+      message: `Kupon "${cleanKode}" berhasil dibuat! Sistem otomatis meng-generate KODE UNIK BERBEDA untuk ${qualifiedCount} anggota yang rajin bayar kas (${unqualifiedCount} anggota yang jarang bayar kas tidak menerima kupon).`,
       kuponId,
       qualifiedCount,
       unqualifiedCount,
@@ -197,7 +261,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ── DELETE: Hapus Kupon ──
+// ── DELETE: Hapus Seluruh Kupon ATAU Cabut Kupon dari Anggota Tertentu ──
 export async function DELETE(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -206,16 +270,33 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ status: false, message: "ID wajib disertakan" }, { status: 400 });
+    const kuponAnggotaId = searchParams.get("kuponAnggotaId");
+    const kuponId = searchParams.get("id");
+
+    // 1. HAPUS / CABUT KUPON DARI SATU ANGGOTA SAJA
+    if (kuponAnggotaId) {
+      const deleted = await query("DELETE FROM kupon_anggota WHERE id = ?", [kuponAnggotaId]);
+      await resetAutoIncrement("kupon_anggota");
+      return NextResponse.json({
+        status: true,
+        message: "Kupon untuk anggota ini berhasil dicabut / dihapus.",
+      });
     }
 
-    await query("DELETE FROM kupon_anggota WHERE kupon_id = ?", [id]);
-    await query("DELETE FROM kupon WHERE id = ?", [id]);
-    await resetAutoIncrement("kupon");
+    // 2. HAPUS SELURUH KUPON (MASTER KUPON BESERTA SEMUA PENERIMANYA)
+    if (!kuponId) {
+      return NextResponse.json({ status: false, message: "ID kupon wajib disertakan" }, { status: 400 });
+    }
 
-    return NextResponse.json({ status: true, message: "Kupon dan data penerima berhasil dihapus" });
+    await query("DELETE FROM kupon_anggota WHERE kupon_id = ?", [kuponId]);
+    await query("DELETE FROM kupon WHERE id = ?", [kuponId]);
+    await resetAutoIncrement("kupon");
+    await resetAutoIncrement("kupon_anggota");
+
+    return NextResponse.json({
+      status: true,
+      message: "Master kupon dan seluruh voucher yang dibagikan ke anggota berhasil dihapus.",
+    });
   } catch (error: any) {
     console.error("DELETE kupon error:", error);
     return NextResponse.json({ status: false, message: error?.message || "Gagal menghapus kupon" }, { status: 500 });
