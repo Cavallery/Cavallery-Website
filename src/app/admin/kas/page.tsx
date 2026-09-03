@@ -29,7 +29,7 @@ export default function AdminKasPage() {
   const [editKas, setEditKas] = useState<any | null>(null);
 
   // ── STATE: Tab Utama ──
-  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "konfirmasi">("matriks");
+  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "kupon" | "konfirmasi">("matriks");
   const [matrixYear, setMatrixYear] = useState(new Date().getFullYear());
   const [matrixData, setMatrixData] = useState<any | null>(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
@@ -49,6 +49,7 @@ export default function AdminKasPage() {
   const [loadingPengeluaran, setLoadingPengeluaran] = useState(false);
   const [showPengeluaranModal, setShowPengeluaranModal] = useState(false);
   const [submittingPengeluaran, setSubmittingPengeluaran] = useState(false);
+  const [uploadingNota, setUploadingNota] = useState(false);
   const [newPengeluaran, setNewPengeluaran] = useState({
     tanggal: new Date().toISOString().split("T")[0],
     kategori: "Operasional",
@@ -56,6 +57,22 @@ export default function AdminKasPage() {
     nominal: "",
     buktiNotaUrl: "",
     catatan: "",
+  });
+
+  // ── STATE: Kupon Kas Reward ──
+  const [kuponList, setKuponList] = useState<any[]>([]);
+  const [loadingKupon, setLoadingKupon] = useState(false);
+  const [showKuponModal, setShowKuponModal] = useState(false);
+  const [submittingKupon, setSubmittingKupon] = useState(false);
+  const [newKupon, setNewKupon] = useState({
+    kodeKupon: "",
+    judul: "",
+    deskripsi: "",
+    tipeReward: "Diskon Merch",
+    nilaiReward: "10%",
+    minBulanKas: 1,
+    tahunKas: new Date().getFullYear(),
+    kadaluarsaPada: "",
   });
 
   // ── STATE: Modal Input Kas Manual ──
@@ -115,6 +132,17 @@ export default function AdminKasPage() {
     finally { setLoadingPengeluaran(false); }
   }, []);
 
+  // ── Fetch Kupon Kas ──
+  const fetchKupon = useCallback(async (year: number) => {
+    setLoadingKupon(true);
+    try {
+      const res = await fetch(`/api/admin/kas/kupon?tahun=${year}`);
+      const json = await res.json();
+      if (json.status && json.data) setKuponList(json.data);
+    } catch (e) { console.error(e); }
+    finally { setLoadingKupon(false); }
+  }, []);
+
   // ── STATE: Master Data Konfigurasi ──
   const [masterData, setMasterData] = useState<any>({
     kategoriPengeluaran: [
@@ -159,9 +187,10 @@ export default function AdminKasPage() {
     fetchMatrix(matrixYear);
     fetchTagihan(matrixYear);
     fetchPengeluaran(matrixYear);
+    fetchKupon(matrixYear);
     fetchAnggota();
     fetchMasterData();
-  }, [fetchMatrix, fetchTagihan, fetchPengeluaran, matrixYear]);
+  }, [fetchMatrix, fetchTagihan, fetchPengeluaran, fetchKupon, matrixYear]);
 
   // ── Handlers: Konfirmasi ──
   const handleAction = async (id: number, action: string, extra: any = {}) => {
@@ -307,6 +336,31 @@ export default function AdminKasPage() {
     }
   };
 
+  // ── Handler: Upload Foto Bukti Nota ──
+  const handleUploadNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingNota(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (json.status && json.url) {
+        setNewPengeluaran((prev) => ({ ...prev, buktiNotaUrl: json.url }));
+      } else {
+        alert(json.message || "Gagal mengunggah foto");
+      }
+    } catch (err: any) {
+      alert(err?.message || "Gagal mengunggah foto");
+    } finally {
+      setUploadingNota(false);
+    }
+  };
+
   // ── Handler: Submit Pengeluaran Kas Baru ──
   const handlePengeluaranSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,6 +420,60 @@ export default function AdminKasPage() {
         fetchMatrix(matrixYear);
       } else {
         alert(json.message || "Gagal menghapus pengeluaran");
+      }
+    } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
+  };
+
+  // ── Handler: Submit Kupon Baru & Bagikan ──
+  const handleKuponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newKupon.kodeKupon || !newKupon.judul) {
+      alert("Kode kupon dan judul hadiah wajib diisi");
+      return;
+    }
+    setSubmittingKupon(true);
+    try {
+      const res = await fetch("/api/admin/kas/kupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newKupon),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        setShowKuponModal(false);
+        setNewKupon({
+          kodeKupon: "",
+          judul: "",
+          deskripsi: "",
+          tipeReward: "Diskon Merch",
+          nilaiReward: "10%",
+          minBulanKas: 1,
+          tahunKas: matrixYear,
+          kadaluarsaPada: "",
+        });
+        fetchKupon(matrixYear);
+      } else {
+        alert(json.message || "Gagal membuat kupon");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSubmittingKupon(false);
+    }
+  };
+
+  // ── Handler: Hapus Kupon ──
+  const handleDeleteKupon = async (id: number) => {
+    if (!confirm(`Hapus kupon ini dan batalkan distribusi reward ke seluruh anggota?`)) return;
+    try {
+      const res = await fetch(`/api/admin/kas/kupon?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        fetchKupon(matrixYear);
+      } else {
+        alert(json.message || "Gagal menghapus kupon");
       }
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
   };
@@ -449,7 +557,7 @@ export default function AdminKasPage() {
           <div>
             <div style={{ fontWeight: 800, fontSize: "1rem", color: "var(--primary)" }}>
               <i className="bx bx-spreadsheet" style={{ marginRight: 6, fontSize: "1.2rem", color: "var(--gold)" }} />
-              Pusat Manajemen Kas &amp; Sinkronisasi Spreadsheet
+              Pusat Manajemen Kas, Kupon Reward &amp; Sinkronisasi Spreadsheet
             </div>
             <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
               Ekspor seluruh data centang bulanan (2024-2029), Anggota Aktif, Status Anggota, Leaderboard, dan Laporan Pengeluaran.
@@ -473,6 +581,15 @@ export default function AdminKasPage() {
               style={{ background: "#e11d48", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className="bx bx-receipt" /> + Catat Pengeluaran Kas
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowKuponModal(true)}
+              className={styles.btnCreate}
+              style={{ background: "#8b5cf6", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <i className="bx bx-gift" /> + Bagikan Kupon Kas
             </button>
 
             <button
@@ -563,6 +680,7 @@ export default function AdminKasPage() {
             { key: "matriks", label: "Matriks Iuran Kas Bulanan", icon: "bx-grid-alt" },
             { key: "tagihan", label: `Pelacak Tagihan Kas (${tagihanList.length})`, icon: "bx-user-x" },
             { key: "pengeluaran", label: `Laporan Pengeluaran (${pengeluaranList.length})`, icon: "bx-receipt" },
+            { key: "kupon", label: `Kupon Reward Kas (${kuponList.length})`, icon: "bx-gift" },
             { key: "konfirmasi", label: `Antrean Verifikasi (${pendingKas.length})`, icon: "bx-check-shield" },
           ].map((tab) => (
             <button
@@ -701,6 +819,11 @@ export default function AdminKasPage() {
               </div>
             )}
 
+            {/* Petunjuk Geser untuk Mobile */}
+            <div style={{ fontSize: "0.76rem", color: "var(--gold)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+              <i className="bx bx-move-horizontal" /> Geser tabel ke kanan untuk melihat status pembayaran 12 bulan
+            </div>
+
             {/* TABEL MATRIKS CENTANG TAHUNAN */}
             {matrixLoading ? (
               <div className={styles.emptyBox}>
@@ -714,12 +837,12 @@ export default function AdminKasPage() {
               </div>
             ) : (
               <div className={styles.tableWrap} style={{ maxHeight: "70vh", overflow: "auto" }}>
-                <table className={styles.matrixTable} style={{ borderCollapse: "separate", borderSpacing: 0 }}>
+                <table className={styles.matrixTable}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <tr>
-                      <th style={{ width: 36, background: "#1155cc", color: "#fff", position: "sticky", left: 0, zIndex: 11 }}>No.</th>
-                      <th style={{ minWidth: 100, textAlign: "left", background: "#1155cc", color: "#fff", position: "sticky", left: 36, zIndex: 11 }}>Nomor Anggota</th>
-                      <th style={{ minWidth: 160, textAlign: "left", background: "#1155cc", color: "#fff", position: "sticky", left: 136, zIndex: 11 }}>Nama</th>
+                      <th className={styles.colStickyNo} style={{ background: "#1155cc", color: "#fff" }}>No.</th>
+                      <th className={styles.colStickyNoAnggota} style={{ background: "#1155cc", color: "#fff" }}>Nomor Anggota</th>
+                      <th className={styles.colStickyNama} style={{ background: "#1155cc", color: "#fff" }}>Nama</th>
                       <th style={{ minWidth: 100, background: "#1155cc", color: "#fff" }}>Kas</th>
                       <th style={{ width: 60, background: "#1155cc", color: "#fff" }}>Bulan Mulai</th>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -735,13 +858,13 @@ export default function AdminKasPage() {
                   <tbody>
                     {filteredMatrixRows.map((row: any, idx: number) => (
                       <tr key={row.noAnggota}>
-                        <td style={{ textAlign: "center", fontWeight: 700, background: "var(--card-bg)", position: "sticky", left: 0, zIndex: 5 }}>
+                        <td className={styles.colStickyNo} style={{ textAlign: "center", fontWeight: 700 }}>
                           {idx + 1}
                         </td>
-                        <td style={{ textAlign: "left", background: "var(--card-bg)", position: "sticky", left: 36, zIndex: 5 }}>
+                        <td className={styles.colStickyNoAnggota}>
                           <span className={styles.noAnggota} style={{ fontSize: "0.78rem" }}>{row.noAnggota}</span>
                         </td>
-                        <td style={{ textAlign: "left", background: "var(--card-bg)", position: "sticky", left: 136, zIndex: 5 }}>
+                        <td className={styles.colStickyNama}>
                           <div style={{ fontWeight: 700, fontSize: "0.85rem" }}>{row.nama}</div>
                           {row.isAdminRole && (
                             <div style={{ fontSize: "0.68rem", color: "var(--primary)", fontWeight: 600 }}>{row.jabatan} (Bebas Kas)</div>
@@ -753,6 +876,8 @@ export default function AdminKasPage() {
                         <td style={{ color: "var(--fg-muted)", fontWeight: 700 }}>
                           {row.bulanMulai}
                         </td>
+
+                        {/* 12 Bulan Checkboxes */}
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
                           const status = row.months?.[m];
                           const isPaid = status === true;
@@ -1048,7 +1173,126 @@ export default function AdminKasPage() {
         )}
 
         {/* ════════════════════════════════════════════ */}
-        {/* TAB 4: ANTREAN VERIFIKASI KAS MASUK         */}
+        {/* TAB 4: KUPON REWARD KAS ANGGOTA (FITUR BARU) */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "kupon" && (
+          <div className={styles.sectionCard} style={{ padding: 20 }}>
+            <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
+                  Kupon &amp; Voucher Reward Kas Fanbase
+                  <span className={styles.countBadge} style={{ background: "rgba(139, 92, 246, 0.15)", color: "#8b5cf6" }}>
+                    {kuponList.length} Kupon
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  Kupon hadiah otomatis dikirim ke dashboard anggota yang rajin membayar kas. Anggota yang jarang bayar kas tidak menerima kupon.
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowKuponModal(true)}
+                className={styles.btnCreate}
+                style={{ background: "#8b5cf6", color: "#fff" }}
+              >
+                <i className="bx bx-plus" /> + Buat &amp; Bagikan Kupon Baru
+              </button>
+            </div>
+
+            {loadingKupon ? (
+              <div className={styles.emptyBox}><i className="bx bx-loader-alt bx-spin" /><p>Memuat daftar kupon...</p></div>
+            ) : kuponList.length === 0 ? (
+              <div className={styles.emptyBox}>
+                <i className="bx bx-purchase-tag-alt" />
+                <p>Belum ada kupon reward yang dibuat. Klik tombol "+ Buat &amp; Bagikan Kupon Baru" untuk mengapresiasi anggota yang rajin bayar kas.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Kode Kupon</th>
+                      <th>Judul Hadiah</th>
+                      <th>Nilai Reward</th>
+                      <th>Syarat Kelayakan Kas</th>
+                      <th>Penerima Berhak</th>
+                      <th>Kadaluarsa</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {kuponList.map((k: any) => (
+                      <tr key={k.id}>
+                        <td>
+                          <span style={{
+                            display: "inline-block",
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            background: "rgba(139, 92, 246, 0.15)",
+                            color: "#8b5cf6",
+                            fontWeight: 900,
+                            letterSpacing: "0.5px",
+                            fontSize: "0.88rem",
+                            border: "1px solid rgba(139, 92, 246, 0.3)",
+                          }}>
+                            {k.kode_kupon}
+                          </span>
+                        </td>
+                        <td className={styles.nameCol}>
+                          <div style={{ fontWeight: 700 }}>{k.judul}</div>
+                          {k.deskripsi && <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{k.deskripsi}</div>}
+                        </td>
+                        <td style={{ fontWeight: 800, color: "var(--gold)" }}>
+                          {k.nilai_reward} ({k.tipe_reward})
+                        </td>
+                        <td>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#10b981" }}>
+                            Min. {k.min_bulan_kas} Bulan Lunas Kas ({k.tahun_kas})
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "3px 8px",
+                            borderRadius: 4,
+                            background: "rgba(16, 185, 129, 0.1)",
+                            color: "#10b981",
+                            fontWeight: 800,
+                            fontSize: "0.8rem",
+                          }}>
+                            <i className="bx bx-user-check" /> {k.total_penerima || 0} Anggota
+                          </span>
+                        </td>
+                        <td>
+                          {k.kadaluarsa_pada
+                            ? new Date(k.kadaluarsa_pada).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+                            : "Tanpa Batas"}
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteKupon(k.id)}
+                            className={styles.btnDelete}
+                            title="Hapus Kupon"
+                          >
+                            <i className="bx bx-trash" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB 5: ANTREAN VERIFIKASI KAS MASUK         */}
         {/* ════════════════════════════════════════════ */}
         {activeTab === "konfirmasi" && (
           <>
@@ -1231,7 +1475,7 @@ export default function AdminKasPage() {
                     value={manualTahun}
                     onChange={(e) => setManualTahun(Number(e.target.value))}
                   >
-                    {SUPPORTED_YEARS.map((y) => (
+                    {(masterData.tahunKasAktif || SUPPORTED_YEARS).map((y: number) => (
                       <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
@@ -1279,7 +1523,7 @@ export default function AdminKasPage() {
         </div>
       )}
 
-      {/* ── MODAL CATAT PENGELUARAN KAS ── */}
+      {/* ── MODAL CATAT PENGELUARAN KAS (DENGAN INPUT GAMBAR LANGSUNG) ── */}
       {showPengeluaranModal && (
         <div className={styles.modalOverlay} onClick={() => setShowPengeluaranModal(false)}>
           <div className={styles.modalCard} style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
@@ -1350,15 +1594,57 @@ export default function AdminKasPage() {
                 />
               </div>
 
+              {/* INPUT GAMBAR NOTA / KWITANSI LANGSUNG (FILE INPUT BUKAN URL) */}
               <div className={styles.modalField}>
-                <label className={styles.modalLabel}>URL Bukti Nota / Kwitansi (Opsional)</label>
-                <input
-                  type="url"
-                  className={styles.modalInput}
-                  placeholder="https://..."
-                  value={newPengeluaran.buktiNotaUrl}
-                  onChange={(e) => setNewPengeluaran({ ...newPengeluaran, buktiNotaUrl: e.target.value })}
-                />
+                <label className={styles.modalLabel}>Upload Bukti Foto Nota / Kwitansi (Opsional)</label>
+                {newPengeluaran.buktiNotaUrl ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(0,0,0,0.15)" }}>
+                    <img src={newPengeluaran.buktiNotaUrl} alt="Preview Nota" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border)" }} />
+                    <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> Foto nota berhasil diunggah
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewPengeluaran({ ...newPengeluaran, buktiNotaUrl: "" })}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "1.2rem", display: "flex", alignItems: "center" }}
+                      title="Hapus foto"
+                    >
+                      <i className="bx bx-trash" />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
+                      id="uploadNotaInput"
+                      style={{ display: "none" }}
+                      onChange={handleUploadNota}
+                      disabled={uploadingNota}
+                    />
+                    <label
+                      htmlFor="uploadNotaInput"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        padding: "12px 16px",
+                        borderRadius: 10,
+                        border: "1.5px dashed var(--border)",
+                        background: "rgba(255, 255, 255, 0.02)",
+                        color: "var(--fg-muted)",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                        cursor: uploadingNota ? "not-allowed" : "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <i className={`bx ${uploadingNota ? "bx-loader-alt bx-spin" : "bx-camera"}`} style={{ fontSize: "1.3rem", color: "var(--gold)" }} />
+                      {uploadingNota ? "Mengunggah foto nota..." : "Pilih File Foto / Kamera Nota"}
+                    </label>
+                  </div>
+                )}
               </div>
 
               <div className={styles.modalField}>
@@ -1375,9 +1661,146 @@ export default function AdminKasPage() {
                 <button type="button" className={styles.backBtn} onClick={() => setShowPengeluaranModal(false)}>
                   Batal
                 </button>
-                <button type="submit" className={styles.btnCreate} style={{ background: "#e11d48", color: "#fff" }} disabled={submittingPengeluaran}>
+                <button type="submit" className={styles.btnCreate} style={{ background: "#e11d48", color: "#fff" }} disabled={submittingPengeluaran || uploadingNota}>
                   <i className={`bx ${submittingPengeluaran ? "bx-loader-alt bx-spin" : "bx-save"}`} />
                   {submittingPengeluaran ? "Menyimpan..." : "Simpan Pengeluaran"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL BUAT KUPON REWARD KAS BARU ── */}
+      {showKuponModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowKuponModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-gift" style={{ color: "#8b5cf6" }} /> Buat &amp; Bagikan Kupon Reward Kas
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowKuponModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleKuponSubmit} className={styles.modalForm}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Kode Kupon (KAPITAL)</label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    placeholder="Contoh: ERINE200SHOW"
+                    value={newKupon.kodeKupon}
+                    onChange={(e) => setNewKupon({ ...newKupon, kodeKupon: e.target.value.toUpperCase() })}
+                    required
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tahun Kas yang Dinilai</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={newKupon.tahunKas}
+                    onChange={(e) => setNewKupon({ ...newKupon, tahunKas: Number(e.target.value) })}
+                  >
+                    {(masterData.tahunKasAktif || SUPPORTED_YEARS).map((y: number) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Judul Hadiah / Reward</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: Voucher Diskon Merchandise Fanbase"
+                  value={newKupon.judul}
+                  onChange={(e) => setNewKupon({ ...newKupon, judul: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tipe Reward</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={newKupon.tipeReward}
+                    onChange={(e) => setNewKupon({ ...newKupon, tipeReward: e.target.value })}
+                  >
+                    <option value="Diskon Merch">Diskon Merchandise</option>
+                    <option value="Potongan Kas">Potongan Iuran Kas</option>
+                    <option value="Photocard Khusus">Hadiah Photocard / Goodies</option>
+                    <option value="Undian Tiket Show">Undian Tiket Show</option>
+                    <option value="Lainnya">Lain-lain</option>
+                  </select>
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Nilai / Bentuk Reward</label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    placeholder="Contoh: 15.000 / 20% / Free PC"
+                    value={newKupon.nilaiReward}
+                    onChange={(e) => setNewKupon({ ...newKupon, nilaiReward: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* KRITERIA MINIMAL BULAN KAS (ANGGOTA JARANG BAYAR KAS TIDAK DAPAT) */}
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>
+                  <i className="bx bx-filter-alt" style={{ color: "var(--gold)" }} /> Syarat Pembayaran Kas (Kelayakan Anggota)
+                </label>
+                <select
+                  className={styles.modalSelect}
+                  value={newKupon.minBulanKas}
+                  onChange={(e) => setNewKupon({ ...newKupon, minBulanKas: Number(e.target.value) })}
+                >
+                  <option value={1}>Minimal 1 Bulan Lunas Kas di Tahun {newKupon.tahunKas}</option>
+                  <option value={3}>Minimal 3 Bulan Lunas Kas (Rajin Bayar)</option>
+                  <option value={6}>Minimal 6 Bulan Lunas Kas (Setengah Tahun)</option>
+                  <option value={9}>Minimal 9 Bulan Lunas Kas</option>
+                  <option value={12}>Lunas Penuh 12 Bulan (Super Rajin)</option>
+                </select>
+                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  * Anggota yang jarang bayar kas (kurang dari syarat ini) <strong>tidak akan mendapatkan kupon</strong>.
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tanggal Kadaluarsa (Opsional)</label>
+                  <input
+                    type="date"
+                    className={styles.modalInput}
+                    value={newKupon.kadaluarsaPada}
+                    onChange={(e) => setNewKupon({ ...newKupon, kadaluarsaPada: e.target.value })}
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Deskripsi / Catatan Singkat</label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    placeholder="Contoh: Berlaku saat gath fanbase"
+                    value={newKupon.deskripsi}
+                    onChange={(e) => setNewKupon({ ...newKupon, deskripsi: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.backBtn} onClick={() => setShowKuponModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnCreate} style={{ background: "#8b5cf6", color: "#fff" }} disabled={submittingKupon}>
+                  <i className={`bx ${submittingKupon ? "bx-loader-alt bx-spin" : "bx-send"}`} />
+                  {submittingKupon ? "Mendistribusikan..." : "Simpan & Kirim Kupon"}
                 </button>
               </div>
             </form>
