@@ -194,7 +194,7 @@ export default function CavalleryKasPage() {
 
   // Dynamic Master Data State
   const [donationTypes, setDonationTypes] = useState<string[]>(DONATION_TYPES);
-  const [chipNominalsKas, setChipNominalsKas] = useState<number[]>([10000, 15000, 20000, 50000, 100000]);
+  const [chipNominalsKas, setChipNominalsKas] = useState<number[]>([15000, 30000, 45000, 60000, 75000, 90000, 105000, 120000, 135000, 150000, 165000, 180000]);
   const [chipNominalsDonasi, setChipNominalsDonasi] = useState<number[]>([10000, 25000, 50000, 100000, 250000, 500000]);
   const [platformOptions, setPlatformOptions] = useState<string[]>([
     "LINE",
