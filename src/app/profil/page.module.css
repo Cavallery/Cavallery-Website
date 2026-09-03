@@ -352,8 +352,18 @@
 }
 
 @media (max-width: 600px) {
+  .page {
+    padding: calc(var(--nav-h, 72px) + 16px) 12px 60px;
+    overflow-x: hidden;
+  }
+  .container {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 16px;
+  }
   .idCard {
-    padding: 24px 18px;
+    padding: 22px 14px;
   }
   .idBody {
     flex-direction: column;
@@ -370,5 +380,6 @@
   .actionsRow,
   .statsGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

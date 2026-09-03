@@ -78,6 +78,9 @@ export async function syncCouponsForMember(anggotaId: number): Promise<number> {
     const { bulanLunas, noAnggota, isAdminRole } = await getAnggotaBulanLunas(anggotaId);
     if (!noAnggota || noAnggota === "-") return 0;
 
+    // Kupon reward kas KHUSUS anggota biasa yang bayar kas. Admin/Pengurus bebas kas tidak menerima kupon.
+    if (isAdminRole) return 0;
+
     // Ambil semua kupon yang aktif / belum kadaluarsa
     const kupons = await query<any[]>(`
       SELECT * FROM kupon 
@@ -90,8 +93,8 @@ export async function syncCouponsForMember(anggotaId: number): Promise<number> {
     for (const k of kupons) {
       const minBulan = Number(k.min_bulan_kas || 1);
 
-      // Anggota berhak jika bulanLunas >= minBulan atau pengurus fanbase
-      if (isAdminRole || bulanLunas >= minBulan) {
+      // Anggota berhak jika bulanLunas >= minBulan (khusus anggota biasa)
+      if (bulanLunas >= minBulan) {
         // Cek apakah sudah pernah menerima kupon ini
         const existing = await query<any[]>(
           "SELECT id, kode_kupon_unik FROM kupon_anggota WHERE kupon_id = ? AND anggota_id = ? LIMIT 1",

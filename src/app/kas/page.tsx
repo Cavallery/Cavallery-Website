@@ -28,13 +28,50 @@ function formatRupiah(amount: number) {
   return `Rp ${amount.toLocaleString("id-ID")}`;
 }
 
+const KAS_12_BULAN = [
+  { bulan: 1, nominal: 15000, label: "1 Bulan", detail: "1 Bulan: Rp 15.000" },
+  { bulan: 2, nominal: 30000, label: "2 Bulan", detail: "2 Bulan: Rp 30.000" },
+  { bulan: 3, nominal: 45000, label: "3 Bulan", detail: "3 Bulan: Rp 45.000" },
+  { bulan: 4, nominal: 60000, label: "4 Bulan", detail: "4 Bulan: Rp 60.000" },
+  { bulan: 5, nominal: 75000, label: "5 Bulan", detail: "5 Bulan: Rp 75.000" },
+  { bulan: 6, nominal: 90000, label: "6 Bulan (Setengah Tahun)", detail: "6 Bulan (Setengah Tahun): Rp 90.000" },
+  { bulan: 7, nominal: 105000, label: "7 Bulan", detail: "7 Bulan: Rp 105.000" },
+  { bulan: 8, nominal: 120000, label: "8 Bulan", detail: "8 Bulan: Rp 120.000" },
+  { bulan: 9, nominal: 135000, label: "9 Bulan", detail: "9 Bulan: Rp 135.000" },
+  { bulan: 10, nominal: 150000, label: "10 Bulan", detail: "10 Bulan: Rp 150.000" },
+  { bulan: 11, nominal: 165000, label: "11 Bulan", detail: "11 Bulan: Rp 165.000" },
+  { bulan: 12, nominal: 180000, label: "12 Bulan (1 Tahun)", detail: "12 Bulan (1 Tahun): Rp 180.000" },
+];
+
+function getKasCalculationText(nom: number): string | null {
+  const m = Math.round(nom / 15000);
+  if (nom <= 0 || nom % 15000 !== 0 || m <= 0) return null;
+  if (m === 1) return "1 Bulan: Rp 15.000";
+  if (m === 2) return "2 Bulan: Rp 30.000";
+  if (m === 3) return "3 Bulan: Rp 45.000";
+  if (m === 4) return "4 Bulan: Rp 60.000";
+  if (m === 5) return "5 Bulan: Rp 75.000";
+  if (m === 6) return "6 Bulan (Setengah Tahun): Rp 90.000";
+  if (m === 7) return "7 Bulan: Rp 105.000";
+  if (m === 8) return "8 Bulan: Rp 120.000";
+  if (m === 9) return "9 Bulan: Rp 135.000";
+  if (m === 10) return "10 Bulan: Rp 150.000";
+  if (m === 11) return "11 Bulan: Rp 165.000";
+  if (m === 12) return "12 Bulan (1 Tahun): Rp 180.000";
+  return `${m} Bulan: Rp ${nom.toLocaleString("id-ID")}`;
+}
+
 export default function KasPage() {
   const [activeTab, setActiveTab] = useState<"bayar" | "status">("bayar");
 
   // Form State
   const [periode, setPeriode] = useState(getDefaultPeriode);
-  const [nominal, setNominal] = useState("20000");
-  const [selectedChip, setSelectedChip] = useState<number | "custom">(20000);
+  const [nominal, setNominal] = useState("15000");
+  const [selectedChip, setSelectedChip] = useState<number | "custom">(15000);
+  const [showTabelKas12Bulan, setShowTabelKas12Bulan] = useState(false);
+  const [chipNominalsKas, setChipNominalsKas] = useState<number[]>([
+    15000, 30000, 45000, 60000, 75000, 90000, 105000, 120000, 135000, 150000, 165000, 180000,
+  ]);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -45,6 +82,22 @@ export default function KasPage() {
   // Kas History State
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    // Load dynamic master data for kas nominals
+    fetch("/api/master-data")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status && json.data?.nominalKas?.length) {
+          setChipNominalsKas(json.data.nominalKas);
+          if (typeof json.data.defaultNominalKas === "number") {
+            setNominal(String(json.data.defaultNominalKas));
+            setSelectedChip(json.data.defaultNominalKas);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const fetchHistory = async () => {
     setLoadingHistory(true);
@@ -264,34 +317,133 @@ export default function KasPage() {
                   required
                 />
                 <div className={styles.chipsRow}>
+                  {chipNominalsKas.map((nom) => {
+                    const monthsCount = Math.round(nom / 15000);
+                    const monthLabel =
+                      monthsCount === 1
+                        ? "1 Bulan"
+                        : monthsCount === 6
+                        ? "6 Bulan (Setengah Tahun)"
+                        : monthsCount === 12
+                        ? "12 Bulan (1 Tahun)"
+                        : `${monthsCount} Bulan`;
+
+                    return (
+                      <button
+                        key={nom}
+                        type="button"
+                        className={`${styles.chip} ${selectedChip === nom ? styles.chipActive : ""}`}
+                        onClick={() => handleChipClick(nom)}
+                        title={`Bayar Kas: ${monthLabel} = Rp ${nom.toLocaleString("id-ID")}`}
+                      >
+                        <span>Rp {nom.toLocaleString("id-ID")}</span>
+                        <span style={{ fontSize: "0.7rem", opacity: 0.85, marginLeft: 4 }}>
+                          ({monthLabel})
+                        </span>
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
-                    className={`${styles.chip} ${selectedChip === 20000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(20000)}
+                    className={`${styles.chip} ${selectedChip === "custom" ? styles.chipActive : ""}`}
+                    onClick={() => setSelectedChip("custom")}
                   >
-                    Rp 20.000 (1 Bln)
+                    Nominal Lain
                   </button>
+                </div>
+
+                {parseInt(nominal || "0", 10) > 0 && (
+                  <div style={{
+                    fontSize: "0.82rem",
+                    color: "#10b981",
+                    marginTop: 10,
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "rgba(16, 185, 129, 0.08)",
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                  }}>
+                    <i className="bx bx-check-circle" style={{ fontSize: "1.15rem", flexShrink: 0 }} />
+                    <span>
+                      {getKasCalculationText(parseInt(nominal || "0", 10)) ? (
+                        <>Hitungan: <strong>{getKasCalculationText(parseInt(nominal || "0", 10))}</strong></>
+                      ) : (
+                        <>Total Iuran Kas: <strong>Rp {parseInt(nominal || "0", 10).toLocaleString("id-ID")}</strong></>
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {/* ── TOGGLE TABEL HITUNGAN 1 S/D 12 BULAN LENGKAP ── */}
+                <div style={{ marginTop: 12 }}>
                   <button
                     type="button"
-                    className={`${styles.chip} ${selectedChip === 40000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(40000)}
+                    onClick={() => setShowTabelKas12Bulan(!showTabelKas12Bulan)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--gold)",
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: 0,
+                    }}
                   >
-                    Rp 40.000 (2 Bln)
+                    <i className={`bx ${showTabelKas12Bulan ? "bx-chevron-up" : "bx-list-ul"}`} />
+                    <span>{showTabelKas12Bulan ? "Tutup Rincian Hitungan Kas" : "Lihat Rincian Hitungan Kas 1 s/d 12 Bulan"}</span>
                   </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 60000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(60000)}
-                  >
-                    Rp 60.000 (3 Bln)
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.chip} ${selectedChip === 100000 ? styles.chipActive : ""}`}
-                    onClick={() => handleChipClick(100000)}
-                  >
-                    Rp 100.000 (5 Bln)
-                  </button>
+
+                  {showTabelKas12Bulan && (
+                    <div style={{
+                      marginTop: 8,
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 12,
+                      padding: 10,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                      gap: 8,
+                      boxShadow: "0 4px 14px rgba(0, 0, 0, 0.04)",
+                    }}>
+                      {KAS_12_BULAN.map((item) => {
+                        const isSelected = parseInt(nominal || "0", 10) === item.nominal;
+                        return (
+                          <div
+                            key={item.bulan}
+                            onClick={() => handleChipClick(item.nominal)}
+                            style={{
+                              padding: "7px 10px",
+                              borderRadius: 8,
+                              background: isSelected ? "var(--gold)" : "var(--bg)",
+                              color: isSelected ? "#1a1612" : "var(--fg)",
+                              border: isSelected ? "1px solid var(--gold)" : "1px solid var(--border)",
+                              fontSize: "0.75rem",
+                              fontWeight: isSelected ? 800 : 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 2,
+                            }}
+                            title={`Pilih ${item.detail}`}
+                          >
+                            <span style={{ fontSize: "0.68rem", opacity: isSelected ? 0.9 : 0.7 }}>
+                              {item.label}
+                            </span>
+                            <span style={{ fontWeight: 800, fontSize: "0.82rem" }}>
+                              Rp {item.nominal.toLocaleString("id-ID")}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -341,7 +493,7 @@ export default function KasPage() {
                   </>
                 ) : (
                   <>
-                    <i className="bx bx-paper-plane" /> Kirim Konfirmasi Kas
+                    <i className="bx bx-paper-plane" /> Kirim Konfirmasi Kas {nominal ? `(Rp ${parseInt(nominal || "0", 10).toLocaleString("id-ID")})` : ""}
                   </>
                 )}
               </button>

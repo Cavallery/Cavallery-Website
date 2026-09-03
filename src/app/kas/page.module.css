@@ -495,19 +495,62 @@
   color: #ef4444;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .page {
+    padding: calc(var(--nav-h, 72px) + 16px) 12px 60px;
+    overflow-x: hidden;
+  }
+  .container {
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
   .card {
-    padding: 28px 18px;
+    padding: 22px 14px;
+    border-radius: 20px;
+    gap: 18px;
   }
   .topBar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
   .tabPill {
     width: 100%;
+    box-sizing: border-box;
   }
   .tabBtn {
     flex: 1;
     justify-content: center;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+  .title {
+    font-size: 1.35rem;
+  }
+  .subtitle {
+    font-size: 0.82rem;
+  }
+  .chipsRow {
+    gap: 6px;
+  }
+  .chip {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
+  .qrisImg {
+    max-width: 220px;
+  }
+  .historyItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .historyRight {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }

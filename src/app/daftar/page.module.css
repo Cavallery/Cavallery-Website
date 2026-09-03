@@ -343,15 +343,24 @@
   margin: 0;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .page {
+    padding: calc(var(--nav-h, 72px) + 16px) 12px 60px;
+    overflow-x: hidden;
+  }
+  .container {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
   .card {
-    padding: 32px 20px;
-    border-radius: 22px;
+    padding: 24px 16px;
+    border-radius: 20px;
   }
   .inputGroup {
     grid-template-columns: 1fr;
   }
   .brandTitle {
-    font-size: 1.7rem;
+    font-size: 1.6rem;
   }
 }

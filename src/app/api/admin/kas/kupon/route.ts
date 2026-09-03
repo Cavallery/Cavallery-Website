@@ -48,6 +48,15 @@ export async function ensureKuponTables() {
         ALTER TABLE kupon_anggota ADD COLUMN IF NOT EXISTS kode_kupon_unik VARCHAR(100) NULL AFTER no_anggota
       `);
     } catch {}
+
+    // Bersihkan kupon jika ada yang terlanjur ter-assign ke admin/pengurus (khusus anggota biasa saja)
+    try {
+      await query(`
+        DELETE ka FROM kupon_anggota ka
+        JOIN anggota a ON ka.anggota_id = a.id
+        WHERE a.jabatan IS NOT NULL AND a.jabatan != '' AND a.jabatan != 'Anggota'
+      `);
+    } catch {}
   } catch (err: any) {
     console.error("[Kupon] ensureKuponTables error:", err?.message);
   }
@@ -77,7 +86,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const detailId = searchParams.get("detailId");
 
-    // Jika meminta detail penerima dari 1 kupon
+    // Jika meminta detail penerima dari 1 kupon (KHUSUS ANGGOTA SAJA, ADMIN TIDAK MASUK)
     if (detailId) {
       const kuponInfo = await query<any[]>("SELECT * FROM kupon WHERE id = ? LIMIT 1", [detailId]);
       if (!kuponInfo || kuponInfo.length === 0) {
@@ -105,6 +114,7 @@ export async function GET(req: NextRequest) {
         JOIN kupon k ON ka.kupon_id = k.id
         LEFT JOIN anggota a ON ka.anggota_id = a.id
         WHERE ka.kupon_id = ?
+          AND (a.jabatan = 'Anggota' OR a.jabatan IS NULL OR a.jabatan = '')
         ORDER BY a.nama_lengkap ASC, ka.id ASC
       `, [detailId])) || [];
 
@@ -115,15 +125,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Default: Ambil daftar seluruh master kupon
+    // Default: Ambil daftar seluruh master kupon (hitung penerima hanya anggota biasa)
     const tahunParam = searchParams.get("tahun");
     let sql = `
       SELECT 
         k.*,
-        COUNT(ka.id) AS total_penerima,
-        COUNT(CASE WHEN ka.status = 'digunakan' THEN 1 END) AS total_digunakan
+        COUNT(CASE WHEN a.jabatan = 'Anggota' OR a.jabatan IS NULL OR a.jabatan = '' THEN ka.id END) AS total_penerima,
+        COUNT(CASE WHEN (a.jabatan = 'Anggota' OR a.jabatan IS NULL OR a.jabatan = '') AND ka.status = 'digunakan' THEN 1 END) AS total_digunakan
       FROM kupon k
       LEFT JOIN kupon_anggota ka ON ka.kupon_id = k.id
+      LEFT JOIN anggota a ON ka.anggota_id = a.id
     `;
     const params: any[] = [];
     if (tahunParam) {
@@ -215,8 +226,14 @@ export async function POST(req: NextRequest) {
 
       const { bulanLunas, isAdminRole } = await getAnggotaBulanLunas(a.id, tahun);
 
-      // Syarat: Anggota harus lunas kas minimal minBulan (atau pengurus fanbase)
-      if (isAdminRole || bulanLunas >= minBulan) {
+      // Kupon reward kas KHUSUS anggota biasa yang bayar kas. Admin/Pengurus bebas kas tidak menerima kupon reward kas.
+      if (isAdminRole || (a.jabatan && a.jabatan !== "Anggota")) {
+        unqualifiedCount++;
+        continue;
+      }
+
+      // Syarat: Anggota biasa harus lunas kas minimal minBulan
+      if (bulanLunas >= minBulan) {
         // GENERATE KODE KUPON UNIK KHUSUS ORANG INI (BEDA-BEDA SETIAP ORANG)
         const uniqueCode = generatePersonalCouponCode(cleanKode, noAnggota);
 

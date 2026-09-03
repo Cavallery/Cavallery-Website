@@ -1252,7 +1252,7 @@ export default function AdminKasPage() {
                   </span>
                 </h2>
                 <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  Kupon hadiah otomatis dikirim ke dashboard anggota yang rajin membayar kas. Anggota yang jarang bayar kas tidak menerima kupon.
+                  Kupon hadiah otomatis dikirim khusus ke dashboard <strong>anggota yang rajin membayar kas</strong> (admin/pengurus bebas kas tidak menerima kupon reward).
                 </div>
               </div>
 
@@ -1976,7 +1976,7 @@ export default function AdminKasPage() {
                   <option value={12}>Lunas Penuh 12 Bulan (Super Rajin)</option>
                 </select>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  * Anggota yang jarang bayar kas (kurang dari syarat ini) <strong>tidak akan mendapatkan kupon</strong>.
+                  * Khusus Anggota biasa yang membayar kas. Pengurus/Admin tidak diikutsertakan. Anggota yang belum memenuhi syarat <strong>tidak akan mendapatkan kupon</strong>.
                 </div>
               </div>
 
