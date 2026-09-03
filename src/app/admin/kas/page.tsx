@@ -901,10 +901,10 @@ export default function AdminKasPage() {
                       <th className={styles.colStickyNoAnggota} style={{ background: "#1155cc", color: "#fff" }}>Nomor Anggota</th>
                       <th className={styles.colStickyNama} style={{ background: "#1155cc", color: "#fff" }}>Nama</th>
                       <th style={{ minWidth: 100, background: "#1155cc", color: "#fff" }}>Kas</th>
-                      <th style={{ width: 60, background: "#1155cc", color: "#fff" }}>Bulan Mulai</th>
+                      <th style={{ width: 75, background: "#1155cc", color: "#fff" }}>Bulan Mulai</th>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                         <th key={m} style={{ minWidth: 46, background: "#1155cc", color: "#fff" }}>
-                          <div>{m}</div>
+                          <div style={{ fontWeight: 800 }}>{MONTH_NAMES[m - 1]}</div>
                           <div style={{ fontSize: "0.65rem", fontWeight: 400, opacity: 0.9 }}>
                             {formatRupiah(matrixData.monthlyTotals?.[m] || 0).replace("Rp ", "")}
                           </div>
@@ -923,15 +923,19 @@ export default function AdminKasPage() {
                         </td>
                         <td className={styles.colStickyNama}>
                           <div style={{ fontWeight: 700, fontSize: "0.85rem" }}>{row.nama}</div>
-                          {row.isAdminRole && (
-                            <div style={{ fontSize: "0.68rem", color: "var(--primary)", fontWeight: 600 }}>{row.jabatan} (Bebas Kas)</div>
+                          {row.isAdminRole ? (
+                            <div style={{ fontSize: "0.68rem", color: "var(--primary)", fontWeight: 600 }}>{row.jabatan}</div>
+                          ) : (
+                            <div style={{ fontSize: "0.68rem", color: "var(--fg-muted)", fontWeight: 600 }}>Anggota</div>
                           )}
                         </td>
-                        <td style={{ fontWeight: 800, fontSize: "0.85rem", color: row.totalKas > 0 ? "#10b981" : "var(--fg-muted)" }}>
-                          {row.totalKas > 0 ? formatRupiah(row.totalKas) : "Rp -"}
+                        <td style={{ fontWeight: 800, fontSize: "0.85rem", color: row.isAdminRole ? "var(--fg-muted)" : row.totalKas > 0 ? "#10b981" : "var(--fg-muted)" }}>
+                          {row.isAdminRole ? "-" : row.totalKas > 0 ? formatRupiah(row.totalKas) : "Rp -"}
                         </td>
-                        <td style={{ color: "var(--fg-muted)", fontWeight: 700 }}>
-                          {row.bulanMulai}
+                        <td style={{ color: "var(--fg-muted)", fontWeight: 700, textAlign: "center", fontSize: "0.82rem" }}>
+                          {typeof row.bulanMulai === "number" && row.bulanMulai >= 1 && row.bulanMulai <= 12
+                            ? MONTH_NAMES[row.bulanMulai - 1]
+                            : row.bulanMulai}
                         </td>
 
                         {/* 12 Bulan Checkboxes */}
@@ -975,6 +979,10 @@ export default function AdminKasPage() {
                                   fontSize: "0.85rem",
                                 }}>
                                   <i className="bx bx-check" />
+                                </span>
+                              ) : row.isAdminRole ? (
+                                <span style={{ color: "var(--fg-muted)", fontSize: "0.9rem", fontWeight: 700 }} title={`${row.nama} (Pengurus Fanbase)`}>
+                                  -
                                 </span>
                               ) : isNotJoined ? (
                                 <span style={{ color: "var(--fg-muted)", fontSize: "0.9rem", fontWeight: 700 }} title="Belum Bergabung">

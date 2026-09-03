@@ -99,7 +99,7 @@ export const DEFAULT_MASTER_DATA: MasterData = {
     "Merchandise Fanbase",
     "Project Khusus",
   ],
-  nominalKas: [10000, 15000, 20000, 50000, 100000],
+  nominalKas: [15000, 30000, 45000, 60000, 75000, 90000, 105000, 120000, 135000, 150000, 165000, 180000],
   nominalDonasi: [10000, 25000, 50000, 100000, 250000, 500000],
   platforms: [
     "LINE",
