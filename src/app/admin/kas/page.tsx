@@ -74,6 +74,9 @@ export default function AdminKasPage() {
     tahunKas: new Date().getFullYear(),
     kadaluarsaPada: "",
   });
+  const [selectedKuponDetail, setSelectedKuponDetail] = useState<any | null>(null);
+  const [penerimaList, setPenerimaList] = useState<any[]>([]);
+  const [loadingPenerima, setLoadingPenerima] = useState(false);
 
   // ── STATE: Modal Input Kas Manual ──
   const [showInputModal, setShowInputModal] = useState(false);
@@ -464,18 +467,60 @@ export default function AdminKasPage() {
   };
 
   // ── Handler: Hapus Kupon ──
-  const handleDeleteKupon = async (id: number) => {
-    if (!confirm(`Hapus kupon ini dan batalkan distribusi reward ke seluruh anggota?`)) return;
+  const handleDeleteKupon = async (id: number, kode: string = "") => {
+    if (!confirm(`Hapus kupon "${kode}" ini dan batalkan distribusi reward ke seluruh anggota?`)) return;
     try {
       const res = await fetch(`/api/admin/kas/kupon?id=${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.status) {
         setMsg(json.message);
+        if (selectedKuponDetail?.id === id) {
+          setSelectedKuponDetail(null);
+        }
         fetchKupon(matrixYear);
       } else {
         alert(json.message || "Gagal menghapus kupon");
       }
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
+  };
+
+  // ── Handler: Lihat Detail Penerima Kupon ──
+  const handleViewPenerima = async (kupon: any) => {
+    setSelectedKuponDetail(kupon);
+    setLoadingPenerima(true);
+    try {
+      const res = await fetch(`/api/admin/kas/kupon?detailId=${kupon.id}`);
+      const json = await res.json();
+      if (json.status) {
+        setPenerimaList(json.data || []);
+      } else {
+        alert(json.message || "Gagal memuat penerima kupon");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Terjadi kesalahan");
+    } finally {
+      setLoadingPenerima(false);
+    }
+  };
+
+  // ── Handler: Hapus/Cabut Kupon dari 1 Anggota Saja ──
+  const handleDeletePenerima = async (kuponAnggotaId: number, nama: string) => {
+    if (!confirm(`Cabut / hapus kupon hadiah untuk anggota "${nama}"?`)) return;
+    try {
+      const res = await fetch(`/api/admin/kas/kupon?kuponAnggotaId=${kuponAnggotaId}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        if (selectedKuponDetail) {
+          handleViewPenerima(selectedKuponDetail);
+        }
+        fetchKupon(matrixYear);
+      } else {
+        alert(json.message || "Gagal mencabut kupon anggota");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Terjadi kesalahan");
+    }
   };
 
   const pendingKas = kasList.filter((k) => k.status === "pending");
@@ -1238,19 +1283,24 @@ export default function AdminKasPage() {
                     {kuponList.map((k: any) => (
                       <tr key={k.id}>
                         <td>
-                          <span style={{
-                            display: "inline-block",
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            background: "rgba(139, 92, 246, 0.15)",
-                            color: "#8b5cf6",
-                            fontWeight: 900,
-                            letterSpacing: "0.5px",
-                            fontSize: "0.88rem",
-                            border: "1px solid rgba(139, 92, 246, 0.3)",
-                          }}>
-                            {k.kode_kupon}
-                          </span>
+                          <div>
+                            <span style={{
+                              display: "inline-block",
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "rgba(139, 92, 246, 0.15)",
+                              color: "#8b5cf6",
+                              fontWeight: 900,
+                              letterSpacing: "0.5px",
+                              fontSize: "0.88rem",
+                              border: "1px solid rgba(139, 92, 246, 0.3)",
+                            }}>
+                              {k.kode_kupon}
+                            </span>
+                            <div style={{ fontSize: "0.68rem", color: "var(--fg-muted)", marginTop: 3 }}>
+                              *Kode personal unik beda tiap orang
+                            </div>
+                          </div>
                         </td>
                         <td className={styles.nameCol}>
                           <div style={{ fontWeight: 700 }}>{k.judul}</div>
@@ -1265,19 +1315,27 @@ export default function AdminKasPage() {
                           </span>
                         </td>
                         <td>
-                          <span style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            padding: "3px 8px",
-                            borderRadius: 4,
-                            background: "rgba(16, 185, 129, 0.1)",
-                            color: "#10b981",
-                            fontWeight: 800,
-                            fontSize: "0.8rem",
-                          }}>
-                            <i className="bx bx-user-check" /> {k.total_penerima || 0} Anggota
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleViewPenerima(k)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "5px 12px",
+                              borderRadius: 8,
+                              background: "rgba(16, 185, 129, 0.12)",
+                              border: "1px solid rgba(16, 185, 129, 0.3)",
+                              color: "#10b981",
+                              fontWeight: 800,
+                              fontSize: "0.82rem",
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                            }}
+                            title="Klik untuk melihat daftar anggota penerima & kode unik masing-masing"
+                          >
+                            <i className="bx bx-group" /> {k.total_penerima || 0} Anggota (Lihat)
+                          </button>
                         </td>
                         <td>
                           {k.kadaluarsa_pada
@@ -1285,14 +1343,25 @@ export default function AdminKasPage() {
                             : "Tanpa Batas"}
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteKupon(k.id)}
-                            className={styles.btnDelete}
-                            title="Hapus Kupon"
-                          >
-                            <i className="bx bx-trash" />
-                          </button>
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleViewPenerima(k)}
+                              className={styles.backBtn}
+                              style={{ fontSize: "0.75rem", padding: "4px 8px", color: "var(--gold)", borderColor: "var(--border-gold)" }}
+                              title="Lihat Daftar Penerima Kupon & Kode Masing-Masing"
+                            >
+                              <i className="bx bx-show" /> Detail
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteKupon(k.id, k.kode_kupon)}
+                              className={styles.btnDelete}
+                              title="Hapus Seluruh Kupon Ini Beserta Semua Penerimanya"
+                            >
+                              <i className="bx bx-trash" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1300,6 +1369,125 @@ export default function AdminKasPage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── MODAL DETAIL PENERIMA KUPON & CABUT KUPON PER ORANG ── */}
+        {selectedKuponDetail && (
+          <div className={styles.modalOverlay} onClick={() => setSelectedKuponDetail(null)}>
+            <div className={styles.modalCard} style={{ maxWidth: 780, width: "95%" }} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <div>
+                  <h3 className={styles.modalTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
+                    Daftar Penerima Kupon: <span style={{ color: "var(--gold)" }}>{selectedKuponDetail.kode_kupon}</span>
+                  </h3>
+                  <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    {selectedKuponDetail.judul} ({selectedKuponDetail.nilai_reward}) • Setiap anggota memiliki kode kupon unik yang digenerate otomatis.
+                  </div>
+                </div>
+                <button type="button" className={styles.modalClose} onClick={() => setSelectedKuponDetail(null)}>
+                  <i className="bx bx-x" />
+                </button>
+              </div>
+
+              <div style={{ padding: "16px 0" }}>
+                {loadingPenerima ? (
+                  <div className={styles.emptyBox}>
+                    <i className="bx bx-loader-alt bx-spin" />
+                    <p>Memuat daftar anggota penerima kupon...</p>
+                  </div>
+                ) : penerimaList.length === 0 ? (
+                  <div className={styles.emptyBox}>
+                    <i className="bx bx-user-x" />
+                    <p>Belum ada anggota yang menerima kupon ini.</p>
+                  </div>
+                ) : (
+                  <div className={styles.tableWrap} style={{ maxHeight: "55vh", overflow: "auto" }}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>No</th>
+                          <th>Nomor Anggota</th>
+                          <th>Nama Lengkap</th>
+                          <th>Kode Kupon Unik (Personal)</th>
+                          <th>Bulan Lunas</th>
+                          <th>Status</th>
+                          <th>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {penerimaList.map((p, idx) => (
+                          <tr key={p.kupon_anggota_id}>
+                            <td style={{ textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
+                            <td><span className={styles.noAnggota}>{p.no_anggota}</span></td>
+                            <td className={styles.nameCol}>
+                              <div style={{ fontWeight: 700 }}>{p.nama_lengkap}</div>
+                              <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{p.jabatan || "Anggota"}</div>
+                            </td>
+                            <td>
+                              <span style={{
+                                display: "inline-block",
+                                padding: "4px 8px",
+                                borderRadius: 6,
+                                background: "rgba(139, 92, 246, 0.15)",
+                                color: "#8b5cf6",
+                                fontWeight: 900,
+                                fontSize: "0.82rem",
+                                letterSpacing: "0.5px",
+                                border: "1px solid rgba(139, 92, 246, 0.3)",
+                              }}>
+                                {p.kode_kupon_unik}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: "center", fontWeight: 700, color: "#10b981" }}>
+                              {p.bulan_terbayar} Bulan
+                            </td>
+                            <td>
+                              <span style={{
+                                padding: "3px 8px",
+                                borderRadius: 4,
+                                fontSize: "0.75rem",
+                                fontWeight: 800,
+                                background: p.status_kupon === "digunakan" ? "rgba(100, 116, 139, 0.2)" : "rgba(16, 185, 129, 0.15)",
+                                color: p.status_kupon === "digunakan" ? "#64748b" : "#10b981",
+                              }}>
+                                {p.status_kupon === "digunakan" ? "Digunakan" : "Aktif"}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePenerima(p.kupon_anggota_id, p.nama_lengkap)}
+                                className={styles.btnDelete}
+                                title="Cabut / Hapus Kupon dari Anggota Ini"
+                                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", padding: "4px 8px" }}
+                              >
+                                <i className="bx bx-trash" /> Cabut
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.modalActions} style={{ justifyContent: "space-between", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteKupon(selectedKuponDetail.id, selectedKuponDetail.kode_kupon)}
+                  className={styles.btnDelete}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.82rem", padding: "8px 14px" }}
+                >
+                  <i className="bx bx-trash" /> Hapus Seluruh Kupon Ini
+                </button>
+                <button type="button" className={styles.backBtn} onClick={() => setSelectedKuponDetail(null)}>
+                  Tutup
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
