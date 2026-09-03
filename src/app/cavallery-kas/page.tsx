@@ -1586,6 +1586,8 @@ export default function CavalleryKasPage() {
               </div>
             )}
           </div>
+        )}
+
         {/* ── TAB KUPON REWARD KAS (FITUR BARU APRESIASI KAS) ── */}
         {portalTab === "kupon" && (
           <div className={`glassCard ${styles.dashCard}`}>

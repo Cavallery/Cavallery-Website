@@ -602,6 +602,18 @@ export default function AdminKasPage() {
               <i className={`bx ${exportingToSheets ? "bx-loader-alt bx-spin" : "bx-cloud-upload"}`} />
               {exportingToSheets ? "Menyinkronkan..." : "Kirim Semua Tab ke Spreadsheet"}
             </button>
+
+            {/* TOMBOL DOWNLOAD EXCEL */}
+            <a
+              href={`/api/admin/export-excel?type=${activeTab === "pengeluaran" ? "pengeluaran" : activeTab === "tagihan" ? "tagihan" : activeTab === "kupon" ? "kupon" : "matriks"}&tahun=${matrixYear}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.btnCreate}
+              style={{ background: "#059669", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+              title={`Unduh file Microsoft Excel (.xls) untuk data ${activeTab} tahun ${matrixYear}`}
+            >
+              <i className="bx bxs-file-export" /> Download Excel ({activeTab === "pengeluaran" ? "Pengeluaran" : activeTab === "tagihan" ? "Tagihan" : activeTab === "kupon" ? "Kupon" : `Matriks ${matrixYear}`})
+            </a>
           </div>
         </div>
 
@@ -1731,11 +1743,11 @@ export default function AdminKasPage() {
                     value={newKupon.tipeReward}
                     onChange={(e) => setNewKupon({ ...newKupon, tipeReward: e.target.value })}
                   >
-                    <option value="Diskon Merch">Diskon Merchandise</option>
-                    <option value="Potongan Kas">Potongan Iuran Kas</option>
-                    <option value="Photocard Khusus">Hadiah Photocard / Goodies</option>
-                    <option value="Undian Tiket Show">Undian Tiket Show</option>
-                    <option value="Lainnya">Lain-lain</option>
+                    {(masterData.tipeRewardKupon || [
+                      "Diskon Merchandise", "Potongan Iuran Kas", "Photocard / Goodies", "Undian Tiket Show", "Akses Event Eksklusif", "Lainnya"
+                    ]).map((tr: string) => (
+                      <option key={tr} value={tr}>{tr}</option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.modalField}>
