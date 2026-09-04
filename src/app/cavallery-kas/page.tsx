@@ -150,7 +150,7 @@ export default function CavalleryKasPage() {
   // Logged-in Dashboard State
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [portalTab, setPortalTab] = useState<
-    "bayar" | "riwayat" | "kupon" | "donasi"
+    "bayar" | "riwayat" | "kupon" | "donasi" | "war"
   >("bayar");
   const [periodeBulan, setPeriodeBulan] = useState<number>(
     new Date().getMonth() + 1,
@@ -172,12 +172,35 @@ export default function CavalleryKasPage() {
     msg: string;
   } | null>(null);
   const [submittingKas, setSubmittingKas] = useState(false);
+  const [showTabelKas12Bulan, setShowTabelKas12Bulan] = useState(false);
 
   // User Kupon Reward State
   const [userKupons, setUserKupons] = useState<any[]>([]);
   const [userLunasTahunIni, setUserLunasTahunIni] = useState(0);
   const [loadingUserKupons, setLoadingUserKupons] = useState(false);
   const [copiedKupon, setCopiedKupon] = useState<string | null>(null);
+
+  // War Tiket STS Erine State
+  const [warEvent, setWarEvent] = useState<any | null>(null);
+  const [userWarTicket, setUserWarTicket] = useState<any | null>(null);
+  const [loadingWar, setLoadingWar] = useState(false);
+  const [claimingWar, setClaimingWar] = useState(false);
+  const [warAlert, setWarAlert] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [warTimeLeft, setWarTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isStarted: boolean;
+    isEnded: boolean;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isStarted: false,
+    isEnded: false,
+  });
 
   // Avatar Upload State (User Dashboard)
   const avatarFileInputRef = useRef<HTMLInputElement>(null);
@@ -416,11 +439,126 @@ export default function CavalleryKasPage() {
     }
   }, []);
 
+  const fetchWarEvent = useCallback(async () => {
+    setLoadingWar(true);
+    try {
+      const res = await fetch("/api/war-tiket");
+      const json = await res.json();
+      if (json.status && json.data) {
+        setWarEvent(json.data.event);
+        setUserWarTicket(json.data.userTicket);
+      }
+    } catch {
+      console.error("Failed to load war event");
+    } finally {
+      setLoadingWar(false);
+    }
+  }, []);
+
+  // Timer countdown war tiket sinkron waktu server (hanya aktif saat tab war dibuka & belum punya tiket)
+  useEffect(() => {
+    if (!warEvent || portalTab !== "war" || userWarTicket) return;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const openTime = new Date(warEvent.waktu_buka).getTime();
+      const closeTime = new Date(warEvent.waktu_tutup).getTime();
+
+      if (now < openTime) {
+        // Belum mulai (Hitung mundur menuju buka)
+        const diff = Math.max(0, openTime - now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        setWarTimeLeft((prev) => {
+          if (
+            prev.seconds === seconds &&
+            prev.minutes === minutes &&
+            prev.hours === hours &&
+            prev.days === days &&
+            !prev.isStarted &&
+            !prev.isEnded
+          ) {
+            return prev;
+          }
+          return { days, hours, minutes, seconds, isStarted: false, isEnded: false };
+        });
+      } else if (now <= closeTime) {
+        // Sedang berlangsung!
+        const diff = Math.max(0, closeTime - now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / 1000 / 60) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+        setWarTimeLeft((prev) => {
+          if (
+            prev.seconds === seconds &&
+            prev.minutes === minutes &&
+            prev.hours === hours &&
+            prev.days === days &&
+            prev.isStarted &&
+            !prev.isEnded
+          ) {
+            return prev;
+          }
+          return { days, hours, minutes, seconds, isStarted: true, isEnded: false };
+        });
+      } else {
+        // Selesai
+        setWarTimeLeft((prev) => {
+          if (prev.isStarted && prev.isEnded) return prev;
+          return { days: 0, hours: 0, minutes: 0, seconds: 0, isStarted: true, isEnded: true };
+        });
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [warEvent, portalTab, userWarTicket]);
+
+  const handleClaimWarTicket = async () => {
+    if (!warEvent || claimingWar) return;
+    setClaimingWar(true);
+    setWarAlert(null);
+
+    try {
+      const res = await fetch("/api/war-tiket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId: warEvent.id }),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.status) {
+        setWarAlert({ type: "error", msg: json.message || "Gagal mengklaim tiket war." });
+        if (json.ticket) {
+          setUserWarTicket(json.ticket);
+        }
+      } else {
+        setWarAlert({ type: "success", msg: json.message || "Selamat! Kamu berhasil mendapatkan tiket!" });
+        setUserWarTicket(json.data);
+      }
+      fetchWarEvent();
+    } catch (err: any) {
+      setWarAlert({ type: "error", msg: err?.message || "Terjadi kesalahan saat memproses klaim tiket." });
+    } finally {
+      setClaimingWar(false);
+    }
+  };
+
   useEffect(() => {
     if (sessionUser && (portalTab === "kupon" || portalTab === "bayar")) {
       fetchUserKupons();
     }
   }, [portalTab, sessionUser, fetchUserKupons]);
+
+  useEffect(() => {
+    if (sessionUser && portalTab === "war") {
+      fetchWarEvent();
+    }
+  }, [portalTab, sessionUser, fetchWarEvent]);
 
   useEffect(() => {
     if (sessionUser && portalTab === "riwayat") {
@@ -1400,6 +1538,14 @@ export default function CavalleryKasPage() {
             >
               <i className="bx bx-donate-heart" />
               <span>Donasi</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.navPillBtn} ${portalTab === "war" ? styles.navPillBtnActive : ""}`}
+              onClick={() => setPortalTab("war")}
+            >
+              <i className="bx bx-flame" />
+              <span>War Tiket</span>
             </button>
           </div>
 
@@ -3066,6 +3212,314 @@ export default function CavalleryKasPage() {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════ */}
+        {/* ── TAB 4: WAR TIKET PROJECT STS ERINE (TEAM PASSION FIRE) ── */}
+        {/* ══════════════════════════════════════════════════════════════════ */}
+        {portalTab === "war" && (
+          <div className={styles.warCard}>
+            {/* Header Event */}
+            <div className={styles.warCardHeader}>
+              <div className={styles.warTitleWrap}>
+                <h2 className={styles.warMainTitle}>
+                  <i className="bx bx-flame" style={{ color: "#ef4444" }} />
+                  {warEvent?.judul || "War Tiket Project STS Erine 19th"}
+                </h2>
+                <p className={styles.warSubtitle}>
+                  {warEvent?.deskripsi ||
+                    "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion."}
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <div>
+                {loadingWar ? (
+                  <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
+                    <i className="bx bx-loader-alt bx-spin" /> Memuat...
+                  </span>
+                ) : userWarTicket ? (
+                  <span
+                    className={styles.warStatusBadge}
+                    style={{
+                      background: "rgba(16, 185, 129, 0.15)",
+                      border: "1px solid #10b981",
+                      color: "#10b981",
+                    }}
+                  >
+                    <i className="bx bx-check-circle" /> TIKET KAMU TERKONFIRMASI
+                  </span>
+                ) : !warTimeLeft.isStarted ? (
+                  <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
+                    <i className="bx bx-time-five" /> WAR BELUM DIBUKA
+                  </span>
+                ) : warEvent && warEvent.kuota_terisi >= warEvent.kuota_total ? (
+                  <span
+                    className={styles.warStatusBadge}
+                    style={{
+                      background: "rgba(239, 68, 68, 0.15)",
+                      border: "1px solid #ef4444",
+                      color: "#ef4444",
+                    }}
+                  >
+                    <i className="bx bx-x-circle" /> KUOTA HABIS
+                  </span>
+                ) : warTimeLeft.isEnded || warEvent?.status === "tutup" ? (
+                  <span className={`${styles.warStatusBadge} ${styles.warStatusClosed}`}>
+                    <i className="bx bx-lock-alt" /> WAR TELAH DITUTUP
+                  </span>
+                ) : (
+                  <span className={`${styles.warStatusBadge} ${styles.warStatusOpen}`}>
+                    <i className="bx bx-broadcast" /> WAR SEDANG BERLANGSUNG
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Alert Message */}
+            {warAlert && (
+              <div
+                style={{
+                  padding: "12px 18px",
+                  borderRadius: 14,
+                  background:
+                    warAlert.type === "success"
+                      ? "rgba(16, 185, 129, 0.15)"
+                      : "rgba(239, 68, 68, 0.15)",
+                  border: `1px solid ${warAlert.type === "success" ? "#10b981" : "#ef4444"}`,
+                  color: warAlert.type === "success" ? "#10b981" : "#ef4444",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <i
+                  className={`bx ${warAlert.type === "success" ? "bx-check-circle" : "bx-error-circle"}`}
+                  style={{ fontSize: "1.2rem" }}
+                />
+                <span>{warAlert.msg}</span>
+              </div>
+            )}
+
+            {/* ── JIKA USER SUDAH PUNYA TIKET: TAMPILKAN E-TICKET PASS MEWAH ── */}
+            {userWarTicket ? (
+              <div className={styles.warTicketPass}>
+                <div style={{ fontSize: "0.85rem", color: "var(--gold)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  ★ OFFICIAL E-TICKET PASS STS ERINE ★
+                </div>
+
+                <div className={styles.ticketNumberBadge}>
+                  #{userWarTicket.nomor_tiket}
+                </div>
+
+                <h3 className={styles.ticketOwnerName}>
+                  {userWarTicket.nama_lengkap || displayName}
+                </h3>
+                <div style={{ fontSize: "0.85rem", color: "var(--fg-muted)", marginTop: -8 }}>
+                  No. Anggota: <strong>{userWarTicket.no_anggota || sessionUser.noAnggota}</strong>
+                </div>
+
+                {/* Simulated Visual QR Barcode */}
+                <div className={styles.ticketQrBox}>
+                  <div style={{ textAlign: "center" }}>
+                    <i className="bx bx-qr-scan" style={{ fontSize: "3.5rem", color: "#1c1813" }} />
+                    <div style={{ fontSize: "0.62rem", color: "#64748b", fontWeight: 700, marginTop: 4 }}>
+                      {userWarTicket.nomor_tiket}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: "0.78rem", color: "var(--fg-muted)", maxWidth: 380, lineHeight: 1.5 }}>
+                  Waktu Klaim Terverifikasi:{" "}
+                  <strong>
+                    {new Date(userWarTicket.waktu_klaim).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    pukul{" "}
+                    {new Date(userWarTicket.waktu_klaim).toLocaleTimeString("id-ID", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    })}
+                  </strong>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className={styles.submitBtn}
+                    style={{
+                      maxWidth: 220,
+                      background: "linear-gradient(135deg, var(--gold), #b45309)",
+                      color: "#fff",
+                    }}
+                  >
+                    <i className="bx bx-printer" /> Cetak / Simpan E-Ticket
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* ── JIKA BELUM PUNYA TIKET: COUNTDOWN + KUOTA + TOMBOL WAR ── */}
+                {/* Countdown Timer */}
+                {!warTimeLeft.isStarted && (
+                  <div className={styles.warCountdownWrap}>
+                    <div className={styles.countdownHeading}>
+                      <i className="bx bx-alarm" /> Hitung Mundur War Tiket
+                    </div>
+                    <div className={styles.countdownBoxes}>
+                      <div className={styles.countdownBox}>
+                        <span className={styles.countdownNum}>
+                          {String(warTimeLeft.days).padStart(2, "0")}
+                        </span>
+                        <span className={styles.countdownLabel}>Hari</span>
+                      </div>
+                      <div className={styles.countdownBox}>
+                        <span className={styles.countdownNum}>
+                          {String(warTimeLeft.hours).padStart(2, "0")}
+                        </span>
+                        <span className={styles.countdownLabel}>Jam</span>
+                      </div>
+                      <div className={styles.countdownBox}>
+                        <span className={styles.countdownNum}>
+                          {String(warTimeLeft.minutes).padStart(2, "0")}
+                        </span>
+                        <span className={styles.countdownLabel}>Menit</span>
+                      </div>
+                      <div className={styles.countdownBox}>
+                        <span className={styles.countdownNum}>
+                          {String(warTimeLeft.seconds).padStart(2, "0")}
+                        </span>
+                        <span className={styles.countdownLabel}>Detik</span>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: "0.78rem", color: "var(--fg-muted)", margin: 0 }}>
+                      Tombol War akan otomatis aktif serentak saat hitung mundur mencapai 00:00:00.
+                    </p>
+                  </div>
+                )}
+
+                {/* Progress Kuota Tiket */}
+                {warEvent && (
+                  <div className={styles.warQuotaWrap}>
+                    <div className={styles.quotaTextRow}>
+                      <span style={{ color: "var(--fg-muted)" }}>
+                        <i className="bx bx-group" style={{ marginRight: 4 }} />
+                        Kuota Terisi: <strong>{warEvent.kuota_terisi} / {warEvent.kuota_total} Tiket</strong>
+                      </span>
+                      <span style={{ color: warEvent.sisa_kuota <= 5 ? "#ef4444" : "#10b981" }}>
+                        <i className="bx bx-check-shield" style={{ marginRight: 4 }} />
+                        Sisa Slot: <strong>{warEvent.sisa_kuota} Tiket</strong>
+                      </span>
+                    </div>
+                    <div className={styles.quotaBarBg}>
+                      <div
+                        className={styles.quotaBarFill}
+                        style={{
+                          width: `${Math.min(100, Math.round((warEvent.kuota_terisi / warEvent.kuota_total) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Tombol Utama WAR TIKET */}
+                <div style={{ marginTop: 8 }}>
+                  {!warTimeLeft.isStarted ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={styles.warFlameBtn}
+                      style={{ opacity: 0.6, cursor: "not-allowed", filter: "grayscale(40%)" }}
+                    >
+                      <i className="bx bx-time" /> War Belum Dibuka
+                    </button>
+                  ) : warEvent && warEvent.kuota_terisi >= warEvent.kuota_total ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={styles.warFlameBtn}
+                      style={{
+                        background: "#4b5563",
+                        boxShadow: "none",
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      <i className="bx bx-x-circle" /> Mohon Maaf, Kuota Tiket Sudah Habis
+                    </button>
+                  ) : warTimeLeft.isEnded || warEvent?.status === "tutup" ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={styles.warFlameBtn}
+                      style={{
+                        background: "#4b5563",
+                        boxShadow: "none",
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      <i className="bx bx-lock-alt" /> Periode War Tiket Telah Berakhir
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleClaimWarTicket}
+                      disabled={claimingWar}
+                      className={styles.warFlameBtn}
+                    >
+                      {claimingWar ? (
+                        <>
+                          <i className="bx bx-loader-alt bx-spin" /> Memproses Antrean Tiket...
+                        </>
+                      ) : (
+                        <>
+                          <i className="bx bx-flame" /> WAR TIKET SEKARANG!
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Syarat & Ketentuan Card */}
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.02)",
+                border: "1px solid var(--border)",
+                borderRadius: 16,
+                padding: "16px 20px",
+                fontSize: "0.82rem",
+                color: "var(--fg-muted)",
+                lineHeight: 1.6,
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  color: "var(--fg)",
+                  marginBottom: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <i className="bx bx-info-circle" style={{ color: "var(--gold)" }} />
+                Syarat &amp; Ketentuan War Tiket:
+              </div>
+              <ul style={{ paddingLeft: 18, margin: 0 }}>
+                <li>Setiap 1 akun anggota Cavallery hanya berhak mendapatkan maksimal 1 tiket.</li>
+                <li>Sistem mengalokasikan nomor tiket secara urut dan instan berdasarkan kecepatan klik server.</li>
+                <li>E-Ticket yang diperoleh wajib ditunjukkan kepada panitia Cavallery saat verifikasi di venue.</li>
+                <li>Tiket tidak dapat diperjualbelikan atau dipindahtangankan tanpa persetujuan admin.</li>
+              </ul>
             </div>
           </div>
         )}

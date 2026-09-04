@@ -136,6 +136,12 @@ export function getUserSessionFromReq(req: NextRequest): UserSessionPayload | nu
   return verifyToken<UserSessionPayload>(token);
 }
 
+export function getMemberSessionFromReq(req: NextRequest): UserSessionPayload | null {
+  const session = getUserSessionFromReq(req);
+  if (!session) return null;
+  return session;
+}
+
 export function getAdminSessionFromReq(req: NextRequest): AdminSessionPayload | null {
   // 1. Cek cava_session (login standar dashboard /admin)
   const cavaToken = req.cookies.get(CAVA_SESSION_COOKIE)?.value;

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import SplashScreen from "@/components/SplashScreen";
 import Chatbot from "@/components/Chatbot/Chatbot";
 import ScrollRevealProvider from "@/components/ScrollRevealProvider";
+import PassionFireBackground from "@/components/PassionFireBackground";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <div className="knight-watermark" />
         <div className="board-watermark" />
+        <PassionFireBackground />
         <SplashScreen />
         <ScrollRevealProvider />
         <Navbar />

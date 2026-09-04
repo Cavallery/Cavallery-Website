@@ -29,7 +29,7 @@ export default function AdminKasPage() {
   const [editKas, setEditKas] = useState<any | null>(null);
 
   // ── STATE: Tab Utama ──
-  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "kupon" | "konfirmasi">("matriks");
+  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "kupon" | "konfirmasi" | "war">("matriks");
   const [matrixYear, setMatrixYear] = useState(new Date().getFullYear());
   const [matrixData, setMatrixData] = useState<any | null>(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
@@ -86,6 +86,121 @@ export default function AdminKasPage() {
   const [manualBulan, setManualBulan] = useState(new Date().getMonth() + 1);
   const [manualNominal, setManualNominal] = useState("15.000");
   const [submittingManual, setSubmittingManual] = useState(false);
+  // ── STATE: War Tiket STS Erine ──
+  const [adminWarEvent, setAdminWarEvent] = useState<any | null>(null);
+  const [adminWarPeserta, setAdminWarPeserta] = useState<any[]>([]);
+  const [loadingAdminWar, setLoadingAdminWar] = useState(false);
+  const [showWarModal, setShowWarModal] = useState(false);
+  const [savingWarEvent, setSavingWarEvent] = useState(false);
+  const [warForm, setWarForm] = useState({
+    id: 0,
+    judul: "War Tiket Project STS Erine 19th",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    kuotaTotal: 50,
+    waktuBuka: "",
+    waktuTutup: "",
+    status: "buka",
+    syaratKetentuan: "1. Wajib memiliki akun anggota Cavallery aktif.\n2. 1 Akun anggota hanya dapat mengklaim maksimal 1 tiket.\n3. Tiket tidak dapat dipindahtangankan tanpa konfirmasi admin.",
+  });
+
+  const fetchAdminWarData = async () => {
+    setLoadingAdminWar(true);
+    try {
+      const res = await fetch("/api/admin/war-tiket");
+      const json = await res.json();
+      if (json.status && json.data) {
+        setAdminWarEvent(json.data.event);
+        setAdminWarPeserta(json.data.peserta || []);
+        if (json.data.event) {
+          const ev = json.data.event;
+          const toLocalInput = (dStr: string) => {
+            if (!dStr) return "";
+            const d = new Date(dStr);
+            const pad = (n: number) => String(n).padStart(2, "0");
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          };
+          setWarForm({
+            id: ev.id,
+            judul: ev.judul || "",
+            deskripsi: ev.deskripsi || "",
+            kuotaTotal: Number(ev.kuota_total) || 50,
+            waktuBuka: toLocalInput(ev.waktu_buka),
+            waktuTutup: toLocalInput(ev.waktu_tutup),
+            status: ev.status || "buka",
+            syaratKetentuan: ev.syarat_ketentuan || "",
+          });
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingAdminWar(false);
+    }
+  };
+
+  const handleSaveWarEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingWarEvent(true);
+    try {
+      const res = await fetch("/api/admin/war-tiket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(warForm),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg("Pengaturan War Tiket STS Erine berhasil disimpan!");
+        setShowWarModal(false);
+        fetchAdminWarData();
+        setTimeout(() => setMsg(""), 4000);
+      } else {
+        alert(json.message || "Gagal menyimpan pengaturan");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSavingWarEvent(false);
+    }
+  };
+
+  const handleDeleteWarPeserta = async (pesertaId: number, nama: string) => {
+    if (!confirm(`Yakin ingin membatalkan/mencabut tiket milik "${nama}"? Kuota tiket akan otomatis bertambah 1.`)) return;
+    try {
+      const res = await fetch(`/api/admin/war-tiket?pesertaId=${pesertaId}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(`Tiket milik "${nama}" berhasil dicabut.`);
+        fetchAdminWarData();
+        setTimeout(() => setMsg(""), 4000);
+      } else {
+        alert(json.message || "Gagal mencabut tiket");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    }
+  };
+
+  const handleToggleWarStatus = async (newStatus: "buka" | "tutup") => {
+    if (!adminWarEvent) return;
+    try {
+      const res = await fetch("/api/admin/war-tiket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...warForm,
+          status: newStatus,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(`Status war tiket berhasil diubah menjadi "${newStatus.toUpperCase()}"!`);
+        fetchAdminWarData();
+        setTimeout(() => setMsg(""), 4000);
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    }
+  };
 
   // ── Fetch Konfirmasi Kas ──
   const fetchKas = async () => {
@@ -193,6 +308,14 @@ export default function AdminKasPage() {
     fetchKupon(matrixYear);
     fetchAnggota();
     fetchMasterData();
+
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      const tab = p.get("tab");
+      if (tab && ["matriks", "tagihan", "pengeluaran", "kupon", "konfirmasi", "war"].includes(tab)) {
+        setActiveTab(tab as any);
+      }
+    }
   }, [fetchMatrix, fetchTagihan, fetchPengeluaran, fetchKupon, matrixYear]);
 
   // ── Handlers: Konfirmasi ──
@@ -523,6 +646,12 @@ export default function AdminKasPage() {
     }
   };
 
+  useEffect(() => {
+    if (activeTab === "war") {
+      fetchAdminWarData();
+    }
+  }, [activeTab]);
+
   const pendingKas = kasList.filter((k) => k.status === "pending");
   const processedKas = kasList.filter((k) => k.status !== "pending");
   const grandTotalPemasukan = matrixData?.grandTotalPemasukan || 0;
@@ -739,6 +868,7 @@ export default function AdminKasPage() {
             { key: "pengeluaran", label: `Laporan Pengeluaran (${pengeluaranList.length})`, icon: "bx-receipt" },
             { key: "kupon", label: `Kupon Reward Kas (${kuponList.length})`, icon: "bx-gift" },
             { key: "konfirmasi", label: `Antrean Verifikasi (${pendingKas.length})`, icon: "bx-check-shield" },
+            { key: "war", label: `🔥 War Tiket STS (${adminWarPeserta.length})`, icon: "bx-flame" },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -1642,7 +1772,246 @@ export default function AdminKasPage() {
             </div>
           </>
         )}
-      </div>
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB 6: WAR TIKET PROJECT STS ERINE (ADMIN)  */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "war" && (
+          <div className={styles.sectionCard} style={{ padding: 20 }}>
+            <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-flame" style={{ color: "#ef4444" }} />
+                  Manajemen War Tiket Project STS Erine
+                  <span className={styles.countBadge} style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444" }}>
+                    {adminWarPeserta.length} / {adminWarEvent?.kuota_total || 50} Terisi
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  Kontrol kuota, jadwal buka/tutup war tiket, dan pantau daftar pemenang tiket secara live dengan presisi milidetik.
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowWarModal(true)}
+                  className={styles.btnCreate}
+                  style={{ background: "#ef4444", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <i className="bx bx-slider-alt" /> Atur Event &amp; Kuota War
+                </button>
+
+                {adminWarEvent?.status === "buka" ? (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleWarStatus("tutup")}
+                    className={styles.btnCreate}
+                    style={{ background: "#4b5563", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                    title="Tutup War Tiket sekarang secara manual"
+                  >
+                    <i className="bx bx-lock-alt" /> Tutup War Manual
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleToggleWarStatus("buka")}
+                    className={styles.btnCreate}
+                    style={{ background: "#10b981", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                    title="Buka War Tiket sekarang secara manual"
+                  >
+                    <i className="bx bx-lock-open-alt" /> Buka War Manual
+                  </button>
+                )}
+
+                {/* Export Excel / CSV Peserta War */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (adminWarPeserta.length === 0) {
+                      alert("Belum ada data peserta untuk diunduh");
+                      return;
+                    }
+                    const headers = ["No", "Nomor Tiket", "No Anggota", "Nama Lengkap", "Waktu Klaim"];
+                    const csvRows = [headers.join(",")];
+                    adminWarPeserta.forEach((p, idx) => {
+                      csvRows.push([
+                        idx + 1,
+                        `"${p.nomor_tiket}"`,
+                        `"${p.no_anggota}"`,
+                        `"${(p.nama_lengkap || "").replace(/"/g, '""')}"`,
+                        `"${p.waktu_klaim}"`
+                      ].join(","));
+                    });
+                    const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `Peserta_War_Tiket_STS_Erine_${new Date().toISOString().split("T")[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className={styles.btnCreate}
+                  style={{ background: "#059669", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <i className="bx bxs-file-export" /> Download Excel/CSV ({adminWarPeserta.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Event Info Card */}
+            {adminWarEvent && (
+              <div
+                style={{
+                  marginTop: 16,
+                  marginBottom: 20,
+                  padding: "16px 20px",
+                  borderRadius: 16,
+                  background: "rgba(239, 68, 68, 0.05)",
+                  border: "1.5px solid rgba(239, 68, 68, 0.25)",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--fg-muted)", textTransform: "uppercase" }}>
+                    Judul Event
+                  </div>
+                  <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--fg)", marginTop: 2 }}>
+                    {adminWarEvent.judul}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--fg-muted)", textTransform: "uppercase" }}>
+                    Status Sistem War
+                  </div>
+                  <div style={{ marginTop: 2 }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "3px 10px",
+                        borderRadius: 50,
+                        fontSize: "0.78rem",
+                        fontWeight: 800,
+                        background:
+                          adminWarEvent.status === "buka" ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                        color: adminWarEvent.status === "buka" ? "#10b981" : "#ef4444",
+                        border: `1px solid ${adminWarEvent.status === "buka" ? "#10b981" : "#ef4444"}`,
+                      }}
+                    >
+                      <i className={`bx ${adminWarEvent.status === "buka" ? "bx-broadcast" : "bx-lock-alt"}`} />
+                      {adminWarEvent.status === "buka" ? "TERBUKA" : "DITUTUP"}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--fg-muted)", textTransform: "uppercase" }}>
+                    Alokasi Kuota
+                  </div>
+                  <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--fg)", marginTop: 2 }}>
+                    {adminWarEvent.kuota_terisi} / {adminWarEvent.kuota_total} Tiket{" "}
+                    <span style={{ fontSize: "0.8rem", color: "#10b981" }}>
+                      ({Math.max(0, adminWarEvent.kuota_total - adminWarEvent.kuota_terisi)} Sisa)
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--fg-muted)", textTransform: "uppercase" }}>
+                    Jadwal Buka &amp; Tutup
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "var(--fg)", marginTop: 2, lineHeight: 1.4 }}>
+                    Buka: {new Date(adminWarEvent.waktu_buka).toLocaleString("id-ID")}<br />
+                    Tutup: {new Date(adminWarEvent.waktu_tutup).toLocaleString("id-ID")}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tabel Pemenang War Tiket */}
+            {loadingAdminWar ? (
+              <div className={styles.emptyBox}><i className="bx bx-loader-alt bx-spin" /><p>Memuat peserta war tiket...</p></div>
+            ) : adminWarPeserta.length === 0 ? (
+              <div className={styles.emptyBox}>
+                <i className="bx bx-flame" style={{ color: "#ef4444" }} />
+                <p>Belum ada anggota yang melakukan klaim tiket war.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>No. Tiket</th>
+                      <th>No. Anggota</th>
+                      <th>Nama Lengkap</th>
+                      <th>Jabatan / Divisi</th>
+                      <th>Kontak (LINE / ID)</th>
+                      <th>Waktu Klaim (Presisi Server)</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminWarPeserta.map((p, idx) => (
+                      <tr key={p.id}>
+                        <td style={{ fontWeight: 700 }}>#{idx + 1}</td>
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "rgba(239, 68, 68, 0.12)",
+                              color: "#ef4444",
+                              fontWeight: 900,
+                              fontSize: "0.88rem",
+                              border: "1px solid rgba(239, 68, 68, 0.3)",
+                            }}
+                          >
+                            #{p.nomor_tiket}
+                          </span>
+                        </td>
+                        <td><span className={styles.noAnggota}>{p.no_anggota}</span></td>
+                        <td className={styles.nameCol}>{p.nama_lengkap}</td>
+                        <td style={{ fontSize: "0.82rem" }}>
+                          {p.jabatan || "Anggota"} {p.divisi ? `• ${p.divisi}` : ""}
+                        </td>
+                        <td style={{ fontSize: "0.82rem" }}>
+                          {p.id_line ? `@${p.id_line}` : p.kontak_id || "-"}
+                        </td>
+                        <td style={{ fontSize: "0.8rem", fontFamily: "monospace", color: "var(--fg-muted)" }}>
+                          {new Date(p.waktu_klaim).toLocaleString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.btnDelete}
+                            onClick={() => handleDeleteWarPeserta(p.id, p.nama_lengkap)}
+                            title="Batalkan &amp; Cabut Tiket (Kuota Otomatis Bertambah 1)"
+                          >
+                            <i className="bx bx-trash" /> Cabut
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
       {/* ── MODAL INPUT KAS ANGGOTA MANUAL ── */}
       {showInputModal && (
@@ -2069,6 +2438,125 @@ export default function AdminKasPage() {
           </div>
         </div>
       )}
+
+      {/* ── MODAL SETTING EVENT WAR TIKET STS ERINE ── */}
+      {showWarModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowWarModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle} style={{ color: "#ef4444" }}>
+                <i className="bx bx-flame" /> Atur Event &amp; Kuota War Tiket
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowWarModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveWarEvent} className={styles.modalForm}>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Nama Event War Tiket</label>
+                <input
+                  type="text"
+                  required
+                  className={styles.modalInput}
+                  value={warForm.judul}
+                  onChange={(e) => setWarForm({ ...warForm, judul: e.target.value })}
+                  placeholder="Contoh: War Tiket Project STS Erine 19th"
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Deskripsi Singkat</label>
+                <textarea
+                  className={styles.modalTextarea}
+                  rows={2}
+                  value={warForm.deskripsi}
+                  onChange={(e) => setWarForm({ ...warForm, deskripsi: e.target.value })}
+                  placeholder="Penjelasan singkat event war tiket..."
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Total Kuota Tiket</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    required
+                    className={styles.modalInput}
+                    value={warForm.kuotaTotal}
+                    onChange={(e) => setWarForm({ ...warForm, kuotaTotal: Number(e.target.value) })}
+                  />
+                </div>
+
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Status Sistem</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={warForm.status}
+                    onChange={(e) => setWarForm({ ...warForm, status: e.target.value as any })}
+                  >
+                    <option value="buka">Buka (Aktif Sesuai Jadwal)</option>
+                    <option value="tutup">Tutup (Nonaktifkan War)</option>
+                    <option value="draft">Draft (Disembunyikan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Jadwal Buka War (Server)</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    className={styles.modalInput}
+                    value={warForm.waktuBuka}
+                    onChange={(e) => setWarForm({ ...warForm, waktuBuka: e.target.value })}
+                  />
+                </div>
+
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Jadwal Tutup War (Server)</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    className={styles.modalInput}
+                    value={warForm.waktuTutup}
+                    onChange={(e) => setWarForm({ ...warForm, waktuTutup: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Syarat &amp; Ketentuan</label>
+                <textarea
+                  className={styles.modalTextarea}
+                  rows={3}
+                  value={warForm.syaratKetentuan}
+                  onChange={(e) => setWarForm({ ...warForm, syaratKetentuan: e.target.value })}
+                  placeholder="Aturan untuk anggota yang ikut war tiket..."
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.btnSecondary} onClick={() => setShowWarModal(false)}>
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingWarEvent}
+                  className={styles.btnCreate}
+                  style={{ background: "#ef4444", color: "#fff" }}
+                >
+                  {savingWarEvent ? "Menyimpan..." : "Simpan Pengaturan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 }
