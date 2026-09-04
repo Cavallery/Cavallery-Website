@@ -1,62 +1,124 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./PassionFireBackground.module.css";
 
-// 24 pre-defined organic embers with varied positions, sizes, and delays
-const SEED_EMBERS = [
-  { id: 1, left: 5, size: 3, dur: 7.2, delay: 0.2, color: "gold", d1: 15, d2: -10, d3: 20, d4: -5 },
-  { id: 2, left: 12, size: 4, dur: 6.5, delay: 1.8, color: "fire", d1: -12, d2: 18, d3: -10, d4: 15 },
-  { id: 3, left: 18, size: 2.5, dur: 8.4, delay: 3.2, color: "amber", d1: 20, d2: -15, d3: 12, d4: -18 },
-  { id: 4, left: 24, size: 5, dur: 5.8, delay: 0.8, color: "fire", d1: -18, d2: 12, d3: -22, d4: 8 },
-  { id: 5, left: 29, size: 3.5, dur: 7.8, delay: 2.4, color: "gold", d1: 10, d2: -12, d3: 15, d4: -8 },
-  { id: 6, left: 35, size: 2, dur: 9.1, delay: 4.1, color: "amber", d1: -15, d2: 10, d3: -18, d4: 12 },
-  { id: 7, left: 42, size: 4.5, dur: 6.2, delay: 1.1, color: "fire", d1: 18, d2: -20, d3: 10, d4: -15 },
-  { id: 8, left: 48, size: 3, dur: 8.0, delay: 2.9, color: "gold", d1: -10, d2: 15, d3: -12, d4: 20 },
-  { id: 9, left: 54, size: 2.5, dur: 7.5, delay: 0.5, color: "amber", d1: 12, d2: -10, d3: 22, d4: -12 },
-  { id: 10, left: 61, size: 4, dur: 6.9, delay: 3.7, color: "fire", d1: -22, d2: 14, d3: -15, d4: 10 },
-  { id: 11, left: 67, size: 3.2, dur: 8.6, delay: 1.5, color: "gold", d1: 16, d2: -18, d3: 14, d4: -20 },
-  { id: 12, left: 73, size: 5, dur: 5.9, delay: 2.1, color: "fire", d1: -14, d2: 20, d3: -10, d4: 16 },
-  { id: 13, left: 79, size: 2.8, dur: 9.5, delay: 0.9, color: "amber", d1: 10, d2: -15, d3: 18, d4: -10 },
-  { id: 14, left: 86, size: 3.8, dur: 7.0, delay: 3.4, color: "gold", d1: -16, d2: 12, d3: -20, d4: 14 },
-  { id: 15, left: 92, size: 4.2, dur: 6.7, delay: 1.9, color: "fire", d1: 14, d2: -12, d3: 16, d4: -8 },
-  { id: 16, left: 8, size: 3.2, dur: 8.2, delay: 4.5, color: "amber", d1: -12, d2: 16, d3: -14, d4: 18 },
-  { id: 17, left: 22, size: 4.8, dur: 6.0, delay: 3.9, color: "fire", d1: 15, d2: -18, d3: 12, d4: -15 },
-  { id: 18, left: 38, size: 2.5, dur: 9.0, delay: 2.2, color: "gold", d1: -10, d2: 14, d3: -16, d4: 12 },
-  { id: 19, left: 51, size: 3.6, dur: 7.4, delay: 4.8, color: "amber", d1: 18, d2: -14, d3: 20, d4: -16 },
-  { id: 20, left: 64, size: 4.5, dur: 6.4, delay: 2.7, color: "fire", d1: -20, d2: 15, d3: -12, d4: 14 },
-  { id: 21, left: 77, size: 2.2, dur: 8.8, delay: 5.1, color: "gold", d1: 14, d2: -16, d3: 18, d4: -12 },
-  { id: 22, left: 89, size: 3.4, dur: 7.1, delay: 4.2, color: "fire", d1: -15, d2: 12, d3: -18, d4: 10 },
-  { id: 23, left: 15, size: 2.8, dur: 8.5, delay: 5.6, color: "gold", d1: 12, d2: -14, d3: 15, d4: -8 },
-  { id: 24, left: 82, size: 4.0, dur: 6.8, delay: 5.3, color: "amber", d1: -18, d2: 15, d3: -12, d4: 16 },
+// 16 curated lightweight embers for smooth performance without laptop heating
+const LIGHT_EMBERS = [
+  { id: 1, left: 6, size: 3.5, dur: 7.2, delay: 0.2, dx1: 18, dx2: -12, color: "#ff4500" },
+  { id: 2, left: 14, size: 4.5, dur: 6.0, delay: 1.8, dx1: -14, dx2: 16, color: "#ff8c00" },
+  { id: 3, left: 21, size: 3.0, dur: 8.4, delay: 3.2, dx1: 15, dx2: -10, color: "#f59e0b" },
+  { id: 4, left: 28, size: 5.0, dur: 5.6, delay: 0.7, dx1: -16, dx2: 12, color: "#ff3d00" },
+  { id: 5, left: 36, size: 3.2, dur: 7.8, delay: 2.5, dx1: 12, dx2: -15, color: "#fbbf24" },
+  { id: 6, left: 44, size: 4.0, dur: 6.5, delay: 4.1, dx1: -15, dx2: 10, color: "#ff4500" },
+  { id: 7, left: 52, size: 3.0, dur: 8.0, delay: 1.2, dx1: 14, dx2: -18, color: "#ff8c00" },
+  { id: 8, left: 59, size: 4.8, dur: 5.9, delay: 2.9, dx1: -12, dx2: 14, color: "#f59e0b" },
+  { id: 9, left: 67, size: 3.5, dur: 7.4, delay: 0.5, dx1: 16, dx2: -12, color: "#ff3d00" },
+  { id: 10, left: 74, size: 4.2, dur: 6.8, delay: 3.6, dx1: -18, dx2: 15, color: "#fbbf24" },
+  { id: 11, left: 82, size: 3.2, dur: 8.6, delay: 1.6, dx1: 15, dx2: -10, color: "#ff8c00" },
+  { id: 12, left: 90, size: 4.6, dur: 6.2, delay: 2.2, dx1: -14, dx2: 12, color: "#ff4500" },
+  { id: 13, left: 18, size: 3.8, dur: 7.0, delay: 4.6, dx1: 12, dx2: -16, color: "#f59e0b" },
+  { id: 14, left: 48, size: 2.8, dur: 8.8, delay: 5.2, dx1: -16, dx2: 14, color: "#fbbf24" },
+  { id: 15, left: 63, size: 4.0, dur: 6.4, delay: 4.9, dx1: 14, dx2: -12, color: "#ff3d00" },
+  { id: 16, left: 86, size: 3.4, dur: 7.6, delay: 5.5, dx1: -10, dx2: 16, color: "#ff8c00" },
 ];
 
-const COLOR_MAP: Record<string, { bg: string; shadow: string }> = {
-  fire: {
-    bg: "#ff4500",
-    shadow: "0 0 6px #ff3300, 0 0 12px #ff6600",
-  },
-  amber: {
-    bg: "#ff8c00",
-    shadow: "0 0 6px #ff7700, 0 0 12px #ffaa00",
-  },
-  gold: {
-    bg: "#f5d880",
-    shadow: "0 0 6px #eab308, 0 0 12px #ca8a04",
-  },
-};
-
 export default function PassionFireBackground() {
+  const [isTabVisible, setIsTabVisible] = useState(true);
+
+  // Pause animations when user switches to another tab to preserve 100% CPU & battery
+  useEffect(() => {
+    const handleVisibility = () => {
+      setIsTabVisible(document.visibilityState === "visible");
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
   return (
-    <div className={styles.fireContainer} aria-hidden="true">
-      {/* 1. Hawa Hangat Membara dari Bawah */}
+    <div
+      className={`${styles.fireContainer} ${!isTabVisible ? styles.paused : ""}`}
+      aria-hidden="true"
+    >
+      {/* 1. Hawa Hangat Membara dari Bawah (Ambient Heat) */}
       <div className={styles.ambientHeatGlow} />
 
-      {/* 2. Aura Api Lembut di Balik Kuda (Knight) */}
-      <div className={styles.knightFireAura} />
+      {/* 2. Gelombang Lidah Api Bergerak (Hardware-Accelerated SVG Flames) */}
+      <div className={styles.flameWrapper}>
+        <svg
+          viewBox="0 0 1440 220"
+          preserveAspectRatio="none"
+          className={styles.flameSvg}
+        >
+          <defs>
+            <linearGradient id="fireGradBack" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#b91c1c" stopOpacity="0.32" />
+              <stop offset="40%" stopColor="#c2410c" stopOpacity="0.20" />
+              <stop offset="80%" stopColor="#d97706" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="fireGradMid" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#dc2626" stopOpacity="0.38" />
+              <stop offset="35%" stopColor="#ea580c" stopOpacity="0.25" />
+              <stop offset="75%" stopColor="#f59e0b" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="fireGradFront" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stopColor="#ea580c" stopOpacity="0.45" />
+              <stop offset="45%" stopColor="#f59e0b" stopOpacity="0.25" />
+              <stop offset="85%" stopColor="#fde047" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+          </defs>
 
-      {/* 3. Aura Api Lembut di Balik Pion (Pawn) */}
+          {/* Lidah Api Belakang (Slow, Deep Red-Orange) */}
+          <path
+            className={styles.flamePathBack}
+            fill="url(#fireGradBack)"
+            d="M0,220 L0,120 Q120,40 240,110 T480,80 T720,120 T960,75 T1200,115 T1440,70 L1440,220 Z"
+          />
+
+          {/* Lidah Api Tengah (Dancing Vibrant Amber) */}
+          <path
+            className={styles.flamePathMid}
+            fill="url(#fireGradMid)"
+            d="M0,220 L0,135 Q180,65 360,125 T720,85 T1080,135 T1440,90 L1440,220 Z"
+          />
+
+          {/* Lidah Api Depan (Golden Flickering Warmth) */}
+          <path
+            className={styles.flamePathFront}
+            fill="url(#fireGradFront)"
+            d="M0,220 L0,150 Q160,95 320,145 T640,105 T960,150 T1280,100 T1440,145 L1440,220 Z"
+          />
+        </svg>
+      </div>
+
+      {/* 3. Aura Api Bergerak di Balik Kuda (Knight) & Pion (Pawn) */}
+      <div className={styles.knightFireAura} />
       <div className={styles.pawnFireAura} />
+
+      {/* 4. Percikan Bunga Api Membara (Ultra-lightweight GPU Embers) */}
+      <div className={styles.embersContainer}>
+        {LIGHT_EMBERS.map((emb) => (
+          <span
+            key={emb.id}
+            className={styles.ember}
+            style={
+              {
+                left: `${emb.left}%`,
+                width: `${emb.size}px`,
+                height: `${emb.size}px`,
+                animationDuration: `${emb.dur}s`,
+                animationDelay: `${emb.delay}s`,
+                "--dx1": `${emb.dx1}px`,
+                "--dx2": `${emb.dx2}px`,
+                "--ember-color": emb.color,
+              } as React.CSSProperties
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }

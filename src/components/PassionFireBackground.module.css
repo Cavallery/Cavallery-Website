@@ -1,6 +1,6 @@
 /* ================================================================
-   TEAM PASSION FIRE BACKGROUND (ULTRA-LIGHTWEIGHT & BATTERY-FRIENDLY)
-   Warm ambient glow without expensive GPU blur filters or loops
+   TEAM PASSION FIRE ANIMATED BACKGROUND
+   60FPS Hardware-Accelerated (Zero-Lag, Zero-Heavy-Blur, Battery Friendly)
    ================================================================ */
 
 .fireContainer {
@@ -10,67 +10,238 @@
   z-index: -1;
   overflow: hidden;
   user-select: none;
+  contain: strict;
 }
 
-/* Ambient bottom fire glow - Pure radial gradient (0% GPU/CPU overhead) */
+/* Pause all animations when tab is inactive to preserve 100% battery */
+.paused * {
+  animation-play-state: paused !important;
+}
+
+/* ── 1. AMBIENT WARMTH FROM BOTTOM (Pure static radial gradient) ── */
 .ambientHeatGlow {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 220px;
+  height: 240px;
   background: radial-gradient(
     ellipse at 50% 100%,
-    rgba(255, 68, 0, 0.08) 0%,
-    rgba(212, 175, 55, 0.04) 45%,
-    transparent 80%
+    rgba(255, 69, 0, 0.12) 0%,
+    rgba(234, 88, 12, 0.08) 35%,
+    rgba(212, 175, 55, 0.04) 65%,
+    transparent 85%
   );
+  pointer-events: none;
 }
 
 :global([data-theme="dark"]) .ambientHeatGlow {
   background: radial-gradient(
     ellipse at 50% 100%,
-    rgba(255, 68, 0, 0.14) 0%,
-    rgba(212, 175, 55, 0.06) 50%,
-    transparent 85%
+    rgba(255, 69, 0, 0.20) 0%,
+    rgba(234, 88, 12, 0.12) 40%,
+    rgba(212, 175, 55, 0.06) 70%,
+    transparent 90%
   );
 }
 
-/* Secondary fire aura near knight piece (bottom-left) */
+/* ── 2. ANIMATED FLAME WAVES (GPU-Accelerated CSS Transforms) ── */
+.flameWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 160px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.flameSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.flamePathBack {
+  transform-origin: 50% 100%;
+  animation: flamePulseBack 6s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.flamePathMid {
+  transform-origin: 40% 100%;
+  animation: flamePulseMid 4.2s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.flamePathFront {
+  transform-origin: 60% 100%;
+  animation: flamePulseFront 3.1s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes flamePulseBack {
+  0% {
+    transform: translate3d(-15px, 0, 0) scaleY(0.92);
+  }
+  50% {
+    transform: translate3d(5px, 0, 0) scaleY(1.08);
+  }
+  100% {
+    transform: translate3d(18px, 0, 0) scaleY(0.96);
+  }
+}
+
+@keyframes flamePulseMid {
+  0% {
+    transform: translate3d(14px, 0, 0) scaleY(1.12);
+  }
+  50% {
+    transform: translate3d(-8px, 0, 0) scaleY(0.90);
+  }
+  100% {
+    transform: translate3d(-18px, 0, 0) scaleY(1.06);
+  }
+}
+
+@keyframes flamePulseFront {
+  0% {
+    transform: translate3d(0, 0, 0) scaleY(0.95) scaleX(0.98);
+  }
+  50% {
+    transform: translate3d(-6px, 0, 0) scaleY(1.14) scaleX(1.02);
+  }
+  100% {
+    transform: translate3d(8px, 0, 0) scaleY(0.98) scaleX(0.99);
+  }
+}
+
+/* ── 3. AURA API KNIGHT & PAWN ── */
 .knightFireAura {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 380px;
-  height: 380px;
+  width: 420px;
+  height: 420px;
   background: radial-gradient(
-    circle at 20% 80%,
-    rgba(255, 69, 0, 0.08) 0%,
-    rgba(212, 175, 55, 0.04) 40%,
-    transparent 70%
+    circle at 22% 82%,
+    rgba(255, 69, 0, 0.16) 0%,
+    rgba(234, 88, 12, 0.08) 35%,
+    rgba(212, 175, 55, 0.03) 65%,
+    transparent 75%
   );
+  transform-origin: 22% 82%;
+  animation: auraBreathe 5s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+  pointer-events: none;
 }
 
 :global([data-theme="dark"]) .knightFireAura {
   background: radial-gradient(
-    circle at 20% 80%,
-    rgba(255, 69, 0, 0.14) 0%,
-    rgba(212, 175, 55, 0.06) 45%,
-    transparent 75%
+    circle at 22% 82%,
+    rgba(255, 69, 0, 0.22) 0%,
+    rgba(234, 88, 12, 0.12) 40%,
+    rgba(212, 175, 55, 0.05) 70%,
+    transparent 80%
   );
 }
 
-/* Secondary fire aura near pawn piece (mid-right) */
 .pawnFireAura {
   position: absolute;
-  top: 40%;
+  top: 45%;
   right: 0;
-  width: 340px;
-  height: 340px;
+  width: 360px;
+  height: 360px;
   background: radial-gradient(
     circle at 80% 50%,
-    rgba(255, 120, 0, 0.06) 0%,
-    rgba(212, 175, 55, 0.03) 40%,
-    transparent 70%
+    rgba(255, 120, 0, 0.12) 0%,
+    rgba(234, 88, 12, 0.06) 40%,
+    rgba(212, 175, 55, 0.02) 65%,
+    transparent 75%
   );
+  transform-origin: 80% 50%;
+  animation: auraBreathe 6.5s ease-in-out infinite alternate-reverse;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+:global([data-theme="dark"]) .pawnFireAura {
+  background: radial-gradient(
+    circle at 80% 50%,
+    rgba(255, 120, 0, 0.18) 0%,
+    rgba(234, 88, 12, 0.09) 45%,
+    rgba(212, 175, 55, 0.04) 70%,
+    transparent 80%
+  );
+}
+
+@keyframes auraBreathe {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+/* ── 4. RISING FIRE EMBERS (GPU-ONLY TRANSLATE3D, ZERO BLUR FILTER) ── */
+.embersContainer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ember {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  /* Built-in radial gradient provides halo glow without expensive CSS blur */
+  background: radial-gradient(
+    circle at 50% 50%,
+    #ffffff 15%,
+    var(--ember-color, #ff8c00) 65%,
+    transparent 100%
+  );
+  animation-name: emberRise;
+  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@keyframes emberRise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.4);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+  }
+  45% {
+    transform: translate3d(var(--dx1, 10px), -35vh, 0) scale(1);
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(var(--dx2, -10px), -80vh, 0) scale(0.25);
+    opacity: 0;
+  }
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .flamePathBack,
+  .flamePathMid,
+  .flamePathFront,
+  .knightFireAura,
+  .pawnFireAura,
+  .ember {
+    animation: none !important;
+  }
 }
