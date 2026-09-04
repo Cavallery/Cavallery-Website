@@ -165,11 +165,33 @@ export async function syncKasToMatrix(params: {
         isPaid: true,
       }).catch((e) => console.error("[Spreadsheet Matrix] Error updating cell:", e));
     }
-  } else if (status === "ditolak") {
+  } else if (status === "ditolak" || status === "pending") {
     await query(
       `DELETE FROM iuran_kas_bulanan WHERE konfirmasi_kas_id = ?`,
       [konfirmasiKasId]
     );
+
+    // Fallback delete berdasarkan anggota dan rentang bulan
+    for (let c = 0; c < count; c++) {
+      let b = startBulan + c;
+      let y = tahun;
+      while (b > 12) {
+        b -= 12;
+        y += 1;
+      }
+
+      await query(
+        `DELETE FROM iuran_kas_bulanan WHERE (anggota_id = ? OR no_anggota = ?) AND tahun = ? AND bulan = ?`,
+        [anggotaId, noAnggota, y, b]
+      );
+
+      updateSpreadsheetMatrixCell({
+        tahun: y,
+        noAnggota,
+        bulan: b,
+        isPaid: false,
+      }).catch((e) => console.error("[Spreadsheet Matrix] Error updating cell:", e));
+    }
   }
 }
 
@@ -206,10 +228,59 @@ export async function toggleMonthPayment(params: {
       [anggotaId, noAnggota, tahun, bulan, nominal, adminName]
     );
   } else {
+    // 1. Ambil data iuran_kas_bulanan yang terhubung sebelum dihapus
+    const existing = await query<any[]>(
+      `SELECT konfirmasi_kas_id, anggota_id FROM iuran_kas_bulanan WHERE no_anggota = ? AND tahun = ? AND bulan = ?`,
+      [noAnggota, tahun, bulan]
+    );
+
+    // 2. Hapus dari tabel matriks iuran_kas_bulanan
     await query(
       `DELETE FROM iuran_kas_bulanan WHERE no_anggota = ? AND tahun = ? AND bulan = ?`,
       [noAnggota, tahun, bulan]
     );
+
+    // 3. Hapus juga dari konfirmasi_kas agar dashboard riwayat kas user terhapus bersih & sinkron
+    if (existing && existing.length > 0) {
+      for (const row of existing) {
+        if (row.konfirmasi_kas_id) {
+          await query("DELETE FROM konfirmasi_kas WHERE id = ?", [row.konfirmasi_kas_id]);
+          // Hapus juga baris di Google Sheets jika ada
+          import("@/lib/googleSheets")
+            .then(({ deleteKasRow }) => deleteKasRow(row.konfirmasi_kas_id))
+            .catch(() => {});
+        }
+      }
+    }
+
+    // 4. Jika ada data konfirmasi_kas untuk anggota ini dengan periode bulan & tahun tersebut, hapus juga
+    const targetAnggotaId = anggotaId || existing?.[0]?.anggota_id;
+    if (targetAnggotaId) {
+      const monthName = MONTH_NAMES_ID[bulan - 1];
+      const matchedKas = await query<any[]>(
+        `SELECT id FROM konfirmasi_kas 
+         WHERE anggota_id = ? 
+         AND (periode LIKE ? OR periode LIKE ? OR periode LIKE ?)`,
+        [
+          targetAnggotaId,
+          `%${monthName}%${tahun}%`,
+          `%${String(bulan).padStart(2, "0")}/${tahun}%`,
+          `%${tahun}-${String(bulan).padStart(2, "0")}%`,
+        ]
+      );
+      if (matchedKas && matchedKas.length > 0) {
+        for (const mk of matchedKas) {
+          await query("DELETE FROM konfirmasi_kas WHERE id = ?", [mk.id]);
+          import("@/lib/googleSheets")
+            .then(({ deleteKasRow }) => deleteKasRow(mk.id))
+            .catch(() => {});
+        }
+      }
+    }
+
+    // Reset auto increment agar nomor ID tetap rapi
+    const { resetAutoIncrement } = await import("@/lib/mysql");
+    await resetAutoIncrement("konfirmasi_kas");
   }
 
   // Push ke Spreadsheet

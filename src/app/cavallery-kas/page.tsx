@@ -185,6 +185,7 @@ export default function CavalleryKasPage() {
   const [userWarTicket, setUserWarTicket] = useState<any | null>(null);
   const [loadingWar, setLoadingWar] = useState(false);
   const [claimingWar, setClaimingWar] = useState(false);
+  const [downloadingTicket, setDownloadingTicket] = useState(false);
   const [warAlert, setWarAlert] = useState<{ type: "success" | "error"; msg: string } | null>(null);
   const [warTimeLeft, setWarTimeLeft] = useState<{
     days: number;
@@ -545,6 +546,295 @@ export default function CavalleryKasPage() {
       setWarAlert({ type: "error", msg: err?.message || "Terjadi kesalahan saat memproses klaim tiket." });
     } finally {
       setClaimingWar(false);
+    }
+  };
+
+  const handleDownloadETicket = () => {
+    if (!userWarTicket) return;
+    setDownloadingTicket(true);
+
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const w = 860;
+      const h = 1320;
+      canvas.width = w;
+      canvas.height = h;
+
+      // 1. Dark Luxury Obsidian Background
+      const bg = ctx.createLinearGradient(0, 0, w, h);
+      bg.addColorStop(0, "#1c1814");
+      bg.addColorStop(0.5, "#13100e");
+      bg.addColorStop(1, "#0a0807");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. Subtle warm glow in center
+      const radialGlow = ctx.createRadialGradient(w / 2, 420, 40, w / 2, 420, 460);
+      radialGlow.addColorStop(0, "rgba(201, 168, 76, 0.12)");
+      radialGlow.addColorStop(1, "transparent");
+      ctx.fillStyle = radialGlow;
+      ctx.fillRect(0, 0, w, h);
+
+      // 3. Elegant Double Golden Border
+      ctx.strokeStyle = "#c9a84c";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(36, 36, w - 72, h - 72);
+
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(46, 46, w - 92, h - 92);
+
+      // Corner Accents (Decorative Golden Brackets)
+      const drawCorner = (x: number, y: number, dx: number, dy: number) => {
+        ctx.fillStyle = "#c9a84c";
+        ctx.fillRect(x, y, dx * 26, dy * 4);
+        ctx.fillRect(x, y, dx * 4, dy * 26);
+      };
+      drawCorner(54, 54, 1, 1);
+      drawCorner(w - 54, 54, -1, 1);
+      drawCorner(54, h - 54, 1, -1);
+      drawCorner(w - 54, h - 54, -1, -1);
+
+      // 4. Header Top Badge
+      ctx.textAlign = "center";
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillStyle = "#e2b857";
+      ctx.fillText("★ OFFICIAL VIP EVENT PASS ★", w / 2, 95);
+
+      // Brand Title
+      ctx.font = "bold 26px serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("CAVALLERY FANBASE", w / 2, 134);
+
+      // Project Title
+      ctx.font = "bold 22px serif";
+      ctx.fillStyle = "#c9a84c";
+      ctx.fillText("PROJECT STS ERINE 19TH BIRTHDAY", w / 2, 170);
+
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.fillText("Team Passion • Exclusive Limited Entry Pass", w / 2, 200);
+
+      // Thin separator
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(90, 224);
+      ctx.lineTo(w - 90, 224);
+      ctx.stroke();
+
+      // 5. Ticket Number Badge Box
+      const badgeW = 360;
+      const badgeH = 76;
+      const badgeX = (w - badgeW) / 2;
+      const badgeY = 248;
+      const bGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
+      bGrad.addColorStop(0, "#d4af37");
+      bGrad.addColorStop(1, "#92400e");
+
+      ctx.fillStyle = bGrad;
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 20);
+      ctx.fill();
+      ctx.strokeStyle = "#fef08a";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Ticket Number Text
+      ctx.font = "900 44px serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(0,0,0,0.5)";
+      ctx.shadowBlur = 8;
+      ctx.fillText(`#${userWarTicket.nomor_tiket}`, w / 2, badgeY + 54);
+      ctx.shadowBlur = 0;
+
+      // 6. Member Information Card
+      const cardY = 352;
+      const cardW = w - 160;
+      const cardX = 80;
+      const cardH = 340;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.beginPath();
+      ctx.roundRect(cardX, cardY, cardW, cardH, 18);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.22)";
+      ctx.stroke();
+
+      // Member Name Label & Value
+      ctx.textAlign = "center";
+      ctx.font = "12px sans-serif";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.fillText("NAMA PEMEGANG TIKET", w / 2, cardY + 44);
+
+      ctx.font = "bold 30px serif";
+      ctx.fillStyle = "#ffffff";
+      const name = userWarTicket.nama_lengkap || displayName || "Anggota Cavallery";
+      ctx.fillText(name.toUpperCase(), w / 2, cardY + 84);
+
+      // No Anggota
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = "#c9a84c";
+      const noAngg = userWarTicket.no_anggota || sessionUser?.noAnggota || "-";
+      ctx.fillText(`NO. ANGGOTA: ${noAngg}`, w / 2, cardY + 120);
+
+      // Access Level
+      ctx.font = "bold 15px sans-serif";
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText("AKSES: FULL ENTRY • PROJECT STS ERINE", w / 2, cardY + 160);
+
+      // Verified Status Chip
+      ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(w / 2 - 125, cardY + 186, 250, 36, 18);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillStyle = "#34d399";
+      ctx.fillText("✓ TERVERIFIKASI RESMI", w / 2, cardY + 209);
+
+      // Waktu Klaim
+      ctx.font = "13px sans-serif";
+      ctx.fillStyle = "#71717a";
+      const claimDate = new Date(userWarTicket.waktu_klaim);
+      const claimStr = `${claimDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} • ${claimDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} WIB`;
+      ctx.fillText(`Waktu Registrasi Klaim: ${claimStr}`, w / 2, cardY + 258);
+
+      // Unique Security Code
+      const secCode = `SEC-${String(userWarTicket.id || 1).padStart(4, "0")}-${(userWarTicket.nomor_tiket || "STS").replace(/\D/g, "")}`;
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "#52525b";
+      ctx.fillText(`KODE KEAMANAN: ${secCode}`, w / 2, cardY + 295);
+
+      // 7. Perforated Tear Line (Garis Potong Tiket)
+      const tearY = 730;
+      ctx.setLineDash([12, 8]);
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(70, tearY);
+      ctx.lineTo(w - 70, tearY);
+      ctx.stroke();
+      ctx.setLineDash([]); // reset dash
+
+      // Notches (Lingkaran Potongan Tiket Kiri & Kanan)
+      ctx.fillStyle = "#0a0807";
+      ctx.beginPath();
+      ctx.arc(36, tearY, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#c9a84c";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(36, tearY, 26, -Math.PI / 2, Math.PI / 2);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(w - 36, tearY, 26, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(w - 36, tearY, 26, Math.PI / 2, (3 * Math.PI) / 2);
+      ctx.stroke();
+
+      // 8. Stub & QR Verification Section
+      const qrSize = 180;
+      const qrX = (w - qrSize) / 2;
+      const qrY = 774;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.roundRect(qrX, qrY, qrSize, qrSize, 18);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.6)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Procedural Crisp QR Pattern
+      const pCount = 15;
+      const cellSize = (qrSize - 30) / pCount;
+      ctx.fillStyle = "#18181b";
+      const drawFinder = (fx: number, fy: number) => {
+        ctx.fillRect(fx, fy, cellSize * 4, cellSize * 4);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx + cellSize, fy + cellSize, cellSize * 2, cellSize * 2);
+        ctx.fillStyle = "#18181b";
+        ctx.fillRect(fx + cellSize * 1.5, fy + cellSize * 1.5, cellSize, cellSize);
+      };
+      drawFinder(qrX + 15, qrY + 15);
+      drawFinder(qrX + qrSize - 15 - cellSize * 4, qrY + 15);
+      drawFinder(qrX + 15, qrY + qrSize - 15 - cellSize * 4);
+
+      const seed = userWarTicket.nomor_tiket.split("").reduce((acc: number, c: string) => acc + c.charCodeAt(0), 0);
+      for (let r = 0; r < pCount; r++) {
+        for (let c = 0; c < pCount; c++) {
+          if ((r < 5 && c < 5) || (r < 5 && c > pCount - 6) || (r > pCount - 6 && c < 5)) continue;
+          if (((r * c + seed * (r + 1)) % 3) === 0) {
+            ctx.fillRect(qrX + 15 + c * cellSize, qrY + 15 + r * cellSize, cellSize - 1, cellSize - 1);
+          }
+        }
+      }
+
+      // 9. Simulated Barcode Lines
+      const barY = 988;
+      const barW = 380;
+      const barX = (w - barW) / 2;
+      ctx.fillStyle = "#ffffff";
+      const bars = [3, 1, 4, 2, 1, 5, 2, 3, 1, 4, 2, 1, 3, 5, 1, 2, 4, 1, 3, 2, 5, 1, 2, 4, 3, 1, 2, 4, 2, 3, 1, 5, 2, 1, 4];
+      let curX = barX;
+      bars.forEach((bWidth, idx) => {
+        if (idx % 2 === 0) {
+          ctx.fillRect(curX, barY, bWidth * 2.2, 40);
+        }
+        curX += bWidth * 2.8;
+      });
+
+      ctx.font = "bold 14px monospace";
+      ctx.fillStyle = "#a1a1aa";
+      ctx.textAlign = "center";
+      ctx.fillText(`*STS19-${userWarTicket.nomor_tiket}-${noAngg}*`, w / 2, barY + 62);
+
+      // 10. Important Event Notice Box
+      const noticeY = 1080;
+      const noticeW = w - 160;
+      const noticeX = 80;
+      const noticeH = 120;
+      ctx.fillStyle = "rgba(201, 168, 76, 0.08)";
+      ctx.beginPath();
+      ctx.roundRect(noticeX, noticeY, noticeW, noticeH, 16);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(201, 168, 76, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillStyle = "#fef08a";
+      ctx.fillText("PETUNJUK KEDATANGAN DI VENUE ACARA:", w / 2, noticeY + 38);
+
+      ctx.font = "13px sans-serif";
+      ctx.fillStyle = "#d4d4d8";
+      ctx.fillText("Simpan gambar ini di galeri ponsel Anda. Pada hari acara, cukup tunjukkan", w / 2, noticeY + 66);
+      ctx.fillText("tiket digital ini kepada panitia Cavallery untuk penukaran wristband masuk.", w / 2, noticeY + 88);
+
+      // 11. Trigger Download
+      const dataUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `E-Ticket-STS19-Cavallery-${userWarTicket.nomor_tiket}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      setWarAlert({
+        type: "success",
+        msg: "E-Ticket berhasil diunduh ke ponsel/perangkat Anda! Cukup tunjukkan gambar ini kepada panitia di hari acara.",
+      });
+    } catch (err: any) {
+      console.error("Download ticket error:", err);
+      alert("Gagal mengunduh tiket: " + err.message);
+    } finally {
+      setDownloadingTicket(false);
     }
   };
 
@@ -3305,63 +3595,108 @@ export default function CavalleryKasPage() {
               </div>
             )}
 
-            {/* ── JIKA USER SUDAH PUNYA TIKET: TAMPILKAN E-TICKET PASS MEWAH ── */}
+            {/* ── JIKA USER SUDAH PUNYA TIKET: TAMPILKAN E-TICKET PASS MEWAH VIP STUB ── */}
             {userWarTicket ? (
               <div className={styles.warTicketPass}>
-                <div style={{ fontSize: "0.85rem", color: "var(--gold)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  ★ OFFICIAL E-TICKET PASS STS ERINE ★
+                <div className={styles.ticketTopBadge}>
+                  ★ OFFICIAL VIP PASS • TEAM PASSION ★
+                </div>
+
+                <h2 className={styles.ticketEventTitle}>
+                  PROJECT STS ERINE 19TH BIRTHDAY
+                </h2>
+                <div className={styles.ticketEventSub}>
+                  Cavallery • Fanbase Resmi Erine JKT48
                 </div>
 
                 <div className={styles.ticketNumberBadge}>
                   #{userWarTicket.nomor_tiket}
                 </div>
 
-                <h3 className={styles.ticketOwnerName}>
-                  {userWarTicket.nama_lengkap || displayName}
-                </h3>
-                <div style={{ fontSize: "0.85rem", color: "var(--fg-muted)", marginTop: -8 }}>
-                  No. Anggota: <strong>{userWarTicket.no_anggota || sessionUser.noAnggota}</strong>
+                {/* Member Info Card */}
+                <div className={styles.ticketOwnerCard}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    Pemegang Tiket Resmi
+                  </div>
+                  <h3 className={styles.ticketOwnerName}>
+                    {userWarTicket.nama_lengkap || displayName}
+                  </h3>
+                  <div className={styles.ticketMetaRow}>
+                    <span>No. Anggota: <strong style={{ color: "var(--gold)" }}>{userWarTicket.no_anggota || sessionUser.noAnggota}</strong></span>
+                    <span>•</span>
+                    <span className={styles.ticketStatusChip}>
+                      <i className="bx bx-check-shield" /> Terverifikasi
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.76rem", color: "var(--fg-muted)" }}>
+                    Waktu Registrasi: {new Date(userWarTicket.waktu_klaim).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} • {new Date(userWarTicket.waktu_klaim).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+                  </div>
                 </div>
 
-                {/* Simulated Visual QR Barcode */}
-                <div className={styles.ticketQrBox}>
-                  <div style={{ textAlign: "center" }}>
-                    <i className="bx bx-qr-scan" style={{ fontSize: "3.5rem", color: "#1c1813" }} />
-                    <div style={{ fontSize: "0.62rem", color: "#64748b", fontWeight: 700, marginTop: 4 }}>
-                      {userWarTicket.nomor_tiket}
+                {/* Perforated Tear Line */}
+                <div className={styles.ticketPerforationLine}>
+                  <div className={styles.ticketPerforationDash} />
+                </div>
+
+                {/* Stub QR & Barcode Section */}
+                <div className={styles.ticketStubSection}>
+                  <div className={styles.ticketQrBox}>
+                    <div style={{ textAlign: "center" }}>
+                      <i className="bx bx-qr-scan" style={{ fontSize: "4.2rem", color: "#1c1813" }} />
+                      <div style={{ fontSize: "0.68rem", color: "#64748b", fontWeight: 800, marginTop: 2 }}>
+                        {userWarTicket.nomor_tiket}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.ticketBarcodeWrap}>
+                    <div className={styles.ticketBarcodeLines}>
+                      {[3, 1, 4, 2, 1, 5, 2, 3, 1, 4, 2, 1, 3, 5, 1, 2, 4, 1, 3, 2, 5, 1, 2, 4].map((w, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            width: `${w * 1.8}px`,
+                            height: "26px",
+                            background: i % 2 === 0 ? "var(--fg)" : "transparent",
+                            borderRadius: "1px",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className={styles.ticketBarcodeNumber}>
+                      *STS19-{userWarTicket.nomor_tiket}-{userWarTicket.no_anggota || sessionUser.noAnggota}*
                     </div>
                   </div>
                 </div>
 
-                <div style={{ fontSize: "0.78rem", color: "var(--fg-muted)", maxWidth: 380, lineHeight: 1.5 }}>
-                  Waktu Klaim Terverifikasi:{" "}
-                  <strong>
-                    {new Date(userWarTicket.waktu_klaim).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}{" "}
-                    pukul{" "}
-                    {new Date(userWarTicket.waktu_klaim).toLocaleTimeString("id-ID", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
-                  </strong>
+                {/* Event Notice Box (Tinggal Datang & Tunjukkan, Tidak Perlu Diprint) */}
+                <div className={styles.ticketNoticeBox}>
+                  <i className={`bx bx-mobile ${styles.ticketNoticeIcon}`} />
+                  <div>
+                    <strong style={{ color: "var(--gold)", display: "block", marginBottom: 3 }}>
+                      Tunjukkan Tiket di Ponsel pada Hari Acara
+                    </strong>
+                    Simpan gambar tiket ini di ponsel Anda. Pada hari acara, cukup tunjukkan e-ticket digital ini kepada panitia Cavallery di venue untuk penukaran wristband masuk. Tidak perlu dicetak/diprint.
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                {/* Tombol Unduh E-Ticket (Gambar PNG) */}
+                <div style={{ width: "100%", marginTop: 4 }}>
                   <button
                     type="button"
-                    onClick={() => window.print()}
-                    className={styles.submitBtn}
-                    style={{
-                      maxWidth: 220,
-                      background: "linear-gradient(135deg, var(--gold), #b45309)",
-                      color: "#fff",
-                    }}
+                    onClick={handleDownloadETicket}
+                    disabled={downloadingTicket}
+                    className={styles.ticketDownloadBtn}
                   >
-                    <i className="bx bx-printer" /> Cetak / Simpan E-Ticket
+                    {downloadingTicket ? (
+                      <>
+                        <i className="bx bx-loader-alt bx-spin" /> Menyiapkan Tiket HD...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bx bx-download" /> Unduh E-Ticket (Simpan Gambar PNG)
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

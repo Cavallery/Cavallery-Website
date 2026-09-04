@@ -406,11 +406,23 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Parameter id wajib dikirim" }, { status: 400 });
     }
 
+    // Cascade delete relasi terkait anggota agar tidak meninggalkan data yatim di SQL
+    const angRows = await query<any[]>("SELECT no_anggota FROM anggota WHERE id = ?", [id]);
+    const noAnggota = angRows && angRows.length > 0 ? angRows[0].no_anggota : null;
+
+    await query("DELETE FROM konfirmasi_kas WHERE anggota_id = ?", [id]);
+    if (noAnggota) {
+      await query("DELETE FROM iuran_kas_bulanan WHERE anggota_id = ? OR no_anggota = ?", [id, noAnggota]);
+    } else {
+      await query("DELETE FROM iuran_kas_bulanan WHERE anggota_id = ?", [id]);
+    }
+    await query("DELETE FROM kupon_anggota WHERE anggota_id = ?", [id]);
+    await query("DELETE FROM war_tiket_peserta WHERE anggota_id = ?", [id]);
     await query("DELETE FROM anggota WHERE id = ?", [id]);
 
     return NextResponse.json({
       status: true,
-      message: `Anggota #${id} berhasil dihapus dari database.`,
+      message: `Anggota #${id} beserta seluruh data riwayatnya berhasil dihapus dari database.`,
     });
   } catch (error: any) {
     console.error("Delete anggota error:", error);

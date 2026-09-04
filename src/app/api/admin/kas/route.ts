@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { appendKasRow, updateKasStatusInSheet, deleteKasRow } from "@/lib/googleSheets";
-import { syncKasToMatrix } from "@/lib/kasMatrix";
+import { syncKasToMatrix, parsePeriodeToMonths } from "@/lib/kasMatrix";
 import { query, resetAutoIncrement } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi kas ──
@@ -124,11 +124,36 @@ export async function POST(req: NextRequest) {
 
     // DELETE KAS
     if (action === "delete") {
+      const kasRows = await query<any[]>("SELECT * FROM konfirmasi_kas WHERE id = ?", [id]);
+      if (kasRows && kasRows.length > 0) {
+        const k = kasRows[0];
+        // 1. Hapus dari iuran_kas_bulanan berdasarkan konfirmasi_kas_id
+        await query("DELETE FROM iuran_kas_bulanan WHERE konfirmasi_kas_id = ?", [id]);
+
+        // 2. Hapus juga dari matriks iuran_kas_bulanan berdasarkan rentang bulan yang dibayar
+        if (k.anggota_id) {
+          const { tahun, startBulan, count } = parsePeriodeToMonths(k.periode, Number(k.nominal));
+          for (let c = 0; c < count; c++) {
+            let b = startBulan + c;
+            let y = tahun;
+            while (b > 12) {
+              b -= 12;
+              y += 1;
+            }
+            await query(
+              "DELETE FROM iuran_kas_bulanan WHERE (anggota_id = ? OR no_anggota = (SELECT no_anggota FROM anggota WHERE id = ?)) AND tahun = ? AND bulan = ?",
+              [k.anggota_id, k.anggota_id, y, b]
+            );
+          }
+        }
+      }
+
       await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
+      await resetAutoIncrement("konfirmasi_kas");
       deleteKasRow(id).catch((e) => console.error("Delete kas from sheets error:", e));
       return NextResponse.json({
         status: true,
-        message: `Data kas #${id} berhasil dihapus dari sistem & spreadsheet.`,
+        message: `Data kas #${id} berhasil dihapus dari sistem, matriks & spreadsheet.`,
       });
     }
 
@@ -243,13 +268,37 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Parameter id wajib dikirim" }, { status: 400 });
     }
 
+    const kasRows = await query<any[]>("SELECT * FROM konfirmasi_kas WHERE id = ?", [id]);
+    if (kasRows && kasRows.length > 0) {
+      const k = kasRows[0];
+      // 1. Hapus dari iuran_kas_bulanan berdasarkan konfirmasi_kas_id
+      await query("DELETE FROM iuran_kas_bulanan WHERE konfirmasi_kas_id = ?", [id]);
+
+      // 2. Hapus juga dari matriks iuran_kas_bulanan berdasarkan rentang bulan yang dibayar
+      if (k.anggota_id) {
+        const { tahun, startBulan, count } = parsePeriodeToMonths(k.periode, Number(k.nominal));
+        for (let c = 0; c < count; c++) {
+          let b = startBulan + c;
+          let y = tahun;
+          while (b > 12) {
+            b -= 12;
+            y += 1;
+          }
+          await query(
+            "DELETE FROM iuran_kas_bulanan WHERE (anggota_id = ? OR no_anggota = (SELECT no_anggota FROM anggota WHERE id = ?)) AND tahun = ? AND bulan = ?",
+            [k.anggota_id, k.anggota_id, y, b]
+          );
+        }
+      }
+    }
+
     await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
     await resetAutoIncrement("konfirmasi_kas");
     deleteKasRow(id).catch((e) => console.error("Delete kas row in sheets error:", e));
 
     return NextResponse.json({
       status: true,
-      message: `Data kas #${id} berhasil dihapus dari database & spreadsheet.`,
+      message: `Data kas #${id} berhasil dihapus dari database, matriks & spreadsheet.`,
     });
   } catch (error: any) {
     console.error("Delete kas error:", error);
