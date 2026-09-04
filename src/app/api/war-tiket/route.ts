@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         event: {
           id: event.id,
           judul: event.judul,
-          kode_tiket: event.kode_tiket || "STS19",
+          kode_tiket: event.kode_tiket || "STS20",
           subjudul: event.subjudul || "Cavallery • Official Fanbase Erine JKT48",
           lokasi_event: event.lokasi_event || "Theater JKT48, fX Sudirman Lt. 4",
           tanggal_event: event.tanggal_event || "Sabtu, 26 September 2026 • 19.00 WIB",

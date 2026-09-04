@@ -64,13 +64,13 @@ export default function AdminMasterDataPage() {
     status: string;
     syaratKetentuan: string;
   }>({
-    judul: "War Tiket Project STS Erine 19th",
-    kodeTiket: "STS19",
+    judul: "War Tiket Project STS Erine 20th",
+    kodeTiket: "STS20",
     subjudul: "Cavallery • Official Fanbase Erine JKT48",
     lokasiEvent: "Theater JKT48, fX Sudirman Lt. 4",
     tanggalEvent: "Sabtu, 26 September 2026 • 19.00 WIB",
     kategoriTiket: "OFFICIAL VIP PASS • TEAM PASSION",
-    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-20 bersama Cavallery Team Passion.",
     kuotaTotal: 50,
     waktuBuka: "",
     waktuTutup: "",
@@ -145,7 +145,7 @@ export default function AdminMasterDataPage() {
             setWarEvent({
               id: ev.id,
               judul: ev.judul || "",
-              kodeTiket: ev.kode_tiket || "STS19",
+              kodeTiket: ev.kode_tiket || "STS20",
               subjudul: ev.subjudul || "Cavallery • Official Fanbase Erine JKT48",
               lokasiEvent: ev.lokasi_event || "Theater JKT48, fX Sudirman Lt. 4",
               tanggalEvent: ev.tanggal_event || "Sabtu, 26 September 2026 • 19.00 WIB",
@@ -596,7 +596,7 @@ export default function AdminMasterDataPage() {
                       className={styles.modalInput}
                       value={warEvent.judul}
                       onChange={(e) => setWarEvent({ ...warEvent, judul: e.target.value })}
-                      placeholder="Contoh: War Tiket Project STS Erine 19th"
+                      placeholder="Contoh: War Tiket Project STS Erine 20th"
                       required
                     />
                   </div>
@@ -608,7 +608,7 @@ export default function AdminMasterDataPage() {
                         Kode Prefix Tiket (Nomor Tiket):
                       </label>
                       <span style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>
-                        Contoh: <strong>STS19</strong>, <strong>ERINE19</strong>, <strong>PASSION</strong>
+                        Contoh: <strong>STS20</strong>, <strong>ERINE20</strong>, <strong>PASSION</strong>
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -618,7 +618,7 @@ export default function AdminMasterDataPage() {
                         style={{ fontWeight: 800, letterSpacing: "0.08em", color: "var(--gold)" }}
                         value={warEvent.kodeTiket}
                         onChange={(e) => setWarEvent({ ...warEvent, kodeTiket: e.target.value.toUpperCase() })}
-                        placeholder="STS19"
+                        placeholder="STS20"
                         required
                       />
                       <div
@@ -633,7 +633,7 @@ export default function AdminMasterDataPage() {
                           whiteSpace: "nowrap",
                         }}
                       >
-                        Preview: #{warEvent.kodeTiket || "STS19"}-001
+                        Preview: #{warEvent.kodeTiket || "STS20"}-001
                       </div>
                     </div>
                   </div>
