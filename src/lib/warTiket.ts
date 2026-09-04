@@ -117,6 +117,58 @@ export async function getMemberTicket(eventId: number, anggotaId: number): Promi
 }
 
 /**
+ * Konversi waktu ke timestamp millisecond dengan dukungan zona waktu WIB (UTC+7)
+ */
+export function toTimestampMs(val: any): number {
+  if (!val) return 0;
+  if (typeof val === "number") return val;
+  if (val instanceof Date) return val.getTime();
+  const str = String(val).trim();
+  let iso = str.includes(" ") ? str.replace(" ", "T") : str;
+  if (!iso.includes("+") && !iso.includes("Z")) {
+    iso = iso.length === 16 ? `${iso}:00+07:00` : `${iso}+07:00`;
+  }
+  const t = new Date(iso).getTime();
+  return isNaN(t) ? 0 : t;
+}
+
+/**
+ * Format string waktu agar ramah ISO-8601 dengan offset WIB (+07:00)
+ */
+export function formatToWibIso(val: any): string {
+  if (!val) return "";
+  if (val instanceof Date) {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const y = val.getFullYear();
+    const m = pad(val.getMonth() + 1);
+    const d = pad(val.getDate());
+    const h = pad(val.getHours());
+    const mi = pad(val.getMinutes());
+    const s = pad(val.getSeconds());
+    return `${y}-${m}-${d}T${h}:${mi}:${s}+07:00`;
+  }
+  const str = String(val).trim();
+  if (str.includes("+") || str.includes("Z")) return str;
+  const iso = str.replace(" ", "T");
+  if (iso.length === 16) return `${iso}:00+07:00`;
+  if (iso.length === 19) return `${iso}+07:00`;
+  return iso;
+}
+
+/**
+ * Format string waktu agar aman disimpan ke kolom DATETIME MySQL (YYYY-MM-DD HH:MM:SS)
+ */
+export function formatForMySql(val: any): string {
+  if (!val) return "";
+  let str = String(val).trim().replace("T", " ");
+  if (str.includes("+")) str = str.split("+")[0];
+  if (str.includes("Z")) str = str.replace("Z", "");
+  str = str.trim();
+  if (str.length === 16) str += ":00";
+  return str;
+}
+
+/**
  * Klaim tiket dengan transaksi atomik MySQL (Anti-Race Condition & Anti-Overselling)
  */
 export async function claimWarTicket(
@@ -148,19 +200,19 @@ export async function claimWarTicket(
     }
 
     const ev = eventRows[0];
-    const serverTime = new Date(ev.server_time).getTime();
-    const openTime = new Date(ev.waktu_buka).getTime();
-    const closeTime = new Date(ev.waktu_tutup).getTime();
+    const nowMs = Date.now();
+    const openMs = toTimestampMs(ev.waktu_buka);
+    const closeMs = toTimestampMs(ev.waktu_tutup);
 
     if (ev.status !== "buka") {
       return { success: false, message: "War tiket saat ini sedang ditutup oleh admin" };
     }
 
-    if (serverTime < openTime) {
+    if (openMs > 0 && nowMs < openMs) {
       return { success: false, message: "War tiket belum dibuka! Tunggu hingga hitung mundur selesai." };
     }
 
-    if (serverTime > closeTime) {
+    if (closeMs > 0 && nowMs > closeMs) {
       return { success: false, message: "Periode war tiket untuk event ini telah berakhir." };
     }
 
@@ -171,9 +223,7 @@ export async function claimWarTicket(
        SET kuota_terisi = kuota_terisi + 1 
        WHERE id = ? 
          AND kuota_terisi < kuota_total 
-         AND status = 'buka' 
-         AND NOW() >= waktu_buka 
-         AND NOW() <= waktu_tutup`,
+         AND status = 'buka'`,
       [eventId]
     );
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/mysql";
-import { ensureWarTiketTables } from "@/lib/warTiket";
+import { ensureWarTiketTables, formatToWibIso, formatForMySql } from "@/lib/warTiket";
 import { getAdminSessionFromReq } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -13,9 +13,15 @@ export async function GET(req: NextRequest) {
     await ensureWarTiketTables();
 
     // 1. Ambil event aktif
-    const events = (await query<any[]>(
+    const rawEvents = (await query<any[]>(
       "SELECT *, NOW() AS server_time FROM war_tiket_events ORDER BY id DESC LIMIT 10"
     )) || [];
+
+    const events = rawEvents.map((ev) => ({
+      ...ev,
+      waktu_buka: formatToWibIso(ev.waktu_buka),
+      waktu_tutup: formatToWibIso(ev.waktu_tutup),
+    }));
 
     const activeEvent = events[0] || null;
     let pesertaList: any[] = [];
@@ -85,6 +91,8 @@ export async function POST(req: NextRequest) {
 
     const kuota = Math.max(1, Number(kuotaTotal) || 50);
     const prefix = (kodeTiket || "STS19").trim().toUpperCase();
+    const cleanWaktuBuka = formatForMySql(waktuBuka);
+    const cleanWaktuTutup = formatForMySql(waktuTutup);
 
     if (id) {
       // Update event yang ada
@@ -101,8 +109,8 @@ export async function POST(req: NextRequest) {
           kategoriTiket || "OFFICIAL VIP PASS • TEAM PASSION",
           deskripsi || "",
           kuota,
-          waktuBuka,
-          waktuTutup,
+          cleanWaktuBuka,
+          cleanWaktuTutup,
           status || "buka",
           syaratKetentuan || "",
           id,
@@ -123,8 +131,8 @@ export async function POST(req: NextRequest) {
           kategoriTiket || "OFFICIAL VIP PASS • TEAM PASSION",
           deskripsi || "",
           kuota,
-          waktuBuka,
-          waktuTutup,
+          cleanWaktuBuka,
+          cleanWaktuTutup,
           status || "buka",
           syaratKetentuan || "",
         ]
