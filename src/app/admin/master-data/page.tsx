@@ -45,6 +45,7 @@ export default function AdminMasterDataPage() {
   const [newKategoriPengeluaran, setNewKategoriPengeluaran] = useState("");
   const [newTahunKas, setNewTahunKas] = useState("");
   const [newJabatanBebas, setNewJabatanBebas] = useState("");
+  const [newTipeReward, setNewTipeReward] = useState("");
   const [editDefaultNominal, setEditDefaultNominal] = useState("");
 
   // State Pengaturan Master War Tiket & Template E-Ticket
@@ -134,7 +135,8 @@ export default function AdminMasterDataPage() {
             const ev = warJson.data.event;
             const formatForInput = (dtStr: string) => {
               if (!dtStr) return "";
-              const d = new Date(dtStr);
+              const isoStr = dtStr.includes(" ") ? dtStr.replace(" ", "T") : dtStr;
+              const d = new Date(isoStr);
               if (isNaN(d.getTime())) return "";
               const pad = (n: number) => String(n).padStart(2, "0");
               return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -205,8 +207,19 @@ export default function AdminMasterDataPage() {
         body: JSON.stringify(updatedData),
       });
       const json = await res.json();
-      if (json.status) {
-        setData(json.data);
+      if (json.status && json.data) {
+        setData({
+          divisi: json.data.divisi || [],
+          tipeDonasi: json.data.tipeDonasi || [],
+          nominalKas: json.data.nominalKas || [],
+          nominalDonasi: json.data.nominalDonasi || [],
+          platforms: json.data.platforms || [],
+          defaultNominalKas: json.data.defaultNominalKas || 15000,
+          kategoriPengeluaran: json.data.kategoriPengeluaran || [],
+          tahunKasAktif: json.data.tahunKasAktif || [],
+          jabatanBebasKas: json.data.jabatanBebasKas || [],
+          tipeRewardKupon: json.data.tipeRewardKupon || [],
+        });
         setMsg(json.message || "Master data berhasil disimpan!");
       } else {
         alert(json.message || "Gagal menyimpan data");
@@ -802,7 +815,7 @@ export default function AdminMasterDataPage() {
                 <h2 className={styles.sectionTitle}>
                   <i className="bx bx-receipt" style={{ color: "#e11d48" }} />
                   Kategori Pengeluaran Kas Operasional (
-                  {data.kategoriPengeluaran.length})
+                  {(data.kategoriPengeluaran || []).length})
                 </h2>
               </div>
               <p
@@ -825,7 +838,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.kategoriPengeluaran.map((kat) => (
+                {(data.kategoriPengeluaran || []).map((kat) => (
                   <span
                     key={kat}
                     style={{
@@ -977,7 +990,7 @@ export default function AdminMasterDataPage() {
                       className="bx bx-calendar"
                       style={{ color: "var(--gold)" }}
                     />
-                    Tahun Aktif Matriks Kas ({data.tahunKasAktif.length})
+                    Tahun Aktif Matriks Kas ({(data.tahunKasAktif || []).length})
                   </h2>
                 </div>
                 <p
@@ -999,7 +1012,7 @@ export default function AdminMasterDataPage() {
                     marginBottom: 14,
                   }}
                 >
-                  {data.tahunKasAktif.map((yr) => (
+                  {(data.tahunKasAktif || []).map((yr) => (
                     <span
                       key={yr}
                       style={{
@@ -1067,7 +1080,7 @@ export default function AdminMasterDataPage() {
                     className="bx bx-user-check"
                     style={{ color: "#3b82f6" }}
                   />
-                  Jabatan Bebas Iuran Kas Wajib ({data.jabatanBebasKas.length})
+                  Jabatan Bebas Iuran Kas Wajib ({(data.jabatanBebasKas || []).length})
                 </h2>
               </div>
               <p
@@ -1089,7 +1102,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.jabatanBebasKas.map((jab) => (
+                {(data.jabatanBebasKas || []).map((jab) => (
                   <span
                     key={jab}
                     style={{
@@ -1155,7 +1168,7 @@ export default function AdminMasterDataPage() {
                     className="bx bx-shield-quarter"
                     style={{ color: "var(--primary)" }}
                   />
-                  Divisi Admin Fanbase ({data.divisi.length})
+                  Divisi Admin Fanbase ({(data.divisi || []).length})
                 </h2>
               </div>
               <p
@@ -1179,7 +1192,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.divisi.map((div) => (
+                {(data.divisi || []).map((div) => (
                   <span
                     key={div}
                     style={{
@@ -1253,7 +1266,7 @@ export default function AdminMasterDataPage() {
                     className="bx bx-donate-heart"
                     style={{ color: "var(--gold)" }}
                   />
-                  Pilihan Tipe Donasi &amp; Project ({data.tipeDonasi.length})
+                  Pilihan Tipe Donasi &amp; Project ({(data.tipeDonasi || []).length})
                 </h2>
               </div>
               <p
@@ -1276,7 +1289,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.tipeDonasi.map((tipe) => (
+                {(data.tipeDonasi || []).map((tipe) => (
                   <span
                     key={tipe}
                     style={{
@@ -1344,7 +1357,7 @@ export default function AdminMasterDataPage() {
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   <i className="bx bx-share-alt" style={{ color: "#8b5cf6" }} />
-                  Pilihan Platform Kontak ({data.platforms.length})
+                  Pilihan Platform Kontak ({(data.platforms || []).length})
                 </h2>
               </div>
               <p
@@ -1367,7 +1380,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.platforms.map((plat) => (
+                {(data.platforms || []).map((plat) => (
                   <span
                     key={plat}
                     style={{
@@ -1438,7 +1451,7 @@ export default function AdminMasterDataPage() {
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
                   <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
-                  Pilihan Tipe Reward Kupon Kas ({data.tipeRewardKupon.length})
+                  Pilihan Tipe Reward Kupon Kas ({(data.tipeRewardKupon || []).length})
                 </h2>
               </div>
               <p
@@ -1461,7 +1474,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.tipeRewardKupon.map((rew) => (
+                {(data.tipeRewardKupon || []).map((rew) => (
                   <span
                     key={rew}
                     style={{
@@ -1539,7 +1552,7 @@ export default function AdminMasterDataPage() {
                 <div>
                   <h2 className={styles.sectionTitle}>
                     <i className="bx bx-wallet" style={{ color: "#10b981" }} />
-                    Pilihan Nominal Iuran Kas ({data.nominalKas.length})
+                    Pilihan Nominal Iuran Kas ({(data.nominalKas || []).length})
                   </h2>
                   <p
                     style={{
@@ -1585,7 +1598,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.nominalKas.map((nom) => {
+                {(data.nominalKas || []).map((nom) => {
                   const m = Math.round(nom / 15000);
                   const mLabel =
                     m === 1
@@ -1682,7 +1695,7 @@ export default function AdminMasterDataPage() {
                 <div>
                   <h2 className={styles.sectionTitle}>
                     <i className="bx bx-heart" style={{ color: "#f59e0b" }} />
-                    Pilihan Nominal Donasi ({data.nominalDonasi.length})
+                    Pilihan Nominal Donasi ({(data.nominalDonasi || []).length})
                   </h2>
                   <p
                     style={{
@@ -1727,7 +1740,7 @@ export default function AdminMasterDataPage() {
                   marginBottom: 14,
                 }}
               >
-                {data.nominalDonasi.map((nom) => (
+                {(data.nominalDonasi || []).map((nom) => (
                   <span
                     key={nom}
                     style={{

@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     await ensureWarTiketTables();
+    const body = await req.json();
     const {
       id,
       judul,
