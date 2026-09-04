@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     const kuota = Math.max(1, Number(kuotaTotal) || 50);
-    const prefix = (kodeTiket || "STS19").trim().toUpperCase();
+    const prefix = (kodeTiket || "STS20").trim().toUpperCase();
     const cleanWaktuBuka = formatForMySql(waktuBuka);
     const cleanWaktuTutup = formatForMySql(waktuTutup);
 

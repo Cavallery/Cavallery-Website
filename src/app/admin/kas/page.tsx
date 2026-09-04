@@ -94,8 +94,8 @@ export default function AdminKasPage() {
   const [savingWarEvent, setSavingWarEvent] = useState(false);
   const [warForm, setWarForm] = useState({
     id: 0,
-    judul: "War Tiket Project STS Erine 19th",
-    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    judul: "War Tiket Project STS Erine 20th",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-20 bersama Cavallery Team Passion.",
     kuotaTotal: 50,
     waktuBuka: "",
     waktuTutup: "",
@@ -1919,7 +1919,7 @@ export default function AdminKasPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                     <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--gold)", background: "rgba(201, 168, 76, 0.12)", padding: "2px 8px", borderRadius: 6, border: "1px dashed var(--gold)" }}>
-                      Prefix: #{adminWarEvent.kode_tiket || "STS19"}-xxx
+                      Prefix: #{adminWarEvent.kode_tiket || "STS20"}-xxx
                     </span>
                     <Link href="/admin/master-data" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
                       Ubah di Master Data →
@@ -2505,7 +2505,7 @@ export default function AdminKasPage() {
                   className={styles.modalInput}
                   value={warForm.judul}
                   onChange={(e) => setWarForm({ ...warForm, judul: e.target.value })}
-                  placeholder="Contoh: War Tiket Project STS Erine 19th"
+                  placeholder="Contoh: War Tiket Project STS Erine 20th"
                 />
               </div>
 

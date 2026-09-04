@@ -183,13 +183,13 @@ export default function CavalleryKasPage() {
   // War Tiket STS Erine State
   const [warEvent, setWarEvent] = useState<any>({
     id: 1,
-    judul: "War Tiket Project STS Erine 19th",
-    kode_tiket: "STS19",
+    judul: "War Tiket Project STS Erine 20th",
+    kode_tiket: "STS20",
     subjudul: "Cavallery • Official Fanbase Erine JKT48",
     lokasi_event: "Theater JKT48, fX Sudirman Lt. 4",
     tanggal_event: "Sabtu, 26 September 2026 • 19.00 WIB",
     kategori_tiket: "OFFICIAL VIP PASS • TEAM PASSION",
-    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-20 bersama Cavallery Team Passion.",
     kuota_total: 50,
     kuota_terisi: 0,
     sisa_kuota: 50,
@@ -639,7 +639,11 @@ export default function CavalleryKasPage() {
       ctx.textAlign = "center";
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#e2b857";
-      ctx.fillText(warEvent?.kategori_tiket || "★ OFFICIAL VIP EVENT PASS ★", w / 2, 95);
+      ctx.fillText(
+        (warEvent?.kategori_tiket || "OFFICIAL VIP EVENT PASS").replace(/★/g, "").replace(/🔥/g, "").trim(),
+        w / 2,
+        95
+      );
 
       // Brand Title
       ctx.font = "bold 26px serif";
@@ -649,7 +653,14 @@ export default function CavalleryKasPage() {
       // Project Title
       ctx.font = "bold 22px serif";
       ctx.fillStyle = "#c9a84c";
-      ctx.fillText((warEvent?.judul || "PROJECT STS ERINE 19TH BIRTHDAY").toUpperCase(), w / 2, 170);
+      ctx.fillText(
+        (warEvent?.judul || "PROJECT STS ERINE 20TH BIRTHDAY")
+          .replace(/19th/gi, "20th")
+          .replace(/ke-19/gi, "ke-20")
+          .toUpperCase(),
+        w / 2,
+        170
+      );
 
       ctx.font = "14px sans-serif";
       ctx.fillStyle = "#a1a1aa";
@@ -838,7 +849,7 @@ export default function CavalleryKasPage() {
       ctx.font = "bold 14px monospace";
       ctx.fillStyle = "#a1a1aa";
       ctx.textAlign = "center";
-      const codePfx = warEvent?.kode_tiket || "STS19";
+      const codePfx = warEvent?.kode_tiket || "STS20";
       ctx.fillText(`*${codePfx}-${userWarTicket.nomor_tiket}-${noAngg}*`, w / 2, barY + 62);
 
       // 10. Important Event Notice Box
@@ -3585,11 +3596,12 @@ export default function CavalleryKasPage() {
                 <div className={styles.warTitleWrap}>
                   <h2 className={styles.warMainTitle}>
                     <i className="bx bx-flame" style={{ color: "#ef4444" }} />
-                    {warEvent?.judul || "War Tiket Project STS Erine 19th"}
+                    {(warEvent?.judul || "War Tiket Project STS Erine 20th").replace(/19th/gi, "20th").replace(/ke-19/gi, "ke-20")}
                   </h2>
                   <p className={styles.warSubtitle}>
-                    {warEvent?.deskripsi ||
-                      "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion."}
+                    {(warEvent?.deskripsi || "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-20 bersama Cavallery Team Passion.")
+                      .replace(/ke-19/gi, "ke-20")
+                      .replace(/19th/gi, "20th")}
                   </p>
                 </div>
 
@@ -3668,11 +3680,16 @@ export default function CavalleryKasPage() {
             {userWarTicket ? (
               <div className={styles.warTicketPass}>
                 <div className={styles.ticketTopBadge}>
-                  {warEvent?.kategori_tiket || "★ OFFICIAL VIP PASS • TEAM PASSION ★"}
+                  {(warEvent?.kategori_tiket || "OFFICIAL VIP PASS • CAVALLERY")
+                    .replace(/★/g, "")
+                    .replace(/🔥/g, "")
+                    .trim()}
                 </div>
 
                 <h2 className={styles.ticketEventTitle}>
-                  {warEvent?.judul || "PROJECT STS ERINE 19TH BIRTHDAY"}
+                  {(warEvent?.judul || "PROJECT STS ERINE 20TH BIRTHDAY")
+                    .replace(/19th/gi, "20th")
+                    .replace(/ke-19/gi, "ke-20")}
                 </h2>
                 <div className={styles.ticketEventSub}>
                   {warEvent?.subjudul || "Cavallery • Fanbase Resmi Erine JKT48"}
@@ -3737,7 +3754,7 @@ export default function CavalleryKasPage() {
                       ))}
                     </div>
                     <div className={styles.ticketBarcodeNumber}>
-                      *{warEvent?.kode_tiket || "STS19"}-{userWarTicket.nomor_tiket}-{userWarTicket.no_anggota || sessionUser.noAnggota}*
+                      *{warEvent?.kode_tiket || "STS20"}-{userWarTicket.nomor_tiket}-{userWarTicket.no_anggota || sessionUser.noAnggota}*
                     </div>
                   </div>
                 </div>
@@ -3888,7 +3905,7 @@ export default function CavalleryKasPage() {
                         </>
                       ) : (
                         <>
-                          <i className="bx bx-flame" /> 🔥 WAR TIKET SEKARANG!
+                          <i className="bx bx-ticket" /> WAR TIKET SEKARANG
                         </>
                       )}
                     </button>
