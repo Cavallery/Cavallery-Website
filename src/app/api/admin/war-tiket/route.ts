@@ -3,11 +3,20 @@ import { query } from "@/lib/mysql";
 import { ensureWarTiketTables, formatToWibIso, formatForMySql } from "@/lib/warTiket";
 import { getAdminSessionFromReq } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
+
 export async function GET(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
     if (!admin) {
-      return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
+      return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401, headers: NO_CACHE_HEADERS });
     }
 
     await ensureWarTiketTables();
@@ -43,14 +52,17 @@ export async function GET(req: NextRequest) {
       )) || [];
     }
 
-    return NextResponse.json({
-      status: true,
-      data: {
-        event: activeEvent,
-        events,
-        peserta: pesertaList,
+    return NextResponse.json(
+      {
+        status: true,
+        data: {
+          event: activeEvent,
+          events,
+          peserta: pesertaList,
+        },
       },
-    });
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
     console.error("GET /api/admin/war-tiket error:", error);
     return NextResponse.json(
@@ -94,7 +106,10 @@ export async function POST(req: NextRequest) {
     const cleanWaktuBuka = formatForMySql(waktuBuka);
     const cleanWaktuTutup = formatForMySql(waktuTutup);
 
-    if (id) {
+    const existingEvents = await query<any[]>("SELECT id FROM war_tiket_events ORDER BY id DESC");
+    const targetId = id || (existingEvents && existingEvents.length > 0 ? existingEvents[0].id : null);
+
+    if (targetId) {
       // Update event yang ada
       await query(
         `UPDATE war_tiket_events 
@@ -113,9 +128,13 @@ export async function POST(req: NextRequest) {
           cleanWaktuTutup,
           status || "buka",
           syaratKetentuan || "",
-          id,
+          targetId,
         ]
       );
+      // Bersihkan event duplikat kosong jika ada lebih dari 1 baris
+      if (existingEvents && existingEvents.length > 1) {
+        await query("DELETE FROM war_tiket_events WHERE id != ? AND kuota_terisi = 0", [targetId]);
+      }
     } else {
       // Buat event baru
       await query(
@@ -139,10 +158,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      status: true,
-      message: "Pengaturan War Tiket berhasil disimpan!",
-    });
+    const updatedRows = await query<any[]>("SELECT * FROM war_tiket_events ORDER BY id DESC LIMIT 1");
+
+    return NextResponse.json(
+      {
+        status: true,
+        message: "Pengaturan War Tiket berhasil disimpan dan langsung terhubung!",
+        data: updatedRows?.[0] || null,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
     console.error("POST /api/admin/war-tiket error:", error);
     return NextResponse.json(

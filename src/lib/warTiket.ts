@@ -95,7 +95,6 @@ export async function getActiveWarEvent(): Promise<any | null> {
   const rows = await query<any[]>(
     `SELECT *, NOW() AS server_time 
      FROM war_tiket_events 
-     WHERE status != 'draft' 
      ORDER BY id DESC LIMIT 1`
   );
   if (!rows || rows.length === 0) return null;
