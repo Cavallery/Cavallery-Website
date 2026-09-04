@@ -45,8 +45,38 @@ export default function AdminMasterDataPage() {
   const [newKategoriPengeluaran, setNewKategoriPengeluaran] = useState("");
   const [newTahunKas, setNewTahunKas] = useState("");
   const [newJabatanBebas, setNewJabatanBebas] = useState("");
-  const [newTipeReward, setNewTipeReward] = useState("");
   const [editDefaultNominal, setEditDefaultNominal] = useState("");
+
+  // State Pengaturan Master War Tiket & Template E-Ticket
+  const [warEvent, setWarEvent] = useState<{
+    id?: number;
+    judul: string;
+    kodeTiket: string;
+    subjudul: string;
+    lokasiEvent: string;
+    tanggalEvent: string;
+    kategoriTiket: string;
+    deskripsi: string;
+    kuotaTotal: number;
+    waktuBuka: string;
+    waktuTutup: string;
+    status: string;
+    syaratKetentuan: string;
+  }>({
+    judul: "War Tiket Project STS Erine 19th",
+    kodeTiket: "STS19",
+    subjudul: "Cavallery • Official Fanbase Erine JKT48",
+    lokasiEvent: "Theater JKT48, fX Sudirman Lt. 4",
+    tanggalEvent: "Sabtu, 26 September 2026 • 19.00 WIB",
+    kategoriTiket: "OFFICIAL VIP PASS • TEAM PASSION",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    kuotaTotal: 50,
+    waktuBuka: "",
+    waktuTutup: "",
+    status: "buka",
+    syaratKetentuan: "1. Wajib memiliki akun anggota Cavallery aktif.\n2. 1 Akun anggota hanya dapat mengklaim maksimal 1 tiket.\n3. Tiket tidak dapat dipindahtangankan tanpa konfirmasi admin.",
+  });
+  const [savingWarEvent, setSavingWarEvent] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -94,10 +124,70 @@ export default function AdminMasterDataPage() {
           Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"),
         );
       }
+
+      // Fetch War Tiket Event Data
+      try {
+        const warRes = await fetch("/api/admin/war-tiket");
+        if (warRes.ok) {
+          const warJson = await warRes.json();
+          if (warJson.status && warJson.data?.event) {
+            const ev = warJson.data.event;
+            const formatForInput = (dtStr: string) => {
+              if (!dtStr) return "";
+              const d = new Date(dtStr);
+              if (isNaN(d.getTime())) return "";
+              const pad = (n: number) => String(n).padStart(2, "0");
+              return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            };
+
+            setWarEvent({
+              id: ev.id,
+              judul: ev.judul || "",
+              kodeTiket: ev.kode_tiket || "STS19",
+              subjudul: ev.subjudul || "Cavallery • Official Fanbase Erine JKT48",
+              lokasiEvent: ev.lokasi_event || "Theater JKT48, fX Sudirman Lt. 4",
+              tanggalEvent: ev.tanggal_event || "Sabtu, 26 September 2026 • 19.00 WIB",
+              kategoriTiket: ev.kategori_tiket || "OFFICIAL VIP PASS • TEAM PASSION",
+              deskripsi: ev.deskripsi || "",
+              kuotaTotal: Number(ev.kuota_total) || 50,
+              waktuBuka: formatForInput(ev.waktu_buka),
+              waktuTutup: formatForInput(ev.waktu_tutup),
+              status: ev.status || "buka",
+              syaratKetentuan: ev.syarat_ketentuan || "",
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Fetch war event error in master data:", err);
+      }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveWarEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingWarEvent(true);
+    setMsg("");
+    try {
+      const res = await fetch("/api/admin/war-tiket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(warEvent),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg("✓ Pengaturan Event & Template Kode Tiket War berhasil disimpan!");
+        setTimeout(() => setMsg(""), 5000);
+      } else {
+        alert(json.message || "Gagal menyimpan pengaturan tiket");
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setSavingWarEvent(false);
     }
   };
 
@@ -432,6 +522,277 @@ export default function AdminMasterDataPage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* ── 0. PENGATURAN MASTER EVENT & TEMPLATE E-TICKET WAR (BARU) ── */}
+            <div
+              className={styles.sectionCard}
+              style={{
+                border: "2px solid rgba(201, 168, 76, 0.45)",
+                background: "linear-gradient(180deg, rgba(201, 168, 76, 0.05) 0%, rgba(20, 16, 12, 0.4) 100%)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+              }}
+            >
+              <div className={styles.sectionHeader} style={{ marginBottom: 12 }}>
+                <div>
+                  <h2 className={styles.sectionTitle} style={{ color: "var(--gold)", fontSize: "1.25rem" }}>
+                    <i className="bx bx-confirmation" style={{ color: "var(--gold)", fontSize: "1.4rem" }} />
+                    Pengaturan Master Event &amp; Template E-Ticket War
+                  </h2>
+                  <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    Kustomisasi nama event tiket, kode unik tiket (dapat diubah dari STS19 ke kode event lain), kuota, venue acara, dan jadwal war tiket.
+                  </p>
+                </div>
+                <span
+                  style={{
+                    padding: "4px 12px",
+                    borderRadius: 20,
+                    fontSize: "0.76rem",
+                    fontWeight: 800,
+                    background: warEvent.status === "buka" ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                    border: `1px solid ${warEvent.status === "buka" ? "#10b981" : "#ef4444"}`,
+                    color: warEvent.status === "buka" ? "#10b981" : "#ef4444",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Status: {warEvent.status}
+                </span>
+              </div>
+
+              <form onSubmit={handleSaveWarEvent} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+                  {/* Nama Event / Judul Tiket */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      Judul / Nama Event Tiket:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={warEvent.judul}
+                      onChange={(e) => setWarEvent({ ...warEvent, judul: e.target.value })}
+                      placeholder="Contoh: War Tiket Project STS Erine 19th"
+                      required
+                    />
+                  </div>
+
+                  {/* Kode Prefix Tiket (Bisa Diubah!) */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--gold)" }}>
+                        Kode Prefix Tiket (Nomor Tiket):
+                      </label>
+                      <span style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>
+                        Contoh: <strong>STS19</strong>, <strong>ERINE19</strong>, <strong>PASSION</strong>
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        style={{ fontWeight: 800, letterSpacing: "0.08em", color: "var(--gold)" }}
+                        value={warEvent.kodeTiket}
+                        onChange={(e) => setWarEvent({ ...warEvent, kodeTiket: e.target.value.toUpperCase() })}
+                        placeholder="STS19"
+                        required
+                      />
+                      <div
+                        style={{
+                          padding: "8px 14px",
+                          borderRadius: 10,
+                          background: "rgba(201, 168, 76, 0.12)",
+                          border: "1px dashed var(--gold)",
+                          fontSize: "0.78rem",
+                          fontWeight: 800,
+                          color: "var(--gold)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Preview: #{warEvent.kodeTiket || "STS19"}-001
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Subjudul / Tema Acara */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      Subjudul / Tema Acara:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={warEvent.subjudul}
+                      onChange={(e) => setWarEvent({ ...warEvent, subjudul: e.target.value })}
+                      placeholder="Contoh: Cavallery • Official Fanbase Erine JKT48"
+                    />
+                  </div>
+
+                  {/* Kategori / Level Tiket */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      Kategori / Badge Tiket:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={warEvent.kategoriTiket}
+                      onChange={(e) => setWarEvent({ ...warEvent, kategoriTiket: e.target.value })}
+                      placeholder="Contoh: OFFICIAL VIP PASS • TEAM PASSION"
+                    />
+                  </div>
+
+                  {/* Lokasi / Venue Acara */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      <i className="bx bx-map-pin" style={{ color: "var(--gold)", marginRight: 4 }} />
+                      Lokasi / Venue Acara:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={warEvent.lokasiEvent}
+                      onChange={(e) => setWarEvent({ ...warEvent, lokasiEvent: e.target.value })}
+                      placeholder="Contoh: Theater JKT48, fX Sudirman Lt. 4"
+                    />
+                  </div>
+
+                  {/* Tanggal & Waktu Acara */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      <i className="bx bx-calendar" style={{ color: "var(--gold)", marginRight: 4 }} />
+                      Tanggal &amp; Waktu Pelaksanaan Acara:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={warEvent.tanggalEvent}
+                      onChange={(e) => setWarEvent({ ...warEvent, tanggalEvent: e.target.value })}
+                      placeholder="Contoh: Sabtu, 26 September 2026 • 19.00 WIB"
+                    />
+                  </div>
+
+                  {/* Kuota Total */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      <i className="bx bx-group" style={{ color: "var(--gold)", marginRight: 4 }} />
+                      Kuota Tiket Tersedia:
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      className={styles.modalInput}
+                      value={warEvent.kuotaTotal}
+                      onChange={(e) => setWarEvent({ ...warEvent, kuotaTotal: Number(e.target.value) || 1 })}
+                      required
+                    />
+                  </div>
+
+                  {/* Status War */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      Status Ketersediaan War:
+                    </label>
+                    <select
+                      className={styles.modalInput}
+                      value={warEvent.status}
+                      onChange={(e) => setWarEvent({ ...warEvent, status: e.target.value })}
+                    >
+                      <option value="buka">Buka (Aktif &amp; Dapat Diwar)</option>
+                      <option value="tutup">Tutup (Ditutup Sementara/Permanen)</option>
+                      <option value="draft">Draft (Disembunyikan)</option>
+                    </select>
+                  </div>
+
+                  {/* Waktu Buka War */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      <i className="bx bx-time" style={{ color: "var(--gold)", marginRight: 4 }} />
+                      Waktu Mulai Dibuka (Countdown):
+                    </label>
+                    <input
+                      type="datetime-local"
+                      className={styles.modalInput}
+                      value={warEvent.waktuBuka}
+                      onChange={(e) => setWarEvent({ ...warEvent, waktuBuka: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  {/* Waktu Tutup War */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                      <i className="bx bx-time-five" style={{ color: "var(--gold)", marginRight: 4 }} />
+                      Waktu Ditutup (Batas Akhir War):
+                    </label>
+                    <input
+                      type="datetime-local"
+                      className={styles.modalInput}
+                      value={warEvent.waktuTutup}
+                      onChange={(e) => setWarEvent({ ...warEvent, waktuTutup: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Deskripsi Singkat */}
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                    Deskripsi Ringkas Event:
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    value={warEvent.deskripsi}
+                    onChange={(e) => setWarEvent({ ...warEvent, deskripsi: e.target.value })}
+                    placeholder="Deskripsi singkat yang tampil pada banner war tiket..."
+                  />
+                </div>
+
+                {/* Syarat & Ketentuan */}
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                    Syarat &amp; Ketentuan War Tiket:
+                  </label>
+                  <textarea
+                    className={styles.modalInput}
+                    rows={3}
+                    style={{ resize: "vertical" }}
+                    value={warEvent.syaratKetentuan}
+                    onChange={(e) => setWarEvent({ ...warEvent, syaratKetentuan: e.target.value })}
+                    placeholder="Tuliskan syarat dan aturan klaim tiket..."
+                  />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 4 }}>
+                  <button
+                    type="submit"
+                    disabled={savingWarEvent}
+                    className={styles.btnCreate}
+                    style={{
+                      background: "linear-gradient(135deg, #d4af37 0%, #b45309 100%)",
+                      color: "#000",
+                      fontWeight: 800,
+                      padding: "10px 24px",
+                      borderRadius: 12,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      border: "none",
+                      boxShadow: "0 4px 14px rgba(212, 175, 55, 0.35)",
+                    }}
+                  >
+                    {savingWarEvent ? (
+                      <>
+                        <i className="bx bx-loader-alt bx-spin" /> Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <i className="bx bx-save" /> Simpan Pengaturan &amp; Kode E-Tiket
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+
             {/* ── 1. KATEGORI PENGELUARAN KAS (BARU DITAMBAHKAN) ── */}
             <div
               className={styles.sectionCard}

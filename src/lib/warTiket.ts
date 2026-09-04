@@ -10,6 +10,11 @@ export async function ensureWarTiketTables(): Promise<void> {
       CREATE TABLE IF NOT EXISTS war_tiket_events (
         id INT AUTO_INCREMENT PRIMARY KEY,
         judul VARCHAR(255) NOT NULL,
+        kode_tiket VARCHAR(50) NOT NULL DEFAULT 'STS19',
+        subjudul VARCHAR(255) NULL,
+        lokasi_event VARCHAR(255) NULL,
+        tanggal_event VARCHAR(100) NULL,
+        kategori_tiket VARCHAR(100) NULL DEFAULT 'OFFICIAL VIP PASS • TEAM PASSION',
         deskripsi TEXT NULL,
         kuota_total INT NOT NULL DEFAULT 50,
         kuota_terisi INT NOT NULL DEFAULT 0,
@@ -21,6 +26,13 @@ export async function ensureWarTiketTables(): Promise<void> {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Safe migration untuk kolom baru jika tabel sudah ada sebelumnya
+    try { await query("ALTER TABLE war_tiket_events ADD COLUMN kode_tiket VARCHAR(50) NOT NULL DEFAULT 'STS19'"); } catch {}
+    try { await query("ALTER TABLE war_tiket_events ADD COLUMN subjudul VARCHAR(255) NULL"); } catch {}
+    try { await query("ALTER TABLE war_tiket_events ADD COLUMN lokasi_event VARCHAR(255) NULL"); } catch {}
+    try { await query("ALTER TABLE war_tiket_events ADD COLUMN tanggal_event VARCHAR(100) NULL"); } catch {}
+    try { await query("ALTER TABLE war_tiket_events ADD COLUMN kategori_tiket VARCHAR(100) NULL DEFAULT 'OFFICIAL VIP PASS • TEAM PASSION'"); } catch {}
 
     // 2. Tabel Peserta / Pemenang War Tiket
     await query(`
@@ -53,10 +65,15 @@ export async function ensureWarTiketTables(): Promise<void> {
 
       await query(
         `INSERT INTO war_tiket_events 
-         (judul, deskripsi, kuota_total, kuota_terisi, waktu_buka, waktu_tutup, status, syarat_ketentuan)
-         VALUES (?, ?, ?, 0, ?, ?, 'buka', ?)`,
+         (judul, kode_tiket, subjudul, lokasi_event, tanggal_event, kategori_tiket, deskripsi, kuota_total, kuota_terisi, waktu_buka, waktu_tutup, status, syarat_ketentuan)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, 'buka', ?)`,
         [
           "War Tiket Project STS Erine 19th",
+          "STS19",
+          "Cavallery • Official Fanbase Erine JKT48",
+          "Theater JKT48, fX Sudirman Lt. 4",
+          "Sabtu, 26 September 2026 • 19.00 WIB",
+          "OFFICIAL VIP PASS • TEAM PASSION",
           "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
           50,
           fmt(openTime),
@@ -167,10 +184,11 @@ export async function claimWarTicket(
       };
     }
 
-    // 4. Ambil kuota terisi saat ini untuk nomor tiket urut
-    const curEvent = await query<any[]>("SELECT kuota_terisi FROM war_tiket_events WHERE id = ?", [eventId]);
+    // 4. Ambil kuota terisi saat ini untuk nomor tiket urut & prefix yang fleksibel
+    const curEvent = await query<any[]>("SELECT kuota_terisi, kode_tiket FROM war_tiket_events WHERE id = ?", [eventId]);
     const currentQueue = curEvent?.[0]?.kuota_terisi || 1;
-    const nomorTiket = `STS19-${String(currentQueue).padStart(3, "0")}`;
+    const prefix = (curEvent?.[0]?.kode_tiket || ev.kode_tiket || "STS19").trim().toUpperCase();
+    const nomorTiket = `${prefix}-${String(currentQueue).padStart(3, "0")}`;
 
     // 5. Simpan data peserta pemenang war tiket
     await query(
