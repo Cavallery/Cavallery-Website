@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/mysql";
-import { ensureWarTiketTables, formatToWibIso, formatForMySql } from "@/lib/warTiket";
+import { ensureWarTiketTables, formatToWibIso, formatForMySql, updateMemoryWarEvent } from "@/lib/warTiket";
 import { getAdminSessionFromReq } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -159,12 +159,30 @@ export async function POST(req: NextRequest) {
     }
 
     const updatedRows = await query<any[]>("SELECT * FROM war_tiket_events ORDER BY id DESC LIMIT 1");
+    const activeRow = updatedRows?.[0] || {
+      id: targetId || 1,
+      judul,
+      kode_tiket: prefix,
+      subjudul: subjudul || "Cavallery • Official Fanbase Erine JKT48",
+      lokasi_event: lokasiEvent || "Theater JKT48, fX Sudirman Lt. 4",
+      tanggal_event: tanggalEvent || "Sabtu, 26 September 2026 • 19.00 WIB",
+      kategori_tiket: kategoriTiket || "OFFICIAL VIP PASS • TEAM PASSION",
+      deskripsi: deskripsi || "",
+      kuota_total: kuota,
+      kuota_terisi: 0,
+      waktu_buka: cleanWaktuBuka,
+      waktu_tutup: cleanWaktuTutup,
+      status: status || "buka",
+      syarat_ketentuan: syaratKetentuan || "",
+    };
+
+    updateMemoryWarEvent(activeRow);
 
     return NextResponse.json(
       {
         status: true,
         message: "Pengaturan War Tiket berhasil disimpan dan langsung terhubung!",
-        data: updatedRows?.[0] || null,
+        data: activeRow,
       },
       { headers: NO_CACHE_HEADERS }
     );

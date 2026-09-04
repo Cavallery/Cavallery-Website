@@ -181,7 +181,21 @@ export default function CavalleryKasPage() {
   const [copiedKupon, setCopiedKupon] = useState<string | null>(null);
 
   // War Tiket STS Erine State
-  const [warEvent, setWarEvent] = useState<any | null>(null);
+  const [warEvent, setWarEvent] = useState<any>({
+    id: 1,
+    judul: "War Tiket Project STS Erine 19th",
+    kode_tiket: "STS19",
+    subjudul: "Cavallery • Official Fanbase Erine JKT48",
+    lokasi_event: "Theater JKT48, fX Sudirman Lt. 4",
+    tanggal_event: "Sabtu, 26 September 2026 • 19.00 WIB",
+    kategori_tiket: "OFFICIAL VIP PASS • TEAM PASSION",
+    deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+    kuota_total: 50,
+    kuota_terisi: 0,
+    sisa_kuota: 50,
+    status: "buka",
+    is_war_active: true,
+  });
   const [userWarTicket, setUserWarTicket] = useState<any | null>(null);
   const [loadingWar, setLoadingWar] = useState(false);
   const [claimingWar, setClaimingWar] = useState(false);
@@ -480,8 +494,13 @@ export default function CavalleryKasPage() {
       const openTime = warEvent.waktu_buka_ms || parseMs(warEvent.waktu_buka);
       const closeTime = warEvent.waktu_tutup_ms || parseMs(warEvent.waktu_tutup);
 
-      const hasStarted = openTime <= 0 || now >= openTime;
-      const hasEnded = closeTime > 0 && now > closeTime;
+      const hasStarted =
+        warEvent.status === "buka" &&
+        (openTime <= 0 || now >= openTime || warEvent.is_war_active || warEvent.is_started);
+      const hasEnded =
+        warEvent.status === "tutup" ||
+        (closeTime > 0 && now > closeTime) ||
+        warEvent.is_ended;
 
       if (!hasStarted) {
         // Belum mulai (Hitung mundur menuju buka)
@@ -3540,64 +3559,83 @@ export default function CavalleryKasPage() {
         {/* ══════════════════════════════════════════════════════════════════ */}
         {/* ── TAB 4: WAR TIKET PROJECT STS ERINE (TEAM PASSION FIRE) ── */}
         {/* ══════════════════════════════════════════════════════════════════ */}
-        {portalTab === "war" && (
-          <div className={styles.warCard}>
-            {/* Header Event */}
-            <div className={styles.warCardHeader}>
-              <div className={styles.warTitleWrap}>
-                <h2 className={styles.warMainTitle}>
-                  <i className="bx bx-flame" style={{ color: "#ef4444" }} />
-                  {warEvent?.judul || "War Tiket Project STS Erine 19th"}
-                </h2>
-                <p className={styles.warSubtitle}>
-                  {warEvent?.deskripsi ||
-                    "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion."}
-                </p>
-              </div>
+        {portalTab === "war" && (() => {
+          const isWarClosed = Boolean(
+            warEvent?.status === "tutup" ||
+            warTimeLeft.isEnded ||
+            (warEvent?.waktu_tutup_ms && Date.now() > warEvent.waktu_tutup_ms)
+          );
+          const isWarActive = Boolean(
+            warEvent &&
+            warEvent.status === "buka" &&
+            (
+              warTimeLeft.isStarted ||
+              warEvent.is_war_active ||
+              warEvent.is_started ||
+              !warEvent.waktu_buka_ms ||
+              Date.now() >= warEvent.waktu_buka_ms
+            ) &&
+            !isWarClosed
+          );
 
-              {/* Status Badge */}
-              <div>
-                {loadingWar ? (
-                  <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
-                    <i className="bx bx-loader-alt bx-spin" /> Memuat...
-                  </span>
-                ) : userWarTicket ? (
-                  <span
-                    className={styles.warStatusBadge}
-                    style={{
-                      background: "rgba(16, 185, 129, 0.15)",
-                      border: "1px solid #10b981",
-                      color: "#10b981",
-                    }}
-                  >
-                    <i className="bx bx-check-circle" /> TIKET KAMU TERKONFIRMASI
-                  </span>
-                ) : warEvent?.status === "tutup" || warTimeLeft.isEnded ? (
-                  <span className={`${styles.warStatusBadge} ${styles.warStatusClosed}`}>
-                    <i className="bx bx-lock-alt" /> WAR TELAH DITUTUP
-                  </span>
-                ) : !warTimeLeft.isStarted ? (
-                  <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
-                    <i className="bx bx-time-five" /> WAR BELUM DIBUKA
-                  </span>
-                ) : warEvent && warEvent.kuota_terisi >= warEvent.kuota_total ? (
-                  <span
-                    className={styles.warStatusBadge}
-                    style={{
-                      background: "rgba(239, 68, 68, 0.15)",
-                      border: "1px solid #ef4444",
-                      color: "#ef4444",
-                    }}
-                  >
-                    <i className="bx bx-x-circle" /> KUOTA HABIS
-                  </span>
-                ) : (
-                  <span className={`${styles.warStatusBadge} ${styles.warStatusOpen}`}>
-                    <i className="bx bx-broadcast" /> WAR SEDANG BERLANGSUNG
-                  </span>
-                )}
+          return (
+            <div className={styles.warCard}>
+              {/* Header Event */}
+              <div className={styles.warCardHeader}>
+                <div className={styles.warTitleWrap}>
+                  <h2 className={styles.warMainTitle}>
+                    <i className="bx bx-flame" style={{ color: "#ef4444" }} />
+                    {warEvent?.judul || "War Tiket Project STS Erine 19th"}
+                  </h2>
+                  <p className={styles.warSubtitle}>
+                    {warEvent?.deskripsi ||
+                      "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion."}
+                  </p>
+                </div>
+
+                {/* Status Badge */}
+                <div>
+                  {loadingWar && !warEvent ? (
+                    <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
+                      <i className="bx bx-loader-alt bx-spin" /> Memuat...
+                    </span>
+                  ) : userWarTicket ? (
+                    <span
+                      className={styles.warStatusBadge}
+                      style={{
+                        background: "rgba(16, 185, 129, 0.15)",
+                        border: "1px solid #10b981",
+                        color: "#10b981",
+                      }}
+                    >
+                      <i className="bx bx-check-circle" /> TIKET KAMU TERKONFIRMASI
+                    </span>
+                  ) : isWarClosed ? (
+                    <span className={`${styles.warStatusBadge} ${styles.warStatusClosed}`}>
+                      <i className="bx bx-lock-alt" /> WAR TELAH DITUTUP
+                    </span>
+                  ) : !isWarActive ? (
+                    <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
+                      <i className="bx bx-time-five" /> WAR BELUM DIBUKA
+                    </span>
+                  ) : warEvent && warEvent.kuota_terisi >= warEvent.kuota_total ? (
+                    <span
+                      className={styles.warStatusBadge}
+                      style={{
+                        background: "rgba(239, 68, 68, 0.15)",
+                        border: "1px solid #ef4444",
+                        color: "#ef4444",
+                      }}
+                    >
+                      <i className="bx bx-x-circle" /> KUOTA HABIS
+                    </span>
+                  ) : (
+                    <span className={`${styles.warStatusBadge} ${styles.warStatusOpen}`}>
+                      <i className="bx bx-broadcast" /> WAR SEDANG BERLANGSUNG
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
 
             {/* Alert Message */}
             {warAlert && (
@@ -3738,8 +3776,8 @@ export default function CavalleryKasPage() {
             ) : (
               <>
                 {/* ── JIKA BELUM PUNYA TIKET: COUNTDOWN + KUOTA + TOMBOL WAR ── */}
-                {/* Countdown Timer */}
-                {!warTimeLeft.isStarted && (
+                {/* Countdown Timer (Hanya muncul jika belum buka & belum selesai) */}
+                {!isWarActive && !isWarClosed && (
                   <div className={styles.warCountdownWrap}>
                     <div className={styles.countdownHeading}>
                       <i className="bx bx-alarm" /> Hitung Mundur War Tiket
@@ -3802,7 +3840,7 @@ export default function CavalleryKasPage() {
 
                 {/* Tombol Utama WAR TIKET */}
                 <div style={{ marginTop: 8 }}>
-                  {warEvent?.status === "tutup" || warTimeLeft.isEnded ? (
+                  {isWarClosed ? (
                     <button
                       type="button"
                       disabled
@@ -3815,7 +3853,7 @@ export default function CavalleryKasPage() {
                     >
                       <i className="bx bx-lock-alt" /> Periode War Tiket Telah Ditutup
                     </button>
-                  ) : !warTimeLeft.isStarted ? (
+                  ) : !isWarActive ? (
                     <button
                       type="button"
                       disabled
@@ -3850,7 +3888,7 @@ export default function CavalleryKasPage() {
                         </>
                       ) : (
                         <>
-                          <i className="bx bx-flame" /> WAR TIKET SEKARANG!
+                          <i className="bx bx-flame" /> 🔥 WAR TIKET SEKARANG!
                         </>
                       )}
                     </button>
@@ -3892,7 +3930,8 @@ export default function CavalleryKasPage() {
               </ul>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* ── MODAL POPUP VERIFIKASI ANGGOTA ── */}
