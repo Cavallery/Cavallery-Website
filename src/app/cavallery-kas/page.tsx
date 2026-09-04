@@ -460,12 +460,27 @@ export default function CavalleryKasPage() {
   useEffect(() => {
     if (!warEvent || portalTab !== "war" || userWarTicket) return;
 
+    const parseMs = (val: any) => {
+      if (!val) return 0;
+      if (typeof val === "number") return val;
+      const str = String(val).trim();
+      let iso = str.includes(" ") ? str.replace(" ", "T") : str;
+      if (!iso.includes("+") && !iso.includes("Z")) {
+        iso = iso.length === 16 ? `${iso}:00+07:00` : `${iso}+07:00`;
+      }
+      const t = new Date(iso).getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
     const updateTimer = () => {
       const now = Date.now();
-      const openTime = new Date(warEvent.waktu_buka).getTime();
-      const closeTime = new Date(warEvent.waktu_tutup).getTime();
+      const openTime = warEvent.waktu_buka_ms || parseMs(warEvent.waktu_buka);
+      const closeTime = warEvent.waktu_tutup_ms || parseMs(warEvent.waktu_tutup);
 
-      if (now < openTime) {
+      const hasStarted = openTime <= 0 || now >= openTime;
+      const hasEnded = closeTime > 0 && now > closeTime;
+
+      if (!hasStarted) {
         // Belum mulai (Hitung mundur menuju buka)
         const diff = Math.max(0, openTime - now);
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -485,9 +500,9 @@ export default function CavalleryKasPage() {
           }
           return { days, hours, minutes, seconds, isStarted: false, isEnded: false };
         });
-      } else if (now <= closeTime) {
+      } else if (!hasEnded) {
         // Sedang berlangsung!
-        const diff = Math.max(0, closeTime - now);
+        const diff = closeTime > 0 ? Math.max(0, closeTime - now) : 0;
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((diff / 1000 / 60) % 60);
@@ -854,7 +869,7 @@ export default function CavalleryKasPage() {
   }, [portalTab, sessionUser, fetchUserKupons]);
 
   useEffect(() => {
-    if (sessionUser && portalTab === "war") {
+    if (portalTab === "war") {
       fetchWarEvent();
     }
   }, [portalTab, sessionUser, fetchWarEvent]);
@@ -3550,6 +3565,10 @@ export default function CavalleryKasPage() {
                   >
                     <i className="bx bx-check-circle" /> TIKET KAMU TERKONFIRMASI
                   </span>
+                ) : warEvent?.status === "tutup" || warTimeLeft.isEnded ? (
+                  <span className={`${styles.warStatusBadge} ${styles.warStatusClosed}`}>
+                    <i className="bx bx-lock-alt" /> WAR TELAH DITUTUP
+                  </span>
                 ) : !warTimeLeft.isStarted ? (
                   <span className={`${styles.warStatusBadge} ${styles.warStatusWaiting}`}>
                     <i className="bx bx-time-five" /> WAR BELUM DIBUKA
@@ -3564,10 +3583,6 @@ export default function CavalleryKasPage() {
                     }}
                   >
                     <i className="bx bx-x-circle" /> KUOTA HABIS
-                  </span>
-                ) : warTimeLeft.isEnded || warEvent?.status === "tutup" ? (
-                  <span className={`${styles.warStatusBadge} ${styles.warStatusClosed}`}>
-                    <i className="bx bx-lock-alt" /> WAR TELAH DITUTUP
                   </span>
                 ) : (
                   <span className={`${styles.warStatusBadge} ${styles.warStatusOpen}`}>
@@ -3780,7 +3795,20 @@ export default function CavalleryKasPage() {
 
                 {/* Tombol Utama WAR TIKET */}
                 <div style={{ marginTop: 8 }}>
-                  {!warTimeLeft.isStarted ? (
+                  {warEvent?.status === "tutup" || warTimeLeft.isEnded ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={styles.warFlameBtn}
+                      style={{
+                        background: "#4b5563",
+                        boxShadow: "none",
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      <i className="bx bx-lock-alt" /> Periode War Tiket Telah Ditutup
+                    </button>
+                  ) : !warTimeLeft.isStarted ? (
                     <button
                       type="button"
                       disabled
@@ -3801,19 +3829,6 @@ export default function CavalleryKasPage() {
                       }}
                     >
                       <i className="bx bx-x-circle" /> Mohon Maaf, Kuota Tiket Sudah Habis
-                    </button>
-                  ) : warTimeLeft.isEnded || warEvent?.status === "tutup" ? (
-                    <button
-                      type="button"
-                      disabled
-                      className={styles.warFlameBtn}
-                      style={{
-                        background: "#4b5563",
-                        boxShadow: "none",
-                        cursor: "not-allowed",
-                      }}
-                    >
-                      <i className="bx bx-lock-alt" /> Periode War Tiket Telah Berakhir
                     </button>
                   ) : (
                     <button

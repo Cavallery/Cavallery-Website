@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getActiveWarEvent, getMemberTicket, claimWarTicket, ensureWarTiketTables } from "@/lib/warTiket";
+import {
+  getActiveWarEvent,
+  getMemberTicket,
+  claimWarTicket,
+  ensureWarTiketTables,
+  formatToWibIso,
+  toTimestampMs,
+} from "@/lib/warTiket";
 import { getMemberSessionFromReq } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -22,6 +29,13 @@ export async function GET(req: NextRequest) {
       userTicket = await getMemberTicket(event.id, session.id);
     }
 
+    const nowMs = Date.now();
+    const openMs = toTimestampMs(event.waktu_buka);
+    const closeMs = toTimestampMs(event.waktu_tutup);
+    const isStarted = openMs > 0 ? nowMs >= openMs : true;
+    const isEnded = closeMs > 0 ? nowMs > closeMs : false;
+    const isWarActive = event.status === "buka" && isStarted && !isEnded;
+
     return NextResponse.json({
       status: true,
       data: {
@@ -37,11 +51,17 @@ export async function GET(req: NextRequest) {
           kuota_total: Number(event.kuota_total),
           kuota_terisi: Number(event.kuota_terisi),
           sisa_kuota: Math.max(0, Number(event.kuota_total) - Number(event.kuota_terisi)),
-          waktu_buka: event.waktu_buka,
-          waktu_tutup: event.waktu_tutup,
+          waktu_buka: formatToWibIso(event.waktu_buka),
+          waktu_tutup: formatToWibIso(event.waktu_tutup),
+          waktu_buka_ms: openMs,
+          waktu_tutup_ms: closeMs,
+          server_now_ms: nowMs,
+          is_started: isStarted,
+          is_ended: isEnded,
+          is_war_active: isWarActive,
           status: event.status,
           syarat_ketentuan: event.syarat_ketentuan,
-          server_time: event.server_time,
+          server_time: new Date().toISOString(),
         },
         userTicket,
       },

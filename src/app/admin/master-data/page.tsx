@@ -174,10 +174,23 @@ export default function AdminMasterDataPage() {
     setSavingWarEvent(true);
     setMsg("");
     try {
+      const payload = { ...warEvent };
+      if (payload.status === "buka") {
+        const now = new Date();
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        if (!payload.waktuBuka) {
+          payload.waktuBuka = nowLocal;
+        }
+        if (!payload.waktuTutup) {
+          const defaultClose = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          payload.waktuTutup = `${defaultClose.getFullYear()}-${pad(defaultClose.getMonth() + 1)}-${pad(defaultClose.getDate())}T${pad(defaultClose.getHours())}:${pad(defaultClose.getMinutes())}`;
+        }
+      }
       const res = await fetch("/api/admin/war-tiket", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(warEvent),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.status) {

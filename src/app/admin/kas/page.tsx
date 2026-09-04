@@ -115,7 +115,9 @@ export default function AdminKasPage() {
           const ev = json.data.event;
           const toLocalInput = (dStr: string) => {
             if (!dStr) return "";
-            const d = new Date(dStr);
+            const iso = dStr.includes(" ") ? dStr.replace(" ", "T") : dStr;
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return "";
             const pad = (n: number) => String(n).padStart(2, "0");
             return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
           };
@@ -183,13 +185,35 @@ export default function AdminKasPage() {
   const handleToggleWarStatus = async (newStatus: "buka" | "tutup") => {
     if (!adminWarEvent) return;
     try {
+      const payload: any = {
+        ...warForm,
+        id: adminWarEvent.id,
+        status: newStatus,
+      };
+
+      if (newStatus === "buka") {
+        const now = new Date();
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+        // Jika waktu buka masih di masa depan, buka sekarang juga
+        const openD = warForm.waktuBuka ? new Date(warForm.waktuBuka.replace(" ", "T")) : null;
+        if (!openD || isNaN(openD.getTime()) || openD.getTime() > now.getTime()) {
+          payload.waktuBuka = nowLocal;
+        }
+
+        // Jika waktu tutup sudah lewat, perpanjang default 7 hari
+        const closeD = warForm.waktuTutup ? new Date(warForm.waktuTutup.replace(" ", "T")) : null;
+        if (!closeD || isNaN(closeD.getTime()) || closeD.getTime() <= now.getTime()) {
+          const defaultClose = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          payload.waktuTutup = `${defaultClose.getFullYear()}-${pad(defaultClose.getMonth() + 1)}-${pad(defaultClose.getDate())}T${pad(defaultClose.getHours())}:${pad(defaultClose.getMinutes())}`;
+        }
+      }
+
       const res = await fetch("/api/admin/war-tiket", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...warForm,
-          status: newStatus,
-        }),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.status) {
