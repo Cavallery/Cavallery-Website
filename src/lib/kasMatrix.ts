@@ -108,7 +108,10 @@ export function parsePeriodeToMonths(periodeStr: string, nominal: number = 15000
   }
 
   let count = 1;
-  if (nominal >= 15000) {
+  const bulanMatch = clean.match(/(\d+)\s*bulan/i);
+  if (bulanMatch) {
+    count = Math.max(1, parseInt(bulanMatch[1], 10));
+  } else if (nominal >= 15000) {
     count = Math.max(1, Math.round(nominal / 15000));
   }
 

@@ -54,13 +54,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { periode, nominal, buktiBayarUrl } = await req.json();
+    const body = await req.json();
+    const { periode, nominal, buktiBayarUrl, kodeVoucher, diskonVoucher } = body;
 
-    if (!periode || !nominal || !buktiBayarUrl) {
+    const netNominal = Math.max(0, Number(nominal) || 0);
+    const finalProofUrl = buktiBayarUrl ? buktiBayarUrl.trim() : (netNominal === 0 && kodeVoucher ? "VOUCHER_LUNAS" : "");
+
+    if (!periode || (!finalProofUrl && netNominal > 0)) {
       return NextResponse.json(
-        { status: false, message: "Periode, nominal, dan bukti bayar wajib diisi" },
+        { status: false, message: "Periode dan bukti transfer wajib diisi" },
         { status: 400 }
       );
+    }
+
+    let finalPeriode = periode.trim();
+
+    // Jika menggunakan voucher, validasi dan tandai sebagai digunakan
+    if (kodeVoucher) {
+      const cleanVoucher = String(kodeVoucher).trim().toUpperCase();
+      await query(`
+        UPDATE kupon_anggota 
+        SET status = 'digunakan', digunakan_pada = NOW() 
+        WHERE anggota_id = ? 
+          AND (UPPER(kode_kupon_unik) = ? OR kupon_id IN (SELECT id FROM kupon WHERE UPPER(kode_kupon) = ?))
+          AND status = 'aktif'
+        LIMIT 1
+      `, [session.id, cleanVoucher, cleanVoucher]);
+
+      const diskonText = diskonVoucher && Number(diskonVoucher) > 0 
+        ? ` - Potongan Rp ${Number(diskonVoucher).toLocaleString("id-ID")}` 
+        : "";
+      finalPeriode = `${finalPeriode} [Voucher: ${cleanVoucher}${diskonText}]`;
     }
 
     // 1. Simpan ke Database dengan ID terkecil yang tersedia (tidak lompat ID)
@@ -69,7 +93,7 @@ export async function POST(req: NextRequest) {
     await query(
       `INSERT INTO konfirmasi_kas (id, anggota_id, periode, nominal, bukti_bayar_url, status) 
        VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [nextId, session.id, periode.trim(), Number(nominal), buktiBayarUrl.trim()]
+      [nextId, session.id, finalPeriode, netNominal, finalProofUrl]
     );
 
     await resetAutoIncrement("konfirmasi_kas");
@@ -89,17 +113,19 @@ export async function POST(req: NextRequest) {
         noAnggota: anggota.no_anggota || "-",
         namaAnggota: anggota.nama_lengkap,
         idLine: anggota.id_line,
-        periode,
-        nominal: Number(nominal),
+        periode: finalPeriode,
+        nominal: netNominal,
         status: "pending",
-        buktiBayarUrl,
+        buktiBayarUrl: finalProofUrl,
         createdAt: new Date(),
       }).catch((err) => console.error("Background Google Sheet Kas error:", err));
     }
 
     return NextResponse.json({
       status: true,
-      message: "Konfirmasi pembayaran kas berhasil dikirim! Menunggu verifikasi admin.",
+      message: netNominal === 0
+        ? "Konfirmasi bebas kas dengan voucher berhasil dikirim! Menunggu verifikasi admin."
+        : "Konfirmasi pembayaran kas berhasil dikirim! Menunggu verifikasi admin.",
     });
   } catch (error: any) {
     console.error("Kas submission error:", error);

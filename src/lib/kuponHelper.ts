@@ -130,3 +130,72 @@ export async function syncCouponsForMember(anggotaId: number): Promise<number> {
     return 0;
   }
 }
+
+/**
+ * Menghitung nilai diskon rupiah dan jumlah bulan gratis dari suatu kupon kas
+ */
+export function parseVoucherDiscount(tipeReward: string, nilaiReward: string): {
+  nominalPotongan: number;
+  bulanGratis: number;
+  isKasReward: boolean;
+  label: string;
+} {
+  const cleanTipe = (tipeReward || "").toLowerCase();
+  const cleanNilai = (nilaiReward || "").trim().toLowerCase();
+
+  const isKas =
+    cleanTipe.includes("kas") ||
+    cleanTipe.includes("iuran") ||
+    cleanTipe.includes("potongan") ||
+    cleanNilai.includes("bulan") ||
+    cleanNilai.includes("kas");
+
+  // 1. Format bulan (contoh: "3 Bulan", "Bebas Kas 3 Bulan", "1 Bulan")
+  const bulanMatch = cleanNilai.match(/(\d+)\s*bulan/i);
+  if (bulanMatch) {
+    const bulan = parseInt(bulanMatch[1], 10) || 1;
+    const nominal = bulan * 15000;
+    return {
+      nominalPotongan: nominal,
+      bulanGratis: bulan,
+      isKasReward: true,
+      label: `Gratis Kas ${bulan} Bulan (Potongan Rp ${nominal.toLocaleString("id-ID")})`,
+    };
+  }
+
+  // 2. Format 'k' (contoh: "15k", "45k", "30k", "90k")
+  const kMatch = cleanNilai.match(/(\d+)\s*k\b/i);
+  if (kMatch) {
+    const nominal = (parseInt(kMatch[1], 10) || 15) * 1000;
+    const bulan = Math.max(1, Math.round(nominal / 15000));
+    return {
+      nominalPotongan: nominal,
+      bulanGratis: bulan,
+      isKasReward: true,
+      label: `Potongan Rp ${nominal.toLocaleString("id-ID")} (${bulan} Bulan Kas)`,
+    };
+  }
+
+  // 3. Format angka rupiah murni (contoh: "15.000", "45.000", "Rp 30.000")
+  const digits = cleanNilai.replace(/\D/g, "");
+  if (digits) {
+    let nominal = parseInt(digits, 10);
+    if (nominal >= 1 && nominal <= 12 && !cleanNilai.includes("000")) {
+      nominal = nominal * 15000;
+    }
+    const bulan = Math.max(1, Math.round(nominal / 15000));
+    return {
+      nominalPotongan: nominal,
+      bulanGratis: bulan,
+      isKasReward: true,
+      label: `Potongan Rp ${nominal.toLocaleString("id-ID")} (${bulan} Bulan Kas)`,
+    };
+  }
+
+  return {
+    nominalPotongan: 15000,
+    bulanGratis: 1,
+    isKasReward: isKas,
+    label: "Potongan Rp 15.000 (1 Bulan Kas)",
+  };
+}

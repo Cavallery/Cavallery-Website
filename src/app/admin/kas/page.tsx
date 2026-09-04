@@ -1704,7 +1704,11 @@ export default function AdminKasPage() {
                             <td style={{ fontWeight: 800, color: "var(--primary)" }}>{formatRupiah(k.nominal)}</td>
                             <td>{new Date(k.createdAt || k.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
                             <td>
-                              {(k.buktiBayarUrl || k.bukti_bayar_url) ? (
+                              {(k.buktiBayarUrl || k.bukti_bayar_url) === "VOUCHER_LUNAS" ? (
+                                <span className={styles.countBadge} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981", fontSize: "0.72rem", padding: "3px 8px" }}>
+                                  Lunas Voucher
+                                </span>
+                              ) : (k.buktiBayarUrl || k.bukti_bayar_url) ? (
                                 <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 10px", color: "var(--gold)" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
                                   <i className="bx bx-image-alt" /> Lihat Bukti
                                 </button>
@@ -1782,11 +1786,15 @@ export default function AdminKasPage() {
                             </td>
                             <td>{k.verifiedBy || k.verified_by || "-"}</td>
                             <td>
-                              {(k.buktiBayarUrl || k.bukti_bayar_url) && (
+                              {(k.buktiBayarUrl || k.bukti_bayar_url) === "VOUCHER_LUNAS" ? (
+                                <span className={styles.countBadge} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981", fontSize: "0.72rem", padding: "3px 8px" }}>
+                                  Lunas Voucher
+                                </span>
+                              ) : (k.buktiBayarUrl || k.bukti_bayar_url) ? (
                                 <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 8px" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
                                   <i className="bx bx-image" />
                                 </button>
-                              )}
+                              ) : "-"}
                             </td>
                             <td>
                               <div className={styles.actionsCell}>
