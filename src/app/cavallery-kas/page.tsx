@@ -602,7 +602,7 @@ export default function CavalleryKasPage() {
       ctx.textAlign = "center";
       ctx.font = "bold 13px sans-serif";
       ctx.fillStyle = "#e2b857";
-      ctx.fillText("★ OFFICIAL VIP EVENT PASS ★", w / 2, 95);
+      ctx.fillText(warEvent?.kategori_tiket || "★ OFFICIAL VIP EVENT PASS ★", w / 2, 95);
 
       // Brand Title
       ctx.font = "bold 26px serif";
@@ -612,11 +612,11 @@ export default function CavalleryKasPage() {
       // Project Title
       ctx.font = "bold 22px serif";
       ctx.fillStyle = "#c9a84c";
-      ctx.fillText("PROJECT STS ERINE 19TH BIRTHDAY", w / 2, 170);
+      ctx.fillText((warEvent?.judul || "PROJECT STS ERINE 19TH BIRTHDAY").toUpperCase(), w / 2, 170);
 
       ctx.font = "14px sans-serif";
       ctx.fillStyle = "#a1a1aa";
-      ctx.fillText("Team Passion • Exclusive Limited Entry Pass", w / 2, 200);
+      ctx.fillText(warEvent?.subjudul || "Team Passion • Exclusive Limited Entry Pass", w / 2, 200);
 
       // Thin separator
       ctx.strokeStyle = "rgba(201, 168, 76, 0.25)";
@@ -683,7 +683,8 @@ export default function CavalleryKasPage() {
       // Access Level
       ctx.font = "bold 15px sans-serif";
       ctx.fillStyle = "#fbbf24";
-      ctx.fillText("AKSES: FULL ENTRY • PROJECT STS ERINE", w / 2, cardY + 160);
+      const accessLvl = warEvent?.kategori_tiket || "FULL ENTRY VIP PASS";
+      ctx.fillText(`AKSES: ${accessLvl.toUpperCase()}`, w / 2, cardY + 160);
 
       // Verified Status Chip
       ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
@@ -697,18 +698,25 @@ export default function CavalleryKasPage() {
       ctx.fillStyle = "#34d399";
       ctx.fillText("✓ TERVERIFIKASI RESMI", w / 2, cardY + 209);
 
+      // Venue & Date Info
+      ctx.font = "bold 13px sans-serif";
+      ctx.fillStyle = "#c9a84c";
+      const venueStr = `${warEvent?.lokasi_event || "Theater JKT48"} • ${warEvent?.tanggal_event || "September 2026"}`;
+      ctx.fillText(venueStr, w / 2, cardY + 248);
+
       // Waktu Klaim
-      ctx.font = "13px sans-serif";
+      ctx.font = "12px sans-serif";
       ctx.fillStyle = "#71717a";
       const claimDate = new Date(userWarTicket.waktu_klaim);
       const claimStr = `${claimDate.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} • ${claimDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} WIB`;
-      ctx.fillText(`Waktu Registrasi Klaim: ${claimStr}`, w / 2, cardY + 258);
+      ctx.fillText(`Waktu Registrasi Klaim: ${claimStr}`, w / 2, cardY + 276);
 
       // Unique Security Code
-      const secCode = `SEC-${String(userWarTicket.id || 1).padStart(4, "0")}-${(userWarTicket.nomor_tiket || "STS").replace(/\D/g, "")}`;
+      const secPrefix = warEvent?.kode_tiket || "STS";
+      const secCode = `SEC-${String(userWarTicket.id || 1).padStart(4, "0")}-${(userWarTicket.nomor_tiket || secPrefix).replace(/[^a-zA-Z0-9]/g, "")}`;
       ctx.font = "12px monospace";
       ctx.fillStyle = "#52525b";
-      ctx.fillText(`KODE KEAMANAN: ${secCode}`, w / 2, cardY + 295);
+      ctx.fillText(`KODE KEAMANAN: ${secCode}`, w / 2, cardY + 304);
 
       // 7. Perforated Tear Line (Garis Potong Tiket)
       const tearY = 730;
@@ -793,7 +801,8 @@ export default function CavalleryKasPage() {
       ctx.font = "bold 14px monospace";
       ctx.fillStyle = "#a1a1aa";
       ctx.textAlign = "center";
-      ctx.fillText(`*STS19-${userWarTicket.nomor_tiket}-${noAngg}*`, w / 2, barY + 62);
+      const codePfx = warEvent?.kode_tiket || "STS19";
+      ctx.fillText(`*${codePfx}-${userWarTicket.nomor_tiket}-${noAngg}*`, w / 2, barY + 62);
 
       // 10. Important Event Notice Box
       const noticeY = 1080;
@@ -821,7 +830,7 @@ export default function CavalleryKasPage() {
       const dataUrl = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = `E-Ticket-STS19-Cavallery-${userWarTicket.nomor_tiket}.png`;
+      a.download = `E-Ticket-${codePfx}-Cavallery-${userWarTicket.nomor_tiket}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -3599,14 +3608,14 @@ export default function CavalleryKasPage() {
             {userWarTicket ? (
               <div className={styles.warTicketPass}>
                 <div className={styles.ticketTopBadge}>
-                  ★ OFFICIAL VIP PASS • TEAM PASSION ★
+                  {warEvent?.kategori_tiket || "★ OFFICIAL VIP PASS • TEAM PASSION ★"}
                 </div>
 
                 <h2 className={styles.ticketEventTitle}>
-                  PROJECT STS ERINE 19TH BIRTHDAY
+                  {warEvent?.judul || "PROJECT STS ERINE 19TH BIRTHDAY"}
                 </h2>
                 <div className={styles.ticketEventSub}>
-                  Cavallery • Fanbase Resmi Erine JKT48
+                  {warEvent?.subjudul || "Cavallery • Fanbase Resmi Erine JKT48"}
                 </div>
 
                 <div className={styles.ticketNumberBadge}>
@@ -3628,7 +3637,11 @@ export default function CavalleryKasPage() {
                       <i className="bx bx-check-shield" /> Terverifikasi
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.76rem", color: "var(--fg-muted)" }}>
+                  <div style={{ fontSize: "0.78rem", color: "var(--gold)", fontWeight: 700, margin: "6px 0 2px" }}>
+                    <i className="bx bx-map-pin" style={{ marginRight: 4 }} />
+                    {warEvent?.lokasi_event || "Theater JKT48"} • {warEvent?.tanggal_event || "September 2026"}
+                  </div>
+                  <div style={{ fontSize: "0.74rem", color: "var(--fg-muted)" }}>
                     Waktu Registrasi: {new Date(userWarTicket.waktu_klaim).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} • {new Date(userWarTicket.waktu_klaim).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
                   </div>
                 </div>
@@ -3664,7 +3677,7 @@ export default function CavalleryKasPage() {
                       ))}
                     </div>
                     <div className={styles.ticketBarcodeNumber}>
-                      *STS19-{userWarTicket.nomor_tiket}-{userWarTicket.no_anggota || sessionUser.noAnggota}*
+                      *{warEvent?.kode_tiket || "STS19"}-{userWarTicket.nomor_tiket}-{userWarTicket.no_anggota || sessionUser.noAnggota}*
                     </div>
                   </div>
                 </div>

@@ -62,30 +62,71 @@ export async function POST(req: NextRequest) {
     }
 
     await ensureWarTiketTables();
-    const body = await req.json();
-    const { id, judul, deskripsi, kuotaTotal, waktuBuka, waktuTutup, status, syaratKetentuan } = body;
+    const {
+      id,
+      judul,
+      kodeTiket,
+      subjudul,
+      lokasiEvent,
+      tanggalEvent,
+      kategoriTiket,
+      deskripsi,
+      kuotaTotal,
+      waktuBuka,
+      waktuTutup,
+      status,
+      syaratKetentuan,
+    } = body;
 
     if (!judul || !waktuBuka || !waktuTutup) {
       return NextResponse.json({ status: false, message: "Judul, waktu buka, dan waktu tutup wajib diisi" }, { status: 400 });
     }
 
     const kuota = Math.max(1, Number(kuotaTotal) || 50);
+    const prefix = (kodeTiket || "STS19").trim().toUpperCase();
 
     if (id) {
       // Update event yang ada
       await query(
         `UPDATE war_tiket_events 
-         SET judul = ?, deskripsi = ?, kuota_total = ?, waktu_buka = ?, waktu_tutup = ?, status = ?, syarat_ketentuan = ?
+         SET judul = ?, kode_tiket = ?, subjudul = ?, lokasi_event = ?, tanggal_event = ?, kategori_tiket = ?, deskripsi = ?, kuota_total = ?, waktu_buka = ?, waktu_tutup = ?, status = ?, syarat_ketentuan = ?
          WHERE id = ?`,
-        [judul, deskripsi || "", kuota, waktuBuka, waktuTutup, status || "buka", syaratKetentuan || "", id]
+        [
+          judul,
+          prefix,
+          subjudul || "Cavallery • Official Fanbase Erine JKT48",
+          lokasiEvent || "Theater JKT48, fX Sudirman Lt. 4",
+          tanggalEvent || "Sabtu, 26 September 2026 • 19.00 WIB",
+          kategoriTiket || "OFFICIAL VIP PASS • TEAM PASSION",
+          deskripsi || "",
+          kuota,
+          waktuBuka,
+          waktuTutup,
+          status || "buka",
+          syaratKetentuan || "",
+          id,
+        ]
       );
     } else {
       // Buat event baru
       await query(
         `INSERT INTO war_tiket_events 
-         (judul, deskripsi, kuota_total, kuota_terisi, waktu_buka, waktu_tutup, status, syarat_ketentuan)
-         VALUES (?, ?, ?, 0, ?, ?, ?, ?)`,
-        [judul, deskripsi || "", kuota, waktuBuka, waktuTutup, status || "buka", syaratKetentuan || ""]
+         (judul, kode_tiket, subjudul, lokasi_event, tanggal_event, kategori_tiket, deskripsi, kuota_total, kuota_terisi, waktu_buka, waktu_tutup, status, syarat_ketentuan)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+        [
+          judul,
+          prefix,
+          subjudul || "Cavallery • Official Fanbase Erine JKT48",
+          lokasiEvent || "Theater JKT48, fX Sudirman Lt. 4",
+          tanggalEvent || "Sabtu, 26 September 2026 • 19.00 WIB",
+          kategoriTiket || "OFFICIAL VIP PASS • TEAM PASSION",
+          deskripsi || "",
+          kuota,
+          waktuBuka,
+          waktuTutup,
+          status || "buka",
+          syaratKetentuan || "",
+        ]
       );
     }
 

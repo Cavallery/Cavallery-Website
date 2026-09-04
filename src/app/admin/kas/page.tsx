@@ -1881,6 +1881,14 @@ export default function AdminKasPage() {
                   <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--fg)", marginTop: 2 }}>
                     {adminWarEvent.judul}
                   </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--gold)", background: "rgba(201, 168, 76, 0.12)", padding: "2px 8px", borderRadius: 6, border: "1px dashed var(--gold)" }}>
+                      Prefix: #{adminWarEvent.kode_tiket || "STS19"}-xxx
+                    </span>
+                    <Link href="/admin/master-data" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
+                      Ubah di Master Data →
+                    </Link>
+                  </div>
                 </div>
 
                 <div>
