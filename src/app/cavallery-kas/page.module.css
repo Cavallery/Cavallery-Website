@@ -1470,6 +1470,282 @@
   white-space: nowrap;
 }
 
+/* ================================================================
+   WAR TIKET STS ERINE (TEAM PASSION FIRE THEME)
+   ================================================================ */
+
+.warCard {
+  background: var(--surface, #ffffff);
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 10px 36px rgba(239, 68, 68, 0.08), 0 0 24px rgba(245, 158, 11, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .warCard {
+  background: radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.12) 0%, rgba(26, 23, 20, 0.98) 75%);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.warCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.warTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.warMainTitle {
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--primary, #1c1813);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+[data-theme="dark"] .warMainTitle {
+  color: #ffffff;
+}
+
+.warSubtitle {
+  font-size: 0.86rem;
+  color: var(--fg-muted, #71717a);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.warStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.warStatusOpen {
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--gold, #c9a84c);
+  color: var(--gold, #c9a84c);
+  animation: warPulse 2s infinite alternate;
+}
+
+.warStatusWaiting {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.warStatusClosed {
+  background: rgba(113, 113, 122, 0.15);
+  border: 1px solid rgba(113, 113, 122, 0.3);
+  color: var(--fg-muted);
+}
+
+@keyframes warPulse {
+  0% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+}
+
+/* Countdown Wrap */
+.warCountdownWrap {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 22px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+[data-theme="dark"] .warCountdownWrap {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.countdownHeading {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--gold, #c9a84c);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countdownBoxes {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.countdownBox {
+  min-width: 68px;
+  padding: 12px 10px;
+  border-radius: 14px;
+  background: var(--surface, #ffffff);
+  border: 1.5px solid rgba(201, 168, 76, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] .countdownBox {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.countdownNum {
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--gold, #c9a84c);
+  line-height: 1;
+}
+
+.countdownLabel {
+  font-size: 0.65rem;
+  color: var(--fg-muted, #71717a);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Quota Bar */
+.warQuotaWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quotaTextRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.quotaBarBg {
+  width: 100%;
+  height: 12px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.quotaBarFill {
+  height: 100%;
+  border-radius: 50px;
+  background: linear-gradient(90deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.4);
+  transition: width 0.4s ease;
+}
+
+/* Tombol WAR Emas Berkobar (Konsisten dengan Cavallery) */
+.warFlameBtn {
+  width: 100%;
+  padding: 18px 24px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  color: #ffffff;
+  font-family: var(--sans);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 28px rgba(180, 83, 9, 0.35), 0 0 20px rgba(201, 168, 76, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+}
+
+.warFlameBtn:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 14px 38px rgba(180, 83, 9, 0.45), 0 0 30px rgba(201, 168, 76, 0.4);
+}
+
+.warFlameBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+  transform: none;
+}
+
+/* E-Ticket Pass Card */
+.warTicketPass {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(201, 168, 76, 0.15) 100%);
+  border: 2px solid var(--border-gold, #c9a84c);
+  border-radius: 24px;
+  padding: 26px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  position: relative;
+  box-shadow: 0 12px 32px rgba(201, 168, 76, 0.15);
+}
+
+.ticketNumberBadge {
+  padding: 6px 22px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #f59e0b, #b45309);
+  color: #ffffff;
+  font-family: var(--serif);
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+}
+
+.ticketOwnerName {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--fg);
+  margin: 0;
+}
+
+.ticketQrBox {
+  width: 140px;
+  height: 140px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
 /* ── Mobile Breakpoint Responsiveness (360px - 640px) ── */
 @media (max-width: 640px) {
   .page {
@@ -1503,21 +1779,21 @@
     font-size: 1rem;
   }
   .navPillsCard {
-    padding: 12px 12px;
+    padding: 10px 10px;
     border-radius: 20px;
     box-sizing: border-box;
   }
   .navPillsRow {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
     width: 100%;
     box-sizing: border-box;
   }
   .navPillBtn {
-    padding: 10px 4px;
-    font-size: 0.78rem;
-    gap: 4px;
+    padding: 9px 2px;
+    font-size: 0.72rem;
+    gap: 3px;
     border-radius: 50px;
     min-width: 0;
     box-sizing: border-box;

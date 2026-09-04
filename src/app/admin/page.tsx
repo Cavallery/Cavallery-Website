@@ -7135,6 +7135,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     { key: "keanggotaan" as any, icon: "bx-user-check",   label: "Keanggotaan", color: "#10b981" },
     { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "#6366f1" },
     { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
+    { key: "adminwartiket" as any, icon: "bx-flame",      label: "War Tiket STS", color: "#c9a84c" },
     { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
     { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6" },
     { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
@@ -8277,6 +8278,7 @@ const navGroups: NavGroup[] = [
       { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
       { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
+      { key: "adminwartiket" as any,    icon: "bx-flame",        label: "War Tiket STS" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
@@ -8374,6 +8376,10 @@ export default function AdminPage() {
     }
     if ((section as string) === "adminkas") {
       window.location.href = "/admin/kas";
+      return;
+    }
+    if ((section as string) === "adminwartiket") {
+      window.location.href = "/admin/kas?tab=war";
       return;
     }
     if ((section as string) === "admindonasi") {
