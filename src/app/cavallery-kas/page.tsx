@@ -180,6 +180,19 @@ export default function CavalleryKasPage() {
   const [loadingUserKupons, setLoadingUserKupons] = useState(false);
   const [copiedKupon, setCopiedKupon] = useState<string | null>(null);
 
+  // Voucher Kas Input State (di form Bayar Kas)
+  const [voucherInput, setVoucherInput] = useState("");
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [appliedVoucher, setAppliedVoucher] = useState<{
+    kuponAnggotaId: number;
+    kodeKupon: string;
+    judul: string;
+    nominalPotongan: number;
+    bulanGratis: number;
+    label: string;
+  } | null>(null);
+  const [voucherMsg, setVoucherMsg] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
   // War Tiket STS Erine State
   const [warEvent, setWarEvent] = useState<any>({
     id: 1,
@@ -1056,6 +1069,56 @@ export default function CavalleryKasPage() {
     }
   };
 
+  // Voucher Kas: Handle Apply / Check Voucher
+  const handleApplyVoucher = async (codeToUse?: string) => {
+    const targetCode = (codeToUse || voucherInput).trim();
+    if (!targetCode) {
+      setVoucherMsg({ type: "error", msg: "Masukkan kode voucher terlebih dahulu." });
+      return;
+    }
+    setVoucherLoading(true);
+    setVoucherMsg(null);
+    try {
+      const res = await fetch("/api/kas/kupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: targetCode }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.status) {
+        setVoucherMsg({ type: "error", msg: json.message || "Kode voucher tidak valid." });
+        setAppliedVoucher(null);
+      } else {
+        setAppliedVoucher(json.data);
+        setVoucherInput(json.data.kodeKupon);
+        setVoucherMsg({ type: "success", msg: json.message });
+        if (json.data.bulanGratis && json.data.bulanGratis > 0) {
+          const matchingChip = KAS_12_BULAN.find((k) => k.bulan === json.data.bulanGratis);
+          if (matchingChip && cleanNominalKas < matchingChip.nominal) {
+            setSelectedChipKas(matchingChip.nominal);
+            setNominalKas(matchingChip.nominal.toLocaleString("id-ID"));
+          }
+        }
+      }
+    } catch (err: any) {
+      setVoucherMsg({ type: "error", msg: err?.message || "Gagal memverifikasi voucher." });
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherInput("");
+    setVoucherMsg(null);
+  };
+
+  const handleUseCouponFromTab = (k: any) => {
+    const code = k.kode_kupon || k.base_kode_kupon;
+    setPortalTab("bayar");
+    handleApplyVoucher(code);
+  };
+
   // Kas: Handle Submit
   const handleKasSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1067,10 +1130,15 @@ export default function CavalleryKasPage() {
       return;
     }
 
-    if (!fileKas) {
+    const discount = appliedVoucher ? appliedVoucher.nominalPotongan : 0;
+    const finalAmountToPay = Math.max(0, cleanNominal - discount);
+    const isFullyCovered = appliedVoucher !== null && finalAmountToPay === 0;
+
+    // Jika belum lunas dengan voucher (masih ada sisa transfer), wajib upload bukti
+    if (!isFullyCovered && !fileKas) {
       setKasAlert({
         type: "error",
-        msg: "Mohon unggah screenshot bukti transfer/QRIS.",
+        msg: "Mohon unggah screenshot bukti transfer/QRIS untuk sisa pembayaran.",
       });
       return;
     }
@@ -1078,30 +1146,39 @@ export default function CavalleryKasPage() {
     setSubmittingKas(true);
 
     try {
-      // 1. Upload Bukti
-      const formData = new FormData();
-      formData.append("file", fileKas);
+      let buktiBayarUrl = isFullyCovered ? "VOUCHER_LUNAS" : "";
 
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const uploadJson = await uploadRes.json();
-      if (!uploadRes.ok || !uploadJson.status) {
-        throw new Error(uploadJson.message || "Gagal mengunggah bukti bayar");
+      // 1. Upload Bukti jika ada file yang diunggah
+      if (fileKas) {
+        const formData = new FormData();
+        formData.append("file", fileKas);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadJson = await uploadRes.json();
+        if (!uploadRes.ok || !uploadJson.status) {
+          throw new Error(uploadJson.message || "Gagal mengunggah bukti bayar");
+        }
+        buktiBayarUrl = uploadJson.url;
       }
 
-      const buktiBayarUrl = uploadJson.url;
+      // Hitung jumlah bulan yang dibayar
+      const jumlahBulan = Math.max(1, Math.round(cleanNominal / 15000));
+      const finalPeriode = `${jumlahBulan} Bulan (${MONTH_NAMES[periodeBulan - 1]} ${periodeTahun})`;
 
-      const finalPeriode = `${MONTH_NAMES[periodeBulan - 1]} ${periodeTahun}`;
       // 2. Submit Kas
       const kasRes = await fetch("/api/kas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           periode: finalPeriode,
-          nominal: cleanNominal,
-          buktiBayarUrl,
+          nominal: finalAmountToPay,
+          nominalTotal: cleanNominal,
+          diskonVoucher: discount,
+          kodeVoucher: appliedVoucher ? appliedVoucher.kodeKupon : undefined,
+          buktiBayarUrl: buktiBayarUrl || "VOUCHER_LUNAS",
         }),
       });
 
@@ -1112,12 +1189,18 @@ export default function CavalleryKasPage() {
 
       setKasAlert({
         type: "success",
-        msg: "Konfirmasi pembayaran kas berhasil dikirim! Menunggu verifikasi admin.",
+        msg: isFullyCovered
+          ? "Selamat! Konfirmasi bebas kas dengan voucher berhasil dikirim dan menunggu verifikasi admin."
+          : "Konfirmasi pembayaran kas berhasil dikirim! Menunggu verifikasi admin.",
       });
 
       setFileKas(null);
       setPreviewKas(null);
+      setAppliedVoucher(null);
+      setVoucherInput("");
+      setVoucherMsg(null);
       loadKasHistory();
+      fetchUserKupons();
     } catch (err: any) {
       setKasAlert({
         type: "error",
@@ -2238,75 +2321,473 @@ export default function CavalleryKasPage() {
                   </div>
                 </div>
 
-                <div className={styles.field}>
+                {/* ── KODE VOUCHER / KUPON KAS ── */}
+                <div className={styles.field} style={{ marginTop: 14 }}>
                   <div className={styles.labelRow}>
                     <label className={styles.label}>
-                      Bukti Transfer / QRIS
+                      Kode Voucher / Kupon Kas
                     </label>
-                    <span className={styles.badgeWajib}>WAJIB</span>
+                    <span
+                      style={{
+                        fontSize: "0.68rem",
+                        padding: "2px 8px",
+                        borderRadius: 4,
+                        background: "rgba(201, 168, 76, 0.15)",
+                        color: "var(--gold)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      OPSIONAL
+                    </span>
                   </div>
 
-                  {previewKas ? (
-                    <div className={styles.previewWrap}>
-                      <img
-                        src={previewKas}
-                        alt="Preview Bukti Kas"
-                        className={styles.previewImg}
+                  {/* Jika User Punya Kupon Aktif di Akunnya, Tampilkan Quick Chips */}
+                  {userKupons.filter((uk) => uk.status_kupon === "aktif").length > 0 && !appliedVoucher && (
+                    <div style={{ marginBottom: 10 }}>
+                      <div
+                        style={{
+                          fontSize: "0.74rem",
+                          color: "var(--fg-muted)",
+                          marginBottom: 6,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <i
+                          className="bx bx-gift"
+                          style={{ color: "var(--gold)", marginRight: 4 }}
+                        />
+                        Voucher Anda yang tersedia (klik untuk gunakan):
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {userKupons
+                          .filter((uk) => uk.status_kupon === "aktif")
+                          .map((uk) => (
+                            <button
+                              key={uk.kupon_anggota_id}
+                              type="button"
+                              onClick={() => handleApplyVoucher(uk.kode_kupon)}
+                              disabled={voucherLoading}
+                              style={{
+                                padding: "5px 10px",
+                                borderRadius: 8,
+                                border: "1px dashed var(--gold)",
+                                background: "rgba(201, 168, 76, 0.08)",
+                                color: "var(--gold)",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                transition: "all 0.2s",
+                              }}
+                            >
+                              <i className="bx bx-purchase-tag-alt" />
+                              <span>
+                                {uk.judul} ({uk.nilai_reward})
+                              </span>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Input Kode Voucher & Tombol Terapkan */}
+                  {!appliedVoucher ? (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        placeholder="Contoh: KAS-0001-ABCD atau kode promo"
+                        value={voucherInput}
+                        onChange={(e) =>
+                          setVoucherInput(e.target.value.toUpperCase())
+                        }
+                        style={{
+                          textTransform: "uppercase",
+                          letterSpacing: "1px",
+                          fontWeight: 700,
+                        }}
                       />
                       <button
                         type="button"
-                        className={styles.removeFileBtn}
-                        onClick={() => {
-                          setFileKas(null);
-                          setPreviewKas(null);
+                        onClick={() => handleApplyVoucher()}
+                        disabled={voucherLoading || !voucherInput.trim()}
+                        style={{
+                          padding: "0 18px",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "var(--gold)",
+                          color: "#1a1612",
+                          fontWeight: 800,
+                          fontSize: "0.85rem",
+                          cursor:
+                            voucherLoading || !voucherInput.trim()
+                              ? "not-allowed"
+                              : "pointer",
+                          opacity:
+                            voucherLoading || !voucherInput.trim() ? 0.6 : 1,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          whiteSpace: "nowrap",
                         }}
-                        title="Hapus gambar"
                       >
-                        &times;
+                        {voucherLoading ? (
+                          <i className="bx bx-loader-alt bx-spin" />
+                        ) : (
+                          <i className="bx bx-check" />
+                        )}
+                        Gunakan Kupon
                       </button>
                     </div>
                   ) : (
-                    <div className={styles.uploadBox}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const sel = e.target.files?.[0];
-                          if (sel) {
-                            setFileKas(sel);
-                            setPreviewKas(URL.createObjectURL(sel));
-                          }
+                    /* Banner Voucher yang Sedang Aktif */
+                    <div
+                      style={{
+                        padding: "12px 16px",
+                        borderRadius: 12,
+                        background: "rgba(16, 185, 129, 0.1)",
+                        border: "1.5px solid #10b981",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
                         }}
-                        className={styles.fileInput}
-                        required
-                      />
+                      >
+                        <div
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 10,
+                            background: "#10b981",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.2rem",
+                          }}
+                        >
+                          <i className="bx bx-badge-check" />
+                        </div>
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: 800,
+                              fontSize: "0.9rem",
+                              color: "#10b981",
+                            }}
+                          >
+                            {appliedVoucher.judul}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "0.76rem",
+                              color: "var(--fg-muted)",
+                            }}
+                          >
+                            Kode: <strong>{appliedVoucher.kodeKupon}</strong> •
+                            Potongan:{" "}
+                            <strong style={{ color: "#10b981" }}>
+                              Rp{" "}
+                              {appliedVoucher.nominalPotongan.toLocaleString(
+                                "id-ID",
+                              )}{" "}
+                              ({appliedVoucher.bulanGratis} Bulan)
+                            </strong>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveVoucher}
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: 8,
+                          border: "1px solid rgba(239, 68, 68, 0.4)",
+                          background: "rgba(239, 68, 68, 0.1)",
+                          color: "#ef4444",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Batal Pakai
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Feedback Voucher Alert */}
+                  {voucherMsg && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        color:
+                          voucherMsg.type === "success" ? "#10b981" : "#ef4444",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
                       <i
-                        className={`bx bx-cloud-upload ${styles.uploadIcon}`}
+                        className={`bx ${voucherMsg.type === "success" ? "bx-check-circle" : "bx-x-circle"}`}
                       />
-                      <p className={styles.uploadText}>
-                        Klik atau seret screenshot bukti bayar ke sini
-                      </p>
-                      <p className={styles.uploadHint}>
-                        Format: JPG, PNG, WebP (Maks. 5MB)
-                      </p>
+                      <span>{voucherMsg.msg}</span>
+                    </div>
+                  )}
+
+                  {/* Rincian Kalkulasi Potongan Kas & Sisa Tagihan */}
+                  {cleanNominalKas > 0 && appliedVoucher && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: "12px 16px",
+                        background: "rgba(0, 0, 0, 0.25)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 12,
+                        fontSize: "0.82rem",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 4,
+                        }}
+                      >
+                        <span style={{ color: "var(--fg-muted)" }}>
+                          Total Iuran Kas (
+                          {Math.max(1, Math.round(cleanNominalKas / 15000))}{" "}
+                          Bulan):
+                        </span>
+                        <span style={{ fontWeight: 700 }}>
+                          Rp {cleanNominalKas.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                          color: "#10b981",
+                        }}
+                      >
+                        <span>
+                          Potongan Voucher ({appliedVoucher.judul}):
+                        </span>
+                        <span style={{ fontWeight: 800 }}>
+                          - Rp{" "}
+                          {Math.min(
+                            cleanNominalKas,
+                            appliedVoucher.nominalPotongan,
+                          ).toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          borderTop: "1px dashed var(--border)",
+                          paddingTop: 8,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 900,
+                        }}
+                      >
+                        <span>Sisa yang Harus Dibayar:</span>
+                        <span
+                          style={{
+                            color:
+                              Math.max(
+                                0,
+                                cleanNominalKas -
+                                  appliedVoucher.nominalPotongan,
+                              ) === 0
+                                ? "#10b981"
+                                : "var(--gold)",
+                          }}
+                        >
+                          {Math.max(
+                            0,
+                            cleanNominalKas -
+                              appliedVoucher.nominalPotongan,
+                          ) === 0
+                            ? "Rp 0 (LUNAS DENGAN VOUCHER)"
+                            : `Rp ${(cleanNominalKas - appliedVoucher.nominalPotongan).toLocaleString("id-ID")}`}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
+
+                {/* ── BUKTI BAYAR / QRIS CONTAINER JIKA TIDAK LUNAS PENUH DENGAN VOUCHER ── */}
+                {appliedVoucher &&
+                cleanNominalKas > 0 &&
+                Math.max(0, cleanNominalKas - appliedVoucher.nominalPotongan) ===
+                  0 ? (
+                  <div
+                    style={{
+                      padding: "16px 20px",
+                      borderRadius: 14,
+                      background: "rgba(16, 185, 129, 0.12)",
+                      border: "1.5px solid #10b981",
+                      marginTop: 10,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: "0.95rem",
+                        color: "#10b981",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <i
+                        className="bx bx-check-shield"
+                        style={{ fontSize: "1.4rem" }}
+                      />
+                      <span>Tagihan Bebas Kas Lunas 100% dengan Voucher!</span>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "var(--fg-muted)",
+                        margin: "6px 0 0",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      Seluruh iuran kas untuk periode ini ditanggung oleh voucher.
+                      Anda tidak perlu melakukan pembayaran via QRIS ataupun
+                      mengunggah bukti transfer.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={styles.field}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>
+                        Bukti Transfer / QRIS{" "}
+                        {appliedVoucher ? "(Sisa Tagihan)" : ""}
+                      </label>
+                      <span className={styles.badgeWajib}>WAJIB</span>
+                    </div>
+
+                    {previewKas ? (
+                      <div className={styles.previewWrap}>
+                        <img
+                          src={previewKas}
+                          alt="Preview Bukti Kas"
+                          className={styles.previewImg}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removeFileBtn}
+                          onClick={() => {
+                            setFileKas(null);
+                            setPreviewKas(null);
+                          }}
+                          title="Hapus gambar"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={styles.uploadBox}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const sel = e.target.files?.[0];
+                            if (sel) {
+                              setFileKas(sel);
+                              setPreviewKas(URL.createObjectURL(sel));
+                            }
+                          }}
+                          className={styles.fileInput}
+                          required={
+                            !(
+                              appliedVoucher &&
+                              cleanNominalKas > 0 &&
+                              Math.max(
+                                0,
+                                cleanNominalKas -
+                                  appliedVoucher.nominalPotongan,
+                              ) === 0
+                            )
+                          }
+                        />
+                        <i
+                          className={`bx bx-cloud-upload ${styles.uploadIcon}`}
+                        />
+                        <p className={styles.uploadText}>
+                          Klik atau seret screenshot bukti bayar ke sini
+                        </p>
+                        <p className={styles.uploadHint}>
+                          Format: JPG, PNG, WebP (Maks. 5MB)
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <button
                   type="submit"
                   className={styles.submitBtn}
                   disabled={submittingKas}
+                  style={{
+                    background:
+                      appliedVoucher &&
+                      cleanNominalKas > 0 &&
+                      Math.max(
+                        0,
+                        cleanNominalKas - appliedVoucher.nominalPotongan,
+                      ) === 0
+                        ? "#10b981"
+                        : undefined,
+                    color:
+                      appliedVoucher &&
+                      cleanNominalKas > 0 &&
+                      Math.max(
+                        0,
+                        cleanNominalKas - appliedVoucher.nominalPotongan,
+                      ) === 0
+                        ? "#fff"
+                        : undefined,
+                  }}
                 >
                   {submittingKas ? (
                     <>
                       <i className="bx bx-loader-alt bx-spin" /> Mengirim
                       Konfirmasi...
                     </>
+                  ) : appliedVoucher &&
+                    cleanNominalKas > 0 &&
+                    Math.max(
+                      0,
+                      cleanNominalKas - appliedVoucher.nominalPotongan,
+                    ) === 0 ? (
+                    <>
+                      <i className="bx bx-gift" /> Konfirmasi Bebas Kas dengan
+                      Voucher (Rp 0)
+                    </>
                   ) : (
                     <>
                       <i className="bx bx-paper-plane" /> Kirim Konfirmasi Kas{" "}
-                      {nominalKas ? `(Rp ${nominalKas})` : ""}
+                      {cleanNominalKas > 0
+                        ? `(Rp ${Math.max(0, cleanNominalKas - (appliedVoucher ? appliedVoucher.nominalPotongan : 0)).toLocaleString("id-ID")})`
+                        : ""}
                     </>
                   )}
                 </button>
@@ -3111,6 +3592,33 @@ export default function CavalleryKasPage() {
                           {isCopied ? "Tersalin!" : "Salin"}
                         </button>
                       </div>
+
+                      {/* Tombol Langsung Gunakan Kupon di Form Bayar Kas */}
+                      {!isUsed && (
+                        <button
+                          type="button"
+                          onClick={() => handleUseCouponFromTab(k)}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: "1px solid var(--gold)",
+                            background: "rgba(201, 168, 76, 0.15)",
+                            color: "var(--gold)",
+                            fontWeight: 800,
+                            fontSize: "0.8rem",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                            marginBottom: 10,
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          <i className="bx bx-check-circle" /> Gunakan untuk Bayar Kas
+                        </button>
+                      )}
 
                       {/* Footer Kupon: Kadaluarsa */}
                       <div
