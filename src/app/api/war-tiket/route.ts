@@ -6,6 +6,7 @@ import {
   ensureWarTiketTables,
   formatToWibIso,
   toTimestampMs,
+  DEFAULT_WAR_EVENT,
 } from "@/lib/warTiket";
 import { getMemberSessionFromReq } from "@/lib/auth";
 
@@ -21,18 +22,7 @@ const NO_CACHE_HEADERS = {
 export async function GET(req: NextRequest) {
   try {
     await ensureWarTiketTables();
-    const event = await getActiveWarEvent();
-
-    if (!event) {
-      return NextResponse.json(
-        {
-          status: true,
-          data: null,
-          message: "Belum ada event war tiket yang aktif",
-        },
-        { headers: NO_CACHE_HEADERS }
-      );
-    }
+    const event = (await getActiveWarEvent()) || DEFAULT_WAR_EVENT;
 
     // Cek session member
     let userTicket = null;

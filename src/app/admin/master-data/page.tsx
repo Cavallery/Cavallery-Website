@@ -178,12 +178,13 @@ export default function AdminMasterDataPage() {
       if (payload.status === "buka") {
         const now = new Date();
         const pad = (n: number) => String(n).padStart(2, "0");
-        const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        const pastLocal = `${fiveMinAgo.getFullYear()}-${pad(fiveMinAgo.getMonth() + 1)}-${pad(fiveMinAgo.getDate())}T${pad(fiveMinAgo.getHours())}:${pad(fiveMinAgo.getMinutes())}`;
         if (!payload.waktuBuka) {
-          payload.waktuBuka = nowLocal;
+          payload.waktuBuka = pastLocal;
         }
         if (!payload.waktuTutup) {
-          const defaultClose = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          const defaultClose = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           payload.waktuTutup = `${defaultClose.getFullYear()}-${pad(defaultClose.getMonth() + 1)}-${pad(defaultClose.getDate())}T${pad(defaultClose.getHours())}:${pad(defaultClose.getMinutes())}`;
         }
       }

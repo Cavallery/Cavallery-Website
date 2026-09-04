@@ -144,10 +144,24 @@ export default function AdminKasPage() {
     e.preventDefault();
     setSavingWarEvent(true);
     try {
+      const payload: any = { ...warForm };
+      if (payload.status === "buka") {
+        const now = new Date();
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        const pastLocal = `${fiveMinAgo.getFullYear()}-${pad(fiveMinAgo.getMonth() + 1)}-${pad(fiveMinAgo.getDate())}T${pad(fiveMinAgo.getHours())}:${pad(fiveMinAgo.getMinutes())}`;
+        if (!payload.waktuBuka) {
+          payload.waktuBuka = pastLocal;
+        }
+        if (!payload.waktuTutup) {
+          const defaultClose = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          payload.waktuTutup = `${defaultClose.getFullYear()}-${pad(defaultClose.getMonth() + 1)}-${pad(defaultClose.getDate())}T${pad(defaultClose.getHours())}:${pad(defaultClose.getMinutes())}`;
+        }
+      }
       const res = await fetch("/api/admin/war-tiket", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(warForm),
+        body: JSON.stringify(payload),
       });
       const json = await res.json();
       if (json.status) {
@@ -194,18 +208,16 @@ export default function AdminKasPage() {
       if (newStatus === "buka") {
         const now = new Date();
         const pad = (n: number) => String(n).padStart(2, "0");
-        const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        const pastLocal = `${fiveMinAgo.getFullYear()}-${pad(fiveMinAgo.getMonth() + 1)}-${pad(fiveMinAgo.getDate())}T${pad(fiveMinAgo.getHours())}:${pad(fiveMinAgo.getMinutes())}`;
 
-        // Jika waktu buka masih di masa depan, buka sekarang juga
-        const openD = warForm.waktuBuka ? new Date(warForm.waktuBuka.replace(" ", "T")) : null;
-        if (!openD || isNaN(openD.getTime()) || openD.getTime() > now.getTime()) {
-          payload.waktuBuka = nowLocal;
-        }
+        // Buka sekarang juga (5 menit lalu agar langsung aktif di semua browser tanpa delay)
+        payload.waktuBuka = pastLocal;
 
-        // Jika waktu tutup sudah lewat, perpanjang default 7 hari
+        // Jika waktu tutup sudah lewat, perpanjang default 30 hari
         const closeD = warForm.waktuTutup ? new Date(warForm.waktuTutup.replace(" ", "T")) : null;
         if (!closeD || isNaN(closeD.getTime()) || closeD.getTime() <= now.getTime()) {
-          const defaultClose = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          const defaultClose = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           payload.waktuTutup = `${defaultClose.getFullYear()}-${pad(defaultClose.getMonth() + 1)}-${pad(defaultClose.getDate())}T${pad(defaultClose.getHours())}:${pad(defaultClose.getMinutes())}`;
         }
       }

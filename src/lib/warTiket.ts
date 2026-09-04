@@ -1,9 +1,37 @@
 import { query } from "@/lib/mysql";
 
+let tablesEnsured = false;
+
+export const DEFAULT_WAR_EVENT = {
+  id: 1,
+  judul: "War Tiket Project STS Erine 19th",
+  kode_tiket: "STS19",
+  subjudul: "Cavallery • Official Fanbase Erine JKT48",
+  lokasi_event: "Theater JKT48, fX Sudirman Lt. 4",
+  tanggal_event: "Sabtu, 26 September 2026 • 19.00 WIB",
+  kategori_tiket: "OFFICIAL VIP PASS • TEAM PASSION",
+  deskripsi: "Akses khusus project perayaan Seitansai Catherina Vallencia (Erine) ke-19 bersama Cavallery Team Passion.",
+  kuota_total: 50,
+  kuota_terisi: 0,
+  waktu_buka: "2026-09-01T00:00:00+07:00",
+  waktu_tutup: "2026-10-01T23:59:59+07:00",
+  status: "buka",
+  syarat_ketentuan: "1. Wajib memiliki akun anggota Cavallery aktif.\n2. 1 Akun anggota hanya dapat mengklaim maksimal 1 tiket.\n3. Tiket tidak dapat dipindahtangankan tanpa konfirmasi admin.",
+};
+
+let memoryWarEvent: any = { ...DEFAULT_WAR_EVENT };
+
+export function updateMemoryWarEvent(event: any) {
+  if (event) {
+    memoryWarEvent = { ...memoryWarEvent, ...event };
+  }
+}
+
 /**
  * Pastikan tabel-tabel database untuk War Tiket tersedia
  */
 export async function ensureWarTiketTables(): Promise<void> {
+  if (tablesEnsured) return;
   try {
     // 1. Tabel Master Event War Tiket
     await query(`
@@ -56,10 +84,9 @@ export async function ensureWarTiketTables(): Promise<void> {
     // Masukkan event perdana STS Erine jika tabel masih kosong
     const existing = await query<any[]>("SELECT id FROM war_tiket_events LIMIT 1");
     if (!existing || existing.length === 0) {
-      // Default: Event Seitansai Erine 19th
       const now = new Date();
-      const openTime = new Date(now.getTime() + 10 * 60 * 1000); // 10 menit dari sekarang untuk testing default
-      const closeTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 hari
+      const openTime = new Date(now.getTime() - 10 * 60 * 1000); // Buka sejak 10 menit lalu
+      const closeTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 hari
 
       const fmt = (d: Date) => d.toISOString().slice(0, 19).replace("T", " ");
 
@@ -82,6 +109,7 @@ export async function ensureWarTiketTables(): Promise<void> {
         ]
       );
     }
+    tablesEnsured = true;
   } catch (err: any) {
     console.error("[WarTiket] ensureWarTiketTables error:", err?.message);
   }
@@ -90,29 +118,44 @@ export async function ensureWarTiketTables(): Promise<void> {
 /**
  * Mengambil event war tiket yang sedang aktif saat ini
  */
-export async function getActiveWarEvent(): Promise<any | null> {
-  await ensureWarTiketTables();
-  const rows = await query<any[]>(
-    `SELECT *, NOW() AS server_time 
-     FROM war_tiket_events 
-     ORDER BY id DESC LIMIT 1`
-  );
-  if (!rows || rows.length === 0) return null;
-  return rows[0];
+export async function getActiveWarEvent(): Promise<any> {
+  if (!tablesEnsured) {
+    await ensureWarTiketTables();
+  }
+  try {
+    const rows = await query<any[]>(
+      `SELECT *, NOW() AS server_time 
+       FROM war_tiket_events 
+       ORDER BY id DESC LIMIT 1`
+    );
+    if (rows && rows.length > 0) {
+      memoryWarEvent = { ...rows[0] };
+      return rows[0];
+    }
+  } catch (err) {
+    console.error("[WarTiket] getActiveWarEvent query error:", err);
+  }
+
+  return memoryWarEvent || DEFAULT_WAR_EVENT;
 }
 
 /**
  * Cek apakah seorang anggota sudah mendapatkan tiket pada event ini
  */
 export async function getMemberTicket(eventId: number, anggotaId: number): Promise<any | null> {
-  const rows = await query<any[]>(
-    `SELECT * FROM war_tiket_peserta 
-     WHERE event_id = ? AND anggota_id = ? AND status = 'terkonfirmasi' 
-     LIMIT 1`,
-    [eventId, anggotaId]
-  );
-  if (!rows || rows.length === 0) return null;
-  return rows[0];
+  try {
+    const rows = await query<any[]>(
+      `SELECT * FROM war_tiket_peserta 
+       WHERE event_id = ? AND anggota_id = ? AND status = 'terkonfirmasi' 
+       LIMIT 1`,
+      [eventId, anggotaId]
+    );
+    if (!rows || rows.length === 0) return null;
+    return rows[0];
+  } catch (err) {
+    console.error("[WarTiket] getMemberTicket error:", err);
+    return null;
+  }
 }
 
 /**
@@ -121,13 +164,8 @@ export async function getMemberTicket(eventId: number, anggotaId: number): Promi
 export function toTimestampMs(val: any): number {
   if (!val) return 0;
   if (typeof val === "number") return val;
-  if (val instanceof Date) return val.getTime();
-  const str = String(val).trim();
-  let iso = str.includes(" ") ? str.replace(" ", "T") : str;
-  if (!iso.includes("+") && !iso.includes("Z")) {
-    iso = iso.length === 16 ? `${iso}:00+07:00` : `${iso}+07:00`;
-  }
-  const t = new Date(iso).getTime();
+  const isoStr = formatToWibIso(val);
+  const t = new Date(isoStr).getTime();
   return isNaN(t) ? 0 : t;
 }
 
