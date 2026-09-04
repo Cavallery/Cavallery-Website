@@ -1699,51 +1699,248 @@
   transform: none;
 }
 
-/* E-Ticket Pass Card */
+/* E-Ticket Pass Card (VIP Concert Stub Look) */
 .warTicketPass {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(201, 168, 76, 0.15) 100%);
-  border: 2px solid var(--border-gold, #c9a84c);
-  border-radius: 24px;
-  padding: 26px 20px;
+  background: linear-gradient(145deg, rgba(32, 27, 23, 0.95) 0%, rgba(18, 15, 13, 0.98) 100%);
+  border: 2px solid var(--gold, #c9a84c);
+  border-radius: 28px;
+  padding: 32px 24px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 16px;
   position: relative;
-  box-shadow: 0 12px 32px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(201, 168, 76, 0.15);
+  overflow: hidden;
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .warTicketPass {
+  background: linear-gradient(145deg, #181512 0%, #0d0b0a 100%);
+  border-color: rgba(201, 168, 76, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(201, 168, 76, 0.12);
+}
+
+.ticketTopBadge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--gold, #c9a84c);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  padding: 6px 16px;
+  border-radius: 50px;
+}
+
+.ticketEventTitle {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 2px 0 0;
+  line-height: 1.25;
+}
+
+.ticketEventSub {
+  font-size: 0.8rem;
+  color: var(--fg-muted, #a1a1aa);
+  margin-top: -8px;
 }
 
 .ticketNumberBadge {
-  padding: 6px 22px;
+  padding: 8px 28px;
   border-radius: 50px;
-  background: linear-gradient(135deg, #f59e0b, #b45309);
+  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
   color: #ffffff;
   font-family: var(--serif);
-  font-size: 1.45rem;
+  font-size: 1.6rem;
   font-weight: 900;
-  letter-spacing: 0.05em;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  border: 1.5px solid rgba(254, 240, 138, 0.6);
+  margin: 4px 0;
+}
+
+.ticketOwnerCard {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  border-radius: 18px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
 }
 
 .ticketOwnerName {
   font-family: var(--serif);
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  color: var(--fg);
+  color: #ffffff;
   margin: 0;
+}
+
+.ticketMetaRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--fg-muted, #a1a1aa);
+}
+
+.ticketStatusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 50px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* Perforation Tear Line */
+.ticketPerforationLine {
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.ticketPerforationLine::before,
+.ticketPerforationLine::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: var(--bg, #161311);
+  border-radius: 50%;
+  border: 2px solid var(--gold, #c9a84c);
+  z-index: 2;
+}
+
+.ticketPerforationLine::before {
+  left: -36px;
+}
+
+.ticketPerforationLine::after {
+  right: -36px;
+}
+
+.ticketPerforationDash {
+  width: 100%;
+  border-top: 2px dashed rgba(201, 168, 76, 0.4);
+}
+
+/* Stub QR & Barcode Section */
+.ticketStubSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 
 .ticketQrBox {
   width: 140px;
   height: 140px;
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 2px solid var(--gold, #c9a84c);
+  box-sizing: border-box;
+}
+
+.ticketBarcodeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.85;
+}
+
+.ticketBarcodeLines {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+}
+
+.ticketBarcodeNumber {
+  font-family: monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: var(--fg-muted, #a1a1aa);
+}
+
+/* Event Notice Box */
+.ticketNoticeBox {
+  width: 100%;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 16px;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--fg, #e4e4e7);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.ticketNoticeIcon {
+  font-size: 1.35rem;
+  color: var(--gold, #c9a84c);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ticketDownloadBtn {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  color: #ffffff;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.35), 0 0 16px rgba(201, 168, 76, 0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.ticketDownloadBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(180, 83, 9, 0.5), 0 0 24px rgba(201, 168, 76, 0.4);
+}
+
+.ticketDownloadBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 /* ── Mobile Breakpoint Responsiveness (360px - 640px) ── */
