@@ -370,8 +370,7 @@ export default function CavalleryKasPage() {
   useEffect(() => {
     checkUserSession();
     checkSettings();
-    fetchWarEvent();
-  }, [fetchWarEvent]);
+  }, []);
 
   const loadKasHistory = async () => {
     setLoadingKasHistory(true);
@@ -871,6 +870,10 @@ export default function CavalleryKasPage() {
       fetchUserKupons();
     }
   }, [portalTab, sessionUser, fetchUserKupons]);
+
+  useEffect(() => {
+    fetchWarEvent();
+  }, [fetchWarEvent]);
 
   useEffect(() => {
     if (portalTab === "war") {
