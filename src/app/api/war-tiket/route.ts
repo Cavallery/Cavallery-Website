@@ -9,17 +9,29 @@ import {
 } from "@/lib/warTiket";
 import { getMemberSessionFromReq } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
+
 export async function GET(req: NextRequest) {
   try {
     await ensureWarTiketTables();
     const event = await getActiveWarEvent();
 
     if (!event) {
-      return NextResponse.json({
-        status: true,
-        data: null,
-        message: "Belum ada event war tiket yang aktif",
-      });
+      return NextResponse.json(
+        {
+          status: true,
+          data: null,
+          message: "Belum ada event war tiket yang aktif",
+        },
+        { headers: NO_CACHE_HEADERS }
+      );
     }
 
     // Cek session member
@@ -65,7 +77,7 @@ export async function GET(req: NextRequest) {
         },
         userTicket,
       },
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error("GET /api/war-tiket error:", error);
     return NextResponse.json(

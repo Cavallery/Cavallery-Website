@@ -370,7 +370,8 @@ export default function CavalleryKasPage() {
   useEffect(() => {
     checkUserSession();
     checkSettings();
-  }, []);
+    fetchWarEvent();
+  }, [fetchWarEvent]);
 
   const loadKasHistory = async () => {
     setLoadingKasHistory(true);
@@ -443,9 +444,12 @@ export default function CavalleryKasPage() {
   const fetchWarEvent = useCallback(async () => {
     setLoadingWar(true);
     try {
-      const res = await fetch("/api/war-tiket");
+      const res = await fetch(`/api/war-tiket?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Pragma: "no-cache" },
+      });
       const json = await res.json();
-      if (json.status && json.data) {
+      if (json.status && json.data?.event) {
         setWarEvent(json.data.event);
         setUserWarTicket(json.data.userTicket);
       }
