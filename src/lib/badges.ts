@@ -68,19 +68,6 @@ export const BADGE_OPTIONS = [
   { value: "royal_knight", label: "Royal Knight", icon: "bx-crown" },
 ];
 
-import { query } from "@/lib/mysql";
-
-let _badgeColEnsured = false;
-export async function ensureBadgeColumn() {
-  if (_badgeColEnsured) return;
-  try {
-    await query("ALTER TABLE anggota ADD COLUMN badge VARCHAR(50) NOT NULL DEFAULT 'squire'");
-    _badgeColEnsured = true;
-  } catch {
-    _badgeColEnsured = true;
-  }
-}
-
 export function getMemberBadge(badgeKey?: string | null): MemberBadgeDef {
   if (!badgeKey) return MEMBER_BADGES.squire;
   const key = badgeKey.toLowerCase().trim().replace(/[\s-]+/g, "_");
