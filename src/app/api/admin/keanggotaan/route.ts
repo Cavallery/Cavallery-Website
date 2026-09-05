@@ -3,7 +3,17 @@ import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota } from "@/lib/membership";
 import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
-import { ensureBadgeColumn } from "@/lib/badges";
+
+let _badgeColEnsured = false;
+async function ensureBadgeColumn() {
+  if (_badgeColEnsured) return;
+  try {
+    await query("ALTER TABLE anggota ADD COLUMN badge VARCHAR(50) NOT NULL DEFAULT 'squire'");
+    _badgeColEnsured = true;
+  } catch {
+    _badgeColEnsured = true;
+  }
+}
 
 function formatAnggotaRow(r: any) {
   return {
