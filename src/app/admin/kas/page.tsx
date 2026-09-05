@@ -682,6 +682,25 @@ export default function AdminKasPage() {
     }
   };
 
+  // ── Handler: Tagih Kas via LINE ──
+  const handleTagihLine = (d: any) => {
+    const rawLine = (d.idLine || "").trim();
+    if (!rawLine || rawLine === "-") {
+      alert(`ID LINE untuk ${d.nama} belum terdaftar.`);
+      return;
+    }
+    const cleanLineId = rawLine.replace(/^@/, "").trim();
+    const reminderText = `Halo Kak ${d.nama} (${d.noAnggota}), kami dari pengurus Cavallery ingin mengingatkan pembayaran uang kas sebesar ${formatRupiah(d.tagihanKas)} untuk ${d.kewajibanText} ya. Pembayaran dan konfirmasi kas dapat langsung dilakukan di website https://cavallery.id/cavallery-kas. Terima kasih!`;
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(reminderText);
+    }
+    setMsg(`Pesan pengingat kas untuk ${d.nama} berhasil disalin ke clipboard! Membuka LINE...`);
+    setTimeout(() => setMsg(""), 5000);
+
+    window.open(`https://line.me/ti/p/~${encodeURIComponent(cleanLineId)}`, "_blank");
+  };
+
   useEffect(() => {
     if (activeTab === "war") {
       fetchAdminWarData();
@@ -904,7 +923,7 @@ export default function AdminKasPage() {
             { key: "pengeluaran", label: `Laporan Pengeluaran (${pengeluaranList.length})`, icon: "bx-receipt" },
             { key: "kupon", label: `Kupon Reward Kas (${kuponList.length})`, icon: "bx-gift" },
             { key: "konfirmasi", label: `Antrean Verifikasi (${pendingKas.length})`, icon: "bx-check-shield" },
-            { key: "war", label: `🔥 War Tiket STS (${adminWarPeserta.length})`, icon: "bx-flame" },
+            { key: "war", label: `War Tiket STS (${adminWarPeserta.length})`, icon: "bx-flame" },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -1250,54 +1269,113 @@ export default function AdminKasPage() {
                       <th>No.</th>
                       <th>Nomor Anggota</th>
                       <th>Nama Anggota</th>
+                      <th>ID LINE</th>
                       <th>Tagihan Kas</th>
                       <th>Kewajiban Kas</th>
                       <th>Aksi Cepat</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTagihanRows.map((d: any, idx: number) => (
-                      <tr key={d.noAnggota}>
-                        <td style={{ textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
-                        <td><span className={styles.noAnggota}>{d.noAnggota}</span></td>
-                        <td className={styles.nameCol}>
-                          <div style={{ fontWeight: 700 }}>{d.nama}</div>
-                          <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{d.jabatan}</div>
-                        </td>
-                        <td style={{ fontWeight: 900, color: "#ef4444", fontSize: "0.95rem" }}>
-                          {formatRupiah(d.tagihanKas)}
-                        </td>
-                        <td>
-                          <span style={{
-                            display: "inline-block",
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            background: "rgba(239, 68, 68, 0.1)",
-                            color: "#ef4444",
-                            fontWeight: 700,
-                            fontSize: "0.82rem",
-                            border: "1px solid rgba(239, 68, 68, 0.25)",
-                          }}>
-                            {d.kewajibanText}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setManualNoAnggota(d.noAnggota);
-                              setManualTahun(matrixYear);
-                              setManualBulan(d.unpaidMonths?.[0] || 1);
-                              setShowInputModal(true);
-                            }}
-                            className={styles.backBtn}
-                            style={{ fontSize: "0.75rem", padding: "5px 10px", color: "var(--gold)", borderColor: "var(--border-gold)" }}
-                          >
-                            <i className="bx bx-check-circle" /> Bayar Bulan Pertama
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredTagihanRows.map((d: any, idx: number) => {
+                      const rawLine = (d.idLine || "").trim();
+                      const hasLine = rawLine && rawLine !== "-";
+                      const cleanLine = hasLine ? rawLine.replace(/^@/, "").trim() : "";
+
+                      return (
+                        <tr key={d.noAnggota}>
+                          <td style={{ textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
+                          <td><span className={styles.noAnggota}>{d.noAnggota}</span></td>
+                          <td className={styles.nameCol}>
+                            <div style={{ fontWeight: 700 }}>{d.nama}</div>
+                            <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{d.jabatan}</div>
+                          </td>
+                          <td>
+                            {hasLine ? (
+                              <a
+                                href={`https://line.me/ti/p/~${encodeURIComponent(cleanLine)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 5,
+                                  color: "#06c755",
+                                  fontWeight: 700,
+                                  fontSize: "0.82rem",
+                                  textDecoration: "none",
+                                }}
+                                title={`Chat langsung dengan ${d.nama} via LINE`}
+                              >
+                                <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
+                                <span>{rawLine}</span>
+                              </a>
+                            ) : (
+                              <span style={{ color: "var(--fg-muted)", fontSize: "0.8rem" }}>-</span>
+                            )}
+                          </td>
+                          <td style={{ fontWeight: 900, color: "#ef4444", fontSize: "0.95rem" }}>
+                            {formatRupiah(d.tagihanKas)}
+                          </td>
+                          <td>
+                            <span style={{
+                              display: "inline-block",
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "rgba(239, 68, 68, 0.1)",
+                              color: "#ef4444",
+                              fontWeight: 700,
+                              fontSize: "0.82rem",
+                              border: "1px solid rgba(239, 68, 68, 0.25)",
+                            }}>
+                              {d.kewajibanText}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                              {hasLine && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleTagihLine(d)}
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    padding: "6px 12px",
+                                    background: "#06c755",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: 8,
+                                    fontWeight: 800,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                    cursor: "pointer",
+                                    transition: "all 0.2s",
+                                    boxShadow: "0 2px 8px rgba(6, 199, 85, 0.25)",
+                                  }}
+                                  title="Salin pesan tagihan ke clipboard dan langsung buka aplikasi LINE"
+                                >
+                                  <i className="bx bxl-line" style={{ fontSize: "1rem" }} /> Tagih via LINE
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setManualNoAnggota(d.noAnggota);
+                                  setManualTahun(matrixYear);
+                                  setManualBulan(d.unpaidMonths?.[0] || 1);
+                                  setShowInputModal(true);
+                                }}
+                                className={styles.backBtn}
+                                style={{ fontSize: "0.75rem", padding: "5px 10px", color: "var(--gold)", borderColor: "var(--border-gold)" }}
+                                title="Catat pembayaran manual untuk bulan pertama tunggakan"
+                              >
+                                <i className="bx bx-check-circle" /> Bayar Manual
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -305,7 +305,7 @@ export async function getYearlyKasMatrix(tahun: number) {
 
   // 1. Ambil Semua Anggota Aktif & Natural Sort
   const rawAnggota = (await query<any[]>(`
-    SELECT id, no_anggota, nama_lengkap, jabatan, divisi, anggota_sejak, created_at 
+    SELECT id, no_anggota, nama_lengkap, id_line, jabatan, divisi, anggota_sejak, created_at 
     FROM anggota 
     WHERE status = 'aktif'
     ORDER BY 
@@ -405,6 +405,7 @@ export async function getYearlyKasMatrix(tahun: number) {
       anggotaId: a.id,
       noAnggota,
       nama,
+      idLine: a.id_line || "-",
       jabatan: a.jabatan || "Anggota",
       divisi: a.divisi,
       isAdminRole: (a.jabatan || "") !== "Anggota",
@@ -495,6 +496,7 @@ export async function getKasDebtsTracker(tahun: number, upToMonth?: number) {
       debtsList.push({
         noAnggota: row.noAnggota,
         nama: row.nama,
+        idLine: row.idLine || "-",
         jabatan: row.jabatan,
         divisi: row.divisi,
         bulanMulai: row.bulanMulai,
