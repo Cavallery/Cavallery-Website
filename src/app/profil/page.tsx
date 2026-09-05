@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import { getMemberBadge, MEMBER_BADGES } from "@/lib/badges";
 
 interface UserProfile {
   type: "anggota" | "donatur";
@@ -20,6 +21,7 @@ interface UserProfile {
   kontakId?: string;
   status: string;
   jabatan?: string;
+  badge?: string;
   anggotaSejak?: string;
   createdAt: string;
   totalKasVerified?: number;
@@ -184,6 +186,22 @@ export default function ProfilPage() {
                     <i className="bx bx-shield-quarter" /> {profile.jabatan}
                   </span>
                 )}
+                {profile.type === "anggota" && (() => {
+                  const bDef = getMemberBadge(profile.badge);
+                  return (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        color: bDef.color,
+                        fontWeight: 700,
+                      }}
+                    >
+                      <i className={`bx ${bDef.icon}`} /> Badge: {bDef.name}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -264,6 +282,95 @@ export default function ProfilPage() {
             </div>
           </div>
         </div>
+
+        {/* Member Badge System Showcase */}
+        {profile.type === "anggota" && (
+          <div
+            className="glassCard"
+            style={{
+              marginTop: 24,
+              padding: "24px 20px",
+              borderRadius: 20,
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <i className="bx bx-award" style={{ fontSize: "1.4rem", color: "var(--gold)" }} />
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, margin: 0, color: "var(--fg)" }}>
+                Tingkatan Badge Anggota Cavallery
+              </h3>
+            </div>
+            <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginBottom: 18, lineHeight: 1.5 }}>
+              Badge mencerminkan dedikasi, keaktifan, dan kontribusi Ksatria dalam mendukung Cavallery dan Erine JKT48.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+              {Object.values(MEMBER_BADGES).map((b) => {
+                const isCurrentBadge = (profile.badge || "squire").toLowerCase() === b.id;
+                return (
+                  <div
+                    key={b.id}
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: isCurrentBadge ? `2px solid ${b.color}` : `1px solid var(--border)`,
+                      background: isCurrentBadge ? b.bgColor : "rgba(0,0,0,0.02)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      position: "relative",
+                      boxShadow: isCurrentBadge ? `0 4px 16px ${b.bgColor}` : "none",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 8,
+                            background: b.bgColor,
+                            border: `1px solid ${b.borderColor}`,
+                            color: b.color,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.15rem",
+                          }}
+                        >
+                          <i className={`bx ${b.icon}`} />
+                        </div>
+                        <span style={{ fontWeight: 800, fontSize: "0.95rem", color: b.color }}>
+                          {b.name}
+                        </span>
+                      </div>
+                      {isCurrentBadge && (
+                        <span
+                          style={{
+                            fontSize: "0.68rem",
+                            fontWeight: 800,
+                            padding: "2px 8px",
+                            borderRadius: 50,
+                            background: b.color,
+                            color: "#fff",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          Badge Kamu
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--fg-muted)", lineHeight: 1.45 }}>
+                      {b.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Logout Button */}
         <div className={styles.logoutWrap}>

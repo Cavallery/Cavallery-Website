@@ -3,6 +3,7 @@ import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota } from "@/lib/membership";
 import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
+import { ensureBadgeColumn } from "@/lib/badges";
 
 function formatAnggotaRow(r: any) {
   return {
@@ -25,6 +26,7 @@ function formatAnggotaRow(r: any) {
     status: r.status || "pending",
     jabatan: r.jabatan || "Anggota",
     divisi: r.divisi || null,
+    badge: r.badge || "squire",
     fotoProfil: r.foto_profil || null,
     foto_profil: r.foto_profil || null,
     anggotaSejak: r.anggota_sejak,
@@ -39,6 +41,8 @@ export async function GET(req: NextRequest) {
     if (!admin) {
       return NextResponse.json({ status: false, message: "Akses ditolak. Silakan login sebagai admin." }, { status: 401 });
     }
+
+    await ensureBadgeColumn();
 
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.trim().toLowerCase() || "";
@@ -69,18 +73,20 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Get keanggotaan error:", error);
-    return NextResponse.json({ status: false, message: error?.message || "Gagal memuat data keanggotaan" }, { status: 500 });
+    console.error("GET keanggotaan error:", error);
+    return NextResponse.json({ status: false, message: error?.message || "Gagal mengambil data keanggotaan" }, { status: 500 });
   }
 }
 
-// ── POST: Aksi Verifikasi / Ubah Jabatan / Tambah Anggota Manual ──
+// ── POST: Aksi Cepat (Terima, Tolak, Ubah Status, Ubah Jabatan, Ubah Badge, Hapus, Tambah Manual) ──
 export async function POST(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
     if (!admin) {
       return NextResponse.json({ status: false, message: "Akses ditolak. Silakan login sebagai admin." }, { status: 401 });
     }
+
+    await ensureBadgeColumn();
 
     const body = await req.json();
     const { id, action, status, jabatan } = body;
@@ -99,6 +105,7 @@ export async function POST(req: NextRequest) {
         kontakId,
         jabatanBaru,
         divisi,
+        badge,
         fotoProfil,
       } = body;
 
@@ -115,8 +122,8 @@ export async function POST(req: NextRequest) {
       try {
         await query(
           `INSERT INTO anggota 
-           (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, divisi, foto_profil, anggota_sejak) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?, ?)`,
+           (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, divisi, badge, foto_profil, anggota_sejak) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?, ?, ?)`,
           [
             finalNo,
             namaLengkap.trim(),
@@ -129,12 +136,13 @@ export async function POST(req: NextRequest) {
             kontakId?.trim() || idLine.trim(),
             jabatanBaru || "Anggota",
             divisi?.trim() || null,
+            badge || "squire",
             fotoProfil?.trim() || null,
             now,
           ]
         );
       } catch {
-        // Fallback without divisi column if not created yet
+        // Fallback without badge/divisi column if not created yet
         await query(
           `INSERT INTO anggota 
            (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, foto_profil, anggota_sejak) 
@@ -283,7 +291,23 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 5. HAPUS ANGGOTA
+    // 5. UBAH BADGE ANGGOTA
+    if (action === "update_badge") {
+      const { badge } = body;
+      const targetBadge = badge || "squire";
+      try {
+        await query("UPDATE anggota SET badge = ? WHERE id = ?", [targetBadge, id]);
+      } catch {
+        await ensureBadgeColumn();
+        await query("UPDATE anggota SET badge = ? WHERE id = ?", [targetBadge, id]);
+      }
+      return NextResponse.json({
+        status: true,
+        message: `Badge anggota ${anggota.nama_lengkap} berhasil diubah menjadi "${targetBadge}".`,
+      });
+    }
+
+    // 6. HAPUS ANGGOTA
     if (action === "delete") {
       await query("DELETE FROM anggota WHERE id = ?", [id]);
       if (anggota && anggota.no_anggota) {
@@ -310,6 +334,8 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
     }
 
+    await ensureBadgeColumn();
+
     const body = await req.json();
     const {
       id,
@@ -324,6 +350,8 @@ export async function PUT(req: NextRequest) {
       kontakId,
       status,
       jabatan,
+      divisi,
+      badge,
       fotoProfil,
       anggotaSejak,
     } = body;
@@ -337,7 +365,7 @@ export async function PUT(req: NextRequest) {
     try {
       await query(
         `UPDATE anggota 
-         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, foto_profil = ?, anggota_sejak = ? 
+         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
          WHERE id = ?`,
         [
           noAnggota?.trim().toUpperCase() || null,
@@ -352,6 +380,7 @@ export async function PUT(req: NextRequest) {
           status || "aktif",
           jabatan || "Anggota",
           divisi?.trim() || null,
+          badge || "squire",
           fotoProfil !== undefined ? (fotoProfil?.trim() || null) : null,
           joinDate,
           id,

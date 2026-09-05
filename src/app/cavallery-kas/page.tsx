@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import styles from "./page.module.css";
+import { getMemberBadge } from "@/lib/badges";
 
 const PLATFORMS = ["LINE", "X (Twitter)", "Instagram", "TikTok", "Discord"];
 
@@ -121,6 +122,7 @@ export default function CavalleryKasPage() {
   const [loginIdLine, setLoginIdLine] = useState("");
   const [loginNamaDonatur, setLoginNamaDonatur] = useState("");
   const [loginKontakDonatur, setLoginKontakDonatur] = useState("");
+  const [loginShowPassword, setLoginShowPassword] = useState(false);
 
   // Form Daftar State
   const [regNoAnggota, setRegNoAnggota] = useState("");
@@ -1436,17 +1438,42 @@ export default function CavalleryKasPage() {
 
                         <div className={styles.field}>
                           <div className={styles.labelRow}>
-                            <label className={styles.label}>ID LINE</label>
+                            <label className={styles.label}>ID LINE (Kata Sandi)</label>
                             <span className={styles.badgeWajib}>WAJIB</span>
                           </div>
-                          <input
-                            type="text"
-                            className={styles.input}
-                            placeholder="ID LINE terdaftar"
-                            value={loginIdLine}
-                            onChange={(e) => setLoginIdLine(e.target.value)}
-                            required
-                          />
+                          <div style={{ position: "relative", width: "100%" }}>
+                            <input
+                              type={loginShowPassword ? "text" : "password"}
+                              className={styles.input}
+                              placeholder="ID LINE terdaftar"
+                              value={loginIdLine}
+                              onChange={(e) => setLoginIdLine(e.target.value)}
+                              style={{ paddingRight: 44 }}
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setLoginShowPassword(!loginShowPassword)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--fg-muted)",
+                                fontSize: "1.25rem",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 4,
+                              }}
+                              title={loginShowPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                            >
+                              <i className={`bx ${loginShowPassword ? "bx-show" : "bx-hide"}`} />
+                            </button>
+                          </div>
                         </div>
                       </>
                     ) : (
@@ -1472,20 +1499,45 @@ export default function CavalleryKasPage() {
                         <div className={styles.field}>
                           <div className={styles.labelRow}>
                             <label className={styles.label}>
-                              ID Kontak / Username
+                              ID Kontak (Kata Sandi)
                             </label>
                             <span className={styles.badgeWajib}>WAJIB</span>
                           </div>
-                          <input
-                            type="text"
-                            className={styles.input}
-                            placeholder="ID LINE / X / WA yang terdaftar"
-                            value={loginKontakDonatur}
-                            onChange={(e) =>
-                              setLoginKontakDonatur(e.target.value)
-                            }
-                            required
-                          />
+                          <div style={{ position: "relative", width: "100%" }}>
+                            <input
+                              type={loginShowPassword ? "text" : "password"}
+                              className={styles.input}
+                              placeholder="ID LINE / X / WA yang terdaftar"
+                              value={loginKontakDonatur}
+                              onChange={(e) =>
+                                setLoginKontakDonatur(e.target.value)
+                              }
+                              style={{ paddingRight: 44 }}
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setLoginShowPassword(!loginShowPassword)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--fg-muted)",
+                                fontSize: "1.25rem",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 4,
+                              }}
+                              title={loginShowPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                            >
+                              <i className={`bx ${loginShowPassword ? "bx-show" : "bx-hide"}`} />
+                            </button>
+                          </div>
                         </div>
                       </>
                     )}
@@ -1936,6 +1988,30 @@ export default function CavalleryKasPage() {
               <span className={styles.memberSinceText}>
                 Anggota Sejak: {formattedJoinDate}
               </span>
+              {sessionUser.type === "anggota" && (() => {
+                const bDef = getMemberBadge(sessionUser.badge);
+                return (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "3px 10px",
+                      borderRadius: 50,
+                      background: bDef.bgColor,
+                      border: `1px solid ${bDef.borderColor}`,
+                      color: bDef.color,
+                      fontSize: "0.75rem",
+                      fontWeight: 800,
+                      marginTop: 4,
+                      width: "fit-content",
+                    }}
+                    title={bDef.description}
+                  >
+                    <i className={`bx ${bDef.icon}`} /> Badge: {bDef.name}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -4511,6 +4587,31 @@ export default function CavalleryKasPage() {
                 sessionUser.jabatan || "Anggota"
               )}
             </span>
+
+            {sessionUser.type === "anggota" && (() => {
+              const bDef = getMemberBadge(sessionUser.badge);
+              return (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "4px 14px",
+                    borderRadius: 50,
+                    background: bDef.bgColor,
+                    border: `1px solid ${bDef.borderColor}`,
+                    color: bDef.color,
+                    fontSize: "0.82rem",
+                    fontWeight: 800,
+                    marginTop: 6,
+                    marginBottom: 4,
+                  }}
+                  title={bDef.description}
+                >
+                  <i className={`bx ${bDef.icon}`} /> Badge: {bDef.name}
+                </span>
+              );
+            })()}
 
             <span className={styles.verifySinceText}>
               Anggota Sejak: {formattedJoinDate}

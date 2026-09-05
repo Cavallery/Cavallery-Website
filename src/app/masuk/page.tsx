@@ -17,6 +17,9 @@ export default function MasukPage() {
   const [namaDonatur, setNamaDonatur] = useState("");
   const [kontakIdDonatur, setKontakIdDonatur] = useState("");
 
+  // Show/Hide Password State
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -147,28 +150,53 @@ export default function MasukPage() {
                   />
                 </div>
 
-                {/* ID Line */}
+                {/* ID Line (Sandi Anggota) */}
                 <div className={styles.field}>
                   <div className={styles.labelRow}>
-                    <label className={styles.label}>ID LINE</label>
+                    <label className={styles.label}>ID LINE (Kata Sandi)</label>
                     <span className={styles.badgeWajib}>WAJIB</span>
                   </div>
-                  <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="ID LINE terdaftar"
-                    value={idLine}
-                    onChange={(e) => setIdLine(e.target.value)}
-                    required
-                  />
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={styles.input}
+                      placeholder="ID LINE terdaftar"
+                      value={idLine}
+                      onChange={(e) => setIdLine(e.target.value)}
+                      style={{ paddingRight: 44 }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--fg-muted)",
+                        fontSize: "1.25rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 4,
+                      }}
+                      title={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                    >
+                      <i className={`bx ${showPassword ? "bx-show" : "bx-hide"}`} />
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (
               <>
-                {/* Form Donatur */}
+                {/* Form Donatur / Kontributor */}
                 <div className={styles.field}>
                   <div className={styles.labelRow}>
-                    <label className={styles.label}>Nama / Alias</label>
+                    <label className={styles.label}>Nama Kontributor / Alias</label>
                     <span className={styles.badgeWajib}>WAJIB</span>
                   </div>
                   <input
@@ -183,17 +211,42 @@ export default function MasukPage() {
 
                 <div className={styles.field}>
                   <div className={styles.labelRow}>
-                    <label className={styles.label}>ID / Nomor Kontak</label>
+                    <label className={styles.label}>ID Kontak (Kata Sandi)</label>
                     <span className={styles.badgeWajib}>WAJIB</span>
                   </div>
-                  <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="ID / Nomor Kontak terdaftar"
-                    value={kontakIdDonatur}
-                    onChange={(e) => setKontakIdDonatur(e.target.value)}
-                    required
-                  />
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className={styles.input}
+                      placeholder="ID / Nomor Kontak terdaftar"
+                      value={kontakIdDonatur}
+                      onChange={(e) => setKontakIdDonatur(e.target.value)}
+                      style={{ paddingRight: 44 }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--fg-muted)",
+                        fontSize: "1.25rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 4,
+                      }}
+                      title={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                    >
+                      <i className={`bx ${showPassword ? "bx-show" : "bx-hide"}`} />
+                    </button>
+                  </div>
                 </div>
               </>
             )}
