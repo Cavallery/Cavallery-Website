@@ -709,10 +709,11 @@ export default function AdminKasPage() {
       return;
     }
 
-    setMsg(`Pesan tagihan untuk ${nama} (${nominalFormatted}) berhasil disalin! Membuka obrolan LINE...`);
+    setMsg(`Pesan tagihan untuk ${nama} (${nominalFormatted}) berhasil disalin! Membuka aplikasi LINE...`);
     setTimeout(() => setMsg(""), 5000);
 
-    window.open(`https://line.me/ti/p/~${encodeURIComponent(cleanLineId)}`, "_blank");
+    // Buka aplikasi LINE langsung via line:// protocol agar tidak muncul web QR code
+    window.location.href = `line://ti/p/~${encodeURIComponent(cleanLineId)}`;
   };
 
   useEffect(() => {
@@ -1305,24 +1306,45 @@ export default function AdminKasPage() {
                           </td>
                           <td>
                             {hasLine ? (
-                              <a
-                                href={`https://line.me/ti/p/~${encodeURIComponent(cleanLine)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 5,
-                                  color: "#06c755",
-                                  fontWeight: 700,
-                                  fontSize: "0.82rem",
-                                  textDecoration: "none",
-                                }}
-                                title={`Chat langsung dengan ${d.nama} via LINE`}
-                              >
-                                <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
-                                <span>{rawLine}</span>
-                              </a>
+                              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                <a
+                                  href={`line://ti/p/~${encodeURIComponent(cleanLine)}`}
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                    color: "#06c755",
+                                    fontWeight: 700,
+                                    fontSize: "0.82rem",
+                                    textDecoration: "none",
+                                  }}
+                                  title={`Buka langsung di aplikasi LINE`}
+                                >
+                                  <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
+                                  <span>{rawLine}</span>
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                      navigator.clipboard.writeText(cleanLine);
+                                      setMsg(`ID LINE "${cleanLine}" berhasil disalin!`);
+                                      setTimeout(() => setMsg(""), 3000);
+                                    }
+                                  }}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    color: "var(--fg-muted)",
+                                    cursor: "pointer",
+                                    padding: "2px 4px",
+                                    fontSize: "0.85rem",
+                                  }}
+                                  title="Salin ID LINE"
+                                >
+                                  <i className="bx bx-copy" />
+                                </button>
+                              </div>
                             ) : (
                               <span style={{ color: "var(--fg-muted)", fontSize: "0.8rem" }}>-</span>
                             )}

@@ -664,23 +664,44 @@ export default function AdminKeanggotaanPage() {
                         </td>
                         <td>
                           {idLine && idLine !== "-" ? (
-                            <a
-                              href={`https://line.me/ti/p/~${encodeURIComponent(idLine.trim().replace(/^@/, ""))}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                color: "#06c755",
-                                fontWeight: 700,
-                                textDecoration: "none",
-                              }}
-                              title={`Chat langsung dengan ${namaLengkap} via LINE`}
-                            >
-                              <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
-                              <span>{idLine}</span>
-                            </a>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <a
+                                href={`line://ti/p/~${encodeURIComponent(idLine.trim().replace(/^@/, ""))}`}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  color: "#06c755",
+                                  fontWeight: 700,
+                                  textDecoration: "none",
+                                }}
+                                title={`Buka langsung di aplikasi LINE`}
+                              >
+                                <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
+                                <span>{idLine}</span>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                    navigator.clipboard.writeText(idLine.trim().replace(/^@/, ""));
+                                    setMsg(`ID LINE "${idLine}" berhasil disalin!`);
+                                    setTimeout(() => setMsg(""), 3000);
+                                  }
+                                }}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "var(--fg-muted)",
+                                  cursor: "pointer",
+                                  padding: "2px 4px",
+                                  fontSize: "0.85rem",
+                                }}
+                                title="Salin ID LINE"
+                              >
+                                <i className="bx bx-copy" />
+                              </button>
+                            </div>
                           ) : (
                             <span>{idLine}</span>
                           )}
