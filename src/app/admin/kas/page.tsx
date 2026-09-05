@@ -683,19 +683,33 @@ export default function AdminKasPage() {
   };
 
   // ── Handler: Tagih Kas via LINE ──
-  const handleTagihLine = (d: any) => {
+  const handleTagihLine = (d: any, justCopy = false) => {
     const rawLine = (d.idLine || "").trim();
-    if (!rawLine || rawLine === "-") {
-      alert(`ID LINE untuk ${d.nama} belum terdaftar.`);
-      return;
-    }
     const cleanLineId = rawLine.replace(/^@/, "").trim();
-    const reminderText = `Halo Kak ${d.nama} (${d.noAnggota}), kami dari pengurus Cavallery ingin mengingatkan pembayaran uang kas sebesar ${formatRupiah(d.tagihanKas)} untuk ${d.kewajibanText} ya. Pembayaran dan konfirmasi kas dapat langsung dilakukan di website https://cavallery.id/cavallery-kas. Terima kasih!`;
+    const nama = d.nama || "Anggota";
+    const noAnggota = d.noAnggota || "-";
+    const nominalFormatted = formatRupiah(d.tagihanKas || 0);
+    const kewajiban = d.kewajibanText || "iuran kas bulanan";
+
+    const reminderText = `Halo Kak ${nama} (${noAnggota}), kami dari pengurus Cavallery ingin mengingatkan pembayaran uang kas sebesar ${nominalFormatted} untuk ${kewajiban} ya. Pembayaran dan konfirmasi kas dapat langsung dilakukan di website https://cavallery.id/cavallery-kas. Terima kasih!`;
 
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(reminderText);
     }
-    setMsg(`Pesan pengingat kas untuk ${d.nama} berhasil disalin ke clipboard! Membuka LINE...`);
+
+    if (justCopy) {
+      setMsg(`Pesan tagihan untuk ${nama} (${nominalFormatted}) berhasil disalin ke clipboard!`);
+      setTimeout(() => setMsg(""), 5000);
+      return;
+    }
+
+    if (!rawLine || rawLine === "-") {
+      setMsg(`Pesan tagihan telah disalin ke clipboard, namun ID LINE untuk ${nama} belum terdaftar.`);
+      setTimeout(() => setMsg(""), 5000);
+      return;
+    }
+
+    setMsg(`Pesan tagihan untuk ${nama} (${nominalFormatted}) berhasil disalin! Membuka obrolan LINE...`);
     setTimeout(() => setMsg(""), 5000);
 
     window.open(`https://line.me/ti/p/~${encodeURIComponent(cleanLineId)}`, "_blank");
@@ -1356,6 +1370,16 @@ export default function AdminKasPage() {
                                   <i className="bx bxl-line" style={{ fontSize: "1rem" }} /> Tagih via LINE
                                 </button>
                               )}
+
+                              <button
+                                type="button"
+                                onClick={() => handleTagihLine(d, true)}
+                                className={styles.backBtn}
+                                style={{ fontSize: "0.75rem", padding: "5px 9px", color: "var(--primary)" }}
+                                title="Salin draft teks tagihan ke clipboard tanpa membuka LINE"
+                              >
+                                <i className="bx bx-copy" /> Salin Teks
+                              </button>
 
                               <button
                                 type="button"
