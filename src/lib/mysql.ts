@@ -39,7 +39,7 @@ function getPool(): mysql.Pool {
     waitForConnections: true,
     connectionLimit: 8,
     queueLimit: 20,
-    connectTimeout: 8000,
+    connectTimeout: 3000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     charset: "utf8mb4",
@@ -63,14 +63,8 @@ export async function query<T = any>(sql: string, params: any[] = []): Promise<T
       return results as T;
     }
   } catch (error: any) {
-    try {
-      const pool = getPool();
-      const [results] = await pool.query(sql, params);
-      return results as T;
-    } catch (fallbackError: any) {
-      console.error("[MySQL Error]:", fallbackError.message);
-      return null;
-    }
+    console.error("[MySQL Error]:", error.message);
+    return null;
   }
 }
 

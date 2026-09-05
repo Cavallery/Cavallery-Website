@@ -14,6 +14,7 @@ async function fetchJkt48OfficialNews(): Promise<any[]> {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
       },
       next: { revalidate: 180 },
+      signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -48,6 +49,7 @@ async function fetchCavalleryFanbaseNews(): Promise<any[]> {
         "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
       },
       next: { revalidate: 180 },
+      signal: AbortSignal.timeout(4000),
     });
     if (res.ok) {
       const json = await res.json();

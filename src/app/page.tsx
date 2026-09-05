@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Cavallery adalah komunitas resmi penggemar Erine JKT48. Jadwal, berita, games, dan proyek eksklusif.",
 };
 
-export const revalidate = 0; // Disable caching to fix Hostinger CDN cache issue
+export const revalidate = 60; // Cache homepage for 60 seconds
 
 
 export default function HomePage() {

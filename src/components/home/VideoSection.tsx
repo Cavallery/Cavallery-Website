@@ -32,6 +32,7 @@ export default function VideoSection() {
                 muted
                 loop
                 playsInline
+                preload="metadata"
                 className={styles.video}
                 onError={() => setVideoError(true)}
               />

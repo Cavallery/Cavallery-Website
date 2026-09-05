@@ -11,6 +11,7 @@ async function fetchExternalGallery(): Promise<any[]> {
         "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
       },
       next: { revalidate: 300 },
+      signal: AbortSignal.timeout(4000),
     });
     if (res.ok) {
       const json = await res.json();

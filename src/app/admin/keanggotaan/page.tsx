@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
-import { BADGE_OPTIONS, getMemberBadge } from "@/lib/badges";
+import { BADGE_OPTIONS, getMemberBadge, MEMBER_BADGES } from "@/lib/badges";
 
 const JABATAN_OPTIONS = [
   "Anggota",
