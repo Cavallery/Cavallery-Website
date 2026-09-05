@@ -74,9 +74,14 @@ export async function POST(req: NextRequest) {
       const formattedDate = a.created_at
         ? new Date(a.created_at).toISOString().replace("T", " ").substring(0, 19)
         : "-";
-      const formattedSejak = a.anggota_sejak
-        ? new Date(a.anggota_sejak).toLocaleDateString("id-ID")
-        : "-";
+      let formattedSejak = "";
+      if (a.anggota_sejak) {
+        const d = new Date(a.anggota_sejak);
+        if (!isNaN(d.getTime())) {
+          const pad = (n: number) => String(n).padStart(2, "0");
+          formattedSejak = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+      }
 
       const fullJabatan =
         a.jabatan === "Admin Fanbase" && a.divisi
