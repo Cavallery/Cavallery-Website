@@ -26,7 +26,7 @@ export const MEMBER_BADGES: Record<string, MemberBadgeDef> = {
     id: "rider",
     name: "Rider",
     icon: "bx-run", // Alternatif equestrian / horse boxicon
-    description: "Aktif berinteraksi di komunitas Cavallery.",
+    description: "Aktif berinteraksi dan mengobrol di komunitas LINE & Discord Cavallery.",
     color: "#3b82f6",
     bgColor: "rgba(59, 130, 246, 0.12)",
     borderColor: "rgba(59, 130, 246, 0.35)",
@@ -35,7 +35,7 @@ export const MEMBER_BADGES: Record<string, MemberBadgeDef> = {
     id: "knight",
     name: "Knight",
     icon: "bx-cross", // Icon swords / cross knight
-    description: "Aktif dan rutin mengikuti kegiatan Cavallery.",
+    description: "Aktif dan rutin mengikuti kegiatan, event, serta gathering Cavallery.",
     color: "#c9a84c",
     bgColor: "rgba(201, 168, 76, 0.15)",
     borderColor: "rgba(201, 168, 76, 0.4)",
@@ -44,7 +44,7 @@ export const MEMBER_BADGES: Record<string, MemberBadgeDef> = {
     id: "royal_guard",
     name: "Royal Guard",
     icon: "bx-building-house", // Icon castle / fortress
-    description: "Aktif berkontribusi dalam project Cavallery.",
+    description: "Aktif berkontribusi dalam project Cavallery serta aktif di Discord & komunitas.",
     color: "#8b5cf6",
     bgColor: "rgba(139, 92, 246, 0.14)",
     borderColor: "rgba(139, 92, 246, 0.4)",
@@ -53,7 +53,7 @@ export const MEMBER_BADGES: Record<string, MemberBadgeDef> = {
     id: "royal_knight",
     name: "Royal Knight",
     icon: "bx-crown", // Icon crown
-    description: "Member yang aktif, loyal, dan banyak berkontribusi dalam project Cavallery.",
+    description: "Member yang sangat aktif, loyal, dan banyak berkontribusi dalam project Cavallery.",
     color: "#f59e0b",
     bgColor: "rgba(245, 158, 11, 0.15)",
     borderColor: "rgba(245, 158, 11, 0.45)",
