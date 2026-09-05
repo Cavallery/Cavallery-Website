@@ -45,7 +45,8 @@ async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
     const res = await fetch(
       `https://v5.jkt48connect.com/api/cavallery/news/${slug}?apikey=JKTCONNECT`,
       {
-        cache: "no-store",
+        next: { revalidate: 60 },
+        signal: AbortSignal.timeout(5000),
         headers: {
           Accept: "application/json",
           "User-Agent":

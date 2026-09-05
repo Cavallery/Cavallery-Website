@@ -21,8 +21,14 @@ export function isMySqlConfigured(): boolean {
   );
 }
 
+let poolInstance: mysql.Pool | null = null;
+
 function getPool(): mysql.Pool {
-  if (global._mysqlPool) return global._mysqlPool;
+  if (poolInstance) return poolInstance;
+  if (global._mysqlPool) {
+    poolInstance = global._mysqlPool;
+    return poolInstance;
+  }
 
   const pool = mysql.createPool({
     host: process.env.DB_HOST || "127.0.0.1",
@@ -31,16 +37,17 @@ function getPool(): mysql.Pool {
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "u410588002_Cavallery",
     waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
+    connectionLimit: 8,
+    queueLimit: 20,
+    connectTimeout: 8000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
     charset: "utf8mb4",
     ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   });
 
-  if (process.env.NODE_ENV !== "production") {
-    global._mysqlPool = pool;
-  }
-
+  global._mysqlPool = pool;
+  poolInstance = pool;
   return pool;
 }
 
