@@ -55,9 +55,15 @@ export async function appendAnggotaRow(data: {
   const formattedDate = data.createdAt
     ? new Date(data.createdAt).toISOString().replace("T", " ").substring(0, 19)
     : new Date().toISOString().replace("T", " ").substring(0, 19);
-  const formattedSejak = data.anggotaSejak
-    ? new Date(data.anggotaSejak).toLocaleDateString("id-ID")
-    : "-";
+  
+  let formattedSejak = "";
+  if (data.anggotaSejak) {
+    const d = new Date(data.anggotaSejak);
+    if (!isNaN(d.getTime())) {
+      const pad = (n: number) => String(n).padStart(2, "0");
+      formattedSejak = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+  }
 
   const row = [
     data.noAnggota,

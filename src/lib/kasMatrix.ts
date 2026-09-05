@@ -602,15 +602,25 @@ export async function buildExtraSheetsData() {
       id ASC
   `)) || [];
 
-  const anggotaAktifRows = anggotaAktif.map((a, idx) => [
-    idx + 1,
-    a.no_anggota || "-",
-    a.nama_lengkap,
-    a.id_line,
-    `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
-    a.anggota_sejak ? new Date(a.anggota_sejak).toLocaleDateString("id-ID") : "-",
-    a.created_at ? new Date(a.created_at).toISOString().replace("T", " ").substring(0, 19) : "-",
-  ]);
+  const anggotaAktifRows = anggotaAktif.map((a, idx) => {
+    let tglSejak = "";
+    if (a.anggota_sejak) {
+      const d = new Date(a.anggota_sejak);
+      if (!isNaN(d.getTime())) {
+        const pad = (n: number) => String(n).padStart(2, "0");
+        tglSejak = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+    }
+    return [
+      idx + 1,
+      a.no_anggota || "-",
+      a.nama_lengkap,
+      a.id_line,
+      `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
+      tglSejak,
+      a.created_at ? new Date(a.created_at).toISOString().replace("T", " ").substring(0, 19) : "-",
+    ];
+  });
 
   // 2. STATUS ANGGOTA (Termasuk Hak/Kewajiban Iuran Kas)
   const statusAnggota = (await query<any[]>(`
