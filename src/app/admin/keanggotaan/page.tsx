@@ -661,9 +661,29 @@ export default function AdminKeanggotaanPage() {
                               <i className="bx bx-female" /> P
                             </span>
                           )}
+                        <td>
+                          {idLine && idLine !== "-" ? (
+                            <a
+                              href={`https://line.me/ti/p/~${encodeURIComponent(idLine.trim().replace(/^@/, ""))}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                color: "#06c755",
+                                fontWeight: 700,
+                                textDecoration: "none",
+                              }}
+                              title={`Chat langsung dengan ${namaLengkap} via LINE`}
+                            >
+                              <i className="bx bxl-line" style={{ fontSize: "1.1rem" }} />
+                              <span>{idLine}</span>
+                            </a>
+                          ) : (
+                            <span>{idLine}</span>
+                          )}
                         </td>
-                        <td>{idLine}</td>
-                        <td>{a.gender || "-"}</td>
                         <td>{a.domisili || "-"}</td>
                         <td>
                           {kontakPlatform}: {kontakId}
