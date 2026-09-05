@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import { BADGE_OPTIONS, getMemberBadge } from "@/lib/badges";
 
 const JABATAN_OPTIONS = [
   "Anggota",
@@ -65,6 +66,7 @@ export default function AdminKeanggotaanPage() {
   const [newKontakId, setNewKontakId] = useState("");
   const [newJabatan, setNewJabatan] = useState("Anggota");
   const [newDivisi, setNewDivisi] = useState("Ketua");
+  const [newBadge, setNewBadge] = useState("squire");
   const [newFotoProfil, setNewFotoProfil] = useState("");
   const [uploadingCreateFoto, setUploadingCreateFoto] = useState(false);
   const [uploadingEditFoto, setUploadingEditFoto] = useState(false);
@@ -172,7 +174,7 @@ export default function AdminKeanggotaanPage() {
   }, [search]);
 
   // Aksi Cepat: Terima / Tolak / Ubah Status / Ubah Jabatan
-  const handleAction = async (id: number, action: string, extra?: { status?: string; jabatan?: string }) => {
+  const handleAction = async (id: number, action: string, extra?: { status?: string; jabatan?: string; divisi?: string; badge?: string }) => {
     setActionLoading(id);
     setMsg("");
     try {
@@ -220,6 +222,7 @@ export default function AdminKeanggotaanPage() {
           kontakId: newKontakId.trim() || newIdLine.trim(),
           jabatanBaru: newJabatan,
           divisi: newJabatan === "Admin Fanbase" ? newDivisi : undefined,
+          badge: newBadge,
           fotoProfil: newFotoProfil.trim() || undefined,
         }),
       });
@@ -235,6 +238,7 @@ export default function AdminKeanggotaanPage() {
         setNewDiscord("");
         setNewDomisili("");
         setNewKontakId("");
+        setNewBadge("squire");
         setNewFotoProfil("");
         fetchData();
       } else {
@@ -626,6 +630,7 @@ export default function AdminKeanggotaanPage() {
                     <th>Kontak</th>
                     <th>Status</th>
                     <th>Jabatan</th>
+                    <th>Badge</th>
                     <th>Aksi & Kelola</th>
                   </tr>
                 </thead>
@@ -761,6 +766,53 @@ export default function AdminKeanggotaanPage() {
                           </div>
                         </td>
                         <td>
+                          {(() => {
+                            const bDef = getMemberBadge(a.badge);
+                            return (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                                <select
+                                  value={a.badge || "squire"}
+                                  onChange={(e) =>
+                                    handleAction(a.id, "update_badge", {
+                                      badge: e.target.value,
+                                    })
+                                  }
+                                  style={{
+                                    padding: "5px 8px",
+                                    borderRadius: 8,
+                                    fontSize: "0.78rem",
+                                    fontWeight: 800,
+                                    border: `1.5px solid ${bDef.borderColor}`,
+                                    background: bDef.bgColor,
+                                    color: bDef.color,
+                                    cursor: "pointer",
+                                    outline: "none",
+                                  }}
+                                  title={`Badge: ${bDef.name} - ${bDef.description}`}
+                                >
+                                  {BADGE_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                    fontWeight: 700,
+                                    color: bDef.color,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 3,
+                                  }}
+                                >
+                                  <i className={`bx ${bDef.icon}`} /> {bDef.name}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                        <td>
                           <div className={styles.actionButtonGroup}>
                             {/* Tombol Edit */}
                             <button
@@ -781,6 +833,7 @@ export default function AdminKeanggotaanPage() {
                                   status: a.status || "aktif",
                                   jabatan,
                                   divisi: a.divisi || "Ketua",
+                                  badge: a.badge || "squire",
                                   fotoProfil: avatarUrl || "",
                                   anggotaSejak: a.anggotaSejak || a.anggota_sejak,
                                 })
@@ -891,6 +944,22 @@ export default function AdminKeanggotaanPage() {
                   </select>
                 </div>
               )}
+
+              {/* Badge Anggota */}
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Badge Anggota</label>
+                <select
+                  className={styles.modalSelect}
+                  value={newBadge}
+                  onChange={(e) => setNewBadge(e.target.value)}
+                >
+                  {BADGE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} - {MEMBER_BADGES[opt.value]?.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {/* Foto Profil */}
               <div className={styles.modalField}>
@@ -1105,6 +1174,22 @@ export default function AdminKeanggotaanPage() {
                   </select>
                 </div>
               )}
+
+              {/* Badge Anggota */}
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Badge Anggota</label>
+                <select
+                  className={styles.modalSelect}
+                  value={editMember.badge || "squire"}
+                  onChange={(e) => setEditMember({ ...editMember, badge: e.target.value })}
+                >
+                  {BADGE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} - {MEMBER_BADGES[opt.value]?.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {/* Foto Profil */}
               <div className={styles.modalField}>

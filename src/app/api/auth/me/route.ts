@@ -62,6 +62,7 @@ export async function GET(req: NextRequest) {
           status: anggota.status,
           jabatan: anggota.jabatan,
           divisi: anggota.divisi || null,
+          badge: anggota.badge || "squire",
           fotoProfil: anggota.foto_profil || null,
           foto_profil: anggota.foto_profil || null,
           anggotaSejak: anggota.anggota_sejak,
