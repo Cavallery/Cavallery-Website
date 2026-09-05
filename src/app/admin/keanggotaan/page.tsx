@@ -1345,11 +1345,15 @@ export default function AdminKeanggotaanPage() {
                   <input
                     type="date"
                     className={styles.modalInput}
-                    value={
-                      editMember.anggotaSejak
-                        ? new Date(editMember.anggotaSejak).toISOString().split("T")[0]
-                        : ""
-                    }
+                    value={(() => {
+                      if (!editMember.anggotaSejak) return "";
+                      try {
+                        const d = new Date(editMember.anggotaSejak);
+                        return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+                      } catch {
+                        return "";
+                      }
+                    })()}
                     onChange={(e) =>
                       setEditMember({ ...editMember, anggotaSejak: e.target.value })
                     }
