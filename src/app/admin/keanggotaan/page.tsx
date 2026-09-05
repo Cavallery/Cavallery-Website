@@ -661,6 +661,7 @@ export default function AdminKeanggotaanPage() {
                               <i className="bx bx-female" /> P
                             </span>
                           )}
+                        </td>
                         <td>
                           {idLine && idLine !== "-" ? (
                             <a
