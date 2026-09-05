@@ -13,7 +13,8 @@ export async function GET() {
           "Accept": "application/json",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0"
         },
-        next: { revalidate: 300 }
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(4000),
       }
     );
 

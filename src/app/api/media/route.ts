@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
           "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
         },
         cache: "no-store",
+        signal: AbortSignal.timeout(5000),
       });
 
       if (res.ok) {
