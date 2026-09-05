@@ -711,6 +711,25 @@ export default function AdminKeanggotaanPage() {
                             <span>{idLine}</span>
                           )}
                         </td>
+                        <td>
+                          {a.gender ? (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                fontSize: "0.8rem",
+                                fontWeight: 700,
+                                color: a.gender === "Perempuan" ? "#e879f9" : "#60a5fa",
+                              }}
+                            >
+                              <i className={a.gender === "Perempuan" ? "bx bx-female" : "bx bx-male"} />
+                              {a.gender}
+                            </span>
+                          ) : (
+                            <span style={{ color: "var(--fg-muted)" }}>-</span>
+                          )}
+                        </td>
                         <td>{a.domisili || "-"}</td>
                         <td>
                           {kontakPlatform}: {kontakId}

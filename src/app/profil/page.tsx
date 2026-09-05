@@ -203,6 +203,34 @@ export default function ProfilPage() {
                   );
                 })()}
               </div>
+
+              {profile.type === "anggota" && (() => {
+                const bDef = getMemberBadge(profile.badge);
+                return (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      background: bDef.bgColor,
+                      border: `1.5px solid ${bDef.borderColor}`,
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 8,
+                    }}
+                  >
+                    <i className={`bx ${bDef.icon}`} style={{ color: bDef.color, fontSize: "1.15rem", marginTop: 2, flexShrink: 0 }} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 800, color: bDef.color }}>
+                        Status Badge: {bDef.name}
+                      </span>
+                      <p style={{ margin: 0, fontSize: "0.76rem", color: "var(--fg)", lineHeight: 1.4, opacity: 0.9 }}>
+                        {bDef.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
