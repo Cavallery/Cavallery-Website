@@ -682,8 +682,29 @@ function MediaManager() {
   const [draggedIdx, setDraggedIdx]     = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx]   = useState<number | null>(null);
   const [syncingVideos, setSyncingVideos] = useState(false);
+  const [cleaningVideos, setCleaningVideos] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const handleCleanupLocalVideos = async () => {
+    if (cleaningVideos) return;
+    if (!window.confirm("Hapus seluruh file MP4 lokal di server (karena sudah dialihkan ke URL CDN)?")) return;
+    setCleaningVideos(true);
+    showToast("Sedang menghapus file MP4 lokal di server...", "success");
+    try {
+      const res = await fetch("/api/admin/media/cleanup-local");
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Berhasil menghapus file MP4 lokal (menghemat ${data.totalFreedMB} MB)!`, "success");
+      } else {
+        showToast("Gagal membersihkan: " + (data.message || "Error"), "error");
+      }
+    } catch (err: any) {
+      showToast("Gagal: " + err.message, "error");
+    } finally {
+      setCleaningVideos(false);
+    }
+  };
 
   const handleSyncVideos = async () => {
     if (syncingVideos) return;
@@ -1037,6 +1058,16 @@ function MediaManager() {
           >
             <i className={syncingVideos ? "bx bx-loader-alt bx-spin" : "bx bx-cloud-upload"} />
             {syncingVideos ? "Menyinkronkan..." : "Sinkron Video ke CDN"}
+          </button>
+          <button
+            className={styles.btnGhost}
+            onClick={handleCleanupLocalVideos}
+            disabled={cleaningVideos}
+            title="Hapus seluruh file MP4 lokal di folder public/assets dan public/audio (hemat 100+ MB)"
+            style={{ display: "flex", alignItems: "center", gap: 6, color: "#e05252" }}
+          >
+            <i className={cleaningVideos ? "bx bx-loader-alt bx-spin" : "bx bx-trash"} />
+            {cleaningVideos ? "Menghapus..." : "Hapus MP4 Lokal"}
           </button>
           <button className={styles.btnPrimary} onClick={() => setShowUpload(true)}>
             <i className="bx bx-upload" /> Upload

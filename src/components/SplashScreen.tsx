@@ -72,11 +72,7 @@ export default function SplashScreen() {
           muted
           playsInline
           onError={() => {
-            if (splashVideoSrc !== "/assets/keying-logo-center.mp4") {
-              setSplashVideoSrc("/assets/keying-logo-center.mp4");
-            } else {
-              setDesktopError(true);
-            }
+            setDesktopError(true);
           }}
         />
       )}

@@ -22,9 +22,7 @@ export default function BiodataSection() {
                 preload="metadata"
                 className={styles.video}
                 onError={() => {
-                  if (videoSrc !== "/assets/homepage-vt.mp4") {
-                    setVideoSrc("/assets/homepage-vt.mp4");
-                  }
+                  console.warn("[Biodata] Video stream failed from CDN.");
                 }}
               />
             </div>

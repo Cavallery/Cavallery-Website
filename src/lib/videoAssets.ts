@@ -1,7 +1,7 @@
 // ============================================================
 // CAVALLERY VIDEO & MEDIA ASSETS
-// Uses Vallzy media server URLs (images.jkt48connect.com)
-// with safe local fallbacks to ensure videos ALWAYS play
+// Uses remote CDN URLs (cava.jkt48connect.com)
+// All local MP4 assets removed to prevent 504 Gateway Timeout
 // ============================================================
 import cdnMapping from "@/data/video-cdn-mapping.json";
 
@@ -10,25 +10,32 @@ const mapping = (cdnMapping || {}) as Record<string, string>;
 export const VIDEO_URLS = {
   homepageTeaser:
     process.env.NEXT_PUBLIC_HOMEPAGE_VIDEO_URL ||
-    (mapping.homepageTeaser && mapping.homepageTeaser.length > 0 ? mapping.homepageTeaser : "/assets/homepage-vt.mp4"),
+    mapping.homepageTeaser ||
+    "https://cava.jkt48connect.com/homepage-vt.mp4",
 
   splashLogo:
     process.env.NEXT_PUBLIC_SPLASH_VIDEO_URL ||
-    (mapping.splashLogo && mapping.splashLogo.length > 0 ? mapping.splashLogo : "/assets/keying-logo-center.mp4"),
+    mapping.splashLogo ||
+    "https://cava.jkt48connect.com/keying-logo-center.mp4",
 
   erineGame:
     process.env.NEXT_PUBLIC_GAME_VIDEO_URL ||
-    (mapping.erineGame && mapping.erineGame.length > 0 ? mapping.erineGame : "https://cava.jkt48connect.com/erine-game.mp4"),
+    mapping.erineGame ||
+    "https://cava.jkt48connect.com/erine-game.mp4",
 
   prologScene:
-    mapping.prologScene && mapping.prologScene.length > 0 ? mapping.prologScene : "/assets/prolog-scene.mp4",
+    mapping.prologScene ||
+    "https://cava.jkt48connect.com/prolog-scene.mp4",
 
   videotronRatplaz:
-    mapping.videotronRatplaz && mapping.videotronRatplaz.length > 0 ? mapping.videotronRatplaz : "/assets/Video Tron Ratplaz Erine.mp4",
+    mapping.videotronRatplaz ||
+    "https://cava.jkt48connect.com/videotron-ratplaz.mp4",
 
   videoLapak:
-    mapping.videoLapak && mapping.videoLapak.length > 0 ? mapping.videoLapak : "/assets/video-lapak.mp4",
+    mapping.videoLapak ||
+    "https://cava.jkt48connect.com/video-lapak.mp4",
 
   jikorineAudio:
-    mapping.jikorineAudio && mapping.jikorineAudio.length > 0 ? mapping.jikorineAudio : "/audio/jikorine1.mp4",
+    mapping.jikorineAudio ||
+    "https://cava.jkt48connect.com/audio/jikorine1.mp4",
 };
