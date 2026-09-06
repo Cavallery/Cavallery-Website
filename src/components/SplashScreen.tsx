@@ -64,7 +64,7 @@ export default function SplashScreen() {
   return (
     <div className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}>
       {/* Keying logo video */}
-      {!desktopError && (
+      {!desktopError ? (
         <video
           className={styles.video}
           src={splashVideoSrc}
@@ -75,8 +75,18 @@ export default function SplashScreen() {
             setDesktopError(true);
           }}
         />
+      ) : (
+        <img
+          src="/images/cava-logo-round.png"
+          alt="Cavallery"
+          style={{
+            width: 120,
+            height: 120,
+            objectFit: "contain",
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}
+        />
       )}
-      {/* Fallback text logo removed as requested */}
 
       {/* Skip button */}
       <button
