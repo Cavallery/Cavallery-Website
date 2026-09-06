@@ -1,10 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getAdminSessionFromReq } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function POST(req: NextRequest) {
+  // Wajib autentikasi admin
+  const admin = getAdminSessionFromReq(req);
+  if (!admin) {
+    return NextResponse.json(
+      { status: false, message: "Akses ditolak. Silakan login sebagai admin." },
+      { status: 401 }
+    );
+  }
   const root = process.cwd();
   const files = [
     "public/assets/homepage-vt.mp4",
