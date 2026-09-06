@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
+import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
 import fs from "fs";
 import path from "path";
 
@@ -27,25 +28,28 @@ function getLocalMilestones() {
 }
 
 async function fetchExternalTimeline() {
-  try {
-    const res = await fetch(EXTERNAL_TIMELINE_URL, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
-      },
-      next: { revalidate: 300 },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status && json.data) {
-        return json.data;
+  return fetchWithCacheAndFallback<any>({
+    key: "external_timeline",
+    ttlSeconds: 180,
+    fetcher: async () => {
+      const res = await fetch(EXTERNAL_TIMELINE_URL, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+        },
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && json.data) {
+          return json.data;
+        }
       }
-    }
-  } catch (e) {
-    console.error("External timeline fetch failed:", e);
-  }
-  return null;
+      return null;
+    },
+    fallbackData: null,
+  });
 }
 
 export async function GET() {
@@ -73,39 +77,42 @@ export async function GET() {
           };
         });
         const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
-        return NextResponse.json({
-          status: true,
-          success: true,
-          data: { years, events },
-        });
+        return NextResponse.json(
+          {
+            status: true,
+            success: true,
+            data: { years, events },
+          },
+          { headers: API_CACHE_HEADERS }
+        );
       }
     }
 
     // Check local milestone.json
     const local = getLocalMilestones();
     if (local) {
-      return NextResponse.json({ status: true, success: true, data: local });
+      return NextResponse.json({ status: true, success: true, data: local }, { headers: API_CACHE_HEADERS });
     }
 
     // Fallback to external timeline
     const external = await fetchExternalTimeline();
     if (external) {
-      return NextResponse.json({ status: true, success: true, data: external });
+      return NextResponse.json({ status: true, success: true, data: external }, { headers: API_CACHE_HEADERS });
     }
 
-    return NextResponse.json({ status: true, success: true, data: { years: [], events: [] } });
+    return NextResponse.json({ status: true, success: true, data: { years: [], events: [] } }, { headers: API_CACHE_HEADERS });
   } catch (error: any) {
     const local = getLocalMilestones();
     if (local) {
-      return NextResponse.json({ status: true, success: true, data: local });
+      return NextResponse.json({ status: true, success: true, data: local }, { headers: API_CACHE_HEADERS });
     }
     const external = await fetchExternalTimeline();
     if (external) {
-      return NextResponse.json({ status: true, success: true, data: external });
+      return NextResponse.json({ status: true, success: true, data: external }, { headers: API_CACHE_HEADERS });
     }
     return NextResponse.json(
       { status: false, success: false, message: error.message, data: { years: [], events: [] } },
-      { status: 500 }
+      { status: 200, headers: API_CACHE_HEADERS }
     );
   }
 }

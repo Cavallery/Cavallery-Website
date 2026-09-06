@@ -1,39 +1,40 @@
+# ============================================================
+# CAVALLERY HOSTINGER / LITESPEED STATIC ASSET OPTIMIZATION
+# Bypasses Node.js for static files, streaming videos directly with byte-range
+# ============================================================
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
-  # Redirect Trailing Slashes If not a Folder...
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} (.+)/$
-  RewriteRule ^ %1 [L,R=301]
-
-  # Serve existing files and directories directly
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
-
-  # Check if HTML file exists for clean URLs (e.g. /about -> /about.html)
-  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
-  RewriteRule ^(.*)$ $1.html [L]
-
-  # Fallback to index.html if needed
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  # Enable Byte-range requests for videos
+  Header set Accept-Ranges bytes
 </IfModule>
 
-# Security & Proper Permissions
-Options -Indexes +FollowSymLinks
+# Caching & MIME types for media & static assets
+<IfModule mod_headers.c>
+  # 1 Year Immutable Cache for Videos & Audio
+  <FilesMatch "\.(mp4|webm|ogg|mov|mp3|wav)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
 
-# Cache headers for static assets
-<IfModule mod_expires.c>
-  ExpiresActive On
-  ExpiresByType image/jpg "access plus 1 month"
-  ExpiresByType image/jpeg "access plus 1 month"
-  ExpiresByType image/gif "access plus 1 month"
-  ExpiresByType image/png "access plus 1 month"
-  ExpiresByType image/webp "access plus 1 month"
-  ExpiresByType text/css "access plus 1 month"
-  ExpiresByType application/javascript "access plus 1 month"
+  # 1 Year Cache for Images & Fonts
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+
+  # 1 Month Cache for CSS & JS
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+# Proper MIME types
+<IfModule mod_mime.c>
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType audio/mpeg .mp3
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
 </IfModule>

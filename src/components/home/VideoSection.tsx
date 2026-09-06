@@ -26,7 +26,7 @@ export default function VideoSection() {
           <div className={styles.player}>
             {!videoError ? (
               <video
-                src="/assets/homepage-vt.mp4"
+                src={process.env.NEXT_PUBLIC_HOMEPAGE_VIDEO_URL || "/assets/homepage-vt.mp4"}
                 controls
                 autoPlay
                 muted

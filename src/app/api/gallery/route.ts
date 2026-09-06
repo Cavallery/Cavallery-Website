@@ -1,28 +1,32 @@
 import { NextResponse } from "next/server";
 import { query, isMySqlConfigured } from "@/lib/mysql";
+import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
 
 const EXTERNAL_GALLERY_URL = "https://v5.jkt48connect.com/api/cavallery/gallery?apikey=JKTCONNECT";
 
 async function fetchExternalGallery(): Promise<any[]> {
-  try {
-    const res = await fetch(EXTERNAL_GALLERY_URL, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
-      },
-      next: { revalidate: 300 },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status && Array.isArray(json.data?.items)) {
-        return json.data.items;
+  return fetchWithCacheAndFallback<any[]>({
+    key: "external_gallery",
+    ttlSeconds: 180,
+    fetcher: async () => {
+      const res = await fetch(EXTERNAL_GALLERY_URL, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+        },
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && Array.isArray(json.data?.items)) {
+          return json.data.items;
+        }
       }
-    }
-  } catch (e) {
-    console.error("External gallery fetch failed:", e);
-  }
-  return [];
+      return [];
+    },
+    fallbackData: [],
+  });
 }
 
 export async function GET() {
@@ -30,15 +34,15 @@ export async function GET() {
     if (isMySqlConfigured()) {
       const rows = await query<any[]>("SELECT * FROM `gallery` WHERE `is_active`=1 ORDER BY `sort_order` ASC, `id` DESC");
       if (rows && Array.isArray(rows) && rows.length > 0) {
-        return NextResponse.json({ status: true, success: true, data: { items: rows } });
+        return NextResponse.json({ status: true, success: true, data: { items: rows } }, { headers: API_CACHE_HEADERS });
       }
     }
 
     const extItems = await fetchExternalGallery();
-    return NextResponse.json({ status: true, success: true, data: { items: extItems } });
+    return NextResponse.json({ status: true, success: true, data: { items: extItems } }, { headers: API_CACHE_HEADERS });
   } catch (error: any) {
     const extItems = await fetchExternalGallery();
-    return NextResponse.json({ status: true, success: true, data: { items: extItems } });
+    return NextResponse.json({ status: true, success: true, data: { items: extItems } }, { headers: API_CACHE_HEADERS });
   }
 }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
 
 const API_KEY = "sJbpVqLinYlp";
 const BASE = "https://v5.jkt48connect.com/api/jkt48";
@@ -33,58 +34,71 @@ interface LiveStream {
 
 export async function GET() {
   try {
-    const res = await fetch(`${BASE}/live?priority_token=${API_KEY}`, {
-      headers: {
-        "x-priority-token": API_KEY,
-        Accept: "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+    const erineStreams = await fetchWithCacheAndFallback<any[]>({
+      key: "erine_live_stream",
+      ttlSeconds: 45,
+      fetcher: async () => {
+        const res = await fetch(`${BASE}/live?priority_token=${API_KEY}`, {
+          headers: {
+            "x-priority-token": API_KEY,
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+          },
+          next: { revalidate: 30 },
+          signal: AbortSignal.timeout(4000),
+        });
+
+        if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
+
+        const raw: LiveStream[] = await res.json();
+        const streams = Array.isArray(raw) ? raw : [];
+
+        // Filter ONLY Erine (Catherina Vallencia)
+        const erineLives = streams.filter((s) =>
+          isErine(s.name ?? s.member_name ?? s.username ?? s.room_name ?? "")
+        );
+
+        return erineLives.map((s) => {
+          const name = "Catherina Vallencia (Erine)";
+          const img = s.img ?? s.img_alt ?? s.image ?? s.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
+          const type = (s.type ?? s.platform ?? "idn").toLowerCase();
+          const slug = s.slug ?? "";
+
+          const url = type.includes("showroom")
+            ? "https://www.showroom-live.com/r/JKT48_Erine"
+            : "https://www.idn.app/jkt48_erine";
+
+          return {
+            id: s.slug ?? s.url_key ?? "erine-live",
+            name,
+            img,
+            type,
+            platform: type.includes("showroom") ? "SHOWROOM" : "IDN LIVE",
+            url_key: "jkt48_erine",
+            slug,
+            started_at: s.started_at ?? s.live_at ?? null,
+            streaming_url: s.streaming_url_list?.[0]?.url ?? s.streaming_url ?? null,
+            url,
+            is_erine: true,
+          };
+        });
       },
-      next: { revalidate: 30 },
-      signal: AbortSignal.timeout(4000),
+      fallbackData: [],
     });
 
-    if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
-
-    const raw: LiveStream[] = await res.json();
-    const streams = Array.isArray(raw) ? raw : [];
-
-    // Filter ONLY Erine (Catherina Vallencia)
-    const erineLives = streams.filter((s) =>
-      isErine(s.name ?? s.member_name ?? s.username ?? s.room_name ?? "")
+    return NextResponse.json(
+      {
+        success: true,
+        erine_live: erineStreams.length > 0,
+        data: erineStreams,
+      },
+      { headers: API_CACHE_HEADERS }
     );
-
-    const erineStreams = erineLives.map((s) => {
-      const name = "Catherina Vallencia (Erine)";
-      const img = s.img ?? s.img_alt ?? s.image ?? s.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
-      const type = (s.type ?? s.platform ?? "idn").toLowerCase();
-      const slug = s.slug ?? "";
-
-      const url = type.includes("showroom")
-        ? "https://www.showroom-live.com/r/JKT48_Erine"
-        : "https://www.idn.app/jkt48_erine";
-
-      return {
-        id: s.slug ?? s.url_key ?? "erine-live",
-        name,
-        img,
-        type,
-        platform: type.includes("showroom") ? "SHOWROOM" : "IDN LIVE",
-        url_key: "jkt48_erine",
-        slug,
-        started_at: s.started_at ?? s.live_at ?? null,
-        streaming_url: s.streaming_url_list?.[0]?.url ?? s.streaming_url ?? null,
-        url,
-        is_erine: true,
-      };
-    });
-
-    return NextResponse.json({
-      success: true,
-      erine_live: erineStreams.length > 0,
-      data: erineStreams, // ONLY ERINE
-    });
   } catch (error) {
     console.error("Live API Error:", error);
-    return NextResponse.json({ success: false, erine_live: false, data: [] }, { status: 500 });
+    return NextResponse.json(
+      { success: true, erine_live: false, data: [] },
+      { headers: API_CACHE_HEADERS }
+    );
   }
 }
