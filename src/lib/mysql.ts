@@ -37,9 +37,9 @@ function getPool(): mysql.Pool {
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "u410588002_Cavallery",
     waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
-    connectTimeout: 4000,
+    connectionLimit: 25, // Naikkan batas koneksi untuk menampung traffic ramai
+    queueLimit: 50,      // Batasi antrean agar memori tidak bocor
+    connectTimeout: 3000,
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     charset: "utf8mb4",
@@ -53,15 +53,30 @@ function getPool(): mysql.Pool {
 
 export async function query<T = any>(sql: string, params: any[] = []): Promise<T | null> {
   if (!isMySqlConfigured()) return null;
+
+  // HARD TIMEOUT 3000ms (3 Detik)
+  // Mencegah server Node.js gantung menunggu database lambat yang memicu 504 Bad Gateway
+  const timeoutPromise = new Promise<null>((_, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("MySQL query timeout (exceeded 3000ms limit)"));
+    }, 3000);
+    // Unref timer agar tidak menahan proses Node.js
+    if (typeof timer.unref === "function") timer.unref();
+  });
+
   try {
     const pool = getPool();
-    if (params && params.length > 0) {
-      const [results] = await pool.execute(sql, params);
-      return results as T;
-    } else {
-      const [results] = await pool.query(sql);
-      return results as T;
-    }
+    const queryPromise = (async () => {
+      if (params && params.length > 0) {
+        const [results] = await pool.execute(sql, params);
+        return results as T;
+      } else {
+        const [results] = await pool.query(sql);
+        return results as T;
+      }
+    })();
+
+    return (await Promise.race([queryPromise, timeoutPromise])) as T;
   } catch (error: any) {
     console.error("[MySQL Error]:", error.message);
     return null;

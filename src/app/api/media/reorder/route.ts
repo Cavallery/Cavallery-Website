@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderedIds }),
+        signal: AbortSignal.timeout(4000),
       });
     } catch (e: any) {
       console.warn("Vallzy reorder forward warn:", e.message);
