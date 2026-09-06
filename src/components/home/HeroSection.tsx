@@ -28,10 +28,7 @@ export default function HeroSection() {
     if (!audioRef.current) {
       const audio = new Audio(VIDEO_URLS.jikorineAudio);
       audio.onerror = () => {
-        if (audio.src !== window.location.origin + "/audio/jikorine1.mp4") {
-          audio.src = "/audio/jikorine1.mp4";
-          audio.play().catch(() => setIsPlayingJiko(false));
-        }
+        setIsPlayingJiko(false);
       };
       audio.onended = () => setIsPlayingJiko(false);
       audioRef.current = audio;

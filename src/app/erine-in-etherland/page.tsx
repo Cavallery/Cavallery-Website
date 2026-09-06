@@ -59,11 +59,7 @@ export default function ErineInEtherlandPage() {
             preload="metadata"
             className={styles.heroVideo}
             onError={() => {
-              if (heroVideoSrc !== "/assets/Video Tron Ratplaz Erine.mp4") {
-                setHeroVideoSrc("/assets/Video Tron Ratplaz Erine.mp4");
-              } else {
-                setHeroVideoError(true);
-              }
+              setHeroVideoError(true);
             }}
           />
         ) : (

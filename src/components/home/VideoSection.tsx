@@ -8,12 +8,7 @@ export default function VideoSection() {
   const [videoError, setVideoError] = useState(false);
 
   const handleVideoError = () => {
-    if (videoSrc !== "/assets/homepage-vt.mp4") {
-      console.warn("[Video] Remote Vallzy video failed, falling back to local asset.");
-      setVideoSrc("/assets/homepage-vt.mp4");
-    } else {
-      setVideoError(true);
-    }
+    setVideoError(true);
   };
 
   return (

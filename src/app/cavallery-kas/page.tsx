@@ -3028,6 +3028,107 @@ export default function CavalleryKasPage() {
               </p>
             </div>
 
+            {/* ── BANNER TOTAL KESELURUHAN KAS (LINTAS TAHUN) ── */}
+            {monthlyStatus.length > 0 && (() => {
+              const totalLunas = monthlyStatus.filter(
+                (s) => s.status === "diverifikasi"
+              ).length;
+              const totalNominal = monthlyStatus
+                .filter((s) => s.status === "diverifikasi")
+                .reduce((sum: number, s: any) => sum + (Number(s.nominal) || 0), 0);
+              const tahunCovered = [...new Set(
+                monthlyStatus
+                  .filter((s) => s.status === "diverifikasi")
+                  .map((s) => Number(s.tahun))
+              )].sort() as number[];
+              const isFullyPaid = totalLunas >= 12;
+              return (
+                <div
+                  style={{
+                    background: isFullyPaid
+                      ? "linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.05) 100%)"
+                      : "linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(139,92,246,0.06) 100%)",
+                    border: isFullyPaid
+                      ? "1.5px solid rgba(16,185,129,0.35)"
+                      : "1.5px solid var(--border-gold, #c9a84c)",
+                    borderRadius: 14,
+                    padding: "16px 20px",
+                    marginBottom: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: isFullyPaid ? "#10b981" : "var(--gold)",
+                      color: "#1a1612",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.4rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <i className={`bx ${isFullyPaid ? "bx-check-shield" : "bx-wallet"}`} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        fontSize: "0.9rem",
+                        color: "var(--primary)",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Total Keseluruhan Kas
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 20,
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                      }}
+                    >
+                      <span style={{ fontSize: "0.8rem", color: "var(--fg-muted)" }}>
+                        Bulan Lunas:{" "}
+                        <strong style={{ color: isFullyPaid ? "#10b981" : "var(--gold)" }}>
+                          {totalLunas} Bulan
+                        </strong>
+                      </span>
+                      <span style={{ fontSize: "0.8rem", color: "var(--fg-muted)" }}>
+                        Total Dibayar:{" "}
+                        <strong style={{ color: isFullyPaid ? "#10b981" : "var(--gold)" }}>
+                          Rp {totalNominal.toLocaleString("id-ID")}
+                        </strong>
+                      </span>
+                      {tahunCovered.length > 1 && (
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            background: "rgba(139,92,246,0.15)",
+                            border: "1px solid rgba(139,92,246,0.3)",
+                            borderRadius: 20,
+                            padding: "2px 10px",
+                            color: "#a78bfa",
+                            fontWeight: 700,
+                          }}
+                        >
+                          <i className="bx bx-calendar" style={{ marginRight: 4 }} />
+                          Mencakup {tahunCovered.join(" & ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* ── TRACKER IURAN BULANAN MEMBER (2024 - 2029) ── */}
             <div
               style={{
