@@ -629,7 +629,7 @@ export default function KasPage() {
               </button>
             </form>
           </div>
-        )}
+        ))}
 
         {/* Tab 2: Cek Status Kas History */}
         {activeTab === "status" && (
