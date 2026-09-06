@@ -44,7 +44,7 @@ async function fetchMonthTheater(monthStr: string, yearStr: string): Promise<any
   const cacheKey = `theater_${monthStr}_${yearStr}`;
   return fetchWithCacheAndFallback<any[]>({
     key: cacheKey,
-    ttlSeconds: 90,
+    ttlSeconds: 600,
     fetcher: async () => {
       const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
       const res = await fetch(apiUrl, {
@@ -53,8 +53,8 @@ async function fetchMonthTheater(monthStr: string, yearStr: string): Promise<any
           Accept: "application/json",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
         },
-        next: { revalidate: 300 },
-        signal: AbortSignal.timeout(4000),
+        next: { revalidate: 600 },
+        signal: AbortSignal.timeout(2500),
       });
       if (!res.ok) return [];
       const json = await res.json();
