@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
+import { query } from "@/lib/mysql";
 
 export async function ensureKuponTables() {
   try {
@@ -190,13 +190,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: `Kode kupon "${cleanKode}" sudah pernah dibuat` }, { status: 400 });
     }
 
-    // 2. Simpan Master Kupon
-    const nextId = await getNextAvailableId("kupon");
-    await query(
-      `INSERT INTO kupon (id, kode_kupon, judul, deskripsi, tipe_reward, nilai_reward, min_bulan_kas, tahun_kas, kadaluarsa_pada, dibuat_oleh)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // 2. Simpan Master Kupon — AUTO_INCREMENT langsung (1 query)
+    const insertRes = await query<any>(
+      `INSERT INTO kupon (kode_kupon, judul, deskripsi, tipe_reward, nilai_reward, min_bulan_kas, tahun_kas, kadaluarsa_pada, dibuat_oleh)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        nextId,
         cleanKode,
         judul.trim(),
         deskripsi || "",
@@ -208,8 +206,7 @@ export async function POST(req: NextRequest) {
         admin.nama || "Admin Fanbase",
       ]
     );
-    await resetAutoIncrement("kupon");
-    const kuponId = nextId;
+    const kuponId: number = insertRes?.insertId ?? 0;
 
     // 3. Distribusikan ke Anggota yang memenuhi syarat (Rajin Bayar Kas)
     const { getAnggotaBulanLunas } = await import("@/lib/kuponHelper");
@@ -277,8 +274,7 @@ export async function DELETE(req: NextRequest) {
 
     // 1. HAPUS / CABUT KUPON DARI SATU ANGGOTA SAJA
     if (kuponAnggotaId) {
-      const deleted = await query("DELETE FROM kupon_anggota WHERE id = ?", [kuponAnggotaId]);
-      await resetAutoIncrement("kupon_anggota");
+      await query("DELETE FROM kupon_anggota WHERE id = ?", [kuponAnggotaId]);
       return NextResponse.json({
         status: true,
         message: "Kupon untuk anggota ini berhasil dicabut / dihapus.",
@@ -292,8 +288,6 @@ export async function DELETE(req: NextRequest) {
 
     await query("DELETE FROM kupon_anggota WHERE kupon_id = ?", [kuponId]);
     await query("DELETE FROM kupon WHERE id = ?", [kuponId]);
-    await resetAutoIncrement("kupon");
-    await resetAutoIncrement("kupon_anggota");
 
     return NextResponse.json({
       status: true,

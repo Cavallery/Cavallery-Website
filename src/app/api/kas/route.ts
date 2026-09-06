@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { appendKasRow } from "@/lib/googleSheets";
-import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
+import { query } from "@/lib/mysql";
 
 // ── GET: Ambil riwayat kas user yang sedang login ──
 export async function GET(req: NextRequest) {
@@ -87,21 +87,17 @@ export async function POST(req: NextRequest) {
       finalPeriode = `${finalPeriode} [Voucher: ${cleanVoucher}${diskonText}]`;
     }
 
-    // 1. Simpan ke Database dengan ID terkecil yang tersedia (tidak lompat ID)
-    const nextId = await getNextAvailableId("konfirmasi_kas");
-
-    await query(
-      `INSERT INTO konfirmasi_kas (id, anggota_id, periode, nominal, bukti_bayar_url, status) 
-       VALUES (?, ?, ?, ?, ?, 'pending')`,
-      [nextId, session.id, finalPeriode, netNominal, finalProofUrl]
+    // 1. Simpan ke Database — pakai AUTO_INCREMENT langsung (cepat, 1 query)
+    const insertRes = await query<any>(
+      `INSERT INTO konfirmasi_kas (anggota_id, periode, nominal, bukti_bayar_url, status) 
+       VALUES (?, ?, ?, ?, 'pending')`,
+      [session.id, finalPeriode, netNominal, finalProofUrl]
     );
+    const insertedId: number = insertRes?.insertId ?? 0;
 
-    await resetAutoIncrement("konfirmasi_kas");
-    const insertedId = nextId;
-
-    // 2. Fetch data anggota untuk Google Sheets
+    // 2. Fetch data anggota untuk Google Sheets (paralel tidak perlu await blocking)
     const anggotaRows = await query<any[]>(
-      "SELECT * FROM anggota WHERE id = ? LIMIT 1",
+      "SELECT no_anggota, nama_lengkap, id_line FROM anggota WHERE id = ? LIMIT 1",
       [session.id]
     );
     const anggota = anggotaRows && anggotaRows.length > 0 ? anggotaRows[0] : null;

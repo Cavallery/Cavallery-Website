@@ -78,6 +78,10 @@ export default function KasPage() {
   // Status & Submit state
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [kasSuccessData, setKasSuccessData] = useState<{
+    periode: string;
+    nominal: number;
+  } | null>(null);
 
   // Kas History State
   const [historyList, setHistoryList] = useState<any[]>([]);
@@ -169,7 +173,13 @@ export default function KasPage() {
         body: formData,
       });
 
-      const uploadJson = await uploadRes.json();
+      let uploadJson: any = {};
+      const upType = uploadRes.headers.get("content-type") || "";
+      if (upType.includes("application/json")) {
+        uploadJson = await uploadRes.json();
+      } else {
+        throw new Error("Server penyimpanan sedang sibuk. Silakan coba unggah kembali.");
+      }
       if (!uploadRes.ok || !uploadJson.status) {
         throw new Error(uploadJson.message || "Gagal mengunggah bukti bayar");
       }
@@ -187,19 +197,27 @@ export default function KasPage() {
         }),
       });
 
-      const kasJson = await kasRes.json();
+      let kasJson: any = {};
+      const kasType = kasRes.headers.get("content-type") || "";
+      if (kasType.includes("application/json")) {
+        kasJson = await kasRes.json();
+      } else {
+        throw new Error("Server sedang sibuk memproses antrean. Mohon tunggu beberapa detik dan coba lagi.");
+      }
       if (!kasRes.ok || !kasJson.status) {
         throw new Error(kasJson.message || "Gagal mengirim konfirmasi kas");
       }
 
-      setAlert({
-        type: "success",
-        msg: "Konfirmasi pembayaran kas berhasil dikirim! Menunggu verifikasi admin.",
+      setKasSuccessData({
+        periode,
+        nominal: cleanNominal,
       });
 
+      setAlert(null);
       // Reset form
       setFile(null);
       setPreviewUrl(null);
+      fetchHistory();
     } catch (err: any) {
       setAlert({ type: "error", msg: err.message || "Terjadi kesalahan saat memproses kas." });
     } finally {
@@ -242,8 +260,120 @@ export default function KasPage() {
 
         {/* Tab 1: Form Bayar Kas */}
         {activeTab === "bayar" && (
-          <div className={`glassCard ${styles.card}`}>
-            <div className={styles.header}>
+          kasSuccessData ? (
+            /* SUCCESS CONFIRMATION CARD */
+            <div className={`glassCard ${styles.card}`} style={{ textAlign: "center", padding: "48px 24px" }}>
+              <div style={{
+                width: 76,
+                height: 76,
+                borderRadius: "50%",
+                background: "rgba(16, 185, 129, 0.12)",
+                border: "2px solid #10b981",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 20px",
+              }}>
+                <i className="bx bx-check-circle" style={{ fontSize: "3rem", color: "#10b981" }} />
+              </div>
+
+              <div className="badge" style={{ marginBottom: 14 }}>
+                <i className="bx bx-badge-check" /> Pembayaran Berhasil Dikirim
+              </div>
+
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, color: "var(--fg)", marginBottom: 12 }}>
+                Terima Kasih Sudah Membayar Kas!
+              </h2>
+
+              <p style={{
+                fontSize: "0.96rem",
+                lineHeight: 1.7,
+                color: "var(--fg-muted)",
+                maxWidth: 560,
+                margin: "0 auto 26px",
+              }}>
+                Konfirmasi pembayaran kas Anda telah kami terima ke dalam sistem. Tim Admin Fanbase akan segera mengecek dan memverifikasi bukti pembayaran Anda. Dukungan Anda sangat berarti untuk memajukan keluarga besar Cavallery dan mendampingi perjalanan Erine.
+              </p>
+
+              {/* Rincian Singkat Pembayaran */}
+              <div style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: 14,
+                padding: "18px 22px",
+                maxWidth: 420,
+                margin: "0 auto 30px",
+                textAlign: "left",
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+                  <span style={{ color: "var(--fg-muted)" }}>Periode Kas:</span>
+                  <strong style={{ color: "var(--fg)" }}>{kasSuccessData.periode}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+                  <span style={{ color: "var(--fg-muted)" }}>Nominal Dibayar:</span>
+                  <strong style={{ color: "var(--gold)" }}>{formatRupiah(kasSuccessData.nominal)}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", alignItems: "center" }}>
+                  <span style={{ color: "var(--fg-muted)" }}>Status Verifikasi:</span>
+                  <span style={{
+                    background: "rgba(245, 158, 11, 0.15)",
+                    color: "#f59e0b",
+                    padding: "4px 12px",
+                    borderRadius: 20,
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    border: "1px solid rgba(245, 158, 11, 0.3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}>
+                    <i className="bx bx-time-five" /> Menunggu Pengecekan Admin
+                  </span>
+                </div>
+              </div>
+
+              {/* Tombol Aksi */}
+              <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className={styles.submitBtn}
+                  style={{ maxWidth: 260, margin: 0 }}
+                  onClick={() => {
+                    setKasSuccessData(null);
+                    setActiveTab("status");
+                  }}
+                >
+                  <i className="bx bx-history" /> Lihat Status Kas Saya
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    color: "var(--fg)",
+                    padding: "12px 22px",
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontSize: "0.9rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  onClick={() => {
+                    setKasSuccessData(null);
+                  }}
+                >
+                  <i className="bx bx-refresh" /> Bayar Kas Periode Lain
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className={`glassCard ${styles.card}`}>
+              <div className={styles.header}>
               <div className="badge">
                 <i className="bx bx-wallet" /> Kas Keanggotaan
               </div>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { appendKasRow, updateKasStatusInSheet, deleteKasRow } from "@/lib/googleSheets";
 import { syncKasToMatrix, parsePeriodeToMonths } from "@/lib/kasMatrix";
-import { query, resetAutoIncrement } from "@/lib/mysql";
+import { query } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi kas ──
 export async function GET(req: NextRequest) {
@@ -149,7 +149,6 @@ export async function POST(req: NextRequest) {
       }
 
       await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
-      await resetAutoIncrement("konfirmasi_kas");
       deleteKasRow(id).catch((e) => console.error("Delete kas from sheets error:", e));
       return NextResponse.json({
         status: true,
@@ -293,7 +292,6 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM konfirmasi_kas WHERE id = ?", [id]);
-    await resetAutoIncrement("konfirmasi_kas");
     deleteKasRow(id).catch((e) => console.error("Delete kas row in sheets error:", e));
 
     return NextResponse.json({
