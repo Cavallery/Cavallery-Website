@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getYearlyKasMatrix } from "@/lib/kasMatrix";
+import { query } from "@/lib/mysql";
 
 export async function GET(req: Request) {
   try {
@@ -24,6 +25,22 @@ export async function GET(req: Request) {
       months: row.months,
     }));
 
+    // Ambil data pengeluaran kas pada tahun yang dipilih
+    const pengeluaranRows = (await query<any[]>(
+      `SELECT id, tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan 
+       FROM pengeluaran_kas 
+       WHERE tahun = ? 
+       ORDER BY tanggal DESC, id DESC`,
+      [tahun]
+    )) || [];
+
+    const totalPengeluaran = pengeluaranRows.reduce(
+      (sum: number, p: any) => sum + (Number(p.nominal) || 0),
+      0
+    );
+
+    const saldoKasBersih = data.grandTotalPemasukan - totalPengeluaran;
+
     return NextResponse.json({
       status: true,
       tahun: data.tahun,
@@ -31,7 +48,13 @@ export async function GET(req: Request) {
       monthlyTotals: data.monthlyTotals,
       monthlyPaidCounts: data.monthlyPaidCounts,
       grandTotalPemasukan: data.grandTotalPemasukan,
+      totalPengeluaran,
+      saldoKasBersih,
+      allTimePemasukan: data.allTimePemasukan ?? data.grandTotalPemasukan,
+      allTimePengeluaran: data.allTimePengeluaran ?? totalPengeluaran,
+      allTimeSaldo: data.allTimeSaldo ?? saldoKasBersih,
       matrixRows: publicRows,
+      pengeluaranList: pengeluaranRows,
     });
   } catch (err: any) {
     console.error("[Public Matrix API] Error:", err);
