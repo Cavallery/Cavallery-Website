@@ -1,13 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getAdminSessionFromReq } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 const VALLZY_UPLOAD_URL = "https://v5.jkt48connect.com/api/cavallery/media/upload?apikey=JKTCONNECT";
 const MAPPING_FILE_PATH = path.join(process.cwd(), "src", "data", "video-cdn-mapping.json");
 
-export async function GET() {
+export async function POST(req: NextRequest) {
+  const admin = getAdminSessionFromReq(req);
+  if (!admin) {
+    return NextResponse.json(
+      { status: false, message: "Akses ditolak. Silakan login sebagai admin." },
+      { status: 401 }
+    );
+  }
   const filesToUpload = [
     { key: "homepageTeaser", filename: "homepage-vt.mp4", relPath: "assets/homepage-vt.mp4" },
     { key: "splashLogo", filename: "keying-logo-center.mp4", relPath: "assets/keying-logo-center.mp4" },
