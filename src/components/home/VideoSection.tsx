@@ -1,9 +1,20 @@
 "use client";
 import { useState } from "react";
 import styles from "./VideoSection.module.css";
+import { VIDEO_URLS } from "@/lib/videoAssets";
 
 export default function VideoSection() {
+  const [videoSrc, setVideoSrc] = useState<string>(VIDEO_URLS.homepageTeaser);
   const [videoError, setVideoError] = useState(false);
+
+  const handleVideoError = () => {
+    if (videoSrc !== "/assets/homepage-vt.mp4") {
+      console.warn("[Video] Remote Vallzy video failed, falling back to local asset.");
+      setVideoSrc("/assets/homepage-vt.mp4");
+    } else {
+      setVideoError(true);
+    }
+  };
 
   return (
     <section className={styles.section}>
@@ -26,7 +37,7 @@ export default function VideoSection() {
           <div className={styles.player}>
             {!videoError ? (
               <video
-                src={process.env.NEXT_PUBLIC_HOMEPAGE_VIDEO_URL || "/assets/homepage-vt.mp4"}
+                src={videoSrc}
                 controls
                 autoPlay
                 muted
@@ -34,7 +45,7 @@ export default function VideoSection() {
                 playsInline
                 preload="metadata"
                 className={styles.video}
-                onError={() => setVideoError(true)}
+                onError={handleVideoError}
               />
             ) : (
               <div className={styles.fallbackPlayer}>

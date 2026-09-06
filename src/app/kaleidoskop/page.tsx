@@ -106,7 +106,7 @@ const htmlContent = `
                   <div class="card-media">
                     <video controls preload="metadata">
                       <source
-                        src="https://cavallery.id/wp-content/uploads/2025/11/offair-lapak.mp4"
+                        src="https://cava.jkt48connect.com/video-lapak.mp4"
                         type="video/mp4"
                       />
                       Browser kamu tidak mendukung pemutar video.

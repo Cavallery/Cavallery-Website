@@ -1,7 +1,11 @@
 "use client";
+import { useState } from "react";
 import styles from "./BiodataSection.module.css";
+import { VIDEO_URLS } from "@/lib/videoAssets";
 
 export default function BiodataSection() {
+  const [videoSrc, setVideoSrc] = useState<string>(VIDEO_URLS.homepageTeaser);
+
   return (
     <section className={styles.section} id="meet-erine">
       <div className={styles.container}>
@@ -10,12 +14,18 @@ export default function BiodataSection() {
           <div className={styles.videoSide}>
             <div className={styles.videoFrame}>
               <video 
-                src="https://cavallery.id/wp-content/uploads/2025/07/homepage-vt.mp4" 
+                src={videoSrc} 
                 autoPlay 
                 muted 
                 loop 
                 playsInline 
+                preload="metadata"
                 className={styles.video}
+                onError={() => {
+                  if (videoSrc !== "/assets/homepage-vt.mp4") {
+                    setVideoSrc("/assets/homepage-vt.mp4");
+                  }
+                }}
               />
             </div>
           </div>

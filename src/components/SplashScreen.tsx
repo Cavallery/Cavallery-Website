@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SplashScreen.module.css";
+import { VIDEO_URLS } from "@/lib/videoAssets";
 
 export default function SplashScreen() {
   const pathname = usePathname();
@@ -10,6 +11,7 @@ export default function SplashScreen() {
   const [visible, setVisible] = useState(!isAdmin);
   const [fadeOut, setFadeOut] = useState(false);
   const [desktopError, setDesktopError] = useState(false);
+  const [splashVideoSrc, setSplashVideoSrc] = useState<string>(VIDEO_URLS.splashLogo);
 
   useEffect(() => {
     // Don't run splash logic on admin routes
@@ -65,11 +67,17 @@ export default function SplashScreen() {
       {!desktopError && (
         <video
           className={styles.video}
-          src={process.env.NEXT_PUBLIC_SPLASH_VIDEO_URL || "/assets/keying-logo-center.mp4"}
+          src={splashVideoSrc}
           autoPlay
           muted
           playsInline
-          onError={() => setDesktopError(true)}
+          onError={() => {
+            if (splashVideoSrc !== "/assets/keying-logo-center.mp4") {
+              setSplashVideoSrc("/assets/keying-logo-center.mp4");
+            } else {
+              setDesktopError(true);
+            }
+          }}
         />
       )}
       {/* Fallback text logo removed as requested */}
