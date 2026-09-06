@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
 
 const API_KEY = "sJbpVqLinYlp";
 const BASE = "https://v5.jkt48connect.com/api/jkt48";
@@ -40,24 +41,28 @@ function getFallbackShows(): any[] {
 }
 
 async function fetchMonthTheater(monthStr: string, yearStr: string): Promise<any[]> {
-  try {
-    const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
-    const res = await fetch(apiUrl, {
-      headers: {
-        "x-priority-token": API_KEY,
-        Accept: "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
-      },
-      next: { revalidate: 300 },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-    return list.map(normalizeShow);
-  } catch {
-    return [];
-  }
+  const cacheKey = `theater_${monthStr}_${yearStr}`;
+  return fetchWithCacheAndFallback<any[]>({
+    key: cacheKey,
+    ttlSeconds: 90,
+    fetcher: async () => {
+      const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
+      const res = await fetch(apiUrl, {
+        headers: {
+          "x-priority-token": API_KEY,
+          Accept: "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+        },
+        next: { revalidate: 300 },
+        signal: AbortSignal.timeout(4000),
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+      return list.map(normalizeShow);
+    },
+    fallbackData: [],
+  });
 }
 
 export async function GET(request: Request) {
@@ -69,7 +74,7 @@ export async function GET(request: Request) {
     if (month && year) {
       const singleMonthShows = await fetchMonthTheater(month.padStart(2, "0"), year);
       if (singleMonthShows.length > 0) {
-        return NextResponse.json({ success: true, data: singleMonthShows });
+        return NextResponse.json({ success: true, data: singleMonthShows }, { headers: API_CACHE_HEADERS });
       }
     }
 
@@ -97,15 +102,15 @@ export async function GET(request: Request) {
     });
 
     if (uniqueShows.length > 0) {
-      return NextResponse.json({ success: true, data: uniqueShows });
+      return NextResponse.json({ success: true, data: uniqueShows }, { headers: API_CACHE_HEADERS });
     }
 
     // Fallback to local theater cache if remote returns empty
     const fallbackShows = getFallbackShows();
-    return NextResponse.json({ success: true, data: fallbackShows });
+    return NextResponse.json({ success: true, data: fallbackShows }, { headers: API_CACHE_HEADERS });
   } catch (error) {
     console.error("Theater API Error:", error);
     const fallbackShows = getFallbackShows();
-    return NextResponse.json({ success: true, data: fallbackShows });
+    return NextResponse.json({ success: true, data: fallbackShows }, { headers: API_CACHE_HEADERS });
   }
 }

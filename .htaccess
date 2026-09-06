@@ -1,0 +1,25 @@
+# ============================================================
+# CAVALLERY HOSTINGER / LITESPEED ROOT .HTACCESS
+# Serves static assets directly via LiteSpeed/Apache and proxies app to Node.js
+# ============================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1. Directly serve existing static files from public folder without invoking Node.js
+  RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+  RewriteRule ^(.*)$ /public/$1 [L]
+
+  # 2. Allow existing physical files and directories to be served directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # 1 Year Cache for Static Assets & Video Byte-Range Streaming
+  <FilesMatch "\.(mp4|webm|ogg|mov|jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|eot|css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+    Header set Accept-Ranges bytes
+  </FilesMatch>
+</IfModule>

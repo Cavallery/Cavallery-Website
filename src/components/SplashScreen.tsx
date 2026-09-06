@@ -65,7 +65,7 @@ export default function SplashScreen() {
       {!desktopError && (
         <video
           className={styles.video}
-          src="/assets/keying-logo-center.mp4"
+          src={process.env.NEXT_PUBLIC_SPLASH_VIDEO_URL || "/assets/keying-logo-center.mp4"}
           autoPlay
           muted
           playsInline

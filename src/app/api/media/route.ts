@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
-const noCacheHeaders = {
-  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-  Pragma: "no-cache",
-  Expires: "0",
-};
 
 const VALLZY_BASE = "https://v5.jkt48connect.com/api/cavallery/media";
 const API_KEY = "JKTCONNECT";
@@ -23,11 +17,11 @@ function readPublishedIds(): string[] {
     if (fs.existsSync(PUB_FILE_PATH)) {
       const raw = fs.readFileSync(PUB_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed?.publishedIds)) {
-        return parsed.publishedIds.map(String);
-      }
+      if (Array.isArray(parsed)) return parsed.map(String);
     }
-  } catch {}
+  } catch (e) {
+    console.error("Failed to read published media IDs:", e);
+  }
   return [];
 }
 
@@ -36,11 +30,11 @@ function readCustomOrder(): string[] {
     if (fs.existsSync(ORDER_FILE_PATH)) {
       const raw = fs.readFileSync(ORDER_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed?.orderedIds)) {
-        return parsed.orderedIds.map(String);
-      }
+      if (Array.isArray(parsed)) return parsed.map(String);
     }
-  } catch {}
+  } catch (e) {
+    console.error("Failed to read custom media order:", e);
+  }
   return [];
 }
 
@@ -50,14 +44,17 @@ function readLocalFallback(): any[] {
       const raw = fs.readFileSync(LOCAL_JSON_PATH, "utf-8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed;
+      if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
     }
-  } catch {}
+  } catch (e) {
+    console.error("Failed to read local media fallback:", e);
+  }
   return [];
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
     const folder = searchParams.get("folder") || "";
     const type = searchParams.get("type") || "";
@@ -65,36 +62,37 @@ export async function GET(request: NextRequest) {
     const limit = Number(searchParams.get("limit") || 500);
     const offset = Number(searchParams.get("offset") || 0);
 
-    let items: any[] = [];
+    // 1. Fetch all complete photos and videos with in-memory cache & fallback
+    let items: any[] = await fetchWithCacheAndFallback<any[]>({
+      key: "vallzy_media_items",
+      ttlSeconds: 90,
+      fetcher: async () => {
+        const vallzyUrl = `${VALLZY_BASE}?apikey=${API_KEY}&limit=500`;
+        const res = await fetch(vallzyUrl, {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
+          },
+          signal: AbortSignal.timeout(5000),
+        });
 
-    // 1. Fetch all complete photos and videos from Vallzy's server
-    try {
-      const vallzyUrl = `${VALLZY_BASE}?apikey=${API_KEY}&limit=500`;
-      const res = await fetch(vallzyUrl, {
-        headers: {
-          Accept: "application/json",
-          "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
-        },
-        cache: "no-store",
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status && Array.isArray(json.data?.items)) {
-          items = json.data.items;
-        } else if (Array.isArray(json?.data)) {
-          items = json.data;
-        } else if (Array.isArray(json?.items)) {
-          items = json.items;
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status && Array.isArray(json.data?.items)) {
+            return json.data.items;
+          } else if (Array.isArray(json?.data)) {
+            return json.data;
+          } else if (Array.isArray(json?.items)) {
+            return json.items;
+          }
         }
-      }
-    } catch (e: any) {
-      console.warn("Vallzy media fetch warn:", e.message);
-    }
+        return readLocalFallback();
+      },
+      fallbackData: readLocalFallback(),
+    });
 
-    // 2. If Vallzy API failed or returned empty, fallback to local backup
-    if (items.length === 0) {
+    // 2. If empty, fallback to local backup
+    if (!items || items.length === 0) {
       items = readLocalFallback();
     }
 
@@ -165,7 +163,7 @@ export async function GET(request: NextRequest) {
           items: paginated,
         },
       },
-      { headers: noCacheHeaders }
+      { headers: API_CACHE_HEADERS }
     );
   } catch (error: any) {
     console.error("Media GET error:", error);
@@ -176,7 +174,7 @@ export async function GET(request: NextRequest) {
         message: error.message || "Gagal memuat media",
         data: { items: [], total: 0 },
       },
-      { status: 500, headers: noCacheHeaders }
+      { status: 200, headers: API_CACHE_HEADERS }
     );
   }
 }
