@@ -445,10 +445,25 @@ export async function getYearlyKasMatrix(tahun: number) {
   )) || [];
   const totalPengeluaranKas = Number(pengeluaranRows[0]?.total || 0);
 
+  // 6. Hitung Total Akumulasi Keseluruhan Kas (Semua Tahun / All Time)
+  const allTimePemasukanRows = (await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM iuran_kas_bulanan WHERE status = 'diverifikasi'"
+  )) || [];
+  const allTimePemasukan = Number(allTimePemasukanRows[0]?.total || 0);
+
+  const allTimePengeluaranRows = (await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas"
+  )) || [];
+  const allTimePengeluaran = Number(allTimePengeluaranRows[0]?.total || 0);
+  const allTimeSaldo = allTimePemasukan - allTimePengeluaran;
+
   return {
     tahun,
     grandTotalPemasukan,
     totalPengeluaranKas,
+    allTimePemasukan,
+    allTimePengeluaran,
+    allTimeSaldo,
     totalAnggota: matrixRows.length,
     monthlyTotals,
     monthlyPaidCounts,
