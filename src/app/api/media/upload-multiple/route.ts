@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       const res = await fetch(VALLZY_MULTI_UPLOAD_URL, {
         method: "POST",
         body: outFd,
+        signal: AbortSignal.timeout(25000),
       });
 
       if (res.ok) {

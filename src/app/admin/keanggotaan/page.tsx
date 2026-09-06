@@ -48,6 +48,8 @@ export default function AdminKeanggotaanPage() {
   // Modal States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editMember, setEditMember] = useState<any | null>(null);
+  const [showBadgeGuideModal, setShowBadgeGuideModal] = useState(false);
+  const [activeGuideBadgeId, setActiveGuideBadgeId] = useState<string | null>(null);
 
   // Registration Open/Close Settings State
   const [regAnggotaOpen, setRegAnggotaOpen] = useState(true);
@@ -630,7 +632,35 @@ export default function AdminKeanggotaanPage() {
                     <th>Kontak</th>
                     <th>Status</th>
                     <th>Jabatan</th>
-                    <th>Badge</th>
+                    <th>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <span>Badge</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveGuideBadgeId(null);
+                            setShowBadgeGuideModal(true);
+                          }}
+                          style={{
+                            background: "rgba(201, 168, 76, 0.2)",
+                            border: "1px solid var(--border-gold, #c9a84c)",
+                            color: "var(--gold)",
+                            borderRadius: "50%",
+                            width: 18,
+                            height: 18,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            padding: 0,
+                          }}
+                          title="Klik untuk melihat Panduan & Syarat Naik Tingkat 5 Badge"
+                        >
+                          <i className="bx bx-question-mark" />
+                        </button>
+                      </div>
+                    </th>
                     <th>Aksi & Kelola</th>
                   </tr>
                 </thead>
@@ -815,18 +845,32 @@ export default function AdminKeanggotaanPage() {
                                     </option>
                                   ))}
                                 </select>
-                                <span
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveGuideBadgeId(bDef.id);
+                                    setShowBadgeGuideModal(true);
+                                  }}
                                   style={{
-                                    fontSize: "0.7rem",
-                                    fontWeight: 700,
+                                    fontSize: "0.72rem",
+                                    fontWeight: 800,
                                     color: bDef.color,
+                                    background: "transparent",
+                                    border: "none",
+                                    padding: "2px 0",
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    gap: 3,
+                                    gap: 4,
+                                    cursor: "pointer",
+                                    textAlign: "left",
+                                    width: "fit-content",
                                   }}
+                                  title={`Klik untuk melihat penjelasan badge ${bDef.name} & cara naik ke badge selanjutnya`}
                                 >
-                                  <i className={`bx ${bDef.icon}`} /> {bDef.name}
-                                </span>
+                                  <i className={`bx ${bDef.icon}`} style={{ fontSize: "0.9rem" }} />
+                                  <span>{bDef.name}</span>
+                                  <i className="bx bx-info-circle" style={{ fontSize: "0.75rem", opacity: 0.7 }} />
+                                </button>
                               </div>
                             );
                           })()}
@@ -1393,6 +1437,238 @@ export default function AdminKeanggotaanPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL PANDUAN 5 BADGE & CARA NAIK TINGKAT ── */}
+      {showBadgeGuideModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowBadgeGuideModal(false)}>
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: 840, maxHeight: "90vh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(201, 168, 76, 0.15)",
+                    border: "1px solid var(--border-gold, #c9a84c)",
+                    color: "var(--gold)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.4rem",
+                  }}
+                >
+                  <i className="bx bx-award" />
+                </div>
+                <div>
+                  <h3 className={styles.modalTitle} style={{ margin: 0, fontSize: "1.15rem" }}>
+                    Panduan &amp; Syarat Naik Tingkat 5 Badge Cavallery
+                  </h3>
+                  <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: "var(--fg-muted)" }}>
+                    Sistem kehormatan dedikasi anggota, hierarki tingkatan, dan panduan promosi badge.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => setShowBadgeGuideModal(false)}
+                title="Tutup"
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            {/* Visual Roadmap Hierarki */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 8,
+                padding: "14px 18px",
+                background: "rgba(0, 0, 0, 0.25)",
+                border: "1px solid var(--border)",
+                borderRadius: 14,
+                marginBottom: 20,
+              }}
+            >
+              {Object.values(MEMBER_BADGES).map((b, idx, arr) => {
+                const isActive = activeGuideBadgeId === b.id;
+                return (
+                  <div
+                    key={b.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setActiveGuideBadgeId(b.id)}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "6px 12px",
+                        borderRadius: 20,
+                        background: isActive ? b.bgColor : "rgba(255, 255, 255, 0.04)",
+                        border: `1.5px solid ${isActive ? b.color : b.borderColor}`,
+                        color: b.color,
+                        fontWeight: 800,
+                        fontSize: "0.78rem",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <i className={`bx ${b.icon}`} style={{ fontSize: "1rem" }} />
+                      <span>{b.name}</span>
+                      <span style={{ fontSize: "0.68rem", opacity: 0.7 }}>Lvl {b.level}</span>
+                    </div>
+                    {idx < arr.length - 1 && (
+                      <i className="bx bx-chevron-right" style={{ color: "var(--fg-muted)", fontSize: "1.1rem" }} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* List Detail 5 Badge */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {Object.values(MEMBER_BADGES).map((b) => {
+                const isSelected = activeGuideBadgeId === b.id;
+                return (
+                  <div
+                    key={b.id}
+                    style={{
+                      padding: "16px 18px",
+                      borderRadius: 14,
+                      background: isSelected ? b.bgColor : "rgba(255, 255, 255, 0.02)",
+                      border: isSelected ? `2px solid ${b.color}` : "1px solid var(--border)",
+                      transition: "all 0.2s",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div
+                          style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 10,
+                            background: b.bgColor,
+                            border: `1.5px solid ${b.borderColor}`,
+                            color: b.color,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.3rem",
+                          }}
+                        >
+                          <i className={`bx ${b.icon}`} />
+                        </div>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 900, fontSize: "1.05rem", color: b.color }}>
+                              {b.name}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: "0.68rem",
+                                fontWeight: 800,
+                                padding: "2px 8px",
+                                borderRadius: 20,
+                                background: b.bgColor,
+                                border: `1px solid ${b.borderColor}`,
+                                color: b.color,
+                              }}
+                            >
+                              Tingkat {b.level} of 5
+                            </span>
+                          </div>
+                          <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "var(--fg-muted)" }}>
+                            {b.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {isSelected && (
+                        <span
+                          style={{
+                            fontSize: "0.72rem",
+                            fontWeight: 800,
+                            background: b.color,
+                            color: "#000",
+                            padding: "3px 10px",
+                            borderRadius: 20,
+                          }}
+                        >
+                          Dipilih
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Kriteria Saat Ini */}
+                    <div
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "var(--fg)",
+                        background: "rgba(0,0,0,0.2)",
+                        padding: "8px 12px",
+                        borderRadius: 8,
+                        borderLeft: `3px solid ${b.color}`,
+                      }}
+                    >
+                      <strong>Kriteria Anggota:</strong> {b.criteria}
+                    </div>
+
+                    {/* Syarat & Cara Naik Tingkat */}
+                    <div
+                      style={{
+                        fontSize: "0.8rem",
+                        color: b.nextBadge ? "#f59e0b" : "#10b981",
+                        background: b.nextBadge ? "rgba(245, 158, 11, 0.08)" : "rgba(16, 185, 129, 0.08)",
+                        padding: "10px 14px",
+                        borderRadius: 10,
+                        border: `1px solid ${b.nextBadge ? "rgba(245, 158, 11, 0.3)" : "rgba(16, 185, 129, 0.3)"}`,
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 8,
+                      }}
+                    >
+                      <i
+                        className={`bx ${b.nextBadge ? "bx-up-arrow-circle" : "bx-crown"}`}
+                        style={{ fontSize: "1.2rem", marginTop: 1, flexShrink: 0 }}
+                      />
+                      <div>
+                        <strong>{b.nextBadge ? `Cara Berubah ke Badge ${b.nextBadge}:` : "Puncak Gelar:"}</strong>{" "}
+                        <span style={{ color: "var(--fg)" }}>{b.howToUpgrade}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className={styles.btnCreate}
+                onClick={() => setShowBadgeGuideModal(false)}
+              >
+                Tutup Panduan
+              </button>
+            </div>
           </div>
         </div>
       )}

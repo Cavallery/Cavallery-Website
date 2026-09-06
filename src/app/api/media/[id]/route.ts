@@ -33,6 +33,7 @@ export async function DELETE(
     try {
       await fetch(`${VALLZY_BASE}/${cleanId}?apikey=${API_KEY}`, {
         method: "DELETE",
+        signal: AbortSignal.timeout(4000),
       });
     } catch (e: any) {
       console.warn("Vallzy delete warn:", e.message);

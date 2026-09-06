@@ -17,6 +17,7 @@ async function handleBulkDelete(ids: string[]) {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids }),
+      signal: AbortSignal.timeout(4000),
     });
   } catch (e: any) {
     console.warn("Vallzy bulk delete warn:", e.message);

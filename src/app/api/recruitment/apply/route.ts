@@ -51,9 +51,10 @@ async function forwardToGoogleSheets(payload: any) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000), // Max 4 detik
     });
-  } catch (err) {
-    console.error("Google Sheets Sync Error:", err);
+  } catch (err: any) {
+    console.error("Google Sheets Sync Error:", err?.message || err);
   }
 }
 
