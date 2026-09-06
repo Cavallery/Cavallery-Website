@@ -2,9 +2,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
+import { VIDEO_URLS } from "@/lib/videoAssets";
 
 const scenes = [
-  { src: "/assets/prolog-scene.mp4", title: "Prolog", desc: "Awal dari perjalanan Erine di dunia Etherland." },
+  { src: VIDEO_URLS.prologScene, title: "Prolog", desc: "Awal dari perjalanan Erine di dunia Etherland." },
   { src: "https://cava.jkt48connect.com/scene-1.mp4", title: "Scene 1", desc: "Erine menemukan portal menuju Etherland." },
   { src: "https://cava.jkt48connect.com/scene-2.mp4", title: "Scene 2", desc: "Petualangan pertama di tanah asing." },
   { src: "https://cava.jkt48connect.com/scene-3.mp4", title: "Scene 3", desc: "Bertemu dengan penduduk Etherland." },
@@ -43,6 +44,7 @@ const contributors = [
 export default function ErineInEtherlandPage() {
   const [activeScene, setActiveScene] = useState(0);
   const [page, setPage] = useState(0);
+  const [heroVideoSrc, setHeroVideoSrc] = useState<string>(VIDEO_URLS.videotronRatplaz);
   const [heroVideoError, setHeroVideoError] = useState(false);
   const [sceneErrors, setSceneErrors] = useState<Record<number, boolean>>({});
 
@@ -52,10 +54,17 @@ export default function ErineInEtherlandPage() {
       <div className={styles.hero}>
         {!heroVideoError ? (
           <video
-            src="/assets/Video Tron Ratplaz Erine.mp4"
+            src={heroVideoSrc}
             autoPlay muted loop playsInline
+            preload="metadata"
             className={styles.heroVideo}
-            onError={() => setHeroVideoError(true)}
+            onError={() => {
+              if (heroVideoSrc !== "/assets/Video Tron Ratplaz Erine.mp4") {
+                setHeroVideoSrc("/assets/Video Tron Ratplaz Erine.mp4");
+              } else {
+                setHeroVideoError(true);
+              }
+            }}
           />
         ) : (
           <div className={styles.heroBgFallback} />

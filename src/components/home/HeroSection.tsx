@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import styles from "./HeroSection.module.css";
+import { VIDEO_URLS } from "@/lib/videoAssets";
 
 const typewriterTexts = [
   "Home of Erine’s Biggest supporters",
@@ -25,8 +26,15 @@ export default function HeroSection() {
 
   const toggleJiko = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio("/audio/jikorine1.mp4");
-      audioRef.current.onended = () => setIsPlayingJiko(false);
+      const audio = new Audio(VIDEO_URLS.jikorineAudio);
+      audio.onerror = () => {
+        if (audio.src !== window.location.origin + "/audio/jikorine1.mp4") {
+          audio.src = "/audio/jikorine1.mp4";
+          audio.play().catch(() => setIsPlayingJiko(false));
+        }
+      };
+      audio.onended = () => setIsPlayingJiko(false);
+      audioRef.current = audio;
     }
     if (audioRef.current.paused) {
       audioRef.current.play().catch((e) => {

@@ -681,8 +681,28 @@ function MediaManager() {
   const [pubSaving, setPubSaving]       = useState(false);
   const [draggedIdx, setDraggedIdx]     = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx]   = useState<number | null>(null);
+  const [syncingVideos, setSyncingVideos] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const handleSyncVideos = async () => {
+    if (syncingVideos) return;
+    setSyncingVideos(true);
+    showToast("Sedang mengunggah video lokal ke server CDN Vallzy...", "success");
+    try {
+      const res = await fetch("/api/admin/media/upload-local");
+      const data = await res.json();
+      if (data.success) {
+        showToast("Semua video lokal berhasil di-offload ke server CDN Vallzy!", "success");
+      } else {
+        showToast("Gagal migrasi video: " + (data.message || "Error"), "error");
+      }
+    } catch (err: any) {
+      showToast("Gagal menghubungi API: " + err.message, "error");
+    } finally {
+      setSyncingVideos(false);
+    }
+  };
 
   const handleReorder = async (newItems: any[]) => {
     setItems(newItems);
@@ -1002,12 +1022,22 @@ function MediaManager() {
           <i className="bx bx-folder-open" /> Media
           <span className={styles.count}>{total} file</span>
         </h2>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {selected.size > 0 && (
             <button className={styles.btnDanger} onClick={() => setConfirm({ bulk: true })}>
               <i className="bx bx-trash" /> Hapus ({selected.size})
             </button>
           )}
+          <button
+            className={styles.btnGhost}
+            onClick={handleSyncVideos}
+            disabled={syncingVideos}
+            title="Upload otomatis semua file video MP4 lokal ke server CDN Vallzy"
+            style={{ display: "flex", alignItems: "center", gap: 6 }}
+          >
+            <i className={syncingVideos ? "bx bx-loader-alt bx-spin" : "bx bx-cloud-upload"} />
+            {syncingVideos ? "Menyinkronkan..." : "Sinkron Video ke CDN"}
+          </button>
           <button className={styles.btnPrimary} onClick={() => setShowUpload(true)}>
             <i className="bx bx-upload" /> Upload
           </button>
