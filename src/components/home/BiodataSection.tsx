@@ -5,7 +5,7 @@ import { VIDEO_URLS } from "@/lib/videoAssets";
 
 export default function BiodataSection() {
   const [videoSrc, setVideoSrc] = useState<string>(VIDEO_URLS.homepageTeaser);
-
+  const [videoError, setVideoError] = useState(false);
   return (
     <section className={styles.section} id="meet-erine">
       <div className={styles.container}>
@@ -13,18 +13,36 @@ export default function BiodataSection() {
           {/* Video Side */}
           <div className={styles.videoSide}>
             <div className={styles.videoFrame}>
-              <video 
-                src={videoSrc} 
-                autoPlay 
-                muted 
-                loop 
-                playsInline 
-                preload="metadata"
-                className={styles.video}
-                onError={() => {
-                  console.warn("[Biodata] Video stream failed from CDN.");
-                }}
-              />
+              {!videoError ? (
+                <video 
+                  src={videoSrc} 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline 
+                  preload="metadata"
+                  className={styles.video}
+                  onError={() => setVideoError(true)}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(0,0,0,0.4)",
+                    borderRadius: "inherit",
+                  }}
+                >
+                  <img
+                    src="/images/cava-logo-round.png"
+                    alt="Cavallery"
+                    style={{ width: 80, height: 80, objectFit: "contain", opacity: 0.7 }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -18,6 +18,7 @@ function readPublishedIds(): string[] {
       const raw = fs.readFileSync(PUB_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) return parsed.map(String);
+      if (Array.isArray(parsed?.publishedIds)) return parsed.publishedIds.map(String);
     }
   } catch (e) {
     console.error("Failed to read published media IDs:", e);
