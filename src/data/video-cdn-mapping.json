@@ -1,9 +1,9 @@
 {
-  "homepageTeaser": "",
-  "splashLogo": "",
+  "homepageTeaser": "https://cava.jkt48connect.com/homepage-vt.mp4",
+  "splashLogo": "https://cava.jkt48connect.com/keying-logo-center.mp4",
   "erineGame": "https://cava.jkt48connect.com/erine-game.mp4",
-  "prologScene": "",
-  "videotronRatplaz": "",
-  "videoLapak": "",
-  "jikorineAudio": ""
+  "prologScene": "https://cava.jkt48connect.com/prolog-scene.mp4",
+  "videotronRatplaz": "https://cava.jkt48connect.com/videotron-ratplaz.mp4",
+  "videoLapak": "https://cava.jkt48connect.com/video-lapak.mp4",
+  "jikorineAudio": "https://cava.jkt48connect.com/audio/jikorine1.mp4"
 }

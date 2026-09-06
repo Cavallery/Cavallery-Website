@@ -23,6 +23,7 @@ export async function sendToAppsScript(action: string, payload: any): Promise<bo
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: rawBody,
       redirect: "follow",
+      signal: AbortSignal.timeout(8000), // max 8 detik, jangan blokir lebih lama
     });
 
     const resText = await res.text();

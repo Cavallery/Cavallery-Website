@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { query, getNextAvailableId, resetAutoIncrement } from "@/lib/mysql";
+import { query } from "@/lib/mysql";
 
 // Helper memastikan tabel pengeluaran_kas ada
 async function ensurePengeluaranTable() {
@@ -41,17 +41,22 @@ export async function GET(req: NextRequest) {
 
     let rows: any[] = [];
     if (tahunParam) {
-      rows = (await query<any[]>(
-        "SELECT * FROM pengeluaran_kas WHERE tahun = ? ORDER BY tanggal DESC, id DESC",
-        [parseInt(tahunParam, 10)]
-      )) || [];
+      rows =
+        (await query<any[]>(
+          "SELECT * FROM pengeluaran_kas WHERE tahun = ? ORDER BY tanggal DESC, id DESC",
+          [parseInt(tahunParam, 10)]
+        )) || [];
     } else {
-      rows = (await query<any[]>(
-        "SELECT * FROM pengeluaran_kas ORDER BY tanggal DESC, id DESC"
-      )) || [];
+      rows =
+        (await query<any[]>(
+          "SELECT * FROM pengeluaran_kas ORDER BY tanggal DESC, id DESC"
+        )) || [];
     }
 
-    const totalPengeluaran = rows.reduce((acc, r) => acc + (Number(r.nominal) || 0), 0);
+    const totalPengeluaran = rows.reduce(
+      (acc, r) => acc + (Number(r.nominal) || 0),
+      0
+    );
 
     return NextResponse.json({
       status: true,
@@ -60,7 +65,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("GET pengeluaran error:", error);
-    return NextResponse.json({ status: false, message: error?.message || "Gagal memuat pengeluaran" }, { status: 500 });
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal memuat pengeluaran" },
+      { status: 500 }
+    );
   }
 }
 
@@ -77,21 +85,23 @@ export async function POST(req: NextRequest) {
     const { tanggal, keperluan, kategori, nominal, buktiNotaUrl, catatan } = body;
 
     if (!tanggal || !keperluan || !nominal) {
-      return NextResponse.json({ status: false, message: "Tanggal, keperluan, dan nominal wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { status: false, message: "Tanggal, keperluan, dan nominal wajib diisi" },
+        { status: 400 }
+      );
     }
 
     const tDate = new Date(tanggal);
-    const tahun = !isNaN(tDate.getFullYear()) ? tDate.getFullYear() : new Date().getFullYear();
+    const tahun = !isNaN(tDate.getFullYear())
+      ? tDate.getFullYear()
+      : new Date().getFullYear();
     const cleanNominal = Number(nominal) || 0;
 
-    // Cari ID terkecil yang belum terpakai (contoh: jika ID 1 kosong, gunakan ID 1)
-    const nextId = await getNextAvailableId("pengeluaran_kas");
-
-    await query(
-      `INSERT INTO pengeluaran_kas (id, tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // Gunakan AUTO_INCREMENT langsung — cepat, 1 query
+    const insertRes = await query<any>(
+      `INSERT INTO pengeluaran_kas (tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        nextId,
         tanggal,
         tahun,
         kategori || "Operasional",
@@ -102,18 +112,19 @@ export async function POST(req: NextRequest) {
         catatan || "",
       ]
     );
-
-    // Sinkronkan AUTO_INCREMENT ke max(id) + 1
-    await resetAutoIncrement("pengeluaran_kas");
+    const insertedId: number = insertRes?.insertId ?? 0;
 
     return NextResponse.json({
       status: true,
       message: "Pengeluaran kas berhasil dicatat",
-      id: nextId,
+      id: insertedId,
     });
   } catch (error: any) {
     console.error("POST pengeluaran error:", error);
-    return NextResponse.json({ status: false, message: error?.message || "Gagal menyimpan pengeluaran" }, { status: 500 });
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal menyimpan pengeluaran" },
+      { status: 500 }
+    );
   }
 }
 
@@ -128,17 +139,23 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     if (!id) {
-      return NextResponse.json({ status: false, message: "ID wajib disertakan" }, { status: 400 });
+      return NextResponse.json(
+        { status: false, message: "ID wajib disertakan" },
+        { status: 400 }
+      );
     }
 
     await query("DELETE FROM pengeluaran_kas WHERE id = ?", [id]);
 
-    // Reset AUTO_INCREMENT agar data berikutnya tidak melompati ID yang dihapus
-    await resetAutoIncrement("pengeluaran_kas");
-
-    return NextResponse.json({ status: true, message: "Pengeluaran kas berhasil dihapus" });
+    return NextResponse.json({
+      status: true,
+      message: "Pengeluaran kas berhasil dihapus",
+    });
   } catch (error: any) {
     console.error("DELETE pengeluaran error:", error);
-    return NextResponse.json({ status: false, message: error?.message || "Gagal menghapus pengeluaran" }, { status: 500 });
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal menghapus pengeluaran" },
+      { status: 500 }
+    );
   }
 }

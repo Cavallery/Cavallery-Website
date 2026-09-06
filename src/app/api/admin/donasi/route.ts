@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { appendDonasiRow, updateDonasiStatusInSheet, deleteDonasiRow } from "@/lib/googleSheets";
-import { query, resetAutoIncrement } from "@/lib/mysql";
+import { query } from "@/lib/mysql";
 
 // ── GET: Ambil daftar seluruh konfirmasi donasi ──
 export async function GET(req: NextRequest) {
@@ -283,7 +283,6 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM konfirmasi_donasi WHERE id = ?", [id]);
-    await resetAutoIncrement("konfirmasi_donasi");
     deleteDonasiRow(id).catch((e) => console.error("Delete donasi row in sheets error:", e));
 
     return NextResponse.json({

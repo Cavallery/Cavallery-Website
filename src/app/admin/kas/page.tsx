@@ -510,7 +510,13 @@ export default function AdminKasPage() {
         method: "POST",
         body: formData,
       });
-      const json = await res.json();
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+      }
       if (json.status && json.url) {
         setNewPengeluaran((prev) => ({ ...prev, buktiNotaUrl: json.url }));
       } else {
@@ -546,9 +552,15 @@ export default function AdminKasPage() {
           catatan: newPengeluaran.catatan,
         }),
       });
-      const json = await res.json();
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server sedang memproses. Silakan refresh halaman untuk mengecek.");
+      }
       if (json.status) {
-        setMsg("✅ Pengeluaran kas berhasil dicatat!");
+        setMsg("Pengeluaran kas berhasil dicatat!");
         setShowPengeluaranModal(false);
         setNewPengeluaran({
           tanggal: new Date().toISOString().split("T")[0],
