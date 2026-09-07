@@ -404,7 +404,20 @@ export default function CavalleryKasPage() {
   useEffect(() => {
     checkUserSession();
     checkSettings();
+    // Bersihkan autofill browser jika tersimpan kredensial admin
+    const timer = setTimeout(() => {
+      setLoginNoAnggota((prev) => (prev.toUpperCase() === "VALLENCIA" || prev.toLowerCase() === "admin" ? "" : prev));
+      setLoginIdLine((prev) => (prev === "kurn!@wan" ? "" : prev));
+    }, 150);
+    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    setLoginNoAnggota("");
+    setLoginIdLine("");
+    setLoginNamaDonatur("");
+    setLoginKontakDonatur("");
+  }, [authMode, tipe]);
 
   const loadKasHistory = async () => {
     setLoadingKasHistory(true);
@@ -1446,7 +1459,11 @@ export default function CavalleryKasPage() {
                 {/* ── FORM CONTAINER ── */}
                 {authMode === "masuk" ? (
                   // ── FORM MASUK / LOGIN ──
-                  <form onSubmit={handleLoginSubmit} className={styles.form}>
+                  <form onSubmit={handleLoginSubmit} className={styles.form} autoComplete="off">
+                    {/* Dummy anti-autofill to trick browser password manager into not autofilling admin credentials */}
+                    <input type="text" name="fake_username_remember" style={{ position: "absolute", opacity: 0, height: 0, width: 0, pointerEvents: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+                    <input type="password" name="fake_password_remember" style={{ position: "absolute", opacity: 0, height: 0, width: 0, pointerEvents: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="new-password" />
+
                     {tipe === "anggota" ? (
                       <>
                         <div className={styles.field}>
@@ -1458,6 +1475,12 @@ export default function CavalleryKasPage() {
                           </div>
                           <input
                             type="text"
+                            name="cava_member_no_unique"
+                            id="cava_member_no_unique"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="characters"
+                            spellCheck="false"
                             className={styles.input}
                             placeholder="Contoh: CAVA-0001"
                             value={loginNoAnggota}
@@ -1476,6 +1499,11 @@ export default function CavalleryKasPage() {
                           <div style={{ position: "relative", width: "100%" }}>
                             <input
                               type={loginShowPassword ? "text" : "password"}
+                              name="cava_line_credential_unique"
+                              id="cava_line_credential_unique"
+                              autoComplete="new-password"
+                              autoCorrect="off"
+                              spellCheck="false"
                               className={styles.input}
                               placeholder="ID LINE terdaftar"
                               value={loginIdLine}
@@ -1519,6 +1547,11 @@ export default function CavalleryKasPage() {
                           </div>
                           <input
                             type="text"
+                            name="cava_nama_kontributor_field"
+                            id="cava_nama_kontributor_field"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck="false"
                             className={styles.input}
                             placeholder="Nama yang Anda daftarkan"
                             value={loginNamaDonatur}
@@ -1538,6 +1571,11 @@ export default function CavalleryKasPage() {
                           <div style={{ position: "relative", width: "100%" }}>
                             <input
                               type={loginShowPassword ? "text" : "password"}
+                              name="cava_kontak_secret_field"
+                              id="cava_kontak_secret_field"
+                              autoComplete="new-password"
+                              autoCorrect="off"
+                              spellCheck="false"
                               className={styles.input}
                               placeholder="ID LINE / X / WA yang terdaftar"
                               value={loginKontakDonatur}
