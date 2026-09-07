@@ -42,6 +42,17 @@ export function TheaterSection() {
 
   useEffect(() => { load(); const id = setInterval(load, 180000); return () => clearInterval(id); }, [load]);
 
+  const isUpcoming = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return shows.some((s) => {
+      const dateStr = s.date ?? s.showDate ?? "";
+      if (!dateStr) return false;
+      const d = new Date(dateStr).getTime();
+      return !isNaN(d) && d >= today;
+    });
+  }, [shows]);
+
   const displayed = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -54,13 +65,8 @@ export function TheaterSection() {
       return !isNaN(d) && d >= today;
     });
 
-    // 2. If upcoming exists, use upcoming; otherwise show current month's latest shows
-    const targetList = upcoming.length > 0 ? upcoming : shows.filter((s) => {
-      const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    });
+    // 2. Jika ada upcoming, tampilkan upcoming; jika belum diumumkan, tampilkan show terbaru yang ada
+    const targetList = upcoming.length > 0 ? upcoming : shows;
 
     const list = filterErine
       ? targetList.filter((s) => {
@@ -69,32 +75,32 @@ export function TheaterSection() {
         })
       : targetList;
 
-    // Sort ascending (nearest upcoming show first)
+    // Urutkan: jika upcoming -> tanggal terdekat dulu (asc); jika riwayat -> tanggal terbaru dulu (desc)
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return da - db;
+      return upcoming.length > 0 ? da - db : db - da;
     });
   }, [shows, filterErine]);
-
-  const erineCount = useMemo(() => {
-    return displayed.filter((s) => {
-      const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-      return members.some((m) => isErine(m.name ?? ""));
-    }).length;
-  }, [displayed]);
 
   return (
     <section className={styles.section} id="theater">
       <div className={styles.sectionHeader}>
-        <div className="badge"><i className="bx bx-calendar" /> Theater Schedule</div>
+        <div>
+          <div className="badge"><i className="bx bx-calendar" /> Theater Schedule</div>
+          {!isUpcoming && displayed.length > 0 && (
+            <p style={{ fontSize: "0.8rem", color: "#aaa", marginTop: "4px" }}>
+              Jadwal show resmi terbaru &bull; Nantikan pengumuman show Erine berikutnya
+            </p>
+          )}
+        </div>
         <div className={styles.controls}>
           <button
             className={`${styles.filterBtn} ${filterErine ? styles.filterActive : ""}`}
             onClick={() => setFilterErine((v) => !v)}
           >
             <i className={`bx ${filterErine ? "bxs-star" : "bx-star"}`} style={{ color: "orange" }} />
-            {filterErine ? "Semua Jadwal Erine" : "Filter: Jadwal Erine"}
+            {filterErine ? "Semua Show" : "Khusus Jadwal Erine"}
           </button>
         </div>
       </div>
@@ -110,7 +116,7 @@ export function TheaterSection() {
         </div>
       ) : (
         <div className={styles.showList}>
-          {displayed.map((show, idx) => {
+          {displayed.slice(0, 15).map((show, idx) => {
             const date = show.date ?? show.showDate ?? "";
             const { dateStr, timeStr: fallback } = fmtDate(date);
             const timeStr = show.startTime ? show.startTime.slice(0, 5) : fallback;
@@ -171,38 +177,106 @@ export function LiveSection() {
 
   useEffect(() => { load(); const id = setInterval(load, 60000); return () => clearInterval(id); }, [load]);
 
-  if (loading) return <div className={styles.loading}>Checking lives...</div>;
-  if (lives.length === 0) return null;
+  if (loading) return <div className={styles.loading}>Memeriksa siaran live Erine...</div>;
 
+  // Jika Erine sedang live sekarang
+  if (lives.length > 0) {
+    return (
+      <section className={styles.section} id="live">
+        <div className={styles.sectionHeader}>
+          <div className="badge" style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+            <i className="bx bx-broadcast bx-flashing" /> Sedang Live Sekarang!
+          </div>
+        </div>
+        <div className={styles.liveGrid}>
+          {lives.map((l, i) => {
+            const name = l.name ?? l.member_name ?? "Catherina Vallencia (Erine)";
+            const img = l.image ?? l.img ?? l.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
+            const highlight = l.is_erine || isErine(name);
+            const url = l.url && l.url !== "#" ? l.url
+              : highlight
+                ? "https://www.idn.app/jkt48_erine"
+                : (l.url_key ? `https://www.idn.app/${l.url_key}` : "#");
+
+            return (
+              <div key={l.id ?? i} className={`${styles.liveCard} ${styles.liveErine}`}>
+                <div className={styles.liveImg}><img src={img} alt={name} /></div>
+                <div className={styles.liveInfo}>
+                  <h4>{name}</h4>
+                  <span style={{ fontSize: "0.75rem", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <i className="bx bxs-star" /> {l.platform || "IDN Live"}
+                  </span>
+                  <a href={url} target="_blank" rel="noreferrer" className="btnPrimary" style={{ marginTop: "8px" }}>
+                    Tonton Live Erine Sekarang!
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
+  // Jika sedang offline, tampilkan kanal live resmi Erine agar selalu muncul di halaman schedule
   return (
     <section className={styles.section} id="live">
       <div className={styles.sectionHeader}>
-        <div className="badge"><i className="bx bx-broadcast" /> Live Now</div>
+        <div className="badge"><i className="bx bx-broadcast" /> Kanal Live Erine</div>
+        <span style={{ fontSize: "0.8rem", color: "#888", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#6b7280" }} /> Sedang Offline
+        </span>
       </div>
       <div className={styles.liveGrid}>
-        {lives.map((l, i) => {
-          const name = l.name ?? l.member_name ?? "Unknown";
-          const img = l.image ?? l.img ?? l.avatar ?? "";
-          const highlight = l.is_erine || isErine(name);
-          // URL already normalized by API
-          const url = l.url && l.url !== "#" ? l.url
-            : highlight
-              ? "https://www.idn.app/jkt48_erine"
-              : (l.url_key ? `https://www.idn.app/${l.url_key}` : "#");
-
-          return (
-            <div key={l.id ?? i} className={`${styles.liveCard} ${highlight ? styles.liveErine : ""}`}>
-              <div className={styles.liveImg}><img src={img || "/images/cava-logo.jpg"} alt={name} /></div>
-              <div className={styles.liveInfo}>
-                <h4>{name}</h4>
-                {highlight && <span style={{ fontSize: "0.7rem", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: "4px" }}><i className="bx bxs-star" /> Erine Live!</span>}
-                <a href={url} target="_blank" rel="noreferrer" className="btnOutline">
-                  {highlight ? "Tonton Erine!" : "Watch"}
-                </a>
-              </div>
+        {/* IDN Live Channel Card */}
+        <div className={`${styles.liveCard} ${styles.liveErine}`}>
+          <div className={styles.liveImg}>
+            <img src="https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg" alt="Erine IDN Live" />
+          </div>
+          <div className={styles.liveInfo} style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <h4 style={{ margin: 0 }}>Catherina Vallencia</h4>
+              <span className="badge" style={{ fontSize: "0.65rem", padding: "2px 6px" }}>IDN Live</span>
             </div>
-          );
-        })}
+            <p style={{ fontSize: "0.78rem", color: "#888", margin: "4px 0 10px" }}>
+              @jkt48_erine &bull; Live interaktif & mabar rutin
+            </p>
+            <a
+              href="https://www.idn.app/jkt48_erine"
+              target="_blank"
+              rel="noreferrer"
+              className="btnOutline"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", padding: "6px 14px" }}
+            >
+              <i className="bx bx-play-circle" /> Buka IDN Live Erine
+            </a>
+          </div>
+        </div>
+
+        {/* Showroom Channel Card */}
+        <div className={styles.liveCard}>
+          <div className={styles.liveImg}>
+            <img src="/images/erine1.jpg" alt="Erine Showroom" />
+          </div>
+          <div className={styles.liveInfo} style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <h4 style={{ margin: 0 }}>JKT48_Erine</h4>
+              <span className="badge" style={{ fontSize: "0.65rem", padding: "2px 6px" }}>Showroom</span>
+            </div>
+            <p style={{ fontSize: "0.78rem", color: "#888", margin: "4px 0 10px" }}>
+              Ruang siaran resmi Erine di SHOWROOM
+            </p>
+            <a
+              href="https://www.showroom-live.com/r/JKT48_Erine"
+              target="_blank"
+              rel="noreferrer"
+              className="btnOutline"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", padding: "6px 14px" }}
+            >
+              <i className="bx bx-video" /> Buka Showroom Erine
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );

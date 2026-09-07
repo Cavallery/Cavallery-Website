@@ -243,7 +243,7 @@ export default function AdminKasPage() {
   const fetchKas = async () => {
     try {
       const res = await fetch("/api/admin/kas");
-      if (res.status === 401) { window.location.replace("/admin"); return; }
+      if (res.status === 401) { window.location.replace("/internal/dashboard-admin-xv7r2q"); return; }
       const json = await res.json();
       if (json.status && json.data) setKasList(json.data);
     } catch (e) { console.error(e); }
@@ -255,7 +255,7 @@ export default function AdminKasPage() {
     setMatrixLoading(true);
     try {
       const res = await fetch(`/api/admin/kas/matrix?tahun=${year}`);
-      if (res.status === 401) { window.location.replace("/admin"); return; }
+      if (res.status === 401) { window.location.replace("/internal/dashboard-admin-xv7r2q"); return; }
       const json = await res.json();
       if (json.status && json.data) setMatrixData(json.data);
     } catch (e) { console.error(e); }
@@ -769,7 +769,7 @@ export default function AdminKasPage() {
         {/* ── TOP HEADER ── */}
         <div className={styles.topHeader}>
           <div>
-            <Link href="/admin" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
@@ -777,16 +777,16 @@ export default function AdminKasPage() {
             </h1>
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/admin/keanggotaan" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
-            <Link href="/admin/kontributor" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
               <i className="bx bx-heart-circle" /> Kontributor
             </Link>
-            <Link href="/admin/donasi" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/donasi" className={styles.backBtn}>
               <i className="bx bx-donate-heart" /> Verifikasi Donasi
             </Link>
-            <Link href="/admin/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
+            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
               <i className="bx bx-slider-alt" /> Master Data
             </Link>
             <a
@@ -2141,7 +2141,7 @@ export default function AdminKasPage() {
                     <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--gold)", background: "rgba(201, 168, 76, 0.12)", padding: "2px 8px", borderRadius: 6, border: "1px dashed var(--gold)" }}>
                       Prefix: #{adminWarEvent.kode_tiket || "STS20"}-xxx
                     </span>
-                    <Link href="/admin/master-data" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
+                    <Link href="/internal/dashboard-admin-xv7r2q/master-data" style={{ fontSize: "0.75rem", color: "var(--primary)", textDecoration: "underline", fontWeight: 600 }}>
                       Ubah di Master Data →
                     </Link>
                   </div>

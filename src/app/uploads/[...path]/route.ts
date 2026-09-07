@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
+import { stat, open } from "fs/promises";
 import path from "path";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ const MIME_MAP: Record<string, string> = {
   ".webp": "image/webp",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
   ".mp4": "video/mp4",
   ".webm": "video/webm",
   ".mov": "video/quicktime",
@@ -25,63 +27,168 @@ export async function GET(
     const resolvedParams = await params;
     const pathSegments = resolvedParams.path || [];
 
-    if (pathSegments.length === 0) {
-      return new NextResponse("File Not Found", { status: 404 });
+    if (!pathSegments || pathSegments.length === 0) {
+      return NextResponse.json(
+        { status: false, message: "File path not specified" },
+        { status: 404 }
+      );
     }
 
-    // Prevent path traversal
-    const safeSegments = pathSegments.filter((seg) => !seg.includes("..") && !seg.includes(":"));
-    const filePath = path.join(process.cwd(), "public", "uploads", ...safeSegments);
+    // 1. Strict Path Traversal Protection
+    // Cegah path traversal atau karakter ilegal
+    for (const seg of pathSegments) {
+      if (
+        seg.includes("..") ||
+        seg.includes(":") ||
+        seg.includes("/") ||
+        seg.includes("\\") ||
+        seg.startsWith(".")
+      ) {
+        return NextResponse.json(
+          { status: false, message: "Invalid path segment" },
+          { status: 400 }
+        );
+      }
+    }
 
-    if (!fs.existsSync(filePath)) {
-      // Fallback: proxy from live production website if running on local dev
-      try {
-        const remoteUrl = `https://cavallery.id/uploads/${safeSegments.join("/")}`;
-        const remoteRes = await fetch(remoteUrl);
-        if (remoteRes.ok) {
-          const arrayBuffer = await remoteRes.arrayBuffer();
-          const ext = path.extname(filePath).toLowerCase();
-          const contentType = remoteRes.headers.get("content-type") || MIME_MAP[ext] || "application/octet-stream";
-          
-          // Optionally cache locally
-          try {
-            const dir = path.dirname(filePath);
-            if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-            fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
-          } catch {}
+    // Cari file di beberapa kemungkinan lokasi direktori
+    const possibleBaseDirs = [
+      path.resolve(process.cwd(), "public", "uploads"),
+      path.resolve(process.cwd(), "uploads"),
+    ];
 
-          return new NextResponse(arrayBuffer, {
-            status: 200,
-            headers: {
-              "Content-Type": contentType,
-              "Cache-Control": "public, max-age=31536000, immutable",
-            },
-          });
+    let resolvedFilePath = "";
+    let fileFound = false;
+    let fileStat;
+
+    for (const baseDir of possibleBaseDirs) {
+      const candidatePath = path.resolve(baseDir, ...pathSegments);
+      if (candidatePath.startsWith(baseDir + path.sep) || candidatePath === baseDir) {
+        try {
+          const s = await stat(candidatePath);
+          if (s.isFile()) {
+            resolvedFilePath = candidatePath;
+            fileStat = s;
+            fileFound = true;
+            break;
+          }
+        } catch {
+          // File tidak ditemukan di path ini, cek path berikutnya
         }
-      } catch {}
-
-      return new NextResponse("File Not Found", { status: 404 });
+      }
     }
 
-    const stat = fs.statSync(filePath);
-    if (!stat.isFile()) {
-      return new NextResponse("Not a file", { status: 400 });
+    // Jika file tidak ditemukan di storage lokal
+    if (!fileFound || !fileStat) {
+      const ext = path.extname(pathSegments[pathSegments.length - 1] || "").toLowerCase();
+      const isImage = [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext);
+
+      // Jika request dari browser/img tag untuk gambar, redirect langsung ke fallback image
+      // sehingga tidak pernah muncul gambar rusak di web
+      const acceptHeader = request.headers.get("accept") || "";
+      if (isImage && !acceptHeader.includes("application/json")) {
+        const isTwoShot = pathSegments.some(s => s.toLowerCase().includes("twoshot"));
+        const fallbackUrl = isTwoShot ? "/images/erine3.jpg" : "/images/erine1.jpg";
+        return NextResponse.redirect(new URL(fallbackUrl, request.url), 307);
+      }
+
+      // Untuk request non-gambar atau explicit JSON, return 404 cepat
+      return NextResponse.json(
+        { status: false, message: "File not found" },
+        { status: 404 }
+      );
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
-    const ext = path.extname(filePath).toLowerCase();
+    const ext = path.extname(resolvedFilePath).toLowerCase();
     const contentType = MIME_MAP[ext] || "application/octet-stream";
 
-    return new NextResponse(fileBuffer, {
+    // 3. Handle Streaming for Large Files (>2MB) or Range Request
+    const fileSize = fileStat.size;
+    const range = request.headers.get("range");
+
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (isNaN(start) || start >= fileSize || (parts[1] && end >= fileSize) || start > end) {
+        return new NextResponse(null, {
+          status: 416,
+          headers: { "Content-Range": `bytes */${fileSize}` },
+        });
+      }
+
+      const chunkSize = end - start + 1;
+      const fileHandle = await open(resolvedFilePath, "r");
+      const stream = fileHandle.createReadStream({ start, end });
+
+      const readableWebStream = new ReadableStream({
+        start(controller) {
+          stream.on("data", (chunk) => controller.enqueue(chunk));
+          stream.on("end", () => {
+            fileHandle.close().catch(() => {});
+            controller.close();
+          });
+          stream.on("error", (err) => {
+            fileHandle.close().catch(() => {});
+            controller.error(err);
+          });
+        },
+        cancel() {
+          fileHandle.close().catch(() => {});
+          stream.destroy();
+        },
+      });
+
+      return new NextResponse(readableWebStream, {
+        status: 206,
+        headers: {
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": String(chunkSize),
+          "Content-Type": contentType,
+          "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
+        },
+      });
+    }
+
+    // Untuk file umum: stream via ReadableStream tanpa memuat seluruh file ke RAM
+    const fileHandle = await open(resolvedFilePath, "r");
+    const nodeStream = fileHandle.createReadStream();
+
+    const webStream = new ReadableStream({
+      start(controller) {
+        nodeStream.on("data", (chunk) => controller.enqueue(chunk));
+        nodeStream.on("end", () => {
+          fileHandle.close().catch(() => {});
+          controller.close();
+        });
+        nodeStream.on("error", (err) => {
+          fileHandle.close().catch(() => {});
+          controller.error(err);
+        });
+      },
+      cancel() {
+        fileHandle.close().catch(() => {});
+        nodeStream.destroy();
+      },
+    });
+
+    return new NextResponse(webStream, {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Content-Length": String(stat.size),
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Length": String(fileSize),
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
       },
     });
   } catch (error: any) {
-    console.error("Uploads static serve error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("[Uploads Static Serve Error]:", error?.message || error);
+    return NextResponse.json(
+      { status: false, message: "Storage service unavailable" },
+      { status: 503 }
+    );
   }
 }
+

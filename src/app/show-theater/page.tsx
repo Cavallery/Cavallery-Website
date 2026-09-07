@@ -55,13 +55,8 @@ export default function ShowTheaterPage() {
       return !isNaN(d) && d >= today;
     });
 
-    // 2. If upcoming shows exist, use them; otherwise, show latest shows from the current month
-    const validShows = upcomingShows.length > 0 ? upcomingShows : shows.filter((s) => {
-      const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    });
+    // 2. If upcoming shows exist, use them; otherwise, show latest available shows
+    const validShows = upcomingShows.length > 0 ? upcomingShows : shows;
 
     const list = filterErine
       ? validShows.filter((s) => {
@@ -70,11 +65,11 @@ export default function ShowTheaterPage() {
         })
       : validShows;
 
-    // Sort ascending (nearest upcoming show first)
+    // Sort: if upcoming -> nearest show first (asc); if history/latest -> latest show first (desc)
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return da - db;
+      return upcomingShows.length > 0 ? da - db : db - da;
     });
   }, [shows, filterErine]);
 

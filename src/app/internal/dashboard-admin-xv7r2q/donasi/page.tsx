@@ -21,7 +21,7 @@ export default function AdminDonasiPage() {
     try {
       const res = await fetch("/api/admin/donasi");
       if (res.status === 401) {
-        window.location.href = "/admin";
+        window.location.href = "/internal/dashboard-admin-xv7r2q";
         return;
       }
       const json = await res.json();
@@ -104,7 +104,7 @@ export default function AdminDonasiPage() {
       <div className={styles.container}>
         <div className={styles.topHeader}>
           <div>
-            <Link href="/admin" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
@@ -113,16 +113,16 @@ export default function AdminDonasiPage() {
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/admin/keanggotaan" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
-            <Link href="/admin/kontributor" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
               <i className="bx bx-heart-circle" /> Kontributor
             </Link>
-            <Link href="/admin/kas" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Verifikasi Kas
             </Link>
-            <Link href="/admin/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
+            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
               <i className="bx bx-slider-alt" /> Master Data
             </Link>
             <a

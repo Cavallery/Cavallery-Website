@@ -83,7 +83,7 @@ export default function AdminMasterDataPage() {
     try {
       const res = await fetch("/api/admin/master-data");
       if (res.status === 401) {
-        window.location.replace("/admin");
+        window.location.replace("/internal/dashboard-admin-xv7r2q");
         return;
       }
       const json = await res.json();
@@ -493,7 +493,7 @@ export default function AdminMasterDataPage() {
         {/* TOP BAR */}
         <div className={styles.topHeader}>
           <div>
-            <Link href="/admin" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
               <i className="bx bx-arrow-back" /> Dashboard Utama
             </Link>
             <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
@@ -508,13 +508,13 @@ export default function AdminMasterDataPage() {
               alignItems: "center",
             }}
           >
-            <Link href="/admin/keanggotaan" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/keanggotaan" className={styles.backBtn}>
               <i className="bx bx-group" /> Keanggotaan
             </Link>
-            <Link href="/admin/kontributor" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
               <i className="bx bx-heart-circle" /> Kontributor
             </Link>
-            <Link href="/admin/kas" className={styles.backBtn}>
+            <Link href="/internal/dashboard-admin-xv7r2q/kas" className={styles.backBtn}>
               <i className="bx bx-wallet" /> Kas
             </Link>
             <ThemeToggle />

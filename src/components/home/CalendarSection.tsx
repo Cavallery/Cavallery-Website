@@ -112,7 +112,10 @@ export default function CalendarSection() {
           const startRaw = item.live_info?.date?.start;
           const startDate = startRaw ? new Date(startRaw) : null;
           const startTimeStr = startDate
-            ? `${String(startDate.getUTCHours() + 7).padStart(2, "0")}:${String(startDate.getUTCMinutes()).padStart(2, "0")}`
+            ? startDate.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })
+            : undefined;
+          const liveDateStr = startDate
+            ? `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}T00:00:00`
             : undefined;
           const liveTitle = item.idn?.title
             ? item.idn.title
@@ -122,7 +125,7 @@ export default function CalendarSection() {
           return {
             id: item.data_id,
             title: `Live ${liveTitle}`,
-            date: startRaw ?? undefined,
+            date: liveDateStr,
             startTime: startTimeStr,
             members: [{ name: item.member?.name ?? "Erine JKT48" }],
             isLiveHistory: true,

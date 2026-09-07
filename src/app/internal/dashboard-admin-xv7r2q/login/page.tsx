@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
       if (!res.ok || !json.status) {
         setErrorMsg(json.message || "Username atau password salah.");
       } else {
-        router.push("/admin");
+        router.push("/internal/dashboard-admin-xv7r2q");
         router.refresh();
       }
     } catch (err: any) {
