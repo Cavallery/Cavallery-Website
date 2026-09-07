@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -22,6 +22,21 @@ export default function MasukPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setNoAnggota((prev) => (prev.toUpperCase() === "VALLENCIA" || prev.toLowerCase() === "admin" ? "" : prev));
+      setIdLine((prev) => (prev === "kurn!@wan" ? "" : prev));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    setNoAnggota("");
+    setIdLine("");
+    setNamaDonatur("");
+    setKontakIdDonatur("");
+  }, [tipe]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +140,11 @@ export default function MasukPage() {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className={styles.form}>
+          <form onSubmit={handleSubmit} className={styles.form} autoComplete="off">
+            {/* Dummy anti-autofill to trick browser password manager */}
+            <input type="text" name="fake_user" style={{ position: "absolute", opacity: 0, height: 0, width: 0, pointerEvents: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+            <input type="password" name="fake_pass" style={{ position: "absolute", opacity: 0, height: 0, width: 0, pointerEvents: "none" }} tabIndex={-1} aria-hidden="true" autoComplete="new-password" />
+
             {errorMsg && (
               <div className={styles.errorBox}>
                 <i className="bx bx-error-circle" /> {errorMsg}
@@ -142,10 +161,16 @@ export default function MasukPage() {
                   </div>
                   <input
                     type="text"
+                    name="cava_masuk_no_anggota"
+                    id="cava_masuk_no_anggota"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="characters"
+                    spellCheck="false"
                     className={styles.input}
                     placeholder="Contoh: CAVA-0001"
                     value={noAnggota}
-                    onChange={(e) => setNoAnggota(e.target.value)}
+                    onChange={(e) => setNoAnggota(e.target.value.toUpperCase())}
                     required
                   />
                 </div>
@@ -159,6 +184,11 @@ export default function MasukPage() {
                   <div style={{ position: "relative", width: "100%" }}>
                     <input
                       type={showPassword ? "text" : "password"}
+                      name="cava_masuk_id_line"
+                      id="cava_masuk_id_line"
+                      autoComplete="new-password"
+                      autoCorrect="off"
+                      spellCheck="false"
                       className={styles.input}
                       placeholder="ID LINE terdaftar"
                       value={idLine}
@@ -201,6 +231,11 @@ export default function MasukPage() {
                   </div>
                   <input
                     type="text"
+                    name="cava_masuk_donatur_nama"
+                    id="cava_masuk_donatur_nama"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck="false"
                     className={styles.input}
                     placeholder="Nama yang didaftarkan"
                     value={namaDonatur}
@@ -217,6 +252,11 @@ export default function MasukPage() {
                   <div style={{ position: "relative", width: "100%" }}>
                     <input
                       type={showPassword ? "text" : "password"}
+                      name="cava_masuk_donatur_kontak"
+                      id="cava_masuk_donatur_kontak"
+                      autoComplete="new-password"
+                      autoCorrect="off"
+                      spellCheck="false"
                       className={styles.input}
                       placeholder="ID / Nomor Kontak terdaftar"
                       value={kontakIdDonatur}
