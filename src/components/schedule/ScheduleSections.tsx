@@ -193,10 +193,16 @@ export function LiveSection() {
             const name = l.name ?? l.member_name ?? "Catherina Vallencia (Erine)";
             const img = l.image ?? l.img ?? l.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
             const highlight = l.is_erine || isErine(name);
-            const url = l.url && l.url !== "#" ? l.url
-              : highlight
-                ? "https://www.idn.app/jkt48_erine"
-                : (l.url_key ? `https://www.idn.app/${l.url_key}` : "#");
+            const url =
+              l.url && l.url !== "#" && l.url.includes("/live/")
+                ? l.url
+                : highlight
+                  ? (l.slug
+                      ? `https://www.idn.app/${l.url_key || "jkt48_erine"}/live/${l.slug}`
+                      : l.url || "https://www.idn.app/jkt48_erine")
+                  : (l.slug && l.url_key
+                      ? `https://www.idn.app/${l.url_key}/live/${l.slug}`
+                      : l.url || (l.url_key ? `https://www.idn.app/${l.url_key}` : "#"));
 
             return (
               <div key={l.id ?? i} className={`${styles.liveCard} ${styles.liveErine}`}>

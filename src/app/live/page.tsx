@@ -129,15 +129,25 @@ export default function LivePage() {
                   Sedang melangsungkan siaran langsung. Yuk gabung dan berikan semangat untuk Erine!
                 </p>
 
-                <a
-                  href={currentLive.url || ERINE_IDN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`btnPrimary ${styles.watchBtn}`}
-                  style={{ fontSize: "1rem", padding: "12px 24px" }}
-                >
-                  <i className="bx bx-play-circle" /> Tonton Live Erine Sekarang!
-                </a>
+                {(() => {
+                  const directUrl =
+                    currentLive.url?.includes("/live/")
+                      ? currentLive.url
+                      : currentLive.slug
+                        ? `https://www.idn.app/${currentLive.url_key || "jkt48_erine"}/live/${currentLive.slug}`
+                        : currentLive.url || ERINE_IDN_URL;
+                  return (
+                    <a
+                      href={directUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`btnPrimary ${styles.watchBtn}`}
+                      style={{ fontSize: "1rem", padding: "12px 24px" }}
+                    >
+                      <i className="bx bx-play-circle" /> Tonton Live Erine Sekarang!
+                    </a>
+                  );
+                })()}
               </div>
             </div>
           </div>
