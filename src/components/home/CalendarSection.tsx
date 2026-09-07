@@ -81,7 +81,14 @@ export default function CalendarSection() {
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}T${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:00`;
           const lives: Show[] = json.data.map((stream: any, idx: number) => {
             const type = (stream.type || stream.platform || "").toLowerCase();
-            let liveUrl = stream.url || (type.includes("idn") ? "https://www.idn.app/jkt48_erine" : "https://www.showroom-live.com/r/JKT48_Erine");
+            let liveUrl =
+              stream.url && stream.url.includes("/live/")
+                ? stream.url
+                : type.includes("showroom")
+                  ? (stream.url_key ? `https://www.showroom-live.com/r/${stream.url_key}` : "https://www.showroom-live.com/r/JKT48_Erine")
+                  : stream.slug
+                    ? `https://www.idn.app/${stream.url_key || "jkt48_erine"}/live/${stream.slug}`
+                    : stream.url || "https://www.idn.app/jkt48_erine";
 
             return {
               id: `live-${idx}`,

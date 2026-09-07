@@ -63,10 +63,11 @@ export async function GET() {
           const img = s.img ?? s.img_alt ?? s.image ?? s.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
           const type = (s.type ?? s.platform ?? "idn").toLowerCase();
           const slug = s.slug ?? "";
+          const username = s.url_key ?? "jkt48_erine";
 
           const url = type.includes("showroom")
-            ? "https://www.showroom-live.com/r/JKT48_Erine"
-            : "https://www.idn.app/jkt48_erine";
+            ? (s.url_key ? `https://www.showroom-live.com/r/${s.url_key}` : "https://www.showroom-live.com/r/JKT48_Erine")
+            : (slug ? `https://www.idn.app/${username}/live/${slug}` : `https://www.idn.app/${username}`);
 
           return {
             id: s.slug ?? s.url_key ?? "erine-live",
@@ -74,7 +75,7 @@ export async function GET() {
             img,
             type,
             platform: type.includes("showroom") ? "SHOWROOM" : "IDN LIVE",
-            url_key: "jkt48_erine",
+            url_key: username,
             slug,
             started_at: s.started_at ?? s.live_at ?? null,
             streaming_url: s.streaming_url_list?.[0]?.url ?? s.streaming_url ?? null,
