@@ -6,7 +6,7 @@ import { VIDEO_URLS } from "@/lib/videoAssets";
 
 export default function SplashScreen() {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/admin") || pathname.startsWith("/internal/dashboard-admin-xv7r2q");
 
   const [visible, setVisible] = useState(!isAdmin);
   const [fadeOut, setFadeOut] = useState(false);

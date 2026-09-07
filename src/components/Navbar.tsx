@@ -134,7 +134,7 @@ export default function Navbar() {
     setOpenDropdown(null);
   }, [pathname]);
 
-  if (pathname?.startsWith("/admin")) {
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/internal/dashboard-admin-xv7r2q")) {
     return null;
   }
 

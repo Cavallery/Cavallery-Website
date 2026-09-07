@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import styles from "@/app/admin/keanggotaan/page.module.css";
+import styles from "@/app/internal/dashboard-admin-xv7r2q/keanggotaan/page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const MONTH_NAMES = [

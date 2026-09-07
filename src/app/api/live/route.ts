@@ -45,7 +45,7 @@ export async function GET() {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
           },
           next: { revalidate: 60 },
-          signal: AbortSignal.timeout(2500),
+          signal: AbortSignal.timeout(5000),
         });
 
         if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
