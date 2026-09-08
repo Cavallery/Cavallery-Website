@@ -341,8 +341,9 @@ export async function getYearlyKasMatrix(tahun: number) {
   const paymentMap: Record<string, { nominal: number; verifiedAt: any; verifiedBy: any }> = {};
   payments.forEach((p) => {
     const key = `${p.no_anggota}:${p.bulan}`;
+    const parsedNominal = p.nominal !== null && p.nominal !== undefined ? Number(p.nominal) : 15000;
     paymentMap[key] = {
-      nominal: Number(p.nominal) || 15000,
+      nominal: isNaN(parsedNominal) ? 15000 : parsedNominal,
       verifiedAt: p.verified_at,
       verifiedBy: p.verified_by,
     };
@@ -432,7 +433,9 @@ export async function getYearlyKasMatrix(tahun: number) {
     grandTotalPemasukan += row.totalKas;
     for (let m = 1; m <= 12; m++) {
       if (row.months[m] === true) {
-        monthlyTotals[m] += 15000;
+        const key = `${row.noAnggota}:${m}`;
+        const paidNominal = paymentMap[key]?.nominal ?? 15000;
+        monthlyTotals[m] += paidNominal;
         monthlyPaidCounts[m] += 1;
       }
     }

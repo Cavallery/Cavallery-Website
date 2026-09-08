@@ -70,7 +70,9 @@ export default function PublicKasMatrixPage() {
   });
 
   const totalPengeluaranTercatat = Number(matrixData?.totalPengeluaran || 0);
-  const saldoKasBersihTercatat = Number(matrixData?.saldoKasBersih ?? (Number(matrixData?.grandTotalPemasukan || 0) - totalPengeluaranTercatat));
+  const allTimePemasukan = Number(matrixData?.allTimePemasukan || matrixData?.grandTotalPemasukan || 0);
+  const allTimePengeluaran = Number(matrixData?.allTimePengeluaran || totalPengeluaranTercatat);
+  const saldoKasBersihTercatat = Number(matrixData?.allTimeSaldo ?? (allTimePemasukan - allTimePengeluaran));
 
   // Daftar Kategori Unik untuk Filter
   const uniqueCategories = Array.from(new Set(pengeluaranList.map((p) => p.kategori).filter(Boolean)));
@@ -182,13 +184,13 @@ export default function PublicKasMatrixPage() {
                 }}
               >
                 <i className="bx bx-trending-up" style={{ fontSize: "1.1rem" }} />
-                Total Pemasukan Kas {tahun}
+                Total Kas Terkumpul
               </div>
               <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#10b981" }}>
-                {formatRupiah(matrixData.grandTotalPemasukan)}
+                {formatRupiah(allTimePemasukan)}
               </div>
               <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>
-                Akumulasi iuran kas terverifikasi
+                Akumulasi seluruh iuran kas terverifikasi
               </div>
             </div>
 
@@ -248,7 +250,7 @@ export default function PublicKasMatrixPage() {
                 }}
               >
                 <i className="bx bx-wallet-alt" style={{ fontSize: "1.1rem" }} />
-                Saldo Bersih Kas {tahun}
+                Sisa Saldo Kas
               </div>
               <div style={{ fontSize: "1.7rem", fontWeight: 900, color: saldoKasBersihTercatat >= 0 ? "var(--primary)" : "#ef4444" }}>
                 {formatRupiah(saldoKasBersihTercatat)}
