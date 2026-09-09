@@ -26,6 +26,7 @@
   --nav-h: 72px;
   --serif: "Playfair Display", Georgia, serif;
   --sans: "Montserrat", system-ui, sans-serif;
+  --font-sans: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --map-c1: #2c2318;
   --map-c2: #3d3028;

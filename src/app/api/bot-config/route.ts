@@ -134,7 +134,7 @@ export function readBotConfig() {
 
   // Default configuration
   const defaultConfig = {
-    apiKey: process.env.GEMINI_API_KEY || "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
+    apiKey: process.env.GEMINI_API_KEY || "",
     fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek-hestek seru lainnya ya! Aku pasti bisa bantu.",
     rules: defaultRules
   };
@@ -165,7 +165,7 @@ export async function GET() {
     return NextResponse.json({ status: true, data: config });
   } catch (error: any) {
     const fallbackConfig = {
-      apiKey: process.env.GEMINI_API_KEY || "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
+      apiKey: process.env.GEMINI_API_KEY || "",
       fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine!",
       rules: defaultRules
     };

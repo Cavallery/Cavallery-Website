@@ -565,8 +565,7 @@ export async function buildSpreadsheetYearlyData(tahun: number) {
   ];
 
   const dataRows = matrix.matrixRows.map((r) => {
-    const formatCell = (val: any) => {
-      if (val === "not_joined") return "-";
+    const formatCell = (val: any): boolean => {
       return val === true;
     };
 

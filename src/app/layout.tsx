@@ -6,10 +6,7 @@ import SplashScreen from "@/components/SplashScreen";
 import Chatbot from "@/components/Chatbot/Chatbot";
 import ScrollRevealProvider from "@/components/ScrollRevealProvider";
 import PassionFireBackground from "@/components/PassionFireBackground";
-import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
@@ -35,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="id" className="font-sans" suppressHydrationWarning>
       <head>
         <link
           href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
