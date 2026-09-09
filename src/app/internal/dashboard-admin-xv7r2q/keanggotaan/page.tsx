@@ -29,6 +29,7 @@ export default function AdminKeanggotaanPage() {
   const [direktoriList, setDirektoriList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"semua" | "aktif" | "nonaktif">("semua");
   const [filterJabatan, setFilterJabatan] = useState<"semua" | "anggota" | "admin">("semua");
   const [filterGender, setFilterGender] = useState<"semua" | "perempuan" | "laki">("semua");
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -520,6 +521,53 @@ export default function AdminKeanggotaanPage() {
 
             {/* Filter & Search Bar */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
+              {/* Filter Status (Semua / Aktif / Nonaktif) */}
+              <div style={{ display: "flex", gap: 6 }}>
+                {(["semua", "aktif", "nonaktif"] as const).map((st) => {
+                  const isActive = filterStatus === st;
+                  const count = st === "semua" 
+                    ? direktoriList.length 
+                    : direktoriList.filter((a) => a.status === st).length;
+                  const borderCol = st === "aktif" ? "#10b981" : st === "nonaktif" ? "#ef4444" : "var(--primary)";
+                  const bgCol = st === "aktif" 
+                    ? (isActive ? "#10b981" : "rgba(16,185,129,0.12)") 
+                    : st === "nonaktif" 
+                    ? (isActive ? "#ef4444" : "rgba(239,68,68,0.12)")
+                    : (isActive ? "var(--primary)" : "transparent");
+                  const textCol = isActive ? "#fff" : (st === "aktif" ? "#10b981" : st === "nonaktif" ? "#ef4444" : "var(--fg-muted)");
+
+                  return (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => setFilterStatus(st)}
+                      style={{
+                        padding: "5px 14px",
+                        borderRadius: 50,
+                        border: isActive ? `2px solid ${borderCol}` : `1.5px solid ${borderCol}`,
+                        background: bgCol,
+                        color: textCol,
+                        fontWeight: 700,
+                        fontSize: "0.78rem",
+                        cursor: "pointer",
+                        transition: "all 0.18s",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                    >
+                      {st === "semua" ? (
+                        <><i className="bx bx-group" /> Semua Status ({count})</>
+                      ) : st === "aktif" ? (
+                        <><i className="bx bx-check-circle" /> Aktif ({count})</>
+                      ) : (
+                        <><i className="bx bx-x-circle" /> Nonaktif ({count})</>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Filter Jabatan */}
               <div style={{ display: "flex", gap: 6 }}>
                 {(["semua", "anggota", "admin"] as const).map((f) => (
@@ -540,7 +588,7 @@ export default function AdminKeanggotaanPage() {
                     }}
                   >
                     {f === "semua" ? (
-                      <><i className="bx bx-group" /> Semua ({direktoriList.length})</>
+                      <><i className="bx bx-group" /> Semua Role ({direktoriList.length})</>
                     ) : f === "anggota" ? (
                       <><i className="bx bx-user" /> Anggota ({direktoriList.filter(a => (a.jabatan || "Anggota") === "Anggota").length})</>
                     ) : (
@@ -605,6 +653,8 @@ export default function AdminKeanggotaanPage() {
           ) : (() => {
             const filtered = direktoriList.filter((a) => {
               const jabatan = a.jabatan || "Anggota";
+              if (filterStatus === "aktif" && a.status !== "aktif") return false;
+              if (filterStatus === "nonaktif" && a.status !== "nonaktif") return false;
               if (filterJabatan === "anggota" && jabatan !== "Anggota") return false;
               if (filterJabatan === "admin" && jabatan === "Anggota") return false;
               if (filterGender === "perempuan" && a.gender !== "Perempuan") return false;
@@ -614,8 +664,10 @@ export default function AdminKeanggotaanPage() {
             const totalNominal = filtered.length;
             return (
             <div className={styles.tableWrap}>
-              <div style={{ padding: "6px 12px", marginBottom: 8, background: "rgba(var(--primary-rgb,160,100,30),0.08)", borderRadius: 8, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ padding: "8px 14px", marginBottom: 10, background: "rgba(var(--primary-rgb,160,100,30),0.08)", borderRadius: 10, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <span><i className="bx bx-user-check" style={{ color: "#10b981" }} /> <strong style={{ color: "var(--fg)" }}>{totalNominal}</strong> anggota ditampilkan</span>
+                <span><i className="bx bx-check-circle" style={{ color: "#10b981" }} /> <strong style={{ color: "#10b981" }}>{filtered.filter(a => a.status === "aktif").length}</strong> aktif</span>
+                <span><i className="bx bx-x-circle" style={{ color: "#ef4444" }} /> <strong style={{ color: "#ef4444" }}>{filtered.filter(a => a.status === "nonaktif").length}</strong> nonaktif</span>
                 <span><i className="bx bx-female" style={{ color: "#e879f9" }} /> <strong style={{ color: "#e879f9" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
                 <span><i className="bx bx-male" style={{ color: "#60a5fa" }} /> <strong style={{ color: "#60a5fa" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
                 <span><i className="bx bx-shield" style={{ color: "var(--primary)" }} /> <strong style={{ color: "var(--primary)" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>

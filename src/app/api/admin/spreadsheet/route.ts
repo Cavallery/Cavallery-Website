@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
     }
 
-    // 1. Ambil Semua Anggota Aktif (Diurutkan dari nomor terkecil CAVA-0001)
+    // 1. Ambil Semua Anggota Terdaftar (Aktif & Nonaktif)
     const rawAnggotaList = (await query<any[]>(`
       SELECT * FROM anggota 
-      WHERE status = 'aktif' 
+      WHERE status != 'pending' 
       ORDER BY 
         CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
         id ASC
