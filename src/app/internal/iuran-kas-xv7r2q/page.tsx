@@ -211,7 +211,7 @@ export default function PublicKasMatrixPage() {
                   }}
                 >
                   <i className="bx bx-check-double" />
-                  Menghitung seluruh penerimaan kas lintas tahun secara riil (termasuk deposit bayar di depan)
+                  Menghitung seluruh pembayaran kas lintas tahun (misal: bayar 180k langsung terakumulasi penuh)
                 </span>
               ) : (
                 <span
@@ -304,8 +304,8 @@ export default function PublicKasMatrixPage() {
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>
                   {statsViewMode === "all"
-                    ? "Akumulasi seluruh iuran kas terverifikasi"
-                    : `Pemasukan kas yang tercatat pada tahun ${tahun}`}
+                    ? "Akumulasi seluruh iuran kas terverifikasi lintas semua tahun"
+                    : `Akumulasi iuran kas tercentang lunas pada tahun ${tahun}`}
                 </div>
               </div>
 
@@ -332,14 +332,14 @@ export default function PublicKasMatrixPage() {
                   }}
                 >
                   <i className="bx bx-receipt" style={{ fontSize: "1.1rem" }} />
-                  {statsViewMode === "all" ? "Total Pengeluaran (Semua Tahun)" : `Total Pengeluaran ${tahun}`}
+                  {statsViewMode === "all" ? "Total Pengeluaran Kas (Semua Tahun)" : `Total Pengeluaran Kas ${tahun}`}
                 </div>
                 <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#e11d48" }}>
                   {formatRupiah(statsViewMode === "all" ? allTimePengeluaran : totalPengeluaranTercatat)}
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>
                   {statsViewMode === "all"
-                    ? "Seluruh belanja operasional fanbase"
+                    ? "Total seluruh transaksi belanja operasional fanbase"
                     : `${pengeluaranList.length} transaksi belanja tahun ${tahun}`}
                 </div>
               </div>
@@ -373,7 +373,7 @@ export default function PublicKasMatrixPage() {
                   }}
                 >
                   <i className="bx bx-wallet-alt" style={{ fontSize: "1.1rem" }} />
-                  {statsViewMode === "all" ? "Sisa Saldo Kas (Semua Tahun)" : `Saldo Bersih Kas ${tahun}`}
+                  {statsViewMode === "all" ? "Saldo Bersih Kas (Semua Tahun)" : `Saldo Bersih Kas ${tahun}`}
                 </div>
                 <div
                   style={{
@@ -392,7 +392,9 @@ export default function PublicKasMatrixPage() {
                   )}
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>
-                  Sisa saldo kas siap pakai fanbase
+                  {statsViewMode === "all"
+                    ? "Sisa kas bersih nyata siap pakai untuk operasional fanbase"
+                    : "Sisa saldo kas siap pakai fanbase"}
                 </div>
               </div>
             </div>
