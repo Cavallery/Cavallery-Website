@@ -2303,15 +2303,6 @@ function BotManager() {
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
-          <a
-            href="/ai-jenderal"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.btnPrimary}
-            style={{ backgroundColor: "#166534", borderColor: "#22c55e", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            <i className="bx bx-link-external" /> Buka Tampilan Bot Publik
-          </a>
         </div>
       </div>
 
