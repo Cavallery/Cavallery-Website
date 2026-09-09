@@ -1,27 +1,70 @@
 import { NextResponse } from "next/server";
 import { readBotConfig } from "../bot-config/route";
 
-const SYSTEM_PROMPT = `Kamu adalah asisten santai dari Jenderal Cavallery (Admin Fanbase Erine JKT48). Gaya bicara santai, asik, panggil diri kamu 'aku'. Jangan gunakan emoji gambar, gunakan teks saja.
+const SYSTEM_PROMPT = `Kamu adalah Jenderal Cavallery, asisten resmi dan sahabat cerdas dari Fanbase Cavallery (fanbase resmi Catherina Vallencia Kurniawan / Erine JKT48).
+Gaya bicaramu santai, asik, bersemangat, ramah, dan memanggil diri kamu 'aku' serta memanggil lawan bicara 'kamu' atau 'kak' atau 'bub'. Jangan gunakan format markdown yang berlebihan, gunakan teks yang rapi dan mudah dibaca.
 
-Kamu HARUS menjawab semua pesan user dengan ramah dan santai, termasuk curhat, cerita pengalaman, atau obrolan biasa. Kalau user cerita tentang pengalaman mereka (misal ketemu Erine di event, 2shot, MnG, dll), respon dengan antusias dan supportif. Kamu boleh menjawab topik apapun selama user tidak kasar atau menyinggung. Kalau user tanya hal di luar topik Erine/JKT48, tetap jawab dengan ramah tapi arahkan kembali ke topik Erine.
+Kamu menguasai seluruh informasi tentang Erine JKT48 dan website Cavallery (cavallery.id):
 
-Berikut info penting tentang Erine dan Cavallery:
-- Cavallery adalah official fanbase dari Catherina Vallencia Kurniawan (Erine), member JKT48 generasi 12, anggota Team Passion.
-- Erine pertama kali diperkenalkan ke publik sebagai member trainee JKT48 pada tanggal 18 November 2023 di event JakJapan Matsuri (JJM). Pada tanggal itu juga Cavallery dibentuk.
-- Erine lahir pada tanggal 21 Agustus 2007. Zodiak Leo. Golongan darah B. Tinggi badan 162 CM.
-- Hestek spesial Erine: #DiesVenErine (khusus hari Jumat), #MemoRine (jurnal), #SahuRine, #Ngabuburine, #BukbeRine, #GameRine (mini games), #NgabaRine (PM mingguan).
-- Erine sudah membawakan total 7 setlist: Aitakatta, Pajama Drive, Renai Kinshi Jourei (RKJ), Te Wo Tsunaginagara (TWT), Kira Kira Girls, Ramune no Nomikata, dan Passion 200%.
-- Erine menjadi satu-satunya member generasi 12 yang menamatkan setlist Aitakatta (semua unit song) dan menjadi salah satu global center Kira Kira Girls.
-- Erine dipromosikan jadi member inti JKT48 pada 25 Oktober 2025 saat event Sister Reunion.
-- Erine masuk 2 MV JKT48: MV Undergirls "Nusumareta Kuchibiru" (Bibir yang Telah Dicuri) berkat rank 18 SSK 2024, dan MV Team Passion "Dekat Namun Jauh".
-- Projek terkini: Blue Rose dengan hestek #RoseObscura untuk Request Hour (RH) bertema #Memory. Ada juga hestek #NabungRine.
-- Projek sebelumnya: #dongeng dan #chapter di SSK 2024. Erine rank 18 di SSK 2024 (Undergirls).
-- Maskot Cavallery: Rinara (bentuk bebek), dibuat saat SSK 2024.
-- Makanan kesukaan: seafood, mala tang, dubai chewy cookie. Hewan favorit: Sealion.
-- Erine menjadi Brand Ambassador BihunKu dan FreeFire bersama member JKT48 lainnya.
-- Erine berasal dari Bekasi, Jawa Barat, Indonesia.
+1. Biodata & Profil Erine:
+- Nama Lengkap: Catherina Vallencia Kurniawan
+- Panggilan: Erine
+- Tanggal Lahir: 21 Agustus 2007
+- Zodiak: Leo
+- Golongan Darah: B
+- Tinggi Badan: 162 cm
+- Asal Kota: Bekasi, Jawa Barat, Indonesia
+- Makanan Favorit: Seafood, mala tang, dubai chewy cookie
+- Hewan Favorit: Sealion (Singa Laut)
+- Anggota: JKT48 Generasi 12, Team Passion
 
-Jawab dengan ramah, singkat, dan dalam teks polos (tanpa markdown/formatting).`;
+2. Perjalanan di JKT48:
+- Pertama kali diperkenalkan sebagai trainee JKT48 pada 18 November 2023 di event JakJapan Matsuri (JJM).
+- Tanggal berdirinya Cavallery: 18 November 2023 (sama dengan hari pengenalan Erine).
+- Dipromosikan menjadi Member Inti JKT48 dan masuk Team Passion pada 25 Oktober 2025 saat event Sister Reunion.
+- Berhasil meraih Peringkat ke-18 di Pemilihan Member Singel (SSK) JKT48 2024 dan masuk jajaran Undergirls.
+- Menjadi Brand Ambassador BihunKu dan FreeFire bersama member JKT48 lainnya.
+
+3. Setlist Teater yang Pernah Dibawakan (Total 7 Setlist):
+- Aitakatta (Erine adalah satu-satunya member Gen 12 yang menamatkan SEMUA unit song di setlist ini!)
+- Pajama Drive
+- Renai Kinshi Jourei (RKJ)
+- Te Wo Tsunaginagara (TWT)
+- Kira Kira Girls (menjadi salah satu Global Center)
+- Ramune no Nomikata (Cara Meminum Ramune)
+- Passion 200% (Setlist Tim Passion)
+
+4. Musik Video (MV):
+- MV Undergirls JKT48: "Nusumareta Kuchibiru" (Bibir yang Telah Dicuri) berkat Rank 18 SSK 2024.
+- MV Team Passion: "Dekat Namun Jauh".
+
+5. Projek & Kampanye Cavallery Fanbase:
+- Projek Request Hour (RH) 2026: Projek Blue Rose dengan hestek #RoseObscura bertema #Memory.
+- Hestek tabungan projek: #NabungRine.
+- Projek masa SSK 2024: #dongeng dan #chapter.
+- Maskot Fanbase: "Rinara", bebek lucu berwarna kuning yang menjadi maskot perjuangan Cavallery.
+
+6. Hestek Rutin & Spesial Erine:
+- #DiesVenErine (khusus tiap hari Jumat)
+- #MemoRine (jurnal harian, surat, dan pesan dari/untuk fans)
+- #SahuRine & #Ngabuburine & #BukbeRine (saat bulan Ramadhan)
+- #GameRine (mini games interaktif di web dan media sosial)
+- #NgabaRine (rekap dan PM mingguan)
+
+7. Fitur Website Cavallery (cavallery.id):
+- Jadwal Teater & Event JKT48 terupdate
+- Berita & Pengumuman resmi fanbase
+- Galeri Foto & Video dokumentasi
+- Fanart Galeri karya para fans
+- 2S with Erine (papan mading polaroid kenangan 2shot)
+- MemoRine (surat dan pesan hangat untuk Erine)
+- Laporan Iuran Kas & Donasi yang transparan
+- AI Jenderal Cavallery (asisten bot pintar)
+
+Aturan menjawab:
+- Jawab dengan ramah, hangat, informatif, dan santai.
+- Boleh merespon curhat atau obrolan santai pengguna seputar pengalaman nonton teater, 2shot, MnG, atau sekadar menyemangati Erine.
+- Kalau ditanya hal di luar topik Erine/JKT48, tetap jawab dengan sopan dan arahkan kembali ke topik Erine dan Cavallery.`;
 
 function getDynamicFallbackResponse(message: string, rules: any[], fallbackDefault: string): string {
   const msg = message.toLowerCase();
@@ -57,7 +100,7 @@ function buildGeminiContents(history: { role: string; text: string }[]) {
   });
   contents.push({
     role: "model",
-    parts: [{ text: "Siap, aku Jenderal Cavallery. Aku akan menjawab pertanyaan seputar Erine dan Cavallery dengan gaya santai, dan aku juga siap diajak ngobrol biasa. Silakan tanya atau cerita apa aja!" }]
+    parts: [{ text: "Siap, aku Jenderal Cavallery! Asisten resmi dan teman ngobrol seru seputar Erine JKT48 dan Cavallery Fanbase. Ada yang mau kamu tanyakan tentang Erine hari ini?" }]
   });
 
   // Append conversation history
@@ -83,65 +126,137 @@ function buildGeminiContents(history: { role: string; text: string }[]) {
   return contents;
 }
 
+// Curated list of suggested questions based on website info and admin rules
+const CORE_SUGGESTIONS = [
+  "Siapa itu Erine JKT48?",
+  "Apa saja setlist teater yang pernah dibawakan Erine?",
+  "Ceritain projek Blue Rose Cavallery dong!",
+  "Kapan Erine dipromosikan ke Team Passion?",
+  "Berapa peringkat Erine di SSK 2024?",
+  "Apa makanan dan hewan favorit Erine?",
+  "Apa maskot resmi Cavallery?",
+  "Apa hestek spesial #DiesVenErine dan #MemoRine?",
+  "Di MV JKT48 mana saja Erine pernah tampil?",
+  "Kapan hari berdirinya fanbase Cavallery?",
+  "Erine jadi Brand Ambassador apa saja?",
+  "Bagaimana cara mendukung Erine lewat Cavallery?"
+];
+
+export async function GET() {
+  try {
+    const config = readBotConfig();
+    const apiKey = config.apiKey || process.env.GEMINI_API_KEY || "";
+    const rules = config.rules || [];
+
+    // Extract dynamic questions from admin rules
+    const ruleQuestions: string[] = [];
+    for (const r of rules) {
+      if (r.triggers && r.triggers[0] && r.triggers[0][0]) {
+        const keyword = r.triggers[0][0];
+        if (keyword.length > 3 && !keyword.includes(" ")) {
+          ruleQuestions.push(`Tanya seputar ${keyword} Erine`);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      status: true,
+      api_active: true,
+      bot_name: "Jenderal Cavallery",
+      has_gemini_key: Boolean(apiKey),
+      rules_count: rules.length,
+      suggested_questions: CORE_SUGGESTIONS,
+      website_info: {
+        fanbase: "Cavallery (Official Fanbase of Erine JKT48)",
+        debut_date: "18 November 2023",
+        team: "Team Passion",
+        current_project: "Blue Rose #RoseObscura (Request Hour)",
+        website: "https://cavallery.id"
+      }
+    });
+  } catch (err: any) {
+    return NextResponse.json({
+      status: false,
+      api_active: false,
+      error: err.message
+    }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { message, history } = await request.json();
     
-    if (!message) {
+    if (!message || typeof message !== "string" || !message.trim()) {
       return NextResponse.json({ error: "Pesan masih kosong, kak." }, { status: 400 });
+    }
+
+    const trimmedMsg = message.trim();
+
+    // Fast status check ping
+    if (trimmedMsg.toLowerCase() === "ping" || trimmedMsg.toLowerCase() === "__status__") {
+      return NextResponse.json({
+        reply: "Halo Bub! Aku Jenderal Cavallery aktif dan siap membantumu.",
+        status: "online",
+        api_active: true
+      });
     }
 
     // Load dynamic config
     const config = readBotConfig();
     const apiKey = config.apiKey || process.env.GEMINI_API_KEY || "";
     const rules = config.rules || [];
-    const fallbackDefault = config.fallbackResponse || "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine!";
+    const fallbackDefault = config.fallbackResponse || "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek seru lainnya!";
 
     // ALWAYS try Gemini API first if API key exists
     if (apiKey) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-      let body: any;
-
+      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"];
+      
+      let contents: any;
       if (Array.isArray(history) && history.length > 0) {
-        // Multi-turn with memory
-        const contents = buildGeminiContents(history);
-        body = { contents };
+        contents = buildGeminiContents(history);
       } else {
-        // Single-turn fallback
-        const prompt = `${SYSTEM_PROMPT}\n\nUser bertanya: ${message}`;
-        body = {
-          contents: [{ parts: [{ text: prompt }] }]
-        };
+        const prompt = `${SYSTEM_PROMPT}\n\nUser bertanya: ${trimmedMsg}`;
+        contents = [{ parts: [{ text: prompt }] }];
       }
 
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(15000)
-        });
+      for (const modelName of modelsToTry) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents }),
+            signal: AbortSignal.timeout(12000)
+          });
 
-        const data = await response.json();
-
-        if (!data.error && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-          let text = data.candidates[0].content.parts[0].text;
-          text = text.replace(/[*#]/g, "").trim();
-          return NextResponse.json({ reply: text });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+              let text = data.candidates[0].content.parts[0].text;
+              text = text.replace(/[*#]/g, "").trim();
+              return NextResponse.json({
+                reply: text,
+                source: "gemini",
+                model: modelName,
+                api_active: true
+              });
+            }
+          }
+        } catch (callErr) {
+          // Try next model or fall back to rules
+          console.warn(`Attempt with ${modelName} failed, trying fallback...`, callErr);
         }
-        
-        // API returned error - fall through to trigger rules
-        console.error("Gemini API error, falling back to rules:", data.error?.message || "Unknown");
-      } catch (apiError) {
-        // Network error - fall through to trigger rules
-        console.error("Gemini API network error, falling back to rules:", apiError);
       }
     }
 
-    // FALLBACK: Only use trigger rules if Gemini API is unavailable or errored
-    const reply = getDynamicFallbackResponse(message, rules, fallbackDefault);
-    return NextResponse.json({ reply });
+    // FALLBACK: Use dynamic trigger rules from bot_config.json / admin dashboard
+    const reply = getDynamicFallbackResponse(trimmedMsg, rules, fallbackDefault);
+    return NextResponse.json({
+      reply,
+      source: "rules",
+      api_active: true
+    });
 
   } catch (error: any) {
     console.error("Chat API Error:", error);

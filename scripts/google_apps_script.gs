@@ -249,7 +249,15 @@ function handleSyncAll(ss, data) {
       }
 
       // Row 6+: Data Matriks
-      sheet.getRange(6, 1, tab.dataRows.length, tab.dataRows[0].length).setValues(tab.dataRows);
+      var rowCount = tab.dataRows.length;
+      var colCount = tab.dataRows[0].length;
+      sheet.getRange(6, 1, rowCount, colCount).setValues(tab.dataRows);
+
+      // Pasang Kotak Ceklis (Checkboxes) untuk Kolom Bulan 1 s/d 12 (Kolom F sampai Q)
+      var monthCheckboxRange = sheet.getRange(6, 6, rowCount, 12);
+      monthCheckboxRange.insertCheckboxes();
+      monthCheckboxRange.setHorizontalAlignment("center");
+
       sheet.autoResizeColumns(1, 17);
     }
   }
@@ -336,7 +344,10 @@ function handleUpdateKasMatrixCell(ss, tabName, noAnggota, bulan, isPaid) {
 
   for (var i = 5; i < data.length; i++) {
     if (String(data[i][1]).trim().toLowerCase() === target) {
-      sheet.getRange(i + 1, colIndex).setValue(isPaid ? true : false);
+      var cell = sheet.getRange(i + 1, colIndex);
+      cell.insertCheckboxes();
+      cell.setHorizontalAlignment("center");
+      cell.setValue(isPaid ? true : false);
       return;
     }
   }

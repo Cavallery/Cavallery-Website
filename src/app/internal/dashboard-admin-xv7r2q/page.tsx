@@ -2043,7 +2043,7 @@ interface BotConfig {
 }
 
 const DEFAULT_BOT_CONFIG: BotConfig = {
-  apiKey: "AIzaSyA6SbeC1Ktwu1l1nC2ES1WF3kQagN0NiX0",
+  apiKey: "",
   fallbackResponse: "Wah pertanyaan seru nih! Sayangnya aku belum punya info detail soal itu. Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek-hestek seru lainnya ya! Aku pasti bisa bantu.",
   rules: [
     { id: "rule_1", triggers: [["siapa", "kenal"], ["erine", "catherina"]], response: "Erine (Catherina Vallencia Kurniawan) itu member JKT48 generasi 12 yang sekarang berada di Team Passion! Dia diperkenalkan pertama kali tanggal 18 November 2023 di JakJapan Matsuri. Orangnya super gemesin dan berbakat banget!" },
@@ -2078,8 +2078,35 @@ function BotManager() {
   const [selectedRuleId, setSelectedRuleId] = useState<string | null>(null);
   const [ruleGroups, setRuleGroups] = useState<string[]>([""]);
   const [ruleResponse, setRuleResponse] = useState("");
+  const [testQuery, setTestQuery] = useState("");
+  const [testReply, setTestReply] = useState<string | null>(null);
+  const [testSource, setTestSource] = useState<string | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
+  const [apiActive, setApiActive] = useState<boolean>(true);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const handleTestBot = async (queryText?: string) => {
+    const q = (queryText ?? testQuery).trim();
+    if (!q || testLoading) return;
+    setTestLoading(true);
+    setTestReply(null);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: q })
+      });
+      const data = await res.json();
+      setTestReply(data.reply || "Tidak ada balasan.");
+      setTestSource(data.source === "gemini" ? `AI (${data.model || "Gemini"})` : "Knowledge Base (Rules)");
+      setApiActive(true);
+    } catch {
+      setTestReply("Gagal menghubungkan ke bot.");
+    } finally {
+      setTestLoading(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -2240,7 +2267,123 @@ function BotManager() {
         </div>
       )}
 
-      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-bot" style={{ color: "#db2777" }} /> Asisten Bot Cavallery</h2></div>
+      <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <img
+            src="https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+            alt="Bot Avatar"
+            style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid #22c55e" }}
+            onError={(e) => { e.currentTarget.src = "/images/cava-logo-round.png"; }}
+          />
+          <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+            Jenderal Cavallery AI
+          </h2>
+          {/* GREEN ACTIVE STATUS INDICATOR */}
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "4px 10px",
+            borderRadius: "999px",
+            backgroundColor: apiActive ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)",
+            border: `1px solid ${apiActive ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"}`,
+            color: apiActive ? "#22c55e" : "#ef4444",
+            fontSize: "0.78rem",
+            fontWeight: 600
+          }}>
+            <span style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: apiActive ? "#22c55e" : "#ef4444",
+              boxShadow: apiActive ? "0 0 8px #22c55e" : "none"
+            }} />
+            {apiActive ? "API Bot Aktif" : "Offline"}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <a
+            href="/ai-jenderal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.btnPrimary}
+            style={{ backgroundColor: "#166534", borderColor: "#22c55e", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <i className="bx bx-link-external" /> Buka Tampilan Bot Publik
+          </a>
+        </div>
+      </div>
+
+      {/* INTERACTIVE TEST CONSOLE (PLAYGROUND) */}
+      <div style={{ background: "var(--adm-surface)", border: "1px solid rgba(34, 197, 94, 0.3)", borderRadius: 8, padding: 18, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <h4 style={{ margin: 0, fontSize: "0.95rem", color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="bx bx-play-circle" style={{ color: "#22c55e" }} /> Uji Coba Pertanyaan Bot Langsung
+          </h4>
+          <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>Cek respon AI & Knowledge Base</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <input
+            type="text"
+            value={testQuery}
+            onChange={e => setTestQuery(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleTestBot()}
+            placeholder="Ketik pertanyaan untuk bot, misal: Siapa Erine? / Apa projek Blue Rose?"
+            style={{ flex: 1, background: "#111", color: "#fff", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px", fontSize: "0.88rem" }}
+          />
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={() => handleTestBot()}
+            disabled={testLoading || !testQuery.trim()}
+          >
+            {testLoading ? <><i className="bx bx-loader-alt bx-spin" /> Menguji...</> : <><i className="bx bx-send" /> Kirim Uji Coba</>}
+          </button>
+        </div>
+
+        {/* Quick prompt chips */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+          <span style={{ fontSize: "0.75rem", opacity: 0.7, alignSelf: "center", marginRight: 4 }}>Contoh Pertanyaan:</span>
+          {["Siapa Erine?", "Apa projek Blue Rose?", "Apa maskot Cavallery?", "Apa setlist Erine?", "Berapa rank SSK Erine?"].map((chip, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => { setTestQuery(chip); handleTestBot(chip); }}
+              style={{
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: 14,
+                padding: "3px 10px",
+                fontSize: "0.75rem",
+                color: "#c9d1d9",
+                cursor: "pointer"
+              }}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+
+        {testReply && (
+          <div style={{
+            background: "#111827",
+            border: "1px solid rgba(34, 197, 94, 0.3)",
+            borderRadius: 6,
+            padding: "12px 14px",
+            marginTop: 8
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: "0.75rem" }}>
+              <span style={{ color: "#22c55e", fontWeight: 600 }}>Respon Bot Jenderal:</span>
+              <span style={{ color: "#9ca3af" }}>Sumber: {testSource}</span>
+            </div>
+            <div style={{ fontSize: "0.88rem", color: "#e5e7eb", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+              {testReply}
+            </div>
+          </div>
+        )}
+      </div>
 
       {config && (
         <form onSubmit={handleSaveGeneral} style={{ background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: 20, marginBottom: 24 }}>

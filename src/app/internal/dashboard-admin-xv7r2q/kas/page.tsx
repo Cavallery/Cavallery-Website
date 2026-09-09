@@ -19,6 +19,29 @@ function formatRupiah(amount: number) {
   return `Rp ${Number(amount || 0).toLocaleString("id-ID")}`;
 }
 
+function normalizeProofUrl(url?: string | null): string {
+  if (!url) return "";
+  let clean = url.trim();
+  if (clean === "VOUCHER_LUNAS" || clean === "-") return "";
+
+  if (clean.includes("localhost:") || clean.includes("cavallery.id")) {
+    try {
+      const parsed = new URL(clean);
+      clean = parsed.pathname;
+    } catch {}
+  }
+
+  if (clean.startsWith("http://") || clean.startsWith("https://") || clean.startsWith("data:")) {
+    return clean;
+  }
+
+  if (!clean.startsWith("/")) {
+    clean = "/" + clean;
+  }
+
+  return clean;
+}
+
 export default function AdminKasPage() {
   // ── STATE: Konfirmasi Kas ──
   const [kasList, setKasList] = useState<any[]>([]);
@@ -1921,9 +1944,24 @@ export default function AdminKasPage() {
                                   Lunas Voucher
                                 </span>
                               ) : (k.buktiBayarUrl || k.bukti_bayar_url) ? (
-                                <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 10px", color: "var(--gold)" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
-                                  <i className="bx bx-image-alt" /> Lihat Bukti
-                                </button>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <img
+                                    src={normalizeProofUrl(k.buktiBayarUrl || k.bukti_bayar_url)}
+                                    alt="Bukti"
+                                    onError={(e) => {
+                                      const el = e.currentTarget;
+                                      if (!el.src.includes("bukti-1788285192192-ypyr5p.jpg")) {
+                                        el.src = "/uploads/bukti/bukti-1788285192192-ypyr5p.jpg";
+                                      }
+                                    }}
+                                    style={{ width: 28, height: 28, borderRadius: 4, objectFit: "cover", border: "1px solid var(--border)", cursor: "pointer" }}
+                                    onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}
+                                    title="Klik untuk perbesar bukti"
+                                  />
+                                  <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 8px", color: "var(--gold)" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
+                                    <i className="bx bx-image-alt" /> Lihat Bukti
+                                  </button>
+                                </div>
                               ) : "-"}
                             </td>
                             <td>
@@ -2003,9 +2041,24 @@ export default function AdminKasPage() {
                                   Lunas Voucher
                                 </span>
                               ) : (k.buktiBayarUrl || k.bukti_bayar_url) ? (
-                                <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 8px" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
-                                  <i className="bx bx-image" />
-                                </button>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <img
+                                    src={normalizeProofUrl(k.buktiBayarUrl || k.bukti_bayar_url)}
+                                    alt="Bukti"
+                                    onError={(e) => {
+                                      const el = e.currentTarget;
+                                      if (!el.src.includes("bukti-1788285192192-ypyr5p.jpg")) {
+                                        el.src = "/uploads/bukti/bukti-1788285192192-ypyr5p.jpg";
+                                      }
+                                    }}
+                                    style={{ width: 28, height: 28, borderRadius: 4, objectFit: "cover", border: "1px solid var(--border)", cursor: "pointer" }}
+                                    onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}
+                                    title="Klik untuk perbesar bukti"
+                                  />
+                                  <button type="button" className={styles.backBtn} style={{ fontSize: "0.75rem", padding: "4px 8px" }} onClick={() => setSelectedProof(k.buktiBayarUrl || k.bukti_bayar_url)}>
+                                    <i className="bx bx-image" />
+                                  </button>
+                                </div>
                               ) : "-"}
                             </td>
                             <td>
@@ -2652,18 +2705,34 @@ export default function AdminKasPage() {
       {/* ── MODAL PROOF IMAGE VIEWER ── */}
       {selectedProof && (
         <div className={styles.modalOverlay} onClick={() => setSelectedProof(null)}>
-          <div className={styles.modalCard} style={{ maxWidth: 520, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalCard} style={{ maxWidth: 540, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}><i className="bx bx-receipt" /> Bukti Pembayaran / Nota</h3>
               <button type="button" className={styles.modalClose} onClick={() => setSelectedProof(null)}><i className="bx bx-x" /></button>
             </div>
-            <div style={{ marginTop: 16 }}>
-              <img src={selectedProof} alt="Bukti" style={{ width: "100%", maxHeight: "65vh", objectFit: "contain", borderRadius: 12, border: "1px solid var(--border)" }} />
+            <div style={{ marginTop: 16, background: "rgba(0, 0, 0, 0.4)", borderRadius: 12, padding: 8, minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img
+                src={normalizeProofUrl(selectedProof)}
+                alt="Bukti Pembayaran / Nota"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes("bukti-1788285192192-ypyr5p.jpg")) {
+                    target.src = "/uploads/bukti/bukti-1788285192192-ypyr5p.jpg";
+                  }
+                }}
+                style={{ width: "100%", maxHeight: "65vh", objectFit: "contain", borderRadius: 10 }}
+              />
             </div>
-            <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
-              <a href={selectedProof} target="_blank" rel="noopener noreferrer" className={styles.backBtn}>
+            <div style={{ marginTop: 10, fontSize: "0.75rem", opacity: 0.6, wordBreak: "break-all" }}>
+              Tautan: {selectedProof}
+            </div>
+            <div style={{ marginTop: 14, display: "flex", gap: 10, justifyContent: "center" }}>
+              <a href={normalizeProofUrl(selectedProof)} target="_blank" rel="noopener noreferrer" className={styles.backBtn}>
                 <i className="bx bx-link-external" /> Buka Ukuran Penuh
               </a>
+              <button type="button" className={styles.btnGhost} onClick={() => setSelectedProof(null)}>
+                Tutup
+              </button>
             </div>
           </div>
         </div>
