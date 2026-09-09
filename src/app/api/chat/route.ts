@@ -59,7 +59,6 @@ Kamu menguasai seluruh informasi tentang Erine JKT48 dan website Cavallery (cava
 - 2S with Erine (papan mading polaroid kenangan 2shot)
 - MemoRine (surat dan pesan hangat untuk Erine)
 - Laporan Iuran Kas & Donasi yang transparan
-- AI Jenderal Cavallery (asisten bot pintar)
 
 Aturan menjawab:
 - Jawab dengan ramah, hangat, informatif, dan santai.
@@ -159,11 +158,39 @@ export async function GET() {
       }
     }
 
+    // Quick health-check: test Gemini API connectivity
+    let geminiStatus = "no_key";
+    let geminiModel = "";
+    if (apiKey) {
+      geminiStatus = "key_present";
+      try {
+        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const testRes = await fetch(testUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: "Halo, jawab singkat: 1+1?" }] }] }),
+          signal: AbortSignal.timeout(8000)
+        });
+        if (testRes.ok) {
+          geminiStatus = "connected";
+          geminiModel = "gemini-2.5-flash";
+        } else {
+          geminiStatus = `error_${testRes.status}`;
+        }
+      } catch {
+        geminiStatus = "timeout_or_network_error";
+      }
+    }
+
     return NextResponse.json({
       status: true,
-      api_active: true,
+      api_active: geminiStatus === "connected",
       bot_name: "Jenderal Cavallery",
       has_gemini_key: Boolean(apiKey),
+      key_source: config.apiKey ? "bot_config" : (process.env.GEMINI_API_KEY ? "env_var" : "none"),
+      key_prefix: apiKey ? apiKey.slice(0, 6) + "..." : "",
+      gemini_status: geminiStatus,
+      gemini_model: geminiModel,
       rules_count: rules.length,
       suggested_questions: CORE_SUGGESTIONS,
       website_info: {
@@ -210,7 +237,8 @@ export async function POST(request: Request) {
 
     // ALWAYS try Gemini API first if API key exists
     if (apiKey) {
-      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"];
+      // Use current, available Gemini models — prioritize latest stable
+      const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
       
       let contents: any;
       if (Array.isArray(history) && history.length > 0) {
@@ -227,7 +255,7 @@ export async function POST(request: Request) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents }),
-            signal: AbortSignal.timeout(12000)
+            signal: AbortSignal.timeout(15000)
           });
 
           if (response.ok) {
@@ -242,12 +270,19 @@ export async function POST(request: Request) {
                 api_active: true
               });
             }
+          } else {
+            const errBody = await response.text().catch(() => "");
+            console.warn(`Gemini ${modelName} returned ${response.status}: ${errBody.slice(0, 200)}`);
           }
         } catch (callErr) {
           // Try next model or fall back to rules
           console.warn(`Attempt with ${modelName} failed, trying fallback...`, callErr);
         }
       }
+
+      console.warn("All Gemini models failed, falling back to rules.");
+    } else {
+      console.warn("No Gemini API key found. Checked config.apiKey and process.env.GEMINI_API_KEY.");
     }
 
     // FALLBACK: Use dynamic trigger rules from bot_config.json / admin dashboard
