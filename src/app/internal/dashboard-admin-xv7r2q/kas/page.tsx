@@ -92,7 +92,7 @@ export default function AdminKasPage() {
     judul: "",
     deskripsi: "",
     tipeReward: "Diskon Merch",
-    nilaiReward: "10%",
+    nilaiReward: "1 Bulan",
     minBulanKas: 1,
     tahunKas: new Date().getFullYear(),
     kadaluarsaPada: "",
@@ -681,7 +681,7 @@ export default function AdminKasPage() {
           judul: "",
           deskripsi: "",
           tipeReward: "Diskon Merch",
-          nilaiReward: "10%",
+          nilaiReward: "1 Bulan",
           minBulanKas: 1,
           tahunKas: matrixYear,
           kadaluarsaPada: "",
@@ -2702,15 +2702,29 @@ export default function AdminKasPage() {
                   </select>
                 </div>
                 <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Nilai / Bentuk Reward</label>
-                  <input
-                    type="text"
-                    className={styles.modalInput}
-                    placeholder="Contoh: 15.000 / 20% / Free PC"
+                  <label className={styles.modalLabel}>Nilai Reward (Bulan Kas Gratis)</label>
+                  <select
+                    className={styles.modalSelect}
                     value={newKupon.nilaiReward}
                     onChange={(e) => setNewKupon({ ...newKupon, nilaiReward: e.target.value })}
                     required
-                  />
+                  >
+                    <option value="1 Bulan">1 Bulan Kas Gratis (Rp 15.000)</option>
+                    <option value="2 Bulan">2 Bulan Kas Gratis (Rp 30.000)</option>
+                    <option value="3 Bulan">3 Bulan Kas Gratis (Rp 45.000)</option>
+                    <option value="4 Bulan">4 Bulan Kas Gratis (Rp 60.000)</option>
+                    <option value="5 Bulan">5 Bulan Kas Gratis (Rp 75.000)</option>
+                    <option value="6 Bulan">6 Bulan Kas Gratis (Rp 90.000)</option>
+                    <option value="7 Bulan">7 Bulan Kas Gratis (Rp 105.000)</option>
+                    <option value="8 Bulan">8 Bulan Kas Gratis (Rp 120.000)</option>
+                    <option value="9 Bulan">9 Bulan Kas Gratis (Rp 135.000)</option>
+                    <option value="10 Bulan">10 Bulan Kas Gratis (Rp 150.000)</option>
+                    <option value="11 Bulan">11 Bulan Kas Gratis (Rp 165.000)</option>
+                    <option value="12 Bulan">12 Bulan Kas Gratis (Rp 180.000) — SETAHUN PENUH!</option>
+                  </select>
+                  <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    Nilai potongan dihitung otomatis: 1 bulan = Rp 15.000
+                  </div>
                 </div>
               </div>
 

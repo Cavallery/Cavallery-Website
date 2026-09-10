@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
         SELECT * FROM kupon 
         WHERE UPPER(kode_kupon) = ?
           AND (kadaluarsa_pada IS NULL OR kadaluarsa_pada >= CURDATE())
+          AND (is_privat = 0 OR is_privat IS NULL)
         LIMIT 1
       `, [cleanCode])) || [];
 

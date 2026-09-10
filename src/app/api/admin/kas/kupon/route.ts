@@ -16,6 +16,7 @@ export async function ensureKuponTables() {
         tahun_kas INT NOT NULL DEFAULT 2026,
         kadaluarsa_pada DATE NULL,
         dibuat_oleh VARCHAR(100) NOT NULL DEFAULT 'Admin Fanbase',
+        is_privat TINYINT(1) NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_kode (kode_kupon),
@@ -47,6 +48,11 @@ export async function ensureKuponTables() {
       await query(`
         ALTER TABLE kupon_anggota ADD COLUMN IF NOT EXISTS kode_kupon_unik VARCHAR(100) NULL AFTER no_anggota
       `);
+    } catch {}
+
+    // Pastikan kolom is_privat ada untuk mendukung kupon privat (tidak bocor ke anggota lain)
+    try {
+      await query(`ALTER TABLE kupon ADD COLUMN IF NOT EXISTS is_privat TINYINT(1) NOT NULL DEFAULT 0`);
     } catch {}
 
     // Bersihkan kupon jika ada yang terlanjur ter-assign ke admin/pengurus (khusus anggota biasa saja)
@@ -346,8 +352,8 @@ export async function PATCH(req: NextRequest) {
     } else {
       // Buat master kupon baru
       const insertRes = await query<any>(
-        `INSERT INTO kupon (kode_kupon, judul, deskripsi, tipe_reward, nilai_reward, min_bulan_kas, tahun_kas, kadaluarsa_pada, dibuat_oleh)
-         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+        `INSERT INTO kupon (kode_kupon, judul, deskripsi, tipe_reward, nilai_reward, min_bulan_kas, tahun_kas, kadaluarsa_pada, dibuat_oleh, is_privat)
+         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, 1)`,
         [
           cleanKode,
           judul.trim(),
