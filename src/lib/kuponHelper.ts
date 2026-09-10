@@ -81,10 +81,11 @@ export async function syncCouponsForMember(anggotaId: number): Promise<number> {
     // Kupon reward kas KHUSUS anggota biasa yang bayar kas. Admin/Pengurus bebas kas tidak menerima kupon.
     if (isAdminRole) return 0;
 
-    // Ambil semua kupon yang aktif / belum kadaluarsa
+    // Ambil semua kupon yang aktif / belum kadaluarsa (hanya kupon publik, bukan privat)
     const kupons = await query<any[]>(`
       SELECT * FROM kupon 
       WHERE (kadaluarsa_pada IS NULL OR kadaluarsa_pada >= CURDATE())
+        AND (is_privat = 0 OR is_privat IS NULL)
     `);
     if (!kupons || kupons.length === 0) return 0;
 
