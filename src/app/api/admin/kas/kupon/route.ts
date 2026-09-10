@@ -298,3 +298,106 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ status: false, message: error?.message || "Gagal menghapus kupon" }, { status: 500 });
   }
 }
+
+// ── PATCH: Assign kupon ke SATU anggota tertentu saja (mode privat / khusus) ──
+export async function PATCH(req: NextRequest) {
+  try {
+    const admin = getAdminSessionFromReq(req);
+    if (!admin) {
+      return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
+    }
+
+    await ensureKuponTables();
+    const body = await req.json();
+    const {
+      kodeKupon,
+      judul,
+      deskripsi,
+      tipeReward,
+      nilaiReward,
+      kadaluarsaPada,
+      tahunKas,
+      anggotaId,       // ID anggota tujuan
+    } = body;
+
+    if (!kodeKupon || !judul || !anggotaId) {
+      return NextResponse.json({ status: false, message: "Kode kupon, judul, dan anggota tujuan wajib diisi" }, { status: 400 });
+    }
+
+    const cleanKode = kodeKupon.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const tahun = Number(tahunKas) || new Date().getFullYear();
+
+    // Validasi anggota ada dan bukan admin/pengurus
+    const anggotaRows = await query<any[]>(
+      "SELECT id, no_anggota, nama_lengkap, jabatan, status FROM anggota WHERE id = ? LIMIT 1",
+      [anggotaId]
+    );
+    if (!anggotaRows || anggotaRows.length === 0) {
+      return NextResponse.json({ status: false, message: "Anggota tidak ditemukan" }, { status: 404 });
+    }
+    const targetAnggota = anggotaRows[0];
+
+    // Cek apakah kode kupon sudah ada (master kupon)
+    let kuponId: number;
+    const existingMaster = await query<any[]>("SELECT id FROM kupon WHERE kode_kupon = ? LIMIT 1", [cleanKode]);
+    if (existingMaster && existingMaster.length > 0) {
+      // Kode sudah ada — gunakan master kupon yang sama
+      kuponId = existingMaster[0].id;
+    } else {
+      // Buat master kupon baru
+      const insertRes = await query<any>(
+        `INSERT INTO kupon (kode_kupon, judul, deskripsi, tipe_reward, nilai_reward, min_bulan_kas, tahun_kas, kadaluarsa_pada, dibuat_oleh)
+         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+        [
+          cleanKode,
+          judul.trim(),
+          deskripsi || "",
+          tipeReward || "Diskon Merchandise",
+          nilaiReward || "10%",
+          tahun,
+          kadaluarsaPada || null,
+          admin.nama || "Admin Fanbase",
+        ]
+      );
+      kuponId = insertRes?.insertId ?? 0;
+    }
+
+    // Cek apakah anggota sudah punya kupon ini
+    const existingKA = await query<any[]>(
+      "SELECT id, kode_kupon_unik FROM kupon_anggota WHERE kupon_id = ? AND anggota_id = ? LIMIT 1",
+      [kuponId, targetAnggota.id]
+    );
+
+    if (existingKA && existingKA.length > 0) {
+      return NextResponse.json({
+        status: false,
+        message: `Anggota "${targetAnggota.nama_lengkap}" sudah memiliki kupon "${cleanKode}" ini sebelumnya.`,
+      }, { status: 409 });
+    }
+
+    // Generate kode kupon unik khusus untuk anggota ini
+    const noAnggota = targetAnggota.no_anggota || "MBR";
+    const uniqueCode = generatePersonalCouponCode(cleanKode, noAnggota);
+
+    await query(
+      `INSERT INTO kupon_anggota (kupon_id, anggota_id, no_anggota, kode_kupon_unik, bulan_terbayar, status)
+       VALUES (?, ?, ?, ?, 0, 'aktif')`,
+      [kuponId, targetAnggota.id, noAnggota, uniqueCode]
+    );
+
+    return NextResponse.json({
+      status: true,
+      message: `✅ Kupon "${cleanKode}" berhasil dikirim khusus ke "${targetAnggota.nama_lengkap}" dengan kode unik: ${uniqueCode}`,
+      kodeUnik: uniqueCode,
+      anggota: {
+        id: targetAnggota.id,
+        nama: targetAnggota.nama_lengkap,
+        noAnggota: targetAnggota.no_anggota,
+      },
+    });
+  } catch (error: any) {
+    console.error("PATCH kupon error:", error);
+    return NextResponse.json({ status: false, message: error?.message || "Gagal mengirim kupon" }, { status: 500 });
+  }
+}
+

@@ -100,6 +100,10 @@ export default function AdminKasPage() {
   const [selectedKuponDetail, setSelectedKuponDetail] = useState<any | null>(null);
   const [penerimaList, setPenerimaList] = useState<any[]>([]);
   const [loadingPenerima, setLoadingPenerima] = useState(false);
+  // Mode privat: kirim kupon ke 1 anggota tertentu
+  const [kuponMode, setKuponMode] = useState<"semua" | "privat">("semua");
+  const [targetAnggotaId, setTargetAnggotaId] = useState<string>("");
+  const [generatedKodeUnik, setGeneratedKodeUnik] = useState<string>("");
 
   // ── STATE: Modal Input Kas Manual ──
   const [showInputModal, setShowInputModal] = useState(false);
@@ -629,6 +633,38 @@ export default function AdminKasPage() {
       alert("Kode kupon dan judul hadiah wajib diisi");
       return;
     }
+
+    // Mode privat: kirim ke 1 anggota tertentu
+    if (kuponMode === "privat") {
+      if (!targetAnggotaId) {
+        alert("Pilih anggota tujuan terlebih dahulu");
+        return;
+      }
+      setSubmittingKupon(true);
+      try {
+        const res = await fetch("/api/admin/kas/kupon", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...newKupon, anggotaId: Number(targetAnggotaId) }),
+        });
+        const json = await res.json();
+        if (json.status) {
+          setGeneratedKodeUnik(json.kodeUnik || "");
+          setMsg(`✅ Kupon privat berhasil dikirim ke "${json.anggota?.nama}" — Kode unik: ${json.kodeUnik}`);
+          fetchKupon(matrixYear);
+          // Jangan tutup modal — biarkan admin melihat kode unik yang dihasilkan
+        } else {
+          alert(json.message || "Gagal mengirim kupon");
+        }
+      } catch (err: any) {
+        alert(err.message || "Terjadi kesalahan");
+      } finally {
+        setSubmittingKupon(false);
+      }
+      return;
+    }
+
+    // Mode semua: distribusi ke seluruh anggota yang memenuhi syarat
     setSubmittingKupon(true);
     try {
       const res = await fetch("/api/admin/kas/kupon", {
@@ -650,6 +686,9 @@ export default function AdminKasPage() {
           tahunKas: matrixYear,
           kadaluarsaPada: "",
         });
+        setKuponMode("semua");
+        setTargetAnggotaId("");
+        setGeneratedKodeUnik("");
         fetchKupon(matrixYear);
       } else {
         alert(json.message || "Gagal membuat kupon");
@@ -2567,14 +2606,44 @@ export default function AdminKasPage() {
 
       {/* ── MODAL BUAT KUPON REWARD KAS BARU ── */}
       {showKuponModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowKuponModal(false)}>
-          <div className={styles.modalCard} style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalOverlay} onClick={() => { setShowKuponModal(false); setGeneratedKodeUnik(""); }}>
+          <div className={styles.modalCard} style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>
                 <i className="bx bx-gift" style={{ color: "#8b5cf6" }} /> Buat &amp; Bagikan Kupon Reward Kas
               </h3>
-              <button type="button" className={styles.modalClose} onClick={() => setShowKuponModal(false)}>
+              <button type="button" className={styles.modalClose} onClick={() => { setShowKuponModal(false); setGeneratedKodeUnik(""); }}>
                 <i className="bx bx-x" />
+              </button>
+            </div>
+
+            {/* ── TOGGLE MODE: Semua Anggota vs Privat (1 Orang) ── */}
+            <div style={{ display: "flex", gap: 8, padding: "12px 0 4px", borderBottom: "1px solid var(--border)", marginBottom: 16 }}>
+              <button
+                type="button"
+                onClick={() => { setKuponMode("semua"); setTargetAnggotaId(""); setGeneratedKodeUnik(""); }}
+                style={{
+                  flex: 1, padding: "8px 12px", borderRadius: 10, border: "1.5px solid",
+                  borderColor: kuponMode === "semua" ? "#8b5cf6" : "var(--border)",
+                  background: kuponMode === "semua" ? "rgba(139,92,246,0.12)" : "transparent",
+                  color: kuponMode === "semua" ? "#8b5cf6" : "var(--fg-muted)",
+                  fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+                }}
+              >
+                <i className="bx bx-group" /> Semua Anggota
+              </button>
+              <button
+                type="button"
+                onClick={() => { setKuponMode("privat"); setGeneratedKodeUnik(""); }}
+                style={{
+                  flex: 1, padding: "8px 12px", borderRadius: 10, border: "1.5px solid",
+                  borderColor: kuponMode === "privat" ? "#f59e0b" : "var(--border)",
+                  background: kuponMode === "privat" ? "rgba(245,158,11,0.12)" : "transparent",
+                  color: kuponMode === "privat" ? "#f59e0b" : "var(--fg-muted)",
+                  fontWeight: 700, fontSize: "0.82rem", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, justifyContent: "center",
+                }}
+              >
+                <i className="bx bx-user-check" /> 1 Anggota Tertentu (Privat)
               </button>
             </div>
 
@@ -2645,26 +2714,89 @@ export default function AdminKasPage() {
                 </div>
               </div>
 
-              {/* KRITERIA MINIMAL BULAN KAS (ANGGOTA JARANG BAYAR KAS TIDAK DAPAT) */}
-              <div className={styles.modalField}>
-                <label className={styles.modalLabel}>
-                  <i className="bx bx-filter-alt" style={{ color: "var(--gold)" }} /> Syarat Pembayaran Kas (Kelayakan Anggota)
-                </label>
-                <select
-                  className={styles.modalSelect}
-                  value={newKupon.minBulanKas}
-                  onChange={(e) => setNewKupon({ ...newKupon, minBulanKas: Number(e.target.value) })}
-                >
-                  <option value={1}>Minimal 1 Bulan Lunas Kas di Tahun {newKupon.tahunKas}</option>
-                  <option value={3}>Minimal 3 Bulan Lunas Kas (Rajin Bayar)</option>
-                  <option value={6}>Minimal 6 Bulan Lunas Kas (Setengah Tahun)</option>
-                  <option value={9}>Minimal 9 Bulan Lunas Kas</option>
-                  <option value={12}>Lunas Penuh 12 Bulan (Super Rajin)</option>
-                </select>
-                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  * Khusus Anggota biasa yang membayar kas. Pengurus/Admin tidak diikutsertakan. Anggota yang belum memenuhi syarat <strong>tidak akan mendapatkan kupon</strong>.
+              {/* ── MODE SEMUA: Syarat Bulan Kas ── */}
+              {kuponMode === "semua" && (
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>
+                    <i className="bx bx-filter-alt" style={{ color: "var(--gold)" }} /> Syarat Pembayaran Kas (Kelayakan Anggota)
+                  </label>
+                  <select
+                    className={styles.modalSelect}
+                    value={newKupon.minBulanKas}
+                    onChange={(e) => setNewKupon({ ...newKupon, minBulanKas: Number(e.target.value) })}
+                  >
+                    <option value={1}>Minimal 1 Bulan Lunas Kas di Tahun {newKupon.tahunKas}</option>
+                    <option value={3}>Minimal 3 Bulan Lunas Kas (Rajin Bayar)</option>
+                    <option value={6}>Minimal 6 Bulan Lunas Kas (Setengah Tahun)</option>
+                    <option value={9}>Minimal 9 Bulan Lunas Kas</option>
+                    <option value={12}>Lunas Penuh 12 Bulan (Super Rajin)</option>
+                  </select>
+                  <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    * Khusus Anggota biasa yang membayar kas. Pengurus/Admin tidak diikutsertakan. Anggota yang belum memenuhi syarat <strong>tidak akan mendapatkan kupon</strong>.
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* ── MODE PRIVAT: Pilih Anggota Tujuan ── */}
+              {kuponMode === "privat" && (
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>
+                    <i className="bx bx-user-pin" style={{ color: "#f59e0b" }} /> Anggota Tujuan (Hanya 1 Orang)
+                  </label>
+                  <select
+                    className={styles.modalSelect}
+                    value={targetAnggotaId}
+                    onChange={(e) => { setTargetAnggotaId(e.target.value); setGeneratedKodeUnik(""); }}
+                    required={kuponMode === "privat"}
+                    style={{ borderColor: targetAnggotaId ? "#f59e0b" : undefined }}
+                  >
+                    <option value="">-- Pilih Anggota --</option>
+                    {anggotaList
+                      .filter((a: any) => a.status === "aktif" && (!a.jabatan || a.jabatan === "Anggota"))
+                      .sort((a: any, b: any) => (a.nama_lengkap || "").localeCompare(b.nama_lengkap || ""))
+                      .map((a: any) => (
+                        <option key={a.id} value={a.id}>
+                          {a.nama_lengkap} ({a.no_anggota})
+                        </option>
+                      ))
+                    }
+                  </select>
+                  <div style={{ fontSize: "0.72rem", color: "#f59e0b", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                    <i className="bx bx-lock-alt" />
+                    Kupon ini <strong>hanya terlihat oleh anggota yang dipilih</strong>. Tidak akan muncul ke anggota lain.
+                  </div>
+                </div>
+              )}
+
+              {/* ── TAMPILKAN KODE UNIK SETELAH SUKSES MODE PRIVAT ── */}
+              {generatedKodeUnik && kuponMode === "privat" && (
+                <div style={{
+                  background: "rgba(16,185,129,0.1)", border: "1.5px solid rgba(16,185,129,0.4)",
+                  borderRadius: 12, padding: "14px 16px", marginBottom: 8,
+                  display: "flex", flexDirection: "column", gap: 8
+                }}>
+                  <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "#10b981", display: "flex", alignItems: "center", gap: 6 }}>
+                    <i className="bx bx-check-circle" /> Kupon berhasil dibagikan!
+                  </div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)" }}>
+                    Kode unik yang diterima anggota:
+                  </div>
+                  <div style={{
+                    fontFamily: "monospace", fontSize: "1.15rem", fontWeight: 900, color: "#f59e0b",
+                    letterSpacing: "0.1em", background: "rgba(0,0,0,0.25)", padding: "8px 14px",
+                    borderRadius: 8, border: "1px dashed #f59e0b", cursor: "pointer",
+                    userSelect: "all"
+                  }}
+                    onClick={() => { navigator.clipboard?.writeText(generatedKodeUnik); alert("Kode disalin!"); }}
+                    title="Klik untuk menyalin kode"
+                  >
+                    {generatedKodeUnik}
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>
+                    Klik kode di atas untuk menyalin. Bagikan secara privat ke anggota yang bersangkutan.
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div className={styles.modalField}>
@@ -2689,18 +2821,23 @@ export default function AdminKasPage() {
               </div>
 
               <div className={styles.modalActions}>
-                <button type="button" className={styles.backBtn} onClick={() => setShowKuponModal(false)}>
+                <button type="button" className={styles.backBtn} onClick={() => { setShowKuponModal(false); setGeneratedKodeUnik(""); }}>
                   Batal
                 </button>
-                <button type="submit" className={styles.btnCreate} style={{ background: "#8b5cf6", color: "#fff" }} disabled={submittingKupon}>
-                  <i className={`bx ${submittingKupon ? "bx-loader-alt bx-spin" : "bx-send"}`} />
-                  {submittingKupon ? "Mendistribusikan..." : "Simpan & Kirim Kupon"}
+                <button type="submit" className={styles.btnCreate} style={{ background: kuponMode === "privat" ? "#f59e0b" : "#8b5cf6", color: "#fff" }} disabled={submittingKupon}>
+                  <i className={`bx ${submittingKupon ? "bx-loader-alt bx-spin" : kuponMode === "privat" ? "bx-user-check" : "bx-send"}`} />
+                  {submittingKupon
+                    ? (kuponMode === "privat" ? "Mengirim..." : "Mendistribusikan...")
+                    : (kuponMode === "privat" ? "Kirim ke Anggota Ini" : "Simpan & Kirim ke Semua")
+                  }
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+
 
       {/* ── MODAL PROOF IMAGE VIEWER ── */}
       {selectedProof && (
