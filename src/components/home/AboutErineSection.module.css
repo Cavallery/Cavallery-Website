@@ -787,16 +787,17 @@
 }
 
 /* ── ERINE'S KABESHA PIN-BOARD (SCRAPBOOK THEME) ── */
+/* ── ERINE'S KABESHA TRAIL (ALUR PERJALANAN KABESHA) ── */
 .kabeshaBoardWrapper {
-  margin: 70px auto 90px auto;
-  max-width: 1080px;
+  margin: 60px auto 80px auto;
+  max-width: 1040px;
   width: 100%;
   padding: 0 16px;
 }
 
 .kabeshaBoardHeader {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
   position: relative;
 }
 
@@ -811,14 +812,14 @@
 .kabeshaParchmentBoard {
   position: relative;
   background: #fdfbf7;
-  border-radius: 18px;
-  padding: 50px 30px 45px 30px;
+  border-radius: 20px;
+  padding: 50px 30px;
   box-shadow: 
     0 15px 35px -5px rgba(0, 0, 0, 0.08),
     0 0 0 1px rgba(180, 150, 120, 0.15),
     inset 0 0 80px rgba(220, 200, 175, 0.25);
   border: 1px solid #ebdccb;
-  overflow: visible;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .kabeshaParchmentBoard {
@@ -830,59 +831,172 @@
     inset 0 0 80px rgba(0, 0, 0, 0.4);
 }
 
-.kabeshaConnectorSvg {
+.kabeshaAlurContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  padding: 20px 0;
+}
+
+/* Central vertical connecting road trail */
+.kabeshaAlurSpine {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 30px;
+  bottom: 40px;
+  left: 50%;
+  width: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--gold, #d4af37) 0px,
+    var(--gold, #d4af37) 10px,
+    transparent 10px,
+    transparent 18px
+  );
+  opacity: 0.65;
+  z-index: 1;
+}
+
+[data-theme="dark"] .kabeshaAlurSpine {
+  opacity: 0.55;
+}
+
+/* Step Row Layout */
+.kabeshaAlurStep {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
-  height: 100%;
-  pointer-events: none;
   z-index: 2;
 }
 
-.kabeshaDashLine {
-  stroke: #a8a29e;
-  stroke-width: 2.5;
-  stroke-dasharray: 7 6;
-  stroke-linecap: round;
-  opacity: 0.75;
+.stepLeft {
+  flex-direction: row;
 }
 
-[data-theme="dark"] .kabeshaDashLine {
-  stroke: #78716c;
-  opacity: 0.6;
+.stepRight {
+  flex-direction: row-reverse;
 }
 
-.kabeshaPhotoGrid {
+/* Titik Jalan (Center Node) */
+.kabeshaTitikJalan {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 36px;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 3;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: none;
 }
 
+.titikNode {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #996515);
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .titikNode {
+  border-color: #23201d;
+}
+
+.titikNumber {
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  font-family: var(--sans, sans-serif);
+}
+
+.titikPulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--gold, #d4af37);
+  opacity: 0.5;
+  animation: titikBeacon 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes titikBeacon {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.titikYearPill {
+  background: #1e293b;
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.5px;
+}
+
+/* Step Content Container */
+.kabeshaStepContent {
+  width: 50%;
+  display: flex;
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+
+.stepLeft .kabeshaStepContent {
+  justify-content: flex-end;
+}
+
+.stepRight .kabeshaStepContent {
+  justify-content: flex-start;
+}
+
+/* Pinned Polaroid Scrapbook Card */
 .kabeshaPinnedCard {
   position: relative;
-  width: 275px;
+  width: 290px;
+  max-width: 100%;
   background: #ffffff;
-  padding: 12px 12px 28px 12px;
-  border-radius: 4px;
+  padding: 12px 12px 20px 12px;
+  border-radius: 8px;
   box-shadow: 
     0 12px 24px -4px rgba(45, 30, 20, 0.16),
     0 4px 8px -2px rgba(0, 0, 0, 0.08),
     0 0 0 1px rgba(0, 0, 0, 0.04);
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
   user-select: none;
 }
 
+[data-theme="dark"] .kabeshaPinnedCard {
+  background: #1e1b18;
+  border: 1px solid #3d352e;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
 .kabeshaPinnedCard:hover {
-  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
+  transform: translateY(-6px) rotate(0deg) scale(1.02) !important;
   box-shadow: 
-    0 24px 38px -6px rgba(0, 0, 0, 0.22),
-    0 10px 16px -4px rgba(0, 0, 0, 0.12);
+    0 22px 36px -6px rgba(0, 0, 0, 0.25),
+    0 8px 16px -4px rgba(0, 0, 0, 0.12);
   z-index: 10;
 }
 
@@ -947,18 +1061,18 @@
   transform: skewX(-20deg);
 }
 
-/* Sticker Badge at Top-Right */
+/* Cute Sticker Badge at Top-Right */
 .kabeshaStickerBadge {
   position: absolute;
-  top: -14px;
-  right: -14px;
+  top: -12px;
+  right: -12px;
   background: linear-gradient(135deg, #ff2e7e 0%, #f43f5e 60%, #e11d48 100%);
   color: #ffffff;
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: 10px;
-  border: 3px solid #ffffff;
-  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35), 0 2px 5px rgba(0, 0, 0, 0.15);
-  transform: rotate(6deg);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 6px 14px rgba(225, 29, 72, 0.35), 0 2px 5px rgba(0, 0, 0, 0.15);
+  transform: rotate(5deg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -969,7 +1083,7 @@
 }
 
 .stickerLine1 {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -977,7 +1091,7 @@
 }
 
 .stickerLine2 {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 900;
   letter-spacing: 0.5px;
   text-transform: capitalize;
@@ -986,11 +1100,12 @@
 
 /* Photo Wrap */
 .kabeshaPhotoWrap {
+  position: relative;
   width: 100%;
-  height: 340px;
+  height: 310px;
   overflow: hidden;
-  border-radius: 2px;
-  background: #f1f5f9;
+  border-radius: 6px;
+  background: #0f0e0d;
 }
 
 .kabeshaImg {
@@ -1001,30 +1116,101 @@
   transition: transform 0.4s ease;
 }
 
-.kabeshaPinnedCard:hover .kabeshaImg {
-  transform: scale(1.03);
+.photoZoomOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  backdrop-filter: blur(2px);
 }
 
-/* Handwritten Marker Year */
+.photoZoomOverlay i {
+  font-size: 1.8rem;
+  color: var(--gold, #d4af37);
+}
+
+.photoZoomOverlay span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.kabeshaPinnedCard:hover .photoZoomOverlay {
+  opacity: 1;
+}
+
+.kabeshaPinnedCard:hover .kabeshaImg {
+  transform: scale(1.04);
+}
+
+/* Card Caption Info */
+.kabeshaCardInfo {
+  padding: 12px 6px 0 6px;
+  text-align: left;
+}
+
 .kabeshaMarkerYear {
   font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
-  font-size: 2.1rem;
+  font-size: 1.9rem;
   font-weight: 700;
-  color: #1e293b;
-  margin-top: 10px;
-  margin-left: 6px;
+  color: var(--gold-dark, #b45309);
   line-height: 1;
   letter-spacing: -0.5px;
-  transform: rotate(-1.5deg);
-  text-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 4px;
 }
 
-@media (max-width: 900px) {
-  .kabeshaConnectorSvg {
-    display: none;
+[data-theme="dark"] .kabeshaMarkerYear {
+  color: #fbbf24;
+}
+
+.kabeshaEraTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--fg, #1e293b);
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+}
+
+.kabeshaDescSnippet {
+  font-size: 0.82rem;
+  color: var(--fg-muted, #64748b);
+  line-height: 1.45;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .kabeshaAlurSpine {
+    left: 28px;
+    transform: none;
   }
-  .kabeshaPhotoGrid {
-    gap: 30px;
+
+  .kabeshaAlurStep {
+    flex-direction: row !important;
+    padding-left: 56px;
+    box-sizing: border-box;
+  }
+
+  .kabeshaTitikJalan {
+    left: 28px;
+    transform: translateX(-50%);
+  }
+
+  .kabeshaStepContent {
+    width: 100%;
+    padding: 0;
+    justify-content: flex-start !important;
+  }
+
+  .kabeshaPinnedCard {
+    width: 100%;
+    max-width: 320px;
   }
 }
 
@@ -1261,47 +1447,134 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0, 0, 0, 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 999999;
   padding: 20px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .modalContent {
-  background: #fff;
-  max-width: 900px;
+  background: var(--surface, #1e1b18);
+  color: var(--fg, #f5f5f4);
+  max-width: 840px;
   width: 100%;
+  max-height: 88vh;
   display: flex;
   position: relative;
-  border-radius: 8px;
+  border-radius: 18px;
+  border: 1.5px solid var(--border-gold, #d4af37);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+  margin: auto;
 }
 
-[data-theme="dark"] .modalContent {
-  background: var(--bg-card);
-  color: var(--text-color);
+[data-theme="light"] .modalContent {
+  background: #ffffff;
+  color: #1e293b;
+  border-color: #d6c9b6;
 }
 
 .closeBtn {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 2.5rem;
-  background: none;
-  border: none;
+  top: 12px;
+  right: 14px;
+  font-size: 1.8rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
   cursor: pointer;
-  z-index: 10;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.modalImgWrapper { flex: 1; }
-.modalImgWrapper img { width: 100%; height: 100%; object-fit: cover; }
+.closeBtn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: rotate(90deg) scale(1.1);
+}
 
-.modalDetails { flex: 1.2; padding: 40px; }
-.modalDate { font-size: 2.5rem; font-weight: 500; border-bottom: 2px solid var(--gold); display: block; margin-bottom: 20px; padding-bottom: 10px; }
-.modalDesc { font-size: 1.25rem; line-height: 1.6; color: #555; }
+.modalImgWrapper {
+  flex: 1;
+  min-width: 0;
+  max-height: 88vh;
+  background: #0c0a09;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modalImgWrapper img {
+  max-width: 100%;
+  max-height: min(72vh, 480px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  display: block;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modalDetails {
+  flex: 1.1;
+  min-width: 0;
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 88vh;
+}
+
+.modalBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--gold, #d4af37);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.modalDate {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--fg, #f5f5f4);
+  border-bottom: 2px solid var(--border-gold, #d4af37);
+  display: block;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  font-family: var(--serif);
+  line-height: 1.3;
+}
+
+[data-theme="light"] .modalDate {
+  color: #1e293b;
+}
+
+.modalDesc {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--fg-muted, #a8a29e);
+  margin: 0;
+}
+
+[data-theme="light"] .modalDesc {
+  color: #475569;
+}
 
 @media (max-width: 900px) {
   .profileContainer, .modalContent, .ewSplit { flex-direction: column; }
