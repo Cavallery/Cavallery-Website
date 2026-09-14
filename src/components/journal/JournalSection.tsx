@@ -196,11 +196,11 @@ export default function JournalSection() {
                     <input
                       type="url"
                       name="spotify_url"
-                      placeholder="Contoh: https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT"
+                      placeholder="Contoh: https://open.spotify.com/track/2hDAoL55QcEk1DuGkvuWDU (Lagu Spotify untuk Erine)"
                       className={styles.input}
                     />
                     <span className={styles.hint}>
-                      Buka Spotify &gt; Bagikan (Share) &gt; Salin Tautan Lagu untuk memunculkan pemutar lagu di catatanmu.
+                      Salin tautan lagu Spotify untuk Erine (Buka Spotify &gt; Bagikan &gt; Salin Tautan Lagu, contoh: https://open.spotify.com/track/...)
                     </span>
                   </div>
 
