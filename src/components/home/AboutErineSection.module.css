@@ -786,6 +786,248 @@
   border: none;
 }
 
+/* ── ERINE'S KABESHA PIN-BOARD (SCRAPBOOK THEME) ── */
+.kabeshaBoardWrapper {
+  margin: 70px auto 90px auto;
+  max-width: 1080px;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.kabeshaBoardHeader {
+  text-align: center;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.kabeshaSubtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted, #78716c);
+  margin-top: 8px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.kabeshaParchmentBoard {
+  position: relative;
+  background: #fdfbf7;
+  border-radius: 18px;
+  padding: 50px 30px 45px 30px;
+  box-shadow: 
+    0 15px 35px -5px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(180, 150, 120, 0.15),
+    inset 0 0 80px rgba(220, 200, 175, 0.25);
+  border: 1px solid #ebdccb;
+  overflow: visible;
+}
+
+[data-theme="dark"] .kabeshaParchmentBoard {
+  background: #23201d;
+  border-color: #3f3832;
+  box-shadow: 
+    0 15px 35px -5px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 80px rgba(0, 0, 0, 0.4);
+}
+
+.kabeshaConnectorSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.kabeshaDashLine {
+  stroke: #a8a29e;
+  stroke-width: 2.5;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+[data-theme="dark"] .kabeshaDashLine {
+  stroke: #78716c;
+  opacity: 0.6;
+}
+
+.kabeshaPhotoGrid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 36px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 3;
+}
+
+.kabeshaPinnedCard {
+  position: relative;
+  width: 275px;
+  background: #ffffff;
+  padding: 12px 12px 28px 12px;
+  border-radius: 4px;
+  box-shadow: 
+    0 12px 24px -4px rgba(45, 30, 20, 0.16),
+    0 4px 8px -2px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease;
+  user-select: none;
+}
+
+.kabeshaPinnedCard:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
+  box-shadow: 
+    0 24px 38px -6px rgba(0, 0, 0, 0.22),
+    0 10px 16px -4px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+
+/* 3D Push Pin */
+.kabesha3dPin {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.pinCap {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b 0%, #e11d48 55%, #881337 100%);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.35),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.6);
+}
+
+.pinCap::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  filter: blur(0.4px);
+}
+
+.pinNeedle {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.5px;
+  height: 8px;
+  background: linear-gradient(to right, #94a3b8, #cbd5e1, #64748b);
+  border-radius: 1px;
+}
+
+.pinShadow {
+  position: absolute;
+  bottom: -9px;
+  left: 54%;
+  width: 14px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 50%;
+  filter: blur(1.8px);
+  transform: skewX(-20deg);
+}
+
+/* Sticker Badge at Top-Right */
+.kabeshaStickerBadge {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  background: linear-gradient(135deg, #ff2e7e 0%, #f43f5e 60%, #e11d48 100%);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.35), 0 2px 5px rgba(0, 0, 0, 0.15);
+  transform: rotate(6deg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.stickerLine1 {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.95;
+}
+
+.stickerLine2 {
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  font-family: inherit;
+}
+
+/* Photo Wrap */
+.kabeshaPhotoWrap {
+  width: 100%;
+  height: 340px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #f1f5f9;
+}
+
+.kabeshaImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.kabeshaPinnedCard:hover .kabeshaImg {
+  transform: scale(1.03);
+}
+
+/* Handwritten Marker Year */
+.kabeshaMarkerYear {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 10px;
+  margin-left: 6px;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  transform: rotate(-1.5deg);
+  text-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 900px) {
+  .kabeshaConnectorSvg {
+    display: none;
+  }
+  .kabeshaPhotoGrid {
+    gap: 30px;
+  }
+}
+
 .galleryGrid {
   display: flex;
   justify-content: center;
