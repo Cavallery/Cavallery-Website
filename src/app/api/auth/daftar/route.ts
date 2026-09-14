@@ -3,6 +3,8 @@ import { query } from "@/lib/mysql";
 import { getSetting } from "@/lib/settings";
 import { appendKontributorRow } from "@/lib/googleSheets";
 
+import { ensurePinColumn, generateNextNoAnggota } from "@/lib/membership";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -17,6 +19,8 @@ export async function POST(req: NextRequest) {
 
     // 1. Pendaftaran Anggota
     if (tipe === "anggota") {
+      await ensurePinColumn();
+
       const isAnggotaOpen = (await getSetting("register_anggota_open", "1")) === "1";
       if (!isAnggotaOpen) {
         return NextResponse.json(
@@ -28,6 +32,7 @@ export async function POST(req: NextRequest) {
         noAnggota,
         namaLengkap,
         idLine,
+        pin,
         displayLine,
         discord,
         gender,
@@ -36,14 +41,25 @@ export async function POST(req: NextRequest) {
         kontakId,
       } = body;
 
-      if (!noAnggota || !namaLengkap || !idLine || !gender || !domisili || !kontakPlatform || !kontakId) {
+      if (!namaLengkap || !idLine || !gender || !domisili || !kontakPlatform || !kontakId) {
         return NextResponse.json(
-          { status: false, message: "Semua kolom bertanda WAJIB termasuk Nomor Anggota harus diisi" },
+          { status: false, message: "Semua kolom bertanda WAJIB harus diisi" },
           { status: 400 }
         );
       }
 
-      const cleanNoAnggota = noAnggota.trim().toUpperCase();
+      let cleanNoAnggota = noAnggota ? noAnggota.trim().toUpperCase() : "";
+      if (!cleanNoAnggota) {
+        cleanNoAnggota = await generateNextNoAnggota();
+      }
+
+      const cleanPin = pin ? String(pin).trim() : null;
+      if (cleanPin && !/^\d{4,6}$/.test(cleanPin)) {
+        return NextResponse.json(
+          { status: false, message: "PIN harus berupa 4 hingga 6 digit angka numerik" },
+          { status: 400 }
+        );
+      }
 
       // Check existing Nomor Anggota
       const existingNo = await query<any[]>(
@@ -74,12 +90,13 @@ export async function POST(req: NextRequest) {
       // Insert new anggota with specified noAnggota as 'pending'
       await query(
         `INSERT INTO anggota 
-         (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'Anggota')`,
+         (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'Anggota')`,
         [
           cleanNoAnggota,
           namaLengkap.trim(),
           idLine.trim(),
+          cleanPin,
           displayLine?.trim() || null,
           discord?.trim() || null,
           gender,

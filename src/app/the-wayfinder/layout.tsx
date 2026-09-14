@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "The Wayfinder — Catherina Vallencia Seitansai Project | CAVALLERY",
   description:
-    "Undangan resmi Seitansai Project Catherina Vallencia (Erine) JKT48 — The Wayfinder by CAVALLERY ©2026",
+    "Undangan resmi Seitansai Project Erine JKT48 — The Wayfinder by CAVALLERY ©2026",
   openGraph: {
     title: "ERINE — THE WAYFINDER | Seitansai Project",
     description: "Catherina Vallencia Seitansai Project by CAVALLERY ©2026",

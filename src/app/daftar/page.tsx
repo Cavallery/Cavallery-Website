@@ -22,6 +22,8 @@ export default function DaftarPage() {
   // Form Anggota State
   const [namaLengkap, setNamaLengkap] = useState("");
   const [idLine, setIdLine] = useState("");
+  const [pin, setPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
   const [displayLine, setDisplayLine] = useState("");
   const [discord, setDiscord] = useState("");
   const [gender, setGender] = useState("Laki-laki");
@@ -53,10 +55,16 @@ export default function DaftarPage() {
           setLoading(false);
           return;
         }
+        if (pin.trim() && !/^\d{4,6}$/.test(pin.trim())) {
+          setErrorMsg("PIN harus berupa 4 hingga 6 digit angka");
+          setLoading(false);
+          return;
+        }
         payload = {
           ...payload,
           namaLengkap,
           idLine,
+          pin: pin.trim() || undefined,
           displayLine,
           discord,
           gender,
@@ -199,6 +207,50 @@ export default function DaftarPage() {
                       onChange={(e) => setIdLine(e.target.value)}
                       required
                     />
+                  </div>
+
+                  {/* PIN Keamanan (Login) */}
+                  <div className={styles.field}>
+                    <div className={styles.labelRow}>
+                      <label className={styles.label}>PIN Login (4-6 Digit Angka)</label>
+                      <span className={styles.badgeOpsional}>OPSIONAL / DISARANKAN</span>
+                    </div>
+                    <div style={{ position: "relative", width: "100%" }}>
+                      <input
+                        type={showPin ? "text" : "password"}
+                        className={styles.input}
+                        placeholder="Contoh: 123456 (4-6 digit angka)"
+                        value={pin}
+                        maxLength={6}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                        style={{ paddingRight: 44 }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPin(!showPin)}
+                        style={{
+                          position: "absolute",
+                          right: 12,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          background: "none",
+                          border: "none",
+                          color: "var(--fg-muted)",
+                          fontSize: "1.25rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          padding: 4,
+                        }}
+                        title={showPin ? "Sembunyikan PIN" : "Lihat PIN"}
+                      >
+                        <i className={`bx ${showPin ? "bx-show" : "bx-hide"}`} />
+                      </button>
+                    </div>
+                    <span className={styles.hint}>
+                      PIN ini dapat digunakan sebagai alternatif praktis selain ID LINE saat login akun.
+                    </span>
                   </div>
 
                   {/* Display Line */}

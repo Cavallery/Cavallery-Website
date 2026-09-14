@@ -23,3 +23,15 @@ export async function generateNextNoAnggota(): Promise<string> {
 
   return "CAVA-0001";
 }
+
+let _pinColEnsured = false;
+export async function ensurePinColumn(): Promise<void> {
+  if (_pinColEnsured) return;
+  try {
+    await query("ALTER TABLE anggota ADD COLUMN pin VARCHAR(20) DEFAULT NULL");
+    _pinColEnsured = true;
+  } catch {
+    _pinColEnsured = true;
+  }
+}
+

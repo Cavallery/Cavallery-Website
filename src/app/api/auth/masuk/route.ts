@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signSessionToken, setSessionCookie } from "@/lib/auth";
 import { query } from "@/lib/mysql";
+import { ensurePinColumn } from "@/lib/membership";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,13 +15,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Login Anggota: No. Anggota + ID LINE
+    // 1. Login Anggota: No. Anggota + (ID LINE atau PIN)
     if (tipe === "anggota") {
-      const { noAnggota, idLine } = body;
+      await ensurePinColumn();
+      const { noAnggota, idLine, pin, credential } = body;
+      const inputCred = (idLine || pin || credential || "").trim();
 
-      if (!noAnggota || !idLine) {
+      if (!noAnggota || !inputCred) {
         return NextResponse.json(
-          { status: false, message: "Nomor Anggota dan ID LINE wajib diisi" },
+          { status: false, message: "Nomor Anggota dan ID LINE atau PIN wajib diisi" },
           { status: 400 }
         );
       }
@@ -39,10 +42,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Check ID LINE match (case insensitive)
-      if (anggota.id_line.trim().toLowerCase() !== idLine.trim().toLowerCase()) {
+      // Check credential: match with ID LINE OR match with PIN
+      const matchesLine = anggota.id_line && anggota.id_line.trim().toLowerCase() === inputCred.toLowerCase();
+      const matchesPin = anggota.pin && anggota.pin.trim() === inputCred;
+
+      if (!matchesLine && !matchesPin) {
         return NextResponse.json(
-          { status: false, message: "ID LINE tidak cocok dengan Nomor Anggota yang dimasukkan." },
+          { status: false, message: "ID LINE atau PIN tidak cocok dengan Nomor Anggota yang dimasukkan." },
           { status: 401 }
         );
       }
@@ -62,6 +68,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const hasPin = Boolean(anggota.pin && anggota.pin.trim().length > 0);
+
       // Generate Session Token
       const token = signSessionToken({
         id: anggota.id,
@@ -78,6 +86,8 @@ export async function POST(req: NextRequest) {
           noAnggota: anggota.no_anggota,
           nama: anggota.nama_lengkap,
           type: "anggota",
+          hasPin,
+          pin: anggota.pin || "",
         },
       });
 

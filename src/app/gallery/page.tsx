@@ -15,6 +15,16 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
+  const openLightbox = (item: GalleryItem) => {
+    setSelectedItem(item);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    setSelectedItem(null);
+    document.body.style.overflow = "";
+  };
+
   useEffect(() => {
     fetch("/api/gallery")
       .then((res) => res.json())
@@ -56,7 +66,7 @@ export default function GalleryPage() {
             <div
               key={item.id}
               className={`${styles.card} glassCard`}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => openLightbox(item)}
             >
               <img src={item.image_url} alt={item.alt_text} className={styles.cardImg} />
               <div className={styles.cardBody}>
@@ -69,10 +79,10 @@ export default function GalleryPage() {
       )}
 
       {selectedItem && (
-        <div className={styles.lightbox} onClick={() => setSelectedItem(null)}>
+        <div className={styles.lightbox} onClick={closeLightbox}>
           <button
             className={styles.lightboxClose}
-            onClick={() => setSelectedItem(null)}
+            onClick={closeLightbox}
           >
             <i className="bx bx-x" />
           </button>

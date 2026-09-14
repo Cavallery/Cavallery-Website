@@ -279,12 +279,17 @@
 /* ── MODAL LIGHTBOX ── */
 .modalOverlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 999999;
   padding: 24px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -292,6 +297,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  overflow-y: auto;
 }
 
 .modalOverlay.active {
@@ -303,6 +309,7 @@
   background: var(--surface);
   max-width: 840px;
   width: 100%;
+  max-height: 90vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
   position: relative;
@@ -311,6 +318,7 @@
   cursor: default;
   border: 1.5px solid var(--border-gold);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  margin: auto;
 }
 
 .closeBtn {

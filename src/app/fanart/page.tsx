@@ -196,7 +196,7 @@ export default function FanartPage() {
             Fanart <span className="textGold">Erine</span>
           </h1>
           <p className={styles.heroSub}>
-            Sudut pameran ilustrasi indah, komik menarik, dan karya visual kreatif hasil goresan tangan berbakat rekan-rekan komunitas Cavallery untuk Catherina Vallencia (Erine) JKT48.
+            Sudut pameran ilustrasi indah, komik menarik, dan karya visual kreatif hasil goresan tangan berbakat rekan-rekan komunitas Cavallery untuk Erine JKT48.
           </p>
           <button
             className={styles.heroCtaBtn}
