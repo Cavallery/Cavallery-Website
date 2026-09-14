@@ -61,6 +61,7 @@ export default function AdminKeanggotaanPage() {
   const [newNoAnggota, setNewNoAnggota] = useState("");
   const [newNamaLengkap, setNewNamaLengkap] = useState("");
   const [newIdLine, setNewIdLine] = useState("");
+  const [newPin, setNewPin] = useState("");
   const [newDisplayLine, setNewDisplayLine] = useState("");
   const [newDiscord, setNewDiscord] = useState("");
   const [newGender, setNewGender] = useState("Laki-laki");
@@ -217,6 +218,7 @@ export default function AdminKeanggotaanPage() {
           noAnggota: newNoAnggota.trim() || undefined,
           namaLengkap: newNamaLengkap.trim(),
           idLine: newIdLine.trim(),
+          pin: newPin.trim() || undefined,
           displayLine: newDisplayLine.trim() || undefined,
           discord: newDiscord.trim() || undefined,
           gender: newGender,
@@ -237,6 +239,7 @@ export default function AdminKeanggotaanPage() {
         setNewNoAnggota("");
         setNewNamaLengkap("");
         setNewIdLine("");
+        setNewPin("");
         setNewDisplayLine("");
         setNewDiscord("");
         setNewDomisili("");
@@ -792,6 +795,39 @@ export default function AdminKeanggotaanPage() {
                           ) : (
                             <span>{idLine}</span>
                           )}
+
+                          {/* PIN Info */}
+                          <div style={{ marginTop: 4 }}>
+                            {a.pin ? (
+                              <span
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  fontSize: "0.75rem",
+                                  padding: "2px 6px",
+                                  borderRadius: 6,
+                                  background: "rgba(201, 168, 76, 0.12)",
+                                  border: "1px solid rgba(201, 168, 76, 0.3)",
+                                  color: "var(--gold)",
+                                  fontWeight: 700,
+                                }}
+                                title="PIN Login Akun Anggota"
+                              >
+                                <i className="bx bxs-key" /> PIN: {a.pin}
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  fontSize: "0.72rem",
+                                  color: "var(--fg-muted)",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                PIN: Belum disetel
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           {a.gender ? (
@@ -939,6 +975,7 @@ export default function AdminKeanggotaanPage() {
                                   noAnggota: noAnggota !== "-" ? noAnggota : "",
                                   namaLengkap,
                                   idLine,
+                                  pin: a.pin || "",
                                   displayLine: a.displayLine || a.display_line || "",
                                   discord: a.discord || "",
                                   gender: a.gender || "Laki-laki",
@@ -1148,15 +1185,27 @@ export default function AdminKeanggotaanPage() {
                   />
                 </div>
                 <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Display Name LINE</label>
+                  <label className={styles.modalLabel}>PIN Login (4-6 Digit)</label>
                   <input
                     type="text"
+                    maxLength={6}
                     className={styles.modalInput}
-                    placeholder="Display LINE"
-                    value={newDisplayLine}
-                    onChange={(e) => setNewDisplayLine(e.target.value)}
+                    placeholder="Cth: 123456 (Opsional)"
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
                   />
                 </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Display Name LINE</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Display LINE"
+                  value={newDisplayLine}
+                  onChange={(e) => setNewDisplayLine(e.target.value)}
+                />
               </div>
 
               <div className={styles.modalRow}>
@@ -1380,14 +1429,26 @@ export default function AdminKeanggotaanPage() {
                   />
                 </div>
                 <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Display LINE</label>
+                  <label className={styles.modalLabel}>PIN Login (4-6 Digit)</label>
                   <input
                     type="text"
+                    maxLength={6}
                     className={styles.modalInput}
-                    value={editMember.displayLine || ""}
-                    onChange={(e) => setEditMember({ ...editMember, displayLine: e.target.value })}
+                    placeholder="Kosongkan jika belum ada"
+                    value={editMember.pin || ""}
+                    onChange={(e) => setEditMember({ ...editMember, pin: e.target.value.replace(/\D/g, "") })}
                   />
                 </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Display LINE</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  value={editMember.displayLine || ""}
+                  onChange={(e) => setEditMember({ ...editMember, displayLine: e.target.value })}
+                />
               </div>
 
               <div className={styles.modalRow}>

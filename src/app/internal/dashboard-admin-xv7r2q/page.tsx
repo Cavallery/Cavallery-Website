@@ -20,7 +20,7 @@ type Section =
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
   | "bot"       | "tickets"     | "calendar" | "updates" 
-  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot";
+  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine";
 
 
 // ─── HELPERS ─────────────────────────────────────────────────
@@ -2057,7 +2057,7 @@ const DEFAULT_BOT_CONFIG: BotConfig = {
     { id: "rule_9", triggers: [["makanan", "kesukaan", "favorit", "suka"]], response: "Erine suka banget makan seafood, mala tang, dan dubai chewy cookie! Hewan kesukaannya Sealion. Manis dan gurih semuanya disapu bersih, haha." },
     { id: "rule_10", triggers: [["mv", "video musik"]], response: "Erine sejauh ini udah tampil di 2 MV JKT48! Pertama, MV Undergirls 'Bibir yang Telah Dicuri' (Nusumareta Kuchibiru) berkat rank 18 di SSK 2024. Kedua, MV Team Passion yang judulnya 'Dekat Namun Jauh'!" },
     { id: "rule_11", triggers: [["hestek", "hashtag", "diesvenerine"]], response: "Erine punya banyak hestek seru! Ada #DiesVenErine (khusus hari Jumat), #MemoRine (jurnal), #SahuRine, #Ngabuburine, #BukbeRine, #GameRine (mini games), dan #NgabaRine untuk PM mingguan!" },
-    { id: "rule_12", triggers: [["cavallery", "fanbase"]], response: "Cavallery adalah fanbase resmi pendukung Catherina Vallencia (Erine) JKT48! Dibentuk tanggal 18 November 2023, bertepatan dengan debut Erine. Kita solid banget lho, yuk gabung!" },
+    { id: "rule_12", triggers: [["cavallery", "fanbase"]], response: "Cavallery adalah fanbase resmi pendukung Erine JKT48! Dibentuk tanggal 18 November 2023, bertepatan dengan debut Erine. Kita solid banget lho, yuk gabung!" },
     { id: "rule_13", triggers: [["ssk", "sousenkyo", "rank", "peringkat"]], response: "Erine berhasil meraih peringkat ke-18 di SSK JKT48 2024 dan masuk to jajaran Undergirls! Keren banget kan? Selama SSK juga ada maskot Cavallery bernama Rinara si bebek lucu." },
     { id: "rule_14", triggers: [["team", "tim", "passion"]], response: "Erine sekarang ada di Team Passion! Dia dipromosikan jadi member inti JKT48 pada 25 Oktober 2025 saat event Sister Reunion. Bangga banget sama pencapaiannya!" },
     { id: "rule_15", triggers: [["zodiak", "leo"]], response: "Zodiak Erine itu Leo karena lahir tanggal 21 Agustus! Cocok banget sama kepribadiannya yang percaya diri dan bersinar di panggung." },
@@ -4028,12 +4028,16 @@ function VcScheduleManager() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const saved = typeof window !== "undefined" ? localStorage.getItem("cavallery_vcschedule") : null;
-      if (saved) setData(JSON.parse(saved));
-      else setData(DEFAULT_VCSCHEDULE);
+      const res = await fetch("/api/vcschedule");
+      const json = await res.json();
+      if (json.success && json.data) {
+        setData(json.data);
+      } else {
+        setData(DEFAULT_VCSCHEDULE);
+      }
     } catch {
       setData(DEFAULT_VCSCHEDULE);
     }
@@ -4042,16 +4046,23 @@ function VcScheduleManager() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cavallery_vcschedule", JSON.stringify(data));
+      const res = await fetch("/api/vcschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: "Jadwal VC berhasil disimpan & terhubung ke halaman schedule!", type: "success" });
+      } else {
+        throw new Error(json.message || "Gagal menyimpan");
       }
-      setToast({ msg: "Jadwal VC berhasil disimpan", type: "success" });
-    } catch {
-      setToast({ msg: "Gagal menyimpan", type: "error" });
+    } catch (err: any) {
+      setToast({ msg: err.message || "Gagal menyimpan", type: "error" });
     }
     setSaving(false);
   };
@@ -8476,7 +8487,310 @@ function TwoShotManager() {
   );
 }
 
-// ─── NAV GROUPS WITH ACCORDION COLLAPSIBLE ────────────────────
+// ─── DENGERINE MANAGER ─────────────────────────────────────────
+function DengerineManager() {
+  const DEFAULT_SONG = {
+    id: "", title: "", creator: "", creatorHandle: "", creatorUrl: "",
+    type: "Cover" as const, spotifyTrackId: "", youtubeId: "", audioUrl: "",
+    duration: "", year: new Date().getFullYear(), tags: "", description: "",
+  };
+
+  const [songs, setSongs]     = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving]   = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [form, setForm]       = useState<any>(DEFAULT_SONG);
+  const [showForm, setShowForm] = useState(false);
+  const [toast, setToast]     = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const showMsg = (msg: string, type: "success" | "error") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res  = await fetch("/api/dengerine");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) setSongs(json.data);
+      else setSongs([]);
+    } catch {
+      setSongs([]);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openAdd = () => {
+    setForm(DEFAULT_SONG);
+    setEditing(null);
+    setShowForm(true);
+  };
+
+  const openEdit = (song: any) => {
+    setForm({
+      ...song,
+      tags: Array.isArray(song.tags) ? song.tags.join(", ") : (song.tags || ""),
+    });
+    setEditing(song);
+    setShowForm(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.creator.trim()) {
+      showMsg("Judul dan kreator wajib diisi.", "error");
+      return;
+    }
+    setSaving(true);
+    const payload = {
+      ...form,
+      tags: form.tags ? form.tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+      year: Number(form.year) || new Date().getFullYear(),
+    };
+    try {
+      const res  = await fetch("/api/dengerine", {
+        method:  editing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showMsg(editing ? "Lagu berhasil diperbarui!" : "Lagu berhasil ditambahkan!", "success");
+        setShowForm(false);
+        load();
+      } else {
+        throw new Error(json.message || "Gagal menyimpan");
+      }
+    } catch (err: any) {
+      showMsg(err.message || "Gagal menyimpan", "error");
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res  = await fetch(`/api/dengerine?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) { showMsg("Lagu dihapus.", "success"); load(); }
+      else throw new Error(json.message);
+    } catch (err: any) { showMsg(err.message || "Gagal hapus", "error"); }
+    setDeleteId(null);
+  };
+
+  const fc = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }));
+
+  const SONG_TYPES = ["Cover", "Original", "Acoustic", "Remix"];
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {deleteId && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmBox}>
+            <i className="bx bx-trash" style={{ fontSize: "2rem", color: "#e11d48" }} />
+            <p>Hapus lagu ini dari Dengerine?</p>
+            <div className={styles.confirmBtns}>
+              <button className={styles.btnGhost} onClick={() => setDeleteId(null)}>Batal</button>
+              <button className={styles.btnDanger} onClick={() => handleDelete(deleteId)}>Hapus</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-headphone" style={{ color: "#1db954" }} /> Dengerine — Arsip Lagu Fan
+        </h2>
+        <button className={styles.btnPrimary} onClick={openAdd}>
+          <i className="bx bx-plus" /> Tambah Lagu
+        </button>
+      </div>
+
+      <p style={{ color: "var(--fg-dim)", fontSize: "0.85rem", marginBottom: 20 }}>
+        Kelola arsip lagu cover &amp; orisinal karya komunitas fans untuk Erine. Data akan tampil di halaman <strong>/dengerine</strong>.
+      </p>
+
+      {/* Song table */}
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div>
+      ) : songs.length === 0 ? (
+        <div className={styles.emptyState}>
+          <i className="bx bx-music" style={{ fontSize: "2.5rem", color: "var(--fg-dim)" }} />
+          <p>Belum ada lagu. Tambahkan lagu pertama!</p>
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Judul</th>
+                <th>Kreator</th>
+                <th>Tipe</th>
+                <th>Spotify ID</th>
+                <th>Tahun</th>
+                <th style={{ textAlign: "right" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {songs.map((s, i) => (
+                <tr key={s.id}>
+                  <td style={{ color: "var(--fg-dim)", fontSize: "0.8rem" }}>{i + 1}</td>
+                  <td style={{ fontWeight: 700 }}>{s.title}</td>
+                  <td>
+                    <div style={{ fontSize: "0.85rem" }}>{s.creator}</div>
+                    {s.creatorHandle && <div style={{ fontSize: "0.75rem", color: "var(--fg-dim)" }}>{s.creatorHandle}</div>}
+                  </td>
+                  <td>
+                    <span style={{
+                      padding: "2px 8px", borderRadius: 6, fontSize: "0.72rem", fontWeight: 700,
+                      background: s.type === "Original" ? "rgba(180,83,9,0.12)" : "rgba(29,185,84,0.12)",
+                      color:      s.type === "Original" ? "#b45309" : "#1db954",
+                    }}>
+                      {s.type}
+                    </span>
+                  </td>
+                  <td>
+                    {s.spotifyTrackId ? (
+                      <a href={`https://open.spotify.com/track/${s.spotifyTrackId}`} target="_blank" rel="noreferrer"
+                        style={{ color: "#1db954", fontSize: "0.78rem", fontFamily: "monospace" }}>
+                        {s.spotifyTrackId.slice(0, 16)}…
+                      </a>
+                    ) : <span style={{ color: "var(--fg-dim)", fontSize: "0.75rem" }}>—</span>}
+                  </td>
+                  <td style={{ color: "var(--fg-dim)", fontSize: "0.85rem" }}>{s.year || "—"}</td>
+                  <td>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                      <button className={styles.btnSmall} onClick={() => openEdit(s)}>
+                        <i className="bx bx-edit" />
+                      </button>
+                      <button className={`${styles.btnSmall} ${styles.btnSmallDanger}`} onClick={() => setDeleteId(s.id)}>
+                        <i className="bx bx-trash" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Add / Edit Form Modal */}
+      {showForm && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.formModal} style={{ maxWidth: 700 }}>
+            <div className={styles.formHeader}>
+              <h3>{editing ? "Edit Lagu" : "Tambah Lagu Baru"}</h3>
+              <button className={styles.closeBtn} onClick={() => setShowForm(false)}>×</button>
+            </div>
+            <form onSubmit={handleSave}>
+              <div className={styles.formBody}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <div className={styles.field}>
+                    <label>Judul Lagu *</label>
+                    <input value={form.title} onChange={e => fc("title", e.target.value)} placeholder="Nafas Tenang" required />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Tipe</label>
+                    <select value={form.type} onChange={e => fc("type", e.target.value)}>
+                      {SONG_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div className={styles.field}>
+                    <label>Nama Kreator *</label>
+                    <input value={form.creator} onChange={e => fc("creator", e.target.value)} placeholder="FarrelHanief" required />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Handle Kreator</label>
+                    <input value={form.creatorHandle} onChange={e => fc("creatorHandle", e.target.value)} placeholder="@FarrelHanief10" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>URL Profil Kreator</label>
+                    <input type="url" value={form.creatorUrl} onChange={e => fc("creatorUrl", e.target.value)} placeholder="https://twitter.com/..." />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Tahun</label>
+                    <input type="number" value={form.year} onChange={e => fc("year", e.target.value)} placeholder="2026" />
+                  </div>
+                </div>
+
+                <div className={styles.field} style={{ marginTop: 4 }}>
+                  <label>
+                    <i className="bx bxl-spotify" style={{ color: "#1db954" }} /> Spotify Track ID
+                  </label>
+                  <input
+                    value={form.spotifyTrackId}
+                    onChange={e => fc("spotifyTrackId", e.target.value)}
+                    placeholder="2hDAoL55QcEk1DuGkvuWDU (ID saja, bukan URL lengkap)"
+                  />
+                  <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", marginTop: 4, display: "block" }}>
+                    Ambil dari URL Spotify: open.spotify.com/track/<strong>[ID DI SINI]</strong>
+                  </span>
+                </div>
+
+                {form.spotifyTrackId && (
+                  <div style={{ marginTop: 8, borderRadius: 10, overflow: "hidden" }}>
+                    <iframe
+                      src={`https://open.spotify.com/embed/track/${form.spotifyTrackId}?utm_source=generator&theme=0`}
+                      width="100%" height="80" frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      title="Preview"
+                      style={{ display: "block" }}
+                    />
+                  </div>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 4 }}>
+                  <div className={styles.field}>
+                    <label>YouTube Video ID (opsional)</label>
+                    <input value={form.youtubeId} onChange={e => fc("youtubeId", e.target.value)} placeholder="dQw4w9WgXcQ" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Durasi</label>
+                    <input value={form.duration} onChange={e => fc("duration", e.target.value)} placeholder="3:24" />
+                  </div>
+                </div>
+
+                <div className={styles.field}>
+                  <label>Tag Genre (pisah koma)</label>
+                  <input value={form.tags} onChange={e => fc("tags", e.target.value)} placeholder="Ballad, Piano, Tribute" />
+                </div>
+
+                <div className={styles.field}>
+                  <label>Deskripsi Singkat</label>
+                  <textarea
+                    value={form.description}
+                    onChange={e => fc("description", e.target.value)}
+                    rows={3}
+                    placeholder="Ceritakan sedikit tentang lagu ini..."
+                  />
+                </div>
+
+                <div className={styles.field}>
+                  <label>URL Cover Art (opsional)</label>
+                  <input type="url" value={form.coverArt} onChange={e => fc("coverArt", e.target.value)} placeholder="https://..." />
+                </div>
+              </div>
+              <div className={styles.formFooter} style={{ justifyContent: "flex-end" }}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowForm(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> {editing ? "Perbarui" : "Tambahkan"}</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 interface NavGroup {
   id: string;
   label: string;
@@ -8544,6 +8858,7 @@ const navGroups: NavGroup[] = [
     items: [
       { key: "twoshot",     icon: "bx-camera",       label: "2S with Erine" },
       { key: "fanart",      icon: "bx-palette",      label: "Fanart Erine" },
+      { key: "dengerine",   icon: "bx-headphone",    label: "Dengerine" },
       { key: "esport",      icon: "bx-trophy",       label: "Esport"      },
       { key: "journal",     icon: "bx-book-open",    label: "MemoRine"    },
       { key: "discord",     icon: "bxl-discord-alt", label: "Discord"     },
@@ -8740,6 +9055,7 @@ export default function AdminPage() {
             : active === "merch"      ? <MerchandiseManager />
             : active === "fanart"     ? <FanartManager />
             : active === "twoshot"    ? <TwoShotManager />
+            : active === "dengerine"  ? <DengerineManager />
             : <SectionManager section={active} />}
           </div>
         </div>

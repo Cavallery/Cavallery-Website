@@ -28,7 +28,7 @@ export function TheaterSection() {
   const [shows, setShows] = useState<Show[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filterErine, setFilterErine] = useState(false);
+  const [filterErine, setFilterErine] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -55,31 +55,34 @@ export function TheaterSection() {
 
   const displayed = useMemo(() => {
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1).getTime();
 
-    // 1. Shows from today onwards
-    const upcoming = shows.filter((s) => {
+    // 1. Filter: Hanya show dari bulan sekarang (atau bulan depan jika ada), buang bulan lalu
+    const currentMonthShows = shows.filter((s) => {
       const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return true;
-      const d = new Date(dateStr).getTime();
-      return !isNaN(d) && d >= today;
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      const time = d.getTime();
+      if (isNaN(time)) return false;
+
+      // Harus di bulan & tahun saat ini (atau mendatang di tahun ini/depan)
+      return time >= startOfCurrentMonth;
     });
 
-    // 2. Jika ada upcoming, tampilkan upcoming; jika belum diumumkan, tampilkan show terbaru yang ada
-    const targetList = upcoming.length > 0 ? upcoming : shows;
-
     const list = filterErine
-      ? targetList.filter((s) => {
+      ? currentMonthShows.filter((s) => {
           const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
           return members.some((m) => isErine(m.name ?? ""));
         })
-      : targetList;
+      : currentMonthShows;
 
-    // Urutkan: jika upcoming -> tanggal terdekat dulu (asc); jika riwayat -> tanggal terbaru dulu (desc)
+    // Urutkan tanggal show terdekat / kronologis
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return upcoming.length > 0 ? da - db : db - da;
+      return da - db;
     });
   }, [shows, filterErine]);
 
@@ -112,7 +115,7 @@ export function TheaterSection() {
       ) : displayed.length === 0 ? (
         <div className={styles.empty}>
           <i className="bx bx-calendar-x" />
-          <p>Belum ada jadwal show mendatang saat ini.</p>
+          <p>{filterErine ? "Belum ada jadwal show Erine untuk bulan ini." : "Belum ada jadwal show teater untuk bulan ini."}</p>
         </div>
       ) : (
         <div className={styles.showList}>

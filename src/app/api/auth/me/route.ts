@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { query } from "@/lib/mysql";
+import { ensurePinColumn } from "@/lib/membership";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (session.type === "anggota") {
+      await ensurePinColumn();
       const rows = await query<any[]>(
         "SELECT * FROM anggota WHERE id = ? LIMIT 1",
         [session.id]
@@ -45,6 +47,8 @@ export async function GET(req: NextRequest) {
         .filter((d: any) => d.status === "diverifikasi")
         .reduce((sum: number, d: any) => sum + Number(d.nominal || 0), 0);
 
+      const hasPin = Boolean(anggota.pin && anggota.pin.trim().length > 0);
+
       return NextResponse.json({
         status: true,
         user: {
@@ -54,6 +58,8 @@ export async function GET(req: NextRequest) {
           namaLengkap: anggota.nama_lengkap,
           idLine: anggota.id_line,
           displayLine: anggota.display_line,
+          hasPin,
+          pin: anggota.pin || "",
           discord: anggota.discord,
           gender: anggota.gender,
           domisili: anggota.domisili,

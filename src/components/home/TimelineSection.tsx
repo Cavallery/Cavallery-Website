@@ -54,8 +54,10 @@ function groupByYear(events: TimelineEvent[]) {
   return sortedYears.map((year) => {
     const evList = map.get(year) || [];
     evList.sort((a, b) => {
-      if (a.event_date && b.event_date) {
-        return new Date(b.event_date).getTime() - new Date(a.event_date).getTime();
+      const da = a.event_date ? new Date(a.event_date).getTime() : NaN;
+      const db = b.event_date ? new Date(b.event_date).getTime() : NaN;
+      if (!isNaN(da) && !isNaN(db)) {
+        return db - da; // newest first within each year
       }
       return (b.sort_order || 0) - (a.sort_order || 0);
     });
@@ -75,6 +77,12 @@ export default function TimelineSection() {
   const openModal = (image: string, date: string, title: string, desc: string) => {
     setModalData({ image, date, title, desc });
     setIsModalOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    document.body.style.overflow = "";
   };
 
   useEffect(() => {
@@ -107,10 +115,20 @@ export default function TimelineSection() {
         }
 
         if (loadedData && loadedData.events?.length > 0) {
-          setTimelineData(loadedData);
+          // Rebuild years from events to ensure proper descending order
+          const yearsSet = new Set<string>();
+          loadedData.events.forEach((ev: TimelineEvent) => {
+            yearsSet.add(String(ev.year || "2026"));
+          });
+          const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+          setTimelineData({ years: sortedYears, events: loadedData.events });
+        } else {
+          // Fallback to local default bundled data
+          setTimelineData(buildDefaultTimelineData());
         }
       } catch (err) {
         console.error("Timeline loading error:", err);
+        setTimelineData(buildDefaultTimelineData());
       }
     };
 
@@ -255,10 +273,10 @@ export default function TimelineSection() {
       {isModalOpen && (
         <div
           className={`${styles.modalOverlay} ${styles.active}`}
-          onClick={() => setIsModalOpen(false)}
+          onClick={closeModal}
         >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)} aria-label="Tutup">
+            <button className={styles.closeBtn} onClick={closeModal} aria-label="Tutup">
               &times;
             </button>
             <div className={styles.modalImgWrapper}>

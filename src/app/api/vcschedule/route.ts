@@ -76,7 +76,8 @@ export async function POST(request: Request) {
         { id: 1, name: "Sesi 1", time: (body.session1 || "").replace("Sesi 1:", "").trim() },
         { id: 2, name: "Sesi 2", time: (body.session2 || "").replace("Sesi 2:", "").trim() },
         { id: 3, name: "Sesi 3", time: (body.session3 || "").replace("Sesi 3:", "").trim() },
-      ];
+        { id: 4, name: "Sesi 4", time: (body.session4 || "").replace("Sesi 4:", "").trim() },
+      ].filter(s => s.time.length > 0);
 
       for (const s of sessions) {
         await query(

@@ -48,7 +48,7 @@ export default function MasukPage() {
 
       if (tipe === "anggota") {
         if (!noAnggota.trim() || !idLine.trim()) {
-          setErrorMsg("Nomor Anggota dan ID LINE wajib diisi");
+          setErrorMsg("Nomor Anggota dan ID LINE atau PIN wajib diisi");
           setLoading(false);
           return;
         }
@@ -175,10 +175,10 @@ export default function MasukPage() {
                   />
                 </div>
 
-                {/* ID Line (Sandi Anggota) */}
+                {/* ID Line / PIN (Sandi Anggota) */}
                 <div className={styles.field}>
                   <div className={styles.labelRow}>
-                    <label className={styles.label}>ID LINE (Kata Sandi)</label>
+                    <label className={styles.label}>ID LINE atau PIN</label>
                     <span className={styles.badgeWajib}>WAJIB</span>
                   </div>
                   <div style={{ position: "relative", width: "100%" }}>
@@ -190,7 +190,7 @@ export default function MasukPage() {
                       autoCorrect="off"
                       spellCheck="false"
                       className={styles.input}
-                      placeholder="ID LINE terdaftar"
+                      placeholder="ID LINE atau 4-6 digit PIN kamu"
                       value={idLine}
                       onChange={(e) => setIdLine(e.target.value)}
                       style={{ paddingRight: 44 }}

@@ -128,6 +128,8 @@ export default function CavalleryKasPage() {
   const [regNoAnggota, setRegNoAnggota] = useState("");
   const [regNamaLengkap, setRegNamaLengkap] = useState("");
   const [regIdLine, setRegIdLine] = useState("");
+  const [regPin, setRegPin] = useState("");
+  const [showRegPin, setShowRegPin] = useState(false);
   const [regDisplayLine, setRegDisplayLine] = useState("");
   const [regDiscord, setRegDiscord] = useState("");
   const [regGender, setRegGender] = useState("Laki-laki");
@@ -139,6 +141,13 @@ export default function CavalleryKasPage() {
     useState("X (Twitter)");
   const [regKontakIdDonatur, setRegKontakIdDonatur] = useState("");
   const [regDiscordDonatur, setRegDiscordDonatur] = useState("");
+
+  // PIN Prompt State for Members without PIN
+  const [showPinPromptModal, setShowPinPromptModal] = useState(false);
+  const [promptPinInput, setPromptPinInput] = useState("");
+  const [promptPinLoading, setPromptPinLoading] = useState(false);
+  const [promptPinError, setPromptPinError] = useState("");
+  const [promptPinSuccess, setPromptPinSuccess] = useState("");
 
   // Auth feedback
   const [authLoading, setAuthLoading] = useState(false);
@@ -967,7 +976,7 @@ export default function CavalleryKasPage() {
       let payload: any = { tipe };
       if (tipe === "anggota") {
         if (!loginNoAnggota.trim() || !loginIdLine.trim()) {
-          setAuthError("Nomor Anggota dan ID LINE wajib diisi");
+          setAuthError("Nomor Anggota dan ID LINE atau PIN wajib diisi");
           setAuthLoading(false);
           return;
         }
@@ -1000,6 +1009,10 @@ export default function CavalleryKasPage() {
         setAuthError(json.message || "Gagal masuk. Periksa kembali data Anda.");
       } else {
         await checkUserSession();
+        // Tawaran PIN: jika anggota login dan belum memiliki PIN
+        if (json.user && json.user.type === "anggota" && !json.user.hasPin) {
+          setShowPinPromptModal(true);
+        }
       }
     } catch (err: any) {
       setAuthError(err.message || "Terjadi kesalahan koneksi.");
@@ -1032,11 +1045,17 @@ export default function CavalleryKasPage() {
           setAuthLoading(false);
           return;
         }
+        if (regPin.trim() && !/^\d{4,6}$/.test(regPin.trim())) {
+          setAuthError("PIN harus berupa 4 hingga 6 digit angka numerik");
+          setAuthLoading(false);
+          return;
+        }
         payload = {
           ...payload,
           noAnggota: regNoAnggota.trim().toUpperCase(),
           namaLengkap: regNamaLengkap,
           idLine: regIdLine,
+          pin: regPin.trim() || undefined,
           displayLine: regDisplayLine,
           discord: regDiscord,
           gender: regGender,
@@ -1076,6 +1095,56 @@ export default function CavalleryKasPage() {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  // Auth: Handle Simpan PIN dari Prompt / Tawaran
+  const handleSavePinPrompt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPromptPinError("");
+    setPromptPinSuccess("");
+
+    const clean = promptPinInput.trim();
+    if (!clean || !/^\d{4,6}$/.test(clean)) {
+      setPromptPinError("PIN harus berupa 4 hingga 6 digit angka.");
+      return;
+    }
+
+    setPromptPinLoading(true);
+    try {
+      const res = await fetch("/api/auth/set-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: clean }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.status) {
+        setPromptPinError(json.message || "Gagal menyimpan PIN.");
+      } else {
+        setPromptPinSuccess("PIN login berhasil disimpan!");
+        setSessionUser((prev: any) =>
+          prev ? { ...prev, hasPin: true, pin: clean } : null
+        );
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("cava_pin_prompt_dismissed", "true");
+        }
+        setTimeout(() => {
+          setShowPinPromptModal(false);
+          setPromptPinSuccess("");
+          setPromptPinInput("");
+        }, 1500);
+      }
+    } catch (err: any) {
+      setPromptPinError(err.message || "Terjadi kesalahan koneksi.");
+    } finally {
+      setPromptPinLoading(false);
+    }
+  };
+
+  const handleDismissPinPrompt = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("cava_pin_prompt_dismissed", "true");
+    }
+    setShowPinPromptModal(false);
   };
 
   // Auth: Handle Logout
@@ -1493,7 +1562,7 @@ export default function CavalleryKasPage() {
 
                         <div className={styles.field}>
                           <div className={styles.labelRow}>
-                            <label className={styles.label}>ID LINE (Kata Sandi)</label>
+                            <label className={styles.label}>ID LINE atau PIN</label>
                             <span className={styles.badgeWajib}>WAJIB</span>
                           </div>
                           <div style={{ position: "relative", width: "100%" }}>
@@ -1505,7 +1574,7 @@ export default function CavalleryKasPage() {
                               autoCorrect="off"
                               spellCheck="false"
                               className={styles.input}
-                              placeholder="ID LINE terdaftar"
+                              placeholder="Masukkan ID LINE atau 4-6 digit PIN kamu"
                               value={loginIdLine}
                               onChange={(e) => setLoginIdLine(e.target.value)}
                               style={{ paddingRight: 44 }}
@@ -1715,6 +1784,52 @@ export default function CavalleryKasPage() {
                           />
                           <span className={styles.hint}>
                             Masukkan ID LINE yang aktif.
+                          </span>
+                        </div>
+
+                        {/* PIN Login (Opsional / Disarankan) */}
+                        <div className={styles.field}>
+                          <div className={styles.labelRow}>
+                            <label className={styles.label}>PIN Login (4-6 Digit Angka)</label>
+                            <span className={styles.badgeOpsional}>
+                              OPSIONAL / DISARANKAN
+                            </span>
+                          </div>
+                          <div style={{ position: "relative", width: "100%" }}>
+                            <input
+                              type={showRegPin ? "text" : "password"}
+                              className={styles.input}
+                              placeholder="Contoh: 123456 (4-6 digit angka)"
+                              value={regPin}
+                              maxLength={6}
+                              onChange={(e) => setRegPin(e.target.value.replace(/\D/g, ""))}
+                              style={{ paddingRight: 44 }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowRegPin(!showRegPin)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--fg-muted)",
+                                fontSize: "1.25rem",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 4,
+                              }}
+                              title={showRegPin ? "Sembunyikan PIN" : "Lihat PIN"}
+                            >
+                              <i className={`bx ${showRegPin ? "bx-show" : "bx-hide"}`} />
+                            </button>
+                          </div>
+                          <span className={styles.hint}>
+                            PIN ini bisa digunakan untuk masuk ke akun selain menggunakan ID LINE.
                           </span>
                         </div>
 
@@ -2082,9 +2197,110 @@ export default function CavalleryKasPage() {
                   </div>
                 );
               })()}
+
+              {sessionUser.type === "anggota" && (
+                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPromptPinError("");
+                      setPromptPinSuccess("");
+                      setPromptPinInput("");
+                      setShowPinPromptModal(true);
+                    }}
+                    style={{
+                      background: sessionUser.hasPin ? "rgba(201, 168, 76, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                      border: `1px solid ${sessionUser.hasPin ? "rgba(201, 168, 76, 0.4)" : "rgba(239, 68, 68, 0.4)"}`,
+                      color: sessionUser.hasPin ? "var(--gold)" : "#f87171",
+                      borderRadius: 20,
+                      padding: "3px 10px",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                    title={sessionUser.hasPin ? "Klik untuk mengubah PIN login" : "Klik untuk membuat PIN login"}
+                  >
+                    <i className="bx bxs-key" />
+                    {sessionUser.hasPin ? "PIN Login: Aktif (Ubah)" : "PIN Login: Belum Diatur (Atur)"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* ── BANNER TAWARAN PIN LOGIN JIKA BELUM SETEL ── */}
+        {sessionUser.type === "anggota" && !sessionUser.hasPin && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: "14px 18px",
+              borderRadius: 14,
+              background: "linear-gradient(135deg, rgba(201,168,76,0.18), rgba(201,168,76,0.06))",
+              border: "1.5px dashed rgba(201,168,76,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 240 }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  background: "rgba(201,168,76,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--gold)",
+                  fontSize: "1.3rem",
+                  flexShrink: 0,
+                }}
+              >
+                <i className="bx bxs-key" />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: "0.92rem", fontWeight: 800, color: "var(--gold)" }}>
+                  Tingkatkan Kemudahan Login Akun
+                </h4>
+                <p style={{ margin: "3px 0 0 0", fontSize: "0.8rem", color: "var(--fg-muted)" }}>
+                  Akunmu belum memiliki PIN. Atur 4-6 angka PIN sekarang agar bisa login cepat tanpa repot mengetik ID LINE.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPromptPinError("");
+                setPromptPinSuccess("");
+                setPromptPinInput("");
+                setShowPinPromptModal(true);
+              }}
+              style={{
+                background: "var(--gold)",
+                color: "#000",
+                border: "none",
+                borderRadius: 10,
+                padding: "8px 16px",
+                fontSize: "0.82rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 4px 12px rgba(201,168,76,0.3)",
+              }}
+            >
+              <i className="bx bx-plus-circle" /> Buat PIN Sekarang
+            </button>
+          </div>
+        )}
 
         {/* ── BOTTOM DUAL-PILL NAVIGATION & LOGOUT (Style Referensi Gambar 2) ── */}
         <div className={styles.navPillsCard}>
@@ -4906,6 +5122,150 @@ export default function CavalleryKasPage() {
             >
               Tutup
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL PROMPT TAWARAN PIN LOGIN ── */}
+      {showPinPromptModal && (
+        <div
+          className={styles.verifyModalOverlay}
+          onClick={handleDismissPinPrompt}
+        >
+          <div
+            className={styles.verifyModalCard}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 420 }}
+          >
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: "50%",
+                background: "rgba(201, 168, 76, 0.15)",
+                border: "2px solid rgba(201, 168, 76, 0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--gold)",
+                fontSize: "1.8rem",
+                margin: "0 auto 12px auto",
+              }}
+            >
+              <i className="bx bxs-key" />
+            </div>
+
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--fg)", textAlign: "center", margin: 0 }}>
+              {sessionUser?.hasPin ? "Ubah PIN Login" : "Tawaran PIN Login"}
+            </h3>
+
+            <p style={{ fontSize: "0.85rem", color: "var(--fg-muted)", textAlign: "center", marginTop: 8, lineHeight: 1.5 }}>
+              {sessionUser?.hasPin
+                ? "Masukkan 4 hingga 6 digit angka numerik baru untuk memperbarui PIN login akun kamu."
+                : "Tingkatkan kemudahan akses akunmu! Atur 4-6 angka PIN login agar kamu bisa masuk dengan lebih cepat tanpa repot mengetik ID LINE."}
+            </p>
+
+            {promptPinSuccess && (
+              <div style={{
+                padding: "10px 14px",
+                borderRadius: 10,
+                background: "rgba(16, 185, 129, 0.15)",
+                border: "1px solid rgba(16, 185, 129, 0.3)",
+                color: "#10b981",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                textAlign: "center",
+                marginTop: 12,
+              }}>
+                <i className="bx bx-check-circle" /> {promptPinSuccess}
+              </div>
+            )}
+
+            {promptPinError && (
+              <div style={{
+                padding: "10px 14px",
+                borderRadius: 10,
+                background: "rgba(239, 68, 68, 0.15)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                color: "#f87171",
+                fontSize: "0.85rem",
+                textAlign: "center",
+                marginTop: 12,
+              }}>
+                <i className="bx bx-error-circle" /> {promptPinError}
+              </div>
+            )}
+
+            <form onSubmit={handleSavePinPrompt} style={{ marginTop: 16 }}>
+              <div className={styles.field}>
+                <div className={styles.labelRow}>
+                  <label className={styles.label}>PIN (4-6 Digit Angka)</label>
+                  <span className={styles.badgeWajib}>WAJIB</span>
+                </div>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="Contoh: 123456"
+                  className={styles.input}
+                  value={promptPinInput}
+                  onChange={(e) => setPromptPinInput(e.target.value.replace(/\D/g, ""))}
+                  autoFocus
+                  required
+                />
+                <span className={styles.hint}>
+                  Gunakan minimal 4 digit dan maksimal 6 digit angka numerik.
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+                <button
+                  type="button"
+                  onClick={handleDismissPinPrompt}
+                  style={{
+                    flex: 1,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: "rgba(255, 255, 255, 0.06)",
+                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    color: "var(--fg-muted)",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Nanti Saja
+                </button>
+                <button
+                  type="submit"
+                  disabled={promptPinLoading || promptPinInput.length < 4}
+                  style={{
+                    flex: 1,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: "var(--gold)",
+                    border: "none",
+                    color: "#000",
+                    fontSize: "0.85rem",
+                    fontWeight: 800,
+                    cursor: promptPinLoading || promptPinInput.length < 4 ? "not-allowed" : "pointer",
+                    opacity: promptPinLoading || promptPinInput.length < 4 ? 0.6 : 1,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  {promptPinLoading ? (
+                    <i className="bx bx-loader-alt bx-spin" />
+                  ) : (
+                    <i className="bx bx-save" />
+                  )}
+                  Simpan PIN
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

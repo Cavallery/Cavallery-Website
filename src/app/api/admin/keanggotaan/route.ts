@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { generateNextNoAnggota } from "@/lib/membership";
+import { generateNextNoAnggota, ensurePinColumn } from "@/lib/membership";
 import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 
@@ -24,6 +24,7 @@ function formatAnggotaRow(r: any) {
     nama_lengkap: r.nama_lengkap || "",
     idLine: r.id_line || "",
     id_line: r.id_line || "",
+    pin: r.pin || "",
     displayLine: r.display_line || "",
     display_line: r.display_line || "",
     discord: r.discord || "",
@@ -53,6 +54,7 @@ export async function GET(req: NextRequest) {
     }
 
     await ensureBadgeColumn();
+    await ensurePinColumn();
 
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.trim().toLowerCase() || "";
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
     }
 
     await ensureBadgeColumn();
+    await ensurePinColumn();
 
     const body = await req.json();
     const { id, action, status, jabatan } = body;
@@ -107,6 +110,7 @@ export async function POST(req: NextRequest) {
         noAnggota,
         namaLengkap,
         idLine,
+        pin,
         displayLine,
         discord,
         gender,
@@ -132,12 +136,13 @@ export async function POST(req: NextRequest) {
       try {
         await query(
           `INSERT INTO anggota 
-           (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, divisi, badge, foto_profil, anggota_sejak) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?, ?, ?)`,
+           (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, divisi, badge, foto_profil, anggota_sejak) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?, ?, ?)`,
           [
             finalNo,
             namaLengkap.trim(),
             idLine.trim(),
+            pin?.trim() || null,
             displayLine?.trim() || null,
             discord?.trim() || null,
             gender || "Laki-laki",
@@ -155,12 +160,13 @@ export async function POST(req: NextRequest) {
         // Fallback without badge/divisi column if not created yet
         await query(
           `INSERT INTO anggota 
-           (no_anggota, nama_lengkap, id_line, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, foto_profil, anggota_sejak) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?)`,
+           (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, foto_profil, anggota_sejak) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif', ?, ?, ?)`,
           [
             finalNo,
             namaLengkap.trim(),
             idLine.trim(),
+            pin?.trim() || null,
             displayLine?.trim() || null,
             discord?.trim() || null,
             gender || "Laki-laki",
@@ -345,6 +351,7 @@ export async function PUT(req: NextRequest) {
     }
 
     await ensureBadgeColumn();
+    await ensurePinColumn();
 
     const body = await req.json();
     const {
@@ -352,6 +359,7 @@ export async function PUT(req: NextRequest) {
       noAnggota,
       namaLengkap,
       idLine,
+      pin,
       displayLine,
       discord,
       gender,
@@ -375,12 +383,13 @@ export async function PUT(req: NextRequest) {
     try {
       await query(
         `UPDATE anggota 
-         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
+         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
          WHERE id = ?`,
         [
           noAnggota?.trim().toUpperCase() || null,
           namaLengkap.trim(),
           idLine.trim(),
+          pin !== undefined ? (pin?.trim() || null) : null,
           displayLine?.trim() || null,
           discord?.trim() || null,
           gender || "Laki-laki",
@@ -399,12 +408,13 @@ export async function PUT(req: NextRequest) {
     } catch {
       await query(
         `UPDATE anggota 
-         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, foto_profil = ?, anggota_sejak = ? 
+         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, foto_profil = ?, anggota_sejak = ? 
          WHERE id = ?`,
         [
           noAnggota?.trim().toUpperCase() || null,
           namaLengkap.trim(),
           idLine.trim(),
+          pin !== undefined ? (pin?.trim() || null) : null,
           displayLine?.trim() || null,
           discord?.trim() || null,
           gender || "Laki-laki",

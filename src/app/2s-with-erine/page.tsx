@@ -42,6 +42,27 @@ export default function TwoShotPage() {
   const [activeLightbox, setActiveLightbox] = useState<TwoShotItem | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string | number>>(new Set());
 
+  const openLightbox = (item: TwoShotItem) => {
+    setActiveLightbox(item);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeLightbox = () => {
+    setActiveLightbox(null);
+    document.body.style.overflow = "";
+  };
+
+  const openSubmitModal = () => {
+    setShowSubmitModal(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeSubmitModal = () => {
+    if (uploading) return;
+    setShowSubmitModal(false);
+    document.body.style.overflow = "";
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -224,7 +245,7 @@ export default function TwoShotPage() {
 
           <button
             className={styles.heroCtaBtn}
-            onClick={() => setShowSubmitModal(true)}
+            onClick={openSubmitModal}
           >
             <i className="bx bx-pin" /> {hasSubmittedBefore ? "Cek Status 2-Shot Kamu" : "Tempel 2-Shot & Pesan Kamu"}
           </button>
@@ -328,7 +349,7 @@ export default function TwoShotPage() {
               </p>
               <button
                 className={styles.heroCtaBtn}
-                onClick={() => setShowSubmitModal(true)}
+                onClick={openSubmitModal}
               >
                 <i className="bx bx-pin" /> Tempel Foto 2-Shot
               </button>
@@ -342,7 +363,7 @@ export default function TwoShotPage() {
                 <div
                   key={item.id}
                   className={styles.polaroidCard}
-                  onClick={() => setActiveLightbox(item)}
+                  onClick={() => openLightbox(item)}
                 >
                   {/* Pushpin at the top */}
                   <div className={styles.pushPin} />

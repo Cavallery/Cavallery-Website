@@ -64,7 +64,7 @@ const defaultRules = [
   {
     id: "rule_12",
     triggers: [["cavallery", "fanbase"]],
-    response: "Cavallery adalah fanbase resmi pendukung Catherina Vallencia (Erine) JKT48! Dibentuk tanggal 18 November 2023, bertepatan dengan debut Erine. Kita solid banget lho, yuk gabung!"
+    response: "Cavallery adalah fanbase resmi pendukung Erine JKT48! Dibentuk tanggal 18 November 2023, bertepatan dengan debut Erine. Kita solid banget lho, yuk gabung!"
   },
   {
     id: "rule_13",

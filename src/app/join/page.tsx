@@ -767,7 +767,7 @@ export default function JoinPage() {
           </h1>
           <p className={styles.heroSub}>
             Tentukan peranmu dalam mendukung, merayakan, dan berbagi keceriaan
-            bersama Catherina Vallencia (Erine) JKT48.
+            bersama Erine JKT48.
           </p>
         </div>
       </div>
