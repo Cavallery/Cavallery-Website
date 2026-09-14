@@ -689,34 +689,89 @@ export default function AboutErineSection() {
           </div>
         </div>
 
-        <div className={styles.nailedFrame} />
-        <h3 className={styles.erineTitle}>{"Erine's Kabesha"}</h3>
-        <div className={styles.galleryGrid}>
-          {(kabeshas.length > 0 ? kabeshas : [
-            { image_url: "/images/trainee.jpg", era: "2023", title: "First Kabesha", description: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
-            { image_url: "/images/regular.webp", era: "2026", title: "Regular Member", description: "Dipromosikan menjadi Member reguler JKT48." },
-            { image_url: "/images/erine-passion.webp", era: "2026", title: "Team Passion", description: "Dipromosikan menjadi Member Passion JKT48." },
-          ]).map((item: any, idx: number) => {
-            const img = item.image_url || item.img || "/images/cava-logo.jpg";
-            const year = item.era || item.year_label || item.year || "2026";
-            const title = item.title || item.era_name || "Kabesha";
-            const desc = item.description || item.desc || title;
-            return (
-              <div
-                key={item.id || `${year}-${title}-${idx}`}
-                className={styles.frameCard}
-                onClick={() => openModal(img, year, desc)}
-              >
-                <div className={styles.imageContainer}>
-                  <img src={img} alt={title} />
-                </div>
-                <div className={styles.captionBox}>
-                  <span className={styles.captionYear}>{year}</span>
-                  {title}
-                </div>
-              </div>
-            );
-          })}
+        {/* ── ERINE'S KABESHA PIN-BOARD (MATCHING IMAGE 1) ── */}
+        <div className={styles.kabeshaBoardWrapper}>
+          <div className={styles.kabeshaBoardHeader}>
+            <div className={styles.nailedFrame} />
+            <h3 className={styles.erineTitle}>{"Erine's Kabesha"}</h3>
+            <p className={styles.kabeshaSubtitle}>
+              Perjalanan visual dan evolusi Erine dari generasi ke generasi di JKT48
+            </p>
+          </div>
+
+          <div className={styles.kabeshaParchmentBoard}>
+            {/* SVG Connecting Dashed Line */}
+            <svg className={styles.kabeshaConnectorSvg} xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+              <line x1="18%" y1="65" x2="50%" y2="65" className={styles.kabeshaDashLine} />
+              <line x1="50%" y1="65" x2="82%" y2="65" className={styles.kabeshaDashLine} />
+            </svg>
+
+            <div className={styles.kabeshaPhotoGrid}>
+              {(kabeshas.length > 0 ? kabeshas : [
+                { image_url: "/images/trainee.jpg", era: "2024", title: "Trainee Member", description: "Bergabung dengan JKT48 sebagai Trainee di Jak Japan Matsuri." },
+                { image_url: "/images/regular.webp", era: "2025", title: "Regular Member", description: "Dipromosikan menjadi Member reguler JKT48." },
+                { image_url: "/images/erine-passion.webp", era: "2026", title: "Team Passion", description: "Dipromosikan menjadi Member Passion JKT48." },
+              ]).map((item: any, idx: number) => {
+                const img = item.image_url || item.img || "/images/cava-logo.jpg";
+                const year = item.era || item.year_label || item.year || (idx === 0 ? "2024" : idx === 1 ? "2025" : "2026");
+                const title = item.title || item.era_name || "Kabesha";
+                const desc = item.description || item.desc || title;
+
+                // Sticker badge text determination
+                let stickerTop = "JKT48";
+                let stickerBottom = "Member";
+                if (/trainee/i.test(title)) {
+                  stickerTop = "JKT48";
+                  stickerBottom = "Trainee";
+                } else if (/passion/i.test(title)) {
+                  stickerTop = "JKT48";
+                  stickerBottom = "Passion";
+                } else if (/regular/i.test(title) || /member/i.test(title)) {
+                  stickerTop = "JKT48";
+                  stickerBottom = "Member";
+                }
+
+                // Tilt angles for authentic pinned polaroid scrapbook feel
+                const tilts = [-3.5, 3.5, -2, 2.5];
+                const cardTilt = tilts[idx % tilts.length];
+
+                return (
+                  <div
+                    key={item.id || `${year}-${title}-${idx}`}
+                    className={styles.kabeshaPinnedCard}
+                    style={{
+                      transform: `rotate(${cardTilt}deg)`,
+                    }}
+                    onClick={() => openModal(img, year, desc)}
+                    title={`Klik untuk melihat foto Kabesha ${year} (${title})`}
+                  >
+                    {/* 3D Red Pushpin with realistic needle and shadow */}
+                    <div className={styles.kabesha3dPin}>
+                      <div className={styles.pinCap} />
+                      <div className={styles.pinNeedle} />
+                      <div className={styles.pinShadow} />
+                    </div>
+
+                    {/* Cute Sticker Badge at Top-Right */}
+                    <div className={styles.kabeshaStickerBadge}>
+                      <span className={styles.stickerLine1}>{stickerTop}</span>
+                      <span className={styles.stickerLine2}>{stickerBottom}</span>
+                    </div>
+
+                    {/* Photo Container */}
+                    <div className={styles.kabeshaPhotoWrap}>
+                      <img src={img} alt={`${title} (${year})`} className={styles.kabeshaImg} />
+                    </div>
+
+                    {/* Handwritten Marker Year Label (Bottom-Left) */}
+                    <div className={styles.kabeshaMarkerYear}>
+                      {year}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className={styles.electionSection}>

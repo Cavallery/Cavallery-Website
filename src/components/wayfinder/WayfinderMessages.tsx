@@ -4,18 +4,32 @@ import { useState, useEffect, useRef } from "react";
 import styles from "./WayfinderMessages.module.css";
 
 interface BirthdayMessage {
-  id?: number;
+  id?: number | string;
   name: string;
   msg: string;
   date: string;
 }
+
+// Organic tilt angles for pinned notes
+const TILTS = [-1.5, 1.8, -2.2, 1.4, -1, 2.1, -1.8, 1.2];
+
+// Soft pastel note color themes (like real post-its)
+const NOTE_THEMES = [
+  "themeYellow",
+  "themeBlue",
+  "themePink",
+  "themeGreen",
+  "themePeach",
+];
 
 export default function WayfinderMessages() {
   const [messages, setMessages] = useState<BirthdayMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [showForm, setShowForm] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [modalData, setModalData] = useState<BirthdayMessage | null>(null);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -67,6 +81,7 @@ export default function WayfinderMessages() {
     setSubmitting(true);
 
     const newMsg: BirthdayMessage = {
+      id: Date.now(),
       name: name.trim() || "Anonim",
       msg: msg.trim(),
       date: new Date().toLocaleDateString("id-ID"),
@@ -80,109 +95,267 @@ export default function WayfinderMessages() {
         method: "POST",
         body: fd,
       });
-      // Refresh to ensure full sync with sheet
       setTimeout(loadMessages, 1500);
     } catch {}
 
     setSubmitting(false);
   };
 
+  const filteredMessages = messages.filter((m) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return m.name.toLowerCase().includes(q) || m.msg.toLowerCase().includes(q);
+  });
+
+  const displayedMessages =
+    showAll || searchQuery.trim() ? filteredMessages : filteredMessages.slice(0, 15);
+
   return (
     <section className={styles.wrapper}>
       {/* Section Header */}
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTag}>Birthday Wishes & Love</span>
+        <span className={styles.sectionTag}>Birthday Wishes &amp; Love</span>
         <h2 className={styles.sectionTitle}>💌 Titip Pesan Ulang Tahun Erine</h2>
         <p className={styles.sectionDesc}>
-          Tuliskan doa, harapan, dan ucapan selamat ulang tahun terbaikmu untuk Catherina Vallencia (Erine) di sini!
+          Tuliskan doa, harapan, dan ucapan selamat ulang tahun terbaikmu untuk Erine JKT48 di sini!
         </p>
+        <div className={styles.headerActionRow}>
+          <button
+            type="button"
+            className={styles.toggleFormBtn}
+            onClick={() => setShowForm(!showForm)}
+          >
+            <i className={`bx ${showForm ? "bx-chevron-up" : "bx-edit"}`} />
+            {showForm ? "Sembunyikan Form" : "Tulis Ucapan Baru"}
+          </button>
+        </div>
       </div>
 
       {/* Form Board */}
-      {!isSubmitted ? (
-        <div className={styles.formBoard}>
-          <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
-            <input
-              type="text"
-              name="Nama"
-              placeholder="Nama / Panggilan Kamu"
-              required
-              className={styles.input}
-            />
-            <textarea
-              name="pesan"
-              rows={4}
-              placeholder="Tuliskan ucapan dan doa manis untuk Erine di hari ulang tahunnya..."
-              required
-              className={styles.textarea}
-            />
-            <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? (
-                <>
-                  <i className="bx bx-loader-alt bx-spin" /> Menyematkan Ucapan...
-                </>
-              ) : (
-                <>
-                  <i className="bx bx-send" /> SEMATKAN UCAPAN ULANG TAHUN
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div className={styles.successMsg}>
-          <i className="bx bx-check-circle" style={{ fontSize: "1.3rem" }} />
-          <span>Ucapanmu berhasil disematkan! Terima kasih atas doa manis untuk Erine. ✨</span>
-        </div>
-      )}
-
-      {/* Carousel Controls (Only when messages exist) */}
-      {messages.length > 0 && (
-        <div className={styles.controls}>
-          <div className={styles.carouselLabel}>
-            <i className="bx bx-notepad" /> Papan Ucapan #ErineTheWayfinder ({messages.length})
-          </div>
-          <button className={styles.scrollBtn} onClick={() => setIsPaused(!isPaused)}>
-            {isPaused ? "▶ Putar Pesan" : "⏸ Jeda Pesan"}
-          </button>
-        </div>
-      )}
-
-      {/* Message Board / Carousel */}
-      <div className={styles.carouselWindow}>
-        {loading ? (
-          <div style={{ color: "#a09882", padding: "24px 0", textAlign: "center" }}>
-            <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "1.5rem", marginRight: 8 }} />
-            Memuat ucapan...
-          </div>
-        ) : messages.length === 0 ? (
-          <div style={{ color: "#a09882", padding: "24px 0", textAlign: "center", fontStyle: "italic" }}>
-            Belum ada ucapan yang disematkan. Jadilah yang pertama memberikan ucapan ulang tahun untuk Erine! ✨
-          </div>
-        ) : (
-          <div className={`${styles.carouselTrack} ${isPaused ? styles.paused : ""}`}>
-            {(messages.length > 2 ? [...messages, ...messages] : messages).map((m, i) => (
-              <div key={i} className={styles.stickyCard} onClick={() => setModalData(m)}>
-                <div className={styles.cardPin} />
-                <div className={styles.cardName}>{m.name}</div>
-                <div className={styles.cardMsg}>"{m.msg}"</div>
-                <div className={styles.cardDate}>{m.date}</div>
+      {showForm && (
+        <div className={styles.formBoardWrap}>
+          {!isSubmitted ? (
+            <div className={styles.formBoard}>
+              <div className={styles.formHeaderRow}>
+                <div className={styles.formPin} />
+                <h3>Sematkan Catatan Ulang Tahun</h3>
+                <p>Ucapanmu akan langsung tertempel di papan seitansai #ErineTheWayfinder!</p>
               </div>
-            ))}
+
+              <form ref={formRef} onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.field}>
+                  <label>Nama / Panggilan Kamu *</label>
+                  <input
+                    type="text"
+                    name="Nama"
+                    placeholder="Contoh: Cavallers Sejati"
+                    required
+                    className={styles.input}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Doa &amp; Harapan untuk Erine *</label>
+                  <textarea
+                    name="pesan"
+                    rows={4}
+                    placeholder="Tuliskan ucapan dan doa manis untuk Erine di hari ulang tahunnya..."
+                    required
+                    className={styles.textarea}
+                  />
+                </div>
+                <button type="submit" className={styles.submitBtn} disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menyematkan Ucapan...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bxs-pin" /> SEMATKAN KE PAPAN UCAPAN
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className={styles.successMsg}>
+              <div className={styles.successIcon}>
+                <i className="bx bxs-check-circle" />
+              </div>
+              <h3>Ucapanmu Berhasil Ditempel! ✨</h3>
+              <p>Terima kasih atas doa dan cinta manis untuk Erine di #ErineTheWayfinder.</p>
+              <button
+                type="button"
+                className={styles.resetBtn}
+                onClick={() => setIsSubmitted(false)}
+              >
+                <i className="bx bx-plus" /> Kirim Ucapan Lainnya
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PAPAN UCAPAN BULLETIN BOARD ── */}
+      <div className={styles.madingBoardFrame}>
+        {/* Corkboard / Bulletin Board Surface */}
+        <div className={styles.corkBoardSurface}>
+          {/* Top Board Brass/Wooden Plate */}
+          <div className={styles.boardHeaderPlate}>
+            <div className={styles.plateScrewLeft} />
+            <div className={styles.plateTitle}>
+              <i className="bx bx-notepad" /> Papan Ucapan #ErineTheWayfinder ({messages.length})
+            </div>
+            <div className={styles.plateScrewRight} />
           </div>
-        )}
+
+          {/* Search / Filter bar if messages exist */}
+          {messages.length > 0 && (
+            <div className={styles.boardFilterBar}>
+              <div className={styles.searchBox}>
+                <i className="bx bx-search" />
+                <input
+                  type="text"
+                  placeholder="Cari nama pengirim atau isi ucapan..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.searchInput}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className={styles.clearSearchBtn}
+                    onClick={() => setSearchQuery("")}
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+              <div className={styles.boardCountBadge}>
+                {searchQuery
+                  ? `Ditemukan: ${filteredMessages.length} dari ${messages.length}`
+                  : `Menampilkan ${displayedMessages.length} dari ${messages.length} ucapan`}
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <div className={styles.boardLoading}>
+              <i className="bx bx-loader-alt bx-spin" /> Memuat papan ucapan...
+            </div>
+          ) : messages.length === 0 ? (
+            <div className={styles.boardEmpty}>
+              <i className="bx bx-note" />
+              <h4>Papan Masih Kosong</h4>
+              <p>Jadilah yang pertama menyematkan ucapan ulang tahun manis untuk Erine di atas! ✨</p>
+            </div>
+          ) : displayedMessages.length === 0 ? (
+            <div className={styles.boardEmpty}>
+              <i className="bx bx-search-alt" />
+              <h4>Tidak Ada Ucapan Yang Cocok</h4>
+              <p>Coba kata kunci lain atau bersihkan pencarian untuk melihat semua ucapan.</p>
+            </div>
+          ) : (
+            <>
+              <div className={styles.notesGrid}>
+                {displayedMessages.map((m, idx) => {
+                  const isLongMsg = m.msg.length > 150;
+                  const displayMsg = isLongMsg ? `${m.msg.slice(0, 145)}...` : m.msg;
+                  const tilt = TILTS[idx % TILTS.length];
+                  const themeClass = styles[NOTE_THEMES[idx % NOTE_THEMES.length]];
+
+                  return (
+                    <div
+                      key={m.id || idx}
+                      className={`${styles.stickyNote} ${themeClass}`}
+                      style={{
+                        transform: `rotate(${tilt}deg)`,
+                      }}
+                      onClick={() => setModalData(m)}
+                    >
+                      {/* Realistic 3D Pushpin with needle and shadow */}
+                      <div className={styles.notePushPin} title="Tertempel di papan ucapan">
+                        <div className={styles.pinHead} />
+                        <div className={styles.pinNeedle} />
+                        <div className={styles.pinShadow} />
+                      </div>
+
+                      {/* Card Header: Author & Date */}
+                      <div className={styles.noteHeader}>
+                        <h4 className={styles.authorName}>{m.name}</h4>
+                        <span className={styles.noteDate}>{m.date}</span>
+                      </div>
+
+                      {/* Card Body */}
+                      <div className={styles.noteBody}>
+                        <p className={styles.noteText}>
+                          &ldquo;{displayMsg}&rdquo;
+                          {isLongMsg && (
+                            <span
+                              className={styles.readMoreBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setModalData(m);
+                              }}
+                            >
+                              {" "}Baca Selengkapnya..
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Expand / Collapse Button if > 15 messages and not searching */}
+              {!searchQuery && messages.length > 15 && (
+                <div className={styles.expandRow}>
+                  <button
+                    type="button"
+                    className={styles.expandBtn}
+                    onClick={() => setShowAll(!showAll)}
+                  >
+                    {showAll ? (
+                      <>
+                        <i className="bx bx-chevron-up" /> Ciutkan Papan Ucapan
+                      </>
+                    ) : (
+                      <>
+                        <i className="bx bx-chevron-down" /> Lihat Semua ({messages.length} Ucapan Tertempel)
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Modal Popup Detail */}
+      {/* Modal Detail Popup */}
       {modalData && (
-        <div className={styles.modal} onClick={() => setModalData(null)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={() => setModalData(null)}>
+        <div className={styles.modalOverlay} onClick={() => setModalData(null)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalPin}>
+              <div className={styles.pinHead} />
+              <div className={styles.pinNeedle} />
+            </div>
+            <button
+              type="button"
+              className={styles.modalClose}
+              onClick={() => setModalData(null)}
+              aria-label="Tutup"
+            >
               &times;
             </button>
-            <h3 className={styles.modalName}>{modalData.name}</h3>
-            <p className={styles.modalMsg}>"{modalData.msg}"</p>
-            <div className={styles.modalDate}>{modalData.date}</div>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalBadge}>#ErineTheWayfinder</span>
+              <h3 className={styles.modalName}>{modalData.name}</h3>
+              <div className={styles.modalDate}>{modalData.date}</div>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalMsg}>&ldquo;{modalData.msg}&rdquo;</p>
+            </div>
           </div>
         </div>
       )}

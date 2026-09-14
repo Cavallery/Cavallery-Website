@@ -1,279 +1,728 @@
 .wrapper {
-  --bg-wall: var(--bg);
-  --paper-yellow: #fffef0;
-  --paper-pink: #fff5f8;
-  --paper-brown: #fcf4e8;
-
-  font-family: 'EB Garamond', serif;
-  background-color: transparent;
-  background-image: radial-gradient(var(--border) 1px, transparent 1px);
-  background-size: 20px 20px;
-  padding: 70px 0;
-  overflow: hidden;
-}
-
-[data-theme="dark"] .wrapper {
-  --paper-yellow: #292524;
-  --paper-pink: #27272a;
-  --paper-brown: #3f3935;
+  padding: 60px 0 100px 0;
+  position: relative;
+  width: 100%;
 }
 
 .inner {
-  max-width: 1100px;
-  margin: auto;
+  max-width: 1280px;
+  margin: 0 auto;
   padding: 0 20px;
 }
 
-/* HEADER */
+/* ── HEADER ── */
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
 }
 
-.header h1 {
-  font-size: 2.4rem;
+.badgeHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold, #d4af37);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 5px 14px;
+  border-radius: 50px;
+  margin-bottom: 14px;
+}
+
+.mainTitle {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 800;
   color: var(--fg);
-  margin-bottom: 8px;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
 }
 
-.header h2 {
-  font-size: 1.4rem;
-  font-style: italic;
+.subTitle {
+  font-size: 1.05rem;
   color: var(--fg-muted);
+  max-width: 600px;
+  margin: 0 auto 22px auto;
+  line-height: 1.5;
 }
 
-/* FORM */
+.headerActionRow {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.toggleFormBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--gold, #d4af37);
+  color: #000;
+  font-weight: 800;
+  font-size: 0.9rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+}
+
+.toggleFormBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+}
+
+/* ── FORM CONTAINER ── */
+.formContainer {
+  max-width: 680px;
+  margin: 0 auto 50px auto;
+  animation: fadeIn 0.3s ease;
+}
+
 .formBoard {
-  background: var(--surface);
-  max-width: 500px;
-  margin: auto;
-  padding: 40px 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  background: var(--surface, #1e1e24);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 18px;
+  padding: 28px 28px 32px 28px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  position: relative;
 }
 
-.formBoard input,
-.formBoard textarea {
+.formHeaderRow {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.formHeaderRow h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--fg);
+  margin: 0 0 4px 0;
+}
+
+.formHeaderRow p {
+  font-size: 0.88rem;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+}
+
+.input,
+.textarea {
   width: 100%;
-  padding: 12px;
-  margin-top: 12px;
-  border: 1px solid #ddd;
-  font-family: inherit;
-  border-radius: 4px;
+  padding: 12px 14px;
+  background: var(--bg, #121216);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  border-radius: 10px;
+  color: var(--fg);
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--gold, #d4af37);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.hint {
+  font-size: 0.76rem;
+  color: var(--fg-muted);
+  line-height: 1.4;
 }
 
 .submitBtn {
-  width: 100%;
-  padding: 14px;
-  margin-top: 24px;
-  background: #2c241b;
-  color: white;
+  margin-top: 6px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  color: #000;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  font-weight: bold;
-  border-radius: 4px;
-  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .submitBtn:hover {
-  background: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
 }
 
-.successMsg {
-  color: green;
+.successMsgCard {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1.5px dashed rgba(16, 185, 129, 0.4);
+  border-radius: 18px;
+  padding: 30px;
   text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  padding: 20px;
 }
 
-/* TITLE */
-.carouselTitle {
-  text-align: center;
-  font-size: 1.8rem;
-  margin: 50px 0 10px;
-  font-style: italic;
+.successIcon {
+  font-size: 2.5rem;
+  color: #10b981;
+  margin-bottom: 8px;
 }
 
-/* BUTTON */
-.controls {
-  text-align: center;
-  margin-bottom: 20px;
+.successMsgCard h3 {
+  font-size: 1.3rem;
+  color: #10b981;
+  margin: 0 0 6px 0;
+  font-weight: 800;
 }
 
-.scrollBtn {
-  padding: 10px 24px;
+.successMsgCard p {
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+  margin: 0 0 16px 0;
+}
+
+.resetBtn {
+  background: #10b981;
+  color: #fff;
   border: none;
-  background: #2c241b;
-  color: white;
-  cursor: pointer;
   border-radius: 50px;
-  font-weight: 600;
-  transition: 0.3s;
-}
-
-/* CAROUSEL */
-.carouselWindow {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-  padding: 20px 0;
-}
-
-.carouselTrack {
-  display: flex;
-  gap: 20px;
-  padding: 15px;
-  width: max-content;
-  animation: scrollLoop 40s linear infinite;
-  align-items: flex-start;
-}
-
-.paused {
-  animation-play-state: paused !important;
-}
-
-.carouselTrack:hover {
-  animation-play-state: paused;
-}
-
-@keyframes scrollLoop {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-/* CARD */
-.stickyCard {
-  min-width: 240px;
-  max-width: 240px;
-  padding: 30px 20px;
-  box-shadow: 3px 6px 15px rgba(0,0,0,0.1);
-  position: relative;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
-  flex-shrink: 0;
-  border-radius: 6px;
-  transition: 0.3s;
-  color: #372e27; /* Force dark text on light paper by default */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-[data-theme="dark"] .stickyCard {
-  color: #f5f5f4; /* Light text on dark paper in dark mode */
+/* ── PAPAN MADING BULLETIN BOARD FRAME ── */
+.madingBoardFrame {
+  position: relative;
+  background: #3b2a1a;
+  border: 14px solid #5a3d24;
+  border-radius: 20px;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 24px 60px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+  padding: 16px;
+  overflow: hidden;
 }
 
-.stickyCard:hover {
-  transform: scale(1.05) rotate(0deg) !important;
-  z-index: 10;
+[data-theme="dark"] .madingBoardFrame {
+  border-color: #452e1b;
+  background: #231910;
 }
 
-.carouselTrack .stickyCard:nth-child(odd) {
-  background: var(--paper-yellow);
-  transform: rotate(-2deg);
+.corkBoardSurface {
+  background-color: #c99c6b;
+  background-image:
+    radial-gradient(#ab8052 15%, transparent 16%),
+    radial-gradient(#b8895b 15%, transparent 16%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  border-radius: 12px;
+  padding: 36px 24px;
+  min-height: 520px;
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.35);
+  position: relative;
 }
 
-.carouselTrack .stickyCard:nth-child(even) {
-  background: var(--paper-pink);
-  transform: rotate(2deg);
+[data-theme="dark"] .corkBoardSurface {
+  background-color: #4a3724;
+  background-image:
+    radial-gradient(#3a2a1b 15%, transparent 16%),
+    radial-gradient(#2d1f14 15%, transparent 16%);
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.6);
 }
 
-.carouselTrack .stickyCard:nth-child(3n) {
-  background: var(--paper-brown);
-}
-
-.cardPin {
-  width: 14px;
-  height: 14px;
-  background: radial-gradient(circle at 30% 30%, #555, #000);
-  border-radius: 50%;
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.cardName {
-  font-weight: bold;
+.boardLoading,
+.boardEmpty {
   text-align: center;
-  border-bottom: 1px dashed rgba(0,0,0,0.2);
-  padding-bottom: 8px;
+  padding: 80px 20px;
+  color: #fff;
   font-size: 1.1rem;
 }
 
-[data-theme="dark"] .cardName {
-  border-bottom-color: rgba(255,255,255,0.2);
+.boardEmpty i {
+  font-size: 3rem;
+  opacity: 0.7;
+  margin-bottom: 12px;
+  display: block;
 }
 
-.cardMsg {
-  text-align: center;
-  margin: 16px 0;
-  line-height: 1.5;
-  word-wrap: break-word;
-  font-style: italic;
+.boardEmpty h4 {
+  font-size: 1.4rem;
+  margin: 0 0 6px 0;
+  font-weight: 800;
 }
 
-.cardDate {
-  text-align: center;
-  font-size: 0.8rem;
-  color: inherit;
-  opacity: 0.6;
-}
-
-/* MODAL */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(8px);
-}
-
-.modalContent {
-  background: var(--surface);
-  padding: 40px;
-  width: 100%;
+.boardEmpty p {
+  font-size: 0.95rem;
+  opacity: 0.85;
   max-width: 450px;
-  text-align: center;
+  margin: 0 auto;
+}
+
+/* ── NOTES GRID ── */
+.notesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px 26px;
+  align-items: start;
+}
+
+/* ── STICKY NOTE CARD (EXACT STYLE OF IMAGE 2) ── */
+.stickyNote {
+  background: #93c5fd; /* Signature sky-blue post-it note from image 2 */
+  border-radius: 10px;
+  padding: 24px 20px 18px 20px;
+  position: relative;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, z-index 0.25s;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+/* Subtle organic tilt variations for realistic bulletin board look */
+.notesGrid > .stickyNote:nth-child(4n + 1) {
+  transform: rotate(-1.5deg);
+}
+
+.notesGrid > .stickyNote:nth-child(4n + 2) {
+  transform: rotate(1.8deg);
+}
+
+.notesGrid > .stickyNote:nth-child(4n + 3) {
+  transform: rotate(-1.2deg);
+}
+
+.notesGrid > .stickyNote:nth-child(4n + 4) {
+  transform: rotate(1.2deg);
+}
+
+.stickyNote:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
+  z-index: 20;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.28),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Pushpin at top center */
+.notePushPin {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  z-index: 5;
+}
+
+.pinHead {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff4b4b, #dc2626 65%, #7f1d1d 100%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  position: relative;
+  margin: 0 auto;
+}
+
+.pinHead::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.pinShadow {
+  position: absolute;
+  bottom: -2px;
+  left: 10px;
+  width: 10px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  filter: blur(1.5px);
+}
+
+/* Note Header (Name, Handle, Date) */
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.authorGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorName {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: 0.2px;
+}
+
+.authorHandle {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 0.95rem;
+  color: #334155;
+  margin-top: 2px;
+}
+
+.noteDate {
+  font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
+  font-size: 0.95rem;
+  color: #334155;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* Note Body Text */
+.noteBody {
+  margin-bottom: 14px;
+}
+
+.noteText {
+  font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
+  font-size: 1.18rem;
+  line-height: 1.55;
+  color: #0f172a;
+  margin: 0;
+  word-break: break-word;
+}
+
+.readMoreBtn {
+  color: #dc2626;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
+  font-size: 1.15rem;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.readMoreBtn:hover {
+  color: #991b1b;
+}
+
+/* ── SPOTIFY MINI-PLAYER WIDGET (MATCHING IMAGE 2) ── */
+.spotifyWidget {
+  margin-top: 14px;
+}
+
+.spotifyBar {
+  background: #4a1964; /* Royal plum/purple background matching image 2 */
+  border-radius: 18px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+}
+
+.spotifyThumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.spotifyInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spotifyTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.spotifyTrackTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.spotifyLogoIcon {
+  font-size: 1.1rem;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.spotifyArtist {
+  font-size: 0.8rem;
+  color: #d8b4fe; /* Soft lavender artist name */
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spotifyProgressRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.spotifyProgressBar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.spotifyProgressFill {
+  width: 45%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.spotifyDuration {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.spotifyControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.spotifyIconBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.spotifyIconBtn:hover {
+  color: #ffffff;
+  transform: scale(1.15);
+}
+
+.spotifyPlayBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.spotifyPlayBtn:hover {
+  transform: scale(1.1);
+  background: #f1f5f9;
+}
+
+.spotifyIframeWrap {
   position: relative;
   border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-  color: var(--fg);
+  overflow: hidden;
 }
 
-.close {
+.closeIframeBtn {
   position: absolute;
-  right: 20px;
-  top: 15px;
-  font-size: 30px;
+  top: 4px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  line-height: 1;
+  font-size: 1.1rem;
 }
 
-.modalContent h3 {
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-  border-bottom: 2px solid var(--paper-brown);
-  display: inline-block;
-  padding-bottom: 5px;
+/* ── MODAL POPUP FULL NOTE ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
 }
 
-.modalContent p {
-  font-size: 1.25rem;
-  line-height: 1.6;
-  font-style: italic;
-  margin-bottom: 20px;
+.modalCard {
+  background: #93c5fd;
+  border-radius: 16px;
+  padding: 36px 30px 30px 30px;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  animation: modalPop 0.25s ease;
+  color: #0f172a;
 }
 
-.date {
-  color: #888;
+@keyframes modalPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.modalPin {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff4b4b, #dc2626 65%, #7f1d1d 100%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+.modalCloseBtn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: rgba(0, 0, 0, 0.15);
+  border: none;
+  font-size: 1.6rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #0f172a;
+  transition: background 0.2s;
+}
+
+.modalCloseBtn:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.modalBody {
+  margin: 18px 0;
+}
+
+.modalText {
+  font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
+  font-size: 1.45rem;
+  line-height: 1.65;
+  color: #0f172a;
+  margin: 0;
+  word-break: break-word;
+}
+
+.modalSpotifyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 50px;
+  background: #1db954;
+  color: #ffffff;
+  font-weight: 700;
   font-size: 0.9rem;
+  text-decoration: none;
 }
 
-.loading {
-  padding: 40px;
-  font-style: italic;
-  opacity: 0.7;
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .mainTitle {
+    font-size: 1.85rem;
+  }
+  .inputGrid {
+    grid-template-columns: 1fr;
+  }
+  .madingBoardFrame {
+    border-width: 8px;
+    padding: 8px;
+  }
+  .corkBoardSurface {
+    padding: 24px 14px;
+  }
+  .notesGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
