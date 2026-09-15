@@ -159,3 +159,58 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
+
+// ── PUT: Perbarui/Edit pengeluaran kas (termasuk nota) ──
+export async function PUT(req: NextRequest) {
+  try {
+    const admin = getAdminSessionFromReq(req);
+    if (!admin) {
+      return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
+    }
+
+    await ensurePengeluaranTable();
+    const body = await req.json();
+    const { id, tanggal, keperluan, kategori, nominal, buktiNotaUrl, catatan } = body;
+
+    if (!id || !tanggal || !keperluan || nominal === undefined || nominal === null) {
+      return NextResponse.json(
+        { status: false, message: "ID, tanggal, keperluan, dan nominal wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    const tDate = new Date(tanggal);
+    const tahun = !isNaN(tDate.getFullYear())
+      ? tDate.getFullYear()
+      : new Date().getFullYear();
+    const cleanNominal = Number(nominal) || 0;
+
+    await query(
+      `UPDATE pengeluaran_kas 
+       SET tanggal = ?, tahun = ?, kategori = ?, keperluan = ?, nominal = ?, bukti_nota_url = ?, catatan = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [
+        tanggal,
+        tahun,
+        kategori || "Operasional",
+        keperluan.trim(),
+        cleanNominal,
+        buktiNotaUrl || "",
+        catatan || "",
+        id,
+      ]
+    );
+
+    return NextResponse.json({
+      status: true,
+      message: "Pengeluaran kas berhasil diperbarui",
+    });
+  } catch (error: any) {
+    console.error("PUT pengeluaran error:", error);
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal memperbarui pengeluaran" },
+      { status: 500 }
+    );
+  }
+}
+

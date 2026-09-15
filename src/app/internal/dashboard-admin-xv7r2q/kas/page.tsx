@@ -81,6 +81,26 @@ export default function AdminKasPage() {
     buktiNotaUrl: "",
     catatan: "",
   });
+  const [showEditPengeluaranModal, setShowEditPengeluaranModal] = useState(false);
+  const [submittingEditPengeluaran, setSubmittingEditPengeluaran] = useState(false);
+  const [uploadingEditNota, setUploadingEditNota] = useState(false);
+  const [editPengeluaran, setEditPengeluaran] = useState<{
+    id: number | null;
+    tanggal: string;
+    kategori: string;
+    keperluan: string;
+    nominal: string;
+    buktiNotaUrl: string;
+    catatan: string;
+  }>({
+    id: null,
+    tanggal: "",
+    kategori: "Operasional",
+    keperluan: "",
+    nominal: "",
+    buktiNotaUrl: "",
+    catatan: "",
+  });
 
   // ── STATE: Kupon Kas Reward ──
   const [kuponList, setKuponList] = useState<any[]>([]);
@@ -624,6 +644,110 @@ export default function AdminKasPage() {
         alert(json.message || "Gagal menghapus pengeluaran");
       }
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
+  };
+
+  // ── Handler: Buka Modal Edit Pengeluaran ──
+  const handleOpenEditPengeluaran = (item: any) => {
+    let tglStr = "";
+    try {
+      if (item.tanggal) {
+        const d = new Date(item.tanggal);
+        if (!isNaN(d.getTime())) {
+          tglStr = d.toISOString().split("T")[0];
+        }
+      }
+    } catch {
+      tglStr = item.tanggal || "";
+    }
+
+    setEditPengeluaran({
+      id: item.id,
+      tanggal: tglStr || new Date().toISOString().split("T")[0],
+      kategori: item.kategori || "Operasional",
+      keperluan: item.keperluan || "",
+      nominal: item.nominal ? Number(item.nominal).toLocaleString("id-ID") : "",
+      buktiNotaUrl: item.bukti_nota_url || "",
+      catatan: item.catatan || "",
+    });
+    setShowEditPengeluaranModal(true);
+  };
+
+  // ── Handler: Upload Foto Bukti Nota untuk Edit ──
+  const handleUploadEditNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingEditNota(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+      }
+      if (json.status && json.url) {
+        setEditPengeluaran((prev) => ({ ...prev, buktiNotaUrl: json.url }));
+      } else {
+        alert(json.message || "Gagal mengunggah foto nota");
+      }
+    } catch (err: any) {
+      alert(err?.message || "Gagal mengunggah foto nota");
+    } finally {
+      setUploadingEditNota(false);
+    }
+  };
+
+  // ── Handler: Submit Edit Pengeluaran Kas ──
+  const handleEditPengeluaranSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPengeluaran.id) return;
+    const cleanNominal = Number(String(editPengeluaran.nominal).replace(/\D/g, ""));
+    if (!cleanNominal || !editPengeluaran.keperluan) {
+      alert("Keperluan dan nominal pengeluaran wajib diisi");
+      return;
+    }
+
+    setSubmittingEditPengeluaran(true);
+    try {
+      const res = await fetch("/api/admin/kas/pengeluaran", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editPengeluaran.id,
+          tanggal: editPengeluaran.tanggal,
+          kategori: editPengeluaran.kategori,
+          keperluan: editPengeluaran.keperluan,
+          nominal: cleanNominal,
+          buktiNotaUrl: editPengeluaran.buktiNotaUrl,
+          catatan: editPengeluaran.catatan,
+        }),
+      });
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server sedang memproses. Silakan refresh halaman untuk mengecek.");
+      }
+      if (json.status) {
+        setMsg("Catatan pengeluaran & bukti nota berhasil diperbarui!");
+        setShowEditPengeluaranModal(false);
+        fetchPengeluaran(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal memperbarui pengeluaran");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSubmittingEditPengeluaran(false);
+    }
   };
 
   // ── Handler: Submit Kupon Baru & Bagikan ──
@@ -1659,14 +1783,25 @@ export default function AdminKasPage() {
                           ) : "-"}
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePengeluaran(p.id)}
-                            className={styles.btnDelete}
-                            title="Hapus Pengeluaran"
-                          >
-                            <i className="bx bx-trash" />
-                          </button>
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditPengeluaran(p)}
+                              className={styles.backBtn}
+                              style={{ padding: "5px 9px", fontSize: "0.85rem", color: "#38bdf8", borderColor: "rgba(56, 189, 248, 0.4)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                              title="Edit Pengeluaran & Nota"
+                            >
+                              <i className="bx bx-edit-alt" /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePengeluaran(p.id)}
+                              className={styles.btnDelete}
+                              title="Hapus Pengeluaran"
+                            >
+                              <i className="bx bx-trash" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2597,6 +2732,206 @@ export default function AdminKasPage() {
                 <button type="submit" className={styles.btnCreate} style={{ background: "#e11d48", color: "#fff" }} disabled={submittingPengeluaran || uploadingNota}>
                   <i className={`bx ${submittingPengeluaran ? "bx-loader-alt bx-spin" : "bx-save"}`} />
                   {submittingPengeluaran ? "Menyimpan..." : "Simpan Pengeluaran"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL EDIT PENGELUARAN & NOTA KAS (FITUR EDIT / CRUD NOTA) ── */}
+      {showEditPengeluaranModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowEditPengeluaranModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-edit-alt" style={{ color: "#38bdf8" }} /> Edit Pengeluaran #{editPengeluaran.id}
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowEditPengeluaranModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditPengeluaranSubmit} className={styles.modalForm}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tanggal Pengeluaran</label>
+                  <input
+                    type="date"
+                    className={styles.modalInput}
+                    value={editPengeluaran.tanggal}
+                    onChange={(e) => setEditPengeluaran({ ...editPengeluaran, tanggal: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Kategori</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={editPengeluaran.kategori}
+                    onChange={(e) => setEditPengeluaran({ ...editPengeluaran, kategori: e.target.value })}
+                  >
+                    {(masterData.kategoriPengeluaran || [
+                      "Operasional Fanbase", "Event / Project Show", "Konsumsi Tim", "Website & Server", "Produksi Merchandise", "Banner & Handbanner", "Dokumentasi & Media", "Lain-lain"
+                    ]).map((kat: string) => (
+                      <option key={kat} value={kat}>{kat}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Keperluan / Deskripsi Singkat</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: Banner Erine 200 Show, Snack Gath, dll."
+                  value={editPengeluaran.keperluan}
+                  onChange={(e) => setEditPengeluaran({ ...editPengeluaran, keperluan: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Nominal Pengeluaran (Rp)</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: 150.000"
+                  value={editPengeluaran.nominal}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setEditPengeluaran({
+                      ...editPengeluaran,
+                      nominal: digits ? Number(digits).toLocaleString("id-ID") : "",
+                    });
+                  }}
+                  required
+                />
+              </div>
+
+              {/* INPUT GAMBAR NOTA / KWITANSI (BISA UPLOAD ULANG / GANTI JIKA HILANG) */}
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Bukti Foto Nota / Kwitansi</span>
+                  {editPengeluaran.buktiNotaUrl && (
+                    <span style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> Ada Foto
+                    </span>
+                  )}
+                </label>
+
+                {editPengeluaran.buktiNotaUrl ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(0,0,0,0.18)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <img
+                        src={editPengeluaran.buktiNotaUrl}
+                        alt="Preview Nota"
+                        style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border)", cursor: "pointer" }}
+                        onClick={() => setSelectedProof(editPengeluaran.buktiNotaUrl)}
+                        title="Klik untuk memperbesar foto"
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>
+                          Foto nota terpasang
+                        </div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {editPengeluaran.buktiNotaUrl}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditPengeluaran({ ...editPengeluaran, buktiNotaUrl: "" })}
+                        style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "#ef4444", cursor: "pointer", borderRadius: 6, padding: "4px 8px", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: 4 }}
+                        title="Hapus / Lepas foto nota saat ini"
+                      >
+                        <i className="bx bx-trash" /> Hapus
+                      </button>
+                    </div>
+
+                    <div style={{ borderTop: "1px dashed var(--border)", paddingTop: 8, display: "flex", justifyContent: "flex-end" }}>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/jpg"
+                        id="uploadEditNotaInputReplace"
+                        style={{ display: "none" }}
+                        onChange={handleUploadEditNota}
+                        disabled={uploadingEditNota}
+                      />
+                      <label
+                        htmlFor="uploadEditNotaInputReplace"
+                        style={{
+                          fontSize: "0.78rem",
+                          color: "var(--gold)",
+                          cursor: uploadingEditNota ? "not-allowed" : "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        <i className={`bx ${uploadingEditNota ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
+                        {uploadingEditNota ? "Mengunggah..." : "Unggah Ulang / Ganti Nota"}
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/jpg"
+                      id="uploadEditNotaInput"
+                      style={{ display: "none" }}
+                      onChange={handleUploadEditNota}
+                      disabled={uploadingEditNota}
+                    />
+                    <label
+                      htmlFor="uploadEditNotaInput"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        padding: "14px 16px",
+                        borderRadius: 10,
+                        border: "1.5px dashed rgba(56, 189, 248, 0.4)",
+                        background: "rgba(56, 189, 248, 0.05)",
+                        color: "#38bdf8",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                        cursor: uploadingEditNota ? "not-allowed" : "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <i className={`bx ${uploadingEditNota ? "bx-loader-alt bx-spin" : "bx-upload"}`} style={{ fontSize: "1.3rem" }} />
+                      {uploadingEditNota ? "Mengunggah foto nota baru..." : "Unggah Ulang Foto / Kamera Nota (Masukkan Nota)"}
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Catatan Tambahan (Opsional)</label>
+                <textarea
+                  className={styles.modalInput}
+                  rows={2}
+                  value={editPengeluaran.catatan}
+                  onChange={(e) => setEditPengeluaran({ ...editPengeluaran, catatan: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.backBtn} onClick={() => setShowEditPengeluaranModal(false)}>
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className={styles.btnCreate}
+                  style={{ background: "#0284c7", color: "#fff" }}
+                  disabled={submittingEditPengeluaran || uploadingEditNota}
+                >
+                  <i className={`bx ${submittingEditPengeluaran ? "bx-loader-alt bx-spin" : "bx-save"}`} />
+                  {submittingEditPengeluaran ? "Memperbarui..." : "Simpan Perubahan"}
                 </button>
               </div>
             </form>
