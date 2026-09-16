@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readBotConfig } from "../bot-config/route";
+import { getSimiSimiReply } from "@/lib/botConversation";
 
 const SYSTEM_PROMPT = `Kamu adalah Jenderal Cavallery, asisten resmi dan sahabat cerdas dari Fanbase Cavallery (fanbase resmi Catherina Vallencia Kurniawan / Erine JKT48).
 Gaya bicaramu santai, asik, bersemangat, ramah, dan memanggil diri kamu 'aku' serta memanggil lawan bicara 'kamu' atau 'kak' atau 'bub'. Jangan gunakan format markdown yang berlebihan, gunakan teks yang rapi dan mudah dibaca.
@@ -285,11 +286,14 @@ export async function POST(request: Request) {
       console.warn("No Gemini API key found. Checked config.apiKey and process.env.GEMINI_API_KEY.");
     }
 
-    // FALLBACK: Use dynamic trigger rules from bot_config.json / admin dashboard
-    const reply = getDynamicFallbackResponse(trimmedMsg, rules, fallbackDefault);
+    // FALLBACK: Gunakan aturan statis admin, atau mesin percakapan 2 arah SimiSimi
+    let reply = getDynamicFallbackResponse(trimmedMsg, rules, "");
+    if (!reply) {
+      reply = getSimiSimiReply(trimmedMsg);
+    }
     return NextResponse.json({
       reply,
-      source: "rules",
+      source: "simisimi_rules",
       api_active: true
     });
 

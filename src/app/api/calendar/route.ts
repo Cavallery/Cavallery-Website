@@ -56,6 +56,7 @@ function rowToEvent(row: any) {
 }
 
 import { API_CACHE_HEADERS, fetchWithCacheAndFallback } from "@/lib/apiCache";
+import { getMasterShows } from "../theater/route";
 
 const API_KEY = "sJbpVqLinYlp";
 const JKT48_BASE = "https://v5.jkt48connect.com/api/jkt48";
@@ -136,15 +137,31 @@ export async function readCalendar(): Promise<any[]> {
 export async function GET() {
   const localData = await readCalendar();
   const officialEvents = await fetchJkt48OfficialEvents();
+  
+  // Ambil semua master show teater (termasuk show Erine 2026 dan masa Trainee 2024)
+  const masterShows = getMasterShows().map((s) => ({
+    id: `theater-${s.id || s.schedule_id}`,
+    title: s.title || "Theater JKT48",
+    date: (s.date || s.showDate || "").slice(0, 10),
+    startTime: (s.startTime || s.start_time || "19:00").slice(0, 5),
+    members: s.members || [{ name: "JKT48" }],
+    url: s.url || "#",
+    imageUrl: s.poster || s.banner || "",
+    isOfficial: true,
+    isTheater: true,
+  }));
 
-  const merged = [...localData, ...officialEvents];
+  const merged = [...localData, ...officialEvents, ...masterShows];
   const seen = new Set<string>();
   const unique = merged.filter((item: any) => {
-    const key = `${item.title}-${item.date}-${item.startTime}`;
+    const key = `${(item.title || "").trim().toLowerCase()}-${(item.date || "").slice(0, 10)}-${(item.startTime || "").slice(0, 5)}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
+  // Urutkan tanggal menaik
+  unique.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return NextResponse.json({ success: true, data: unique }, { headers: API_CACHE_HEADERS });
 }

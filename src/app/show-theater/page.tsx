@@ -30,6 +30,7 @@ export default function ShowTheaterPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filterErine, setFilterErine] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -44,34 +45,34 @@ export default function ShowTheaterPage() {
   useEffect(() => { load(); const id = setInterval(load, 180000); return () => clearInterval(id); }, [load]);
 
   const displayed = useMemo(() => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    let list = shows;
 
-    // 1. Shows from today onwards
-    const upcomingShows = shows.filter((s) => {
-      const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return true;
-      const d = new Date(dateStr).getTime();
-      return !isNaN(d) && d >= today;
-    });
+    // Filter Tahun (2026, 2024, 2025, semua)
+    if (selectedYear !== "all") {
+      const yNum = parseInt(selectedYear, 10);
+      list = list.filter((s) => {
+        const dateStr = s.date ?? s.showDate ?? "";
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return d.getFullYear() === yNum;
+      });
+    }
 
-    // 2. If upcoming shows exist, use them; otherwise, show latest available shows
-    const validShows = upcomingShows.length > 0 ? upcomingShows : shows;
+    // Filter Erine
+    if (filterErine) {
+      list = list.filter((s) => {
+        const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+        return members.some((m) => isErine(m.name ?? ""));
+      });
+    }
 
-    const list = filterErine
-      ? validShows.filter((s) => {
-          const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-          return members.some((m) => isErine(m.name ?? ""));
-        })
-      : validShows;
-
-    // Sort: if upcoming -> nearest show first (asc); if history/latest -> latest show first (desc)
+    // Sort: Newest first
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return upcomingShows.length > 0 ? da - db : db - da;
+      return db - da;
     });
-  }, [shows, filterErine]);
+  }, [shows, selectedYear, filterErine]);
 
   const erineCount = useMemo(() => {
     const now = new Date();
@@ -112,10 +113,43 @@ export default function ShowTheaterPage() {
       <div className={styles.content}>
         {/* Controls */}
         <div className={styles.controls}>
-          <div className={styles.controlLeft}>
-            <span className={styles.count}>
-              <i className="bx bx-list-ul" /> {displayed.length} show ditemukan
-              {filterErine && erineCount > 0 && <span className={styles.erineCount}> · {erineCount} dengan Erine!</span>}
+          <div className={styles.controlLeft} style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", padding: "3px", borderRadius: "50px", border: "1px solid var(--border)", gap: "4px" }}>
+              <button
+                type="button"
+                className={`${styles.filterBtn} ${selectedYear === "2026" ? styles.filterActive : ""}`}
+                style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                onClick={() => setSelectedYear("2026")}
+              >
+                2026
+              </button>
+              <button
+                type="button"
+                className={`${styles.filterBtn} ${selectedYear === "2024" ? styles.filterActive : ""}`}
+                style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                onClick={() => setSelectedYear("2024")}
+              >
+                2024 (Trainee)
+              </button>
+              <button
+                type="button"
+                className={`${styles.filterBtn} ${selectedYear === "2025" ? styles.filterActive : ""}`}
+                style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                onClick={() => setSelectedYear("2025")}
+              >
+                2025
+              </button>
+              <button
+                type="button"
+                className={`${styles.filterBtn} ${selectedYear === "all" ? styles.filterActive : ""}`}
+                style={{ padding: "6px 14px", fontSize: "0.78rem" }}
+                onClick={() => setSelectedYear("all")}
+              >
+                Semua
+              </button>
+            </div>
+            <span className={styles.count} style={{ marginLeft: "6px" }}>
+              <i className="bx bx-list-ul" /> {displayed.length} show
             </span>
           </div>
           <div className={styles.controlRight}>
@@ -124,7 +158,7 @@ export default function ShowTheaterPage() {
               onClick={() => setFilterErine((v) => !v)}
             >
               <i className={`bx ${filterErine ? "bxs-star" : "bx-star"}`} />
-              {filterErine ? "Semua Jadwal Erine" : "Filter: Jadwal Erine"}
+              {filterErine ? "Khusus Erine" : "Semua Member"}
             </button>
             <button className={styles.refreshBtn} onClick={load}>
               <i className="bx bx-refresh" /> Refresh
