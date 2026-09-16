@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { query } from "@/lib/mysql";
+import { syncLocalUploadsToDb } from "@/lib/mysqlStorage";
 
 // Helper memastikan tabel pengeluaran_kas ada
 async function ensurePengeluaranTable() {
@@ -14,7 +15,7 @@ async function ensurePengeluaranTable() {
         keperluan VARCHAR(255) NOT NULL,
         nominal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
         pj_nama VARCHAR(100) NOT NULL,
-        bukti_nota_url VARCHAR(500) NULL,
+        bukti_nota_url TEXT NULL,
         catatan TEXT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -22,6 +23,9 @@ async function ensurePengeluaranTable() {
         INDEX idx_tanggal (tanggal)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Upgrade kolom ke TEXT jika tabel lama masih VARCHAR(500)
+    await query("ALTER TABLE pengeluaran_kas MODIFY COLUMN bukti_nota_url TEXT NULL").catch(() => {});
   } catch (e: any) {
     console.error("ensurePengeluaranTable error:", e);
   }
@@ -36,6 +40,8 @@ export async function GET(req: NextRequest) {
     }
 
     await ensurePengeluaranTable();
+    syncLocalUploadsToDb().catch(() => {});
+
     const { searchParams } = new URL(req.url);
     const tahunParam = searchParams.get("tahun");
 
@@ -97,6 +103,13 @@ export async function POST(req: NextRequest) {
       : new Date().getFullYear();
     const cleanNominal = Number(nominal) || 0;
 
+    let finalBuktiNota = "";
+    if (Array.isArray(buktiNotaUrl)) {
+      finalBuktiNota = buktiNotaUrl.filter(Boolean).join(",");
+    } else if (typeof buktiNotaUrl === "string") {
+      finalBuktiNota = buktiNotaUrl.trim();
+    }
+
     // Gunakan AUTO_INCREMENT langsung — cepat, 1 query
     const insertRes = await query<any>(
       `INSERT INTO pengeluaran_kas (tanggal, tahun, kategori, keperluan, nominal, pj_nama, bukti_nota_url, catatan)
@@ -108,7 +121,7 @@ export async function POST(req: NextRequest) {
         keperluan.trim(),
         cleanNominal,
         admin.nama || "Admin Fanbase",
-        buktiNotaUrl || "",
+        finalBuktiNota,
         catatan || "",
       ]
     );
@@ -185,6 +198,13 @@ export async function PUT(req: NextRequest) {
       : new Date().getFullYear();
     const cleanNominal = Number(nominal) || 0;
 
+    let finalBuktiNota = "";
+    if (Array.isArray(buktiNotaUrl)) {
+      finalBuktiNota = buktiNotaUrl.filter(Boolean).join(",");
+    } else if (typeof buktiNotaUrl === "string") {
+      finalBuktiNota = buktiNotaUrl.trim();
+    }
+
     await query(
       `UPDATE pengeluaran_kas 
        SET tanggal = ?, tahun = ?, kategori = ?, keperluan = ?, nominal = ?, bukti_nota_url = ?, catatan = ?, updated_at = NOW()
@@ -195,7 +215,7 @@ export async function PUT(req: NextRequest) {
         kategori || "Operasional",
         keperluan.trim(),
         cleanNominal,
-        buktiNotaUrl || "",
+        finalBuktiNota,
         catatan || "",
         id,
       ]

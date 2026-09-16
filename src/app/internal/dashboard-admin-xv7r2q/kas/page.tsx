@@ -42,6 +42,20 @@ function normalizeProofUrl(url?: string | null): string {
   return clean;
 }
 
+function parseNotaList(urlOrUrls: any): string[] {
+  if (!urlOrUrls) return [];
+  if (Array.isArray(urlOrUrls)) return urlOrUrls.filter(Boolean);
+  const str = String(urlOrUrls).trim();
+  if (!str || str === "-" || str === "null") return [];
+  if (str.startsWith("[") && str.endsWith("]")) {
+    try {
+      const arr = JSON.parse(str);
+      if (Array.isArray(arr)) return arr.filter(Boolean);
+    } catch {}
+  }
+  return str.split(",").map((s: string) => s.trim()).filter(Boolean);
+}
+
 export default function AdminKasPage() {
   // ── STATE: Konfirmasi Kas ──
   const [kasList, setKasList] = useState<any[]>([]);
@@ -49,6 +63,7 @@ export default function AdminKasPage() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
+  const [selectedProofList, setSelectedProofList] = useState<string[]>([]);
   const [editKas, setEditKas] = useState<any | null>(null);
 
   // ── STATE: Tab Utama ──
@@ -78,7 +93,7 @@ export default function AdminKasPage() {
     kategori: "Operasional",
     keperluan: "",
     nominal: "",
-    buktiNotaUrl: "",
+    buktiNotaUrls: [] as string[],
     catatan: "",
   });
   const [showEditPengeluaranModal, setShowEditPengeluaranModal] = useState(false);
@@ -90,7 +105,7 @@ export default function AdminKasPage() {
     kategori: string;
     keperluan: string;
     nominal: string;
-    buktiNotaUrl: string;
+    buktiNotaUrls: string[];
     catatan: string;
   }>({
     id: null,
@@ -98,7 +113,7 @@ export default function AdminKasPage() {
     kategori: "Operasional",
     keperluan: "",
     nominal: "",
-    buktiNotaUrl: "",
+    buktiNotaUrls: [],
     catatan: "",
   });
 
@@ -546,34 +561,45 @@ export default function AdminKasPage() {
     }
   };
 
-  // ── Handler: Upload Foto Bukti Nota ──
+  // ── Handler: Upload Foto Bukti Nota (Bisa Lebih Dari 1 Foto) ──
   const handleUploadNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     setUploadingNota(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      let json: any = {};
-      const cType = res.headers.get("content-type") || "";
-      if (cType.includes("application/json")) {
-        json = await res.json();
-      } else {
-        throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        let json: any = {};
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          json = await res.json();
+        } else {
+          throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+        }
+        if (json.status && json.url) {
+          uploadedUrls.push(json.url);
+        } else {
+          alert(json.message || `Gagal mengunggah foto ke-${i + 1}`);
+        }
       }
-      if (json.status && json.url) {
-        setNewPengeluaran((prev) => ({ ...prev, buktiNotaUrl: json.url }));
-      } else {
-        alert(json.message || "Gagal mengunggah foto");
+      if (uploadedUrls.length > 0) {
+        setNewPengeluaran((prev) => ({
+          ...prev,
+          buktiNotaUrls: [...(prev.buktiNotaUrls || []), ...uploadedUrls],
+        }));
       }
     } catch (err: any) {
       alert(err?.message || "Gagal mengunggah foto");
     } finally {
       setUploadingNota(false);
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -596,7 +622,7 @@ export default function AdminKasPage() {
           kategori: newPengeluaran.kategori,
           keperluan: newPengeluaran.keperluan,
           nominal: cleanNominal,
-          buktiNotaUrl: newPengeluaran.buktiNotaUrl,
+          buktiNotaUrl: newPengeluaran.buktiNotaUrls.join(","),
           catatan: newPengeluaran.catatan,
         }),
       });
@@ -615,7 +641,7 @@ export default function AdminKasPage() {
           kategori: "Operasional",
           keperluan: "",
           nominal: "",
-          buktiNotaUrl: "",
+          buktiNotaUrls: [],
           catatan: "",
         });
         fetchPengeluaran(matrixYear);
@@ -660,46 +686,59 @@ export default function AdminKasPage() {
       tglStr = item.tanggal || "";
     }
 
+    const notaUrls = parseNotaList(item.bukti_nota_url || item.buktiNotaUrl);
+
     setEditPengeluaran({
       id: item.id,
       tanggal: tglStr || new Date().toISOString().split("T")[0],
       kategori: item.kategori || "Operasional",
       keperluan: item.keperluan || "",
       nominal: item.nominal ? Number(item.nominal).toLocaleString("id-ID") : "",
-      buktiNotaUrl: item.bukti_nota_url || "",
+      buktiNotaUrls: notaUrls,
       catatan: item.catatan || "",
     });
     setShowEditPengeluaranModal(true);
   };
 
-  // ── Handler: Upload Foto Bukti Nota untuk Edit ──
+  // ── Handler: Upload Foto Bukti Nota untuk Edit (Bisa Lebih Dari 1 Foto) ──
   const handleUploadEditNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     setUploadingEditNota(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      let json: any = {};
-      const cType = res.headers.get("content-type") || "";
-      if (cType.includes("application/json")) {
-        json = await res.json();
-      } else {
-        throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        let json: any = {};
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          json = await res.json();
+        } else {
+          throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+        }
+        if (json.status && json.url) {
+          uploadedUrls.push(json.url);
+        } else {
+          alert(json.message || `Gagal mengunggah foto ke-${i + 1}`);
+        }
       }
-      if (json.status && json.url) {
-        setEditPengeluaran((prev) => ({ ...prev, buktiNotaUrl: json.url }));
-      } else {
-        alert(json.message || "Gagal mengunggah foto nota");
+      if (uploadedUrls.length > 0) {
+        setEditPengeluaran((prev) => ({
+          ...prev,
+          buktiNotaUrls: [...(prev.buktiNotaUrls || []), ...uploadedUrls],
+        }));
       }
     } catch (err: any) {
       alert(err?.message || "Gagal mengunggah foto nota");
     } finally {
       setUploadingEditNota(false);
+      if (e.target) e.target.value = "";
     }
   };
 
@@ -724,7 +763,7 @@ export default function AdminKasPage() {
           kategori: editPengeluaran.kategori,
           keperluan: editPengeluaran.keperluan,
           nominal: cleanNominal,
-          buktiNotaUrl: editPengeluaran.buktiNotaUrl,
+          buktiNotaUrl: editPengeluaran.buktiNotaUrls.join(","),
           catatan: editPengeluaran.catatan,
         }),
       });
@@ -1771,16 +1810,46 @@ export default function AdminKasPage() {
                         <td style={{ fontWeight: 800, color: "#e11d48" }}>{formatRupiah(p.nominal)}</td>
                         <td>{p.pj_nama}</td>
                         <td>
-                          {p.bukti_nota_url ? (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedProof(p.bukti_nota_url)}
-                              className={styles.backBtn}
-                              style={{ fontSize: "0.72rem", padding: "3px 8px" }}
-                            >
-                              <i className="bx bx-image" /> Lihat
-                            </button>
-                          ) : "-"}
+                          {(() => {
+                            const notaUrls = parseNotaList(p.bukti_nota_url);
+                            if (notaUrls.length === 0) return "-";
+                            if (notaUrls.length === 1) {
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedProof(notaUrls[0]);
+                                    setSelectedProofList(notaUrls);
+                                  }}
+                                  className={styles.backBtn}
+                                  style={{ fontSize: "0.72rem", padding: "3px 8px" }}
+                                >
+                                  <i className="bx bx-image" /> Lihat
+                                </button>
+                              );
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProof(notaUrls[0]);
+                                  setSelectedProofList(notaUrls);
+                                }}
+                                className={styles.backBtn}
+                                style={{
+                                  fontSize: "0.72rem",
+                                  padding: "3px 8px",
+                                  background: "rgba(201, 168, 76, 0.15)",
+                                  color: "var(--gold)",
+                                  borderColor: "rgba(201, 168, 76, 0.4)",
+                                  fontWeight: 700,
+                                }}
+                                title="Klik untuk melihat semua foto nota"
+                              >
+                                <i className="bx bx-images" /> {notaUrls.length} Foto Nota
+                              </button>
+                            );
+                          })()}
                         </td>
                         <td>
                           <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -2662,57 +2731,100 @@ export default function AdminKasPage() {
                 />
               </div>
 
-              {/* INPUT GAMBAR NOTA / KWITANSI LANGSUNG (FILE INPUT BUKAN URL) */}
+              {/* INPUT GAMBAR NOTA / KWITANSI (BISA UPLOAD LEBIH DARI 1 FOTO) */}
               <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Upload Bukti Foto Nota / Kwitansi (Opsional)</label>
-                {newPengeluaran.buktiNotaUrl ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(0,0,0,0.15)" }}>
-                    <img src={newPengeluaran.buktiNotaUrl} alt="Preview Nota" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border)" }} />
-                    <div style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>
-                      <i className="bx bx-check-circle" /> Foto nota berhasil diunggah
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setNewPengeluaran({ ...newPengeluaran, buktiNotaUrl: "" })}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "1.2rem", display: "flex", alignItems: "center" }}
-                      title="Hapus foto"
-                    >
-                      <i className="bx bx-trash" />
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/jpg"
-                      id="uploadNotaInput"
-                      style={{ display: "none" }}
-                      onChange={handleUploadNota}
-                      disabled={uploadingNota}
-                    />
-                    <label
-                      htmlFor="uploadNotaInput"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        padding: "12px 16px",
-                        borderRadius: 10,
-                        border: "1.5px dashed var(--border)",
-                        background: "rgba(255, 255, 255, 0.02)",
-                        color: "var(--fg-muted)",
-                        fontWeight: 700,
-                        fontSize: "0.85rem",
-                        cursor: uploadingNota ? "not-allowed" : "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <i className={`bx ${uploadingNota ? "bx-loader-alt bx-spin" : "bx-camera"}`} style={{ fontSize: "1.3rem", color: "var(--gold)" }} />
-                      {uploadingNota ? "Mengunggah foto nota..." : "Pilih File Foto / Kamera Nota"}
-                    </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <label className={styles.modalLabel} style={{ margin: 0 }}>
+                    Bukti Foto Nota / Kwitansi (Bisa Banyak Foto)
+                  </label>
+                  {newPengeluaran.buktiNotaUrls && newPengeluaran.buktiNotaUrls.length > 0 && (
+                    <span style={{ fontSize: "0.74rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> {newPengeluaran.buktiNotaUrls.length} Foto Dipilih
+                    </span>
+                  )}
+                </div>
+
+                {/* List preview gambar yang sudah dipilih */}
+                {newPengeluaran.buktiNotaUrls && newPengeluaran.buktiNotaUrls.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))", gap: 8, marginBottom: 10, padding: 8, background: "rgba(0,0,0,0.25)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    {newPengeluaran.buktiNotaUrls.map((url, idx) => (
+                      <div key={idx} style={{ position: "relative", width: "100%", aspectRatio: "1/1", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                        <img
+                          src={normalizeProofUrl(url)}
+                          alt={`Nota ${idx + 1}`}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                          onClick={() => { setSelectedProof(url); setSelectedProofList(newPengeluaran.buktiNotaUrls); }}
+                          title="Klik untuk memperbesar"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewPengeluaran({
+                              ...newPengeluaran,
+                              buktiNotaUrls: newPengeluaran.buktiNotaUrls.filter((_, i) => i !== idx),
+                            });
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: 2,
+                            right: 2,
+                            background: "rgba(239, 68, 68, 0.85)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: 20,
+                            height: 20,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "0.7rem",
+                          }}
+                          title="Hapus foto ini"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
+
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    id="uploadNotaInput"
+                    style={{ display: "none" }}
+                    onChange={handleUploadNota}
+                    disabled={uploadingNota}
+                  />
+                  <label
+                    htmlFor="uploadNotaInput"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "12px 16px",
+                      borderRadius: 10,
+                      border: "1.5px dashed var(--border)",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      color: "var(--fg-muted)",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: uploadingNota ? "not-allowed" : "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <i className={`bx ${uploadingNota ? "bx-loader-alt bx-spin" : "bx-camera"}`} style={{ fontSize: "1.3rem", color: "var(--gold)" }} />
+                    {uploadingNota
+                      ? "Mengunggah foto..."
+                      : (newPengeluaran.buktiNotaUrls && newPengeluaran.buktiNotaUrls.length > 0)
+                      ? "+ Tambah Foto Nota Lainnya"
+                      : "Pilih File Foto / Kamera Nota (Bisa Lebih Dari 1)"}
+                  </label>
+                </div>
               </div>
 
               <div className={styles.modalField}>
@@ -2810,75 +2922,105 @@ export default function AdminKasPage() {
                 />
               </div>
 
-              {/* INPUT GAMBAR NOTA / KWITANSI (BISA UPLOAD ULANG / GANTI JIKA HILANG) */}
+              {/* INPUT GAMBAR NOTA / KWITANSI (BISA UPLOAD LEBIH DARI 1 FOTO) */}
               <div className={styles.modalField}>
-                <label className={styles.modalLabel} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Bukti Foto Nota / Kwitansi</span>
-                  {editPengeluaran.buktiNotaUrl && (
-                    <span style={{ fontSize: "0.72rem", color: "#10b981", fontWeight: 700 }}>
-                      <i className="bx bx-check-circle" /> Ada Foto
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <label className={styles.modalLabel} style={{ margin: 0 }}>
+                    Bukti Foto Nota / Kwitansi (Bisa Banyak Foto)
+                  </label>
+                  {editPengeluaran.buktiNotaUrls && editPengeluaran.buktiNotaUrls.length > 0 && (
+                    <span style={{ fontSize: "0.74rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> {editPengeluaran.buktiNotaUrls.length} Foto Terpasang
                     </span>
                   )}
-                </label>
+                </div>
 
-                {editPengeluaran.buktiNotaUrl ? (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border)", background: "rgba(0,0,0,0.18)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <img
-                        src={editPengeluaran.buktiNotaUrl}
-                        alt="Preview Nota"
-                        style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border)", cursor: "pointer" }}
-                        onClick={() => setSelectedProof(editPengeluaran.buktiNotaUrl)}
-                        title="Klik untuk memperbesar foto"
-                      />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>
-                          Foto nota terpasang
+                {editPengeluaran.buktiNotaUrls && editPengeluaran.buktiNotaUrls.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 12, borderRadius: 10, border: "1px solid var(--border)", background: "rgba(0,0,0,0.2)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))", gap: 8 }}>
+                      {editPengeluaran.buktiNotaUrls.map((url, idx) => (
+                        <div key={idx} style={{ position: "relative", width: "100%", aspectRatio: "1/1", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                          <img
+                            src={normalizeProofUrl(url)}
+                            alt={`Nota ${idx + 1}`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                            onClick={() => { setSelectedProof(url); setSelectedProofList(editPengeluaran.buktiNotaUrls); }}
+                            title="Klik untuk memperbesar"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditPengeluaran({
+                                ...editPengeluaran,
+                                buktiNotaUrls: editPengeluaran.buktiNotaUrls.filter((_, i) => i !== idx),
+                              });
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: 2,
+                              right: 2,
+                              background: "rgba(239, 68, 68, 0.85)",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: 20,
+                              height: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              fontSize: "0.7rem",
+                            }}
+                            title="Hapus foto ini"
+                          >
+                            ✕
+                          </button>
                         </div>
-                        <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {editPengeluaran.buktiNotaUrl}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEditPengeluaran({ ...editPengeluaran, buktiNotaUrl: "" })}
-                        style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "#ef4444", cursor: "pointer", borderRadius: 6, padding: "4px 8px", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: 4 }}
-                        title="Hapus / Lepas foto nota saat ini"
-                      >
-                        <i className="bx bx-trash" /> Hapus
-                      </button>
+                      ))}
                     </div>
 
-                    <div style={{ borderTop: "1px dashed var(--border)", paddingTop: 8, display: "flex", justifyContent: "flex-end" }}>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp,image/jpg"
-                        id="uploadEditNotaInputReplace"
-                        style={{ display: "none" }}
-                        onChange={handleUploadEditNota}
-                        disabled={uploadingEditNota}
-                      />
-                      <label
-                        htmlFor="uploadEditNotaInputReplace"
-                        style={{
-                          fontSize: "0.78rem",
-                          color: "var(--gold)",
-                          cursor: uploadingEditNota ? "not-allowed" : "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 5,
-                          fontWeight: 700,
-                        }}
+                    <div style={{ borderTop: "1px dashed var(--border)", paddingTop: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditPengeluaran({ ...editPengeluaran, buktiNotaUrls: [] })}
+                        style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.75rem", display: "flex", alignItems: "center", gap: 4 }}
                       >
-                        <i className={`bx ${uploadingEditNota ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
-                        {uploadingEditNota ? "Mengunggah..." : "Unggah Ulang / Ganti Nota"}
-                      </label>
+                        <i className="bx bx-trash" /> Hapus Semua Foto
+                      </button>
+
+                      <div>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/jpeg,image/png,image/webp,image/jpg"
+                          id="uploadEditNotaInputAdd"
+                          style={{ display: "none" }}
+                          onChange={handleUploadEditNota}
+                          disabled={uploadingEditNota}
+                        />
+                        <label
+                          htmlFor="uploadEditNotaInputAdd"
+                          style={{
+                            fontSize: "0.78rem",
+                            color: "var(--gold)",
+                            cursor: uploadingEditNota ? "not-allowed" : "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontWeight: 700,
+                          }}
+                        >
+                          <i className={`bx ${uploadingEditNota ? "bx-loader-alt bx-spin" : "bx-plus-circle"}`} />
+                          {uploadingEditNota ? "Mengunggah..." : "+ Tambah Foto Nota Lain"}
+                        </label>
+                      </div>
                     </div>
                   </div>
                 ) : (
                   <div>
                     <input
                       type="file"
+                      multiple
                       accept="image/jpeg,image/png,image/webp,image/jpg"
                       id="uploadEditNotaInput"
                       style={{ display: "none" }}
@@ -2904,7 +3046,7 @@ export default function AdminKasPage() {
                       }}
                     >
                       <i className={`bx ${uploadingEditNota ? "bx-loader-alt bx-spin" : "bx-upload"}`} style={{ fontSize: "1.3rem" }} />
-                      {uploadingEditNota ? "Mengunggah foto nota baru..." : "Unggah Ulang Foto / Kamera Nota (Masukkan Nota)"}
+                      {uploadingEditNota ? "Mengunggah foto..." : "Pilih File Foto Nota (Bisa Lebih Dari 1)"}
                     </label>
                   </div>
                 )}
@@ -3188,15 +3330,23 @@ export default function AdminKasPage() {
 
 
 
-      {/* ── MODAL PROOF IMAGE VIEWER ── */}
+      {/* ── MODAL PROOF IMAGE VIEWER (MENDUKUNG MULTI-FOTO NOTA) ── */}
       {selectedProof && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedProof(null)}>
-          <div className={styles.modalCard} style={{ maxWidth: 540, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalOverlay} onClick={() => { setSelectedProof(null); setSelectedProofList([]); }}>
+          <div className={styles.modalCard} style={{ maxWidth: 580, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}><i className="bx bx-receipt" /> Bukti Pembayaran / Nota</h3>
-              <button type="button" className={styles.modalClose} onClick={() => setSelectedProof(null)}><i className="bx bx-x" /></button>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-receipt" /> Bukti Pembayaran / Nota
+                {selectedProofList.length > 1 && (
+                  <span style={{ fontSize: "0.8rem", color: "var(--gold)", marginLeft: 8, fontWeight: 700 }}>
+                    ({(selectedProofList.indexOf(selectedProof) !== -1 ? selectedProofList.indexOf(selectedProof) + 1 : 1)} dari {selectedProofList.length} Foto)
+                  </span>
+                )}
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => { setSelectedProof(null); setSelectedProofList([]); }}><i className="bx bx-x" /></button>
             </div>
-            <div style={{ marginTop: 16, background: "rgba(0, 0, 0, 0.4)", borderRadius: 12, padding: 8, minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+
+            <div style={{ position: "relative", marginTop: 16, background: "rgba(0, 0, 0, 0.4)", borderRadius: 12, padding: 8, minHeight: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <img
                 src={normalizeProofUrl(selectedProof)}
                 alt="Bukti Pembayaran / Nota"
@@ -3206,9 +3356,100 @@ export default function AdminKasPage() {
                     target.src = "/uploads/bukti/bukti-1788285192192-ypyr5p.jpg";
                   }
                 }}
-                style={{ width: "100%", maxHeight: "65vh", objectFit: "contain", borderRadius: 10 }}
+                style={{ width: "100%", maxHeight: "60vh", objectFit: "contain", borderRadius: 10 }}
               />
+
+              {/* Tombol Panah Prev / Next jika multi-foto */}
+              {selectedProofList.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curIdx = selectedProofList.indexOf(selectedProof);
+                      const prevIdx = curIdx > 0 ? curIdx - 1 : selectedProofList.length - 1;
+                      setSelectedProof(selectedProofList[prevIdx]);
+                    }}
+                    style={{
+                      position: "absolute",
+                      left: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "rgba(0,0,0,0.7)",
+                      color: "#fff",
+                      border: "1px solid rgba(255,255,255,0.25)",
+                      borderRadius: "50%",
+                      width: 36,
+                      height: 36,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: "1.2rem",
+                    }}
+                    title="Foto Sebelumnya"
+                  >
+                    <i className="bx bx-chevron-left" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curIdx = selectedProofList.indexOf(selectedProof);
+                      const nextIdx = curIdx < selectedProofList.length - 1 ? curIdx + 1 : 0;
+                      setSelectedProof(selectedProofList[nextIdx]);
+                    }}
+                    style={{
+                      position: "absolute",
+                      right: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "rgba(0,0,0,0.7)",
+                      color: "#fff",
+                      border: "1px solid rgba(255,255,255,0.25)",
+                      borderRadius: "50%",
+                      width: 36,
+                      height: 36,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: "1.2rem",
+                    }}
+                    title="Foto Selanjutnya"
+                  >
+                    <i className="bx bx-chevron-right" />
+                  </button>
+                </>
+              )}
             </div>
+
+            {/* Thumbnail Strip jika lebih dari 1 foto */}
+            {selectedProofList.length > 1 && (
+              <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12, overflowX: "auto", paddingBottom: 4 }}>
+                {selectedProofList.map((url, idx) => {
+                  const isActive = url === selectedProof;
+                  return (
+                    <img
+                      key={idx}
+                      src={normalizeProofUrl(url)}
+                      alt={`Thumb ${idx + 1}`}
+                      onClick={() => setSelectedProof(url)}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        border: isActive ? "2px solid var(--gold)" : "1px solid rgba(255,255,255,0.2)",
+                        opacity: isActive ? 1 : 0.6,
+                        transform: isActive ? "scale(1.05)" : "scale(1)",
+                        transition: "all 0.15s ease",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
             <div style={{ marginTop: 10, fontSize: "0.75rem", opacity: 0.6, wordBreak: "break-all" }}>
               Tautan: {selectedProof}
             </div>
@@ -3216,7 +3457,7 @@ export default function AdminKasPage() {
               <a href={normalizeProofUrl(selectedProof)} target="_blank" rel="noopener noreferrer" className={styles.backBtn}>
                 <i className="bx bx-link-external" /> Buka Ukuran Penuh
               </a>
-              <button type="button" className={styles.btnGhost} onClick={() => setSelectedProof(null)}>
+              <button type="button" className={styles.btnGhost} onClick={() => { setSelectedProof(null); setSelectedProofList([]); }}>
                 Tutup
               </button>
             </div>
