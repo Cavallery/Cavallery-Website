@@ -113,8 +113,37 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
   const text = rawText.trim().toLowerCase();
   let messagePayload: any = null;
 
+  // Cek apakah pesan berasal dari grup atau multi-user room
+  const sourceType = event.source?.type || "user";
+  const isGroupOrRoom = sourceType === "group" || sourceType === "room";
+
+  // Deteksi perintah resmi kas
+  const isKasCommand =
+    text === "kas" ||
+    text === "!kas" ||
+    text === "/kas" ||
+    text === "#kas" ||
+    text === "cek kas";
+
+  const isBayarKasCommand =
+    text === "bayar kas" ||
+    text === "!bayarkas" ||
+    text === "/bayarkas" ||
+    text === "!bayar kas" ||
+    text === "/bayar kas" ||
+    text === "bayar iuran" ||
+    text === "iuran kas";
+
+  const isHelpCommand =
+    text === "help" ||
+    text === "!help" ||
+    text === "/help" ||
+    text === "bantuan" ||
+    text === "menu" ||
+    text === "perintah";
+
   // 1. Perintah: kas
-  if (text === "kas") {
+  if (isKasCommand) {
     messagePayload = {
       type: "flex",
       altText:
@@ -180,7 +209,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     };
   }
   // 2. Perintah: bayar kas
-  else if (text === "bayar kas") {
+  else if (isBayarKasCommand) {
     messagePayload = {
       type: "flex",
       altText:
@@ -246,33 +275,83 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     };
   }
   // 3. Perintah bantuan / menu
-  else if (text === "help" || text === "bantuan" || text === "menu" || text === "perintah") {
+  else if (isHelpCommand) {
     messagePayload = {
       type: "text",
       text:
         "Halo! Aku bot resmi Cavallery Kas. 🕊️\n\n" +
         "Berikut perintah yang bisa kamu gunakan:\n" +
-        "• kas : Menampilkan tombol rincian halaman kas\n" +
-        "• bayar kas : Menampilkan tombol link pembayaran kas\n\n" +
-        "Kamu juga bisa bertanya seputar Erine atau kegiatan Cavallery lho!",
+        "• kas : Menampilkan rincian halaman kas\n" +
+        "• bayar kas : Menampilkan link pembayaran kas\n\n" +
+        (isGroupOrRoom
+          ? "💡 Tips di grup: Panggil dengan awalan 'rin ...' atau 'bot ...' jika ingin bertanya/mengobrol."
+          : "Kamu juga bisa bebas ngobrol santai seputar Erine atau curhat apa saja!"),
     };
   }
   // 4. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI
   else {
-    try {
-      const replyText = await getAIOrSimiSimiReply(rawText);
-      if (replyText) {
+    // ANTI-SPAM GRUP:
+    // Jika di grup atau room, JANGAN merespon obrolan santai sesama member!
+    // HANYA balas jika sengaja dipanggil namanya (misal: "rin ...", "erine ...", "bot ...", "@catherin ...")
+    if (isGroupOrRoom) {
+      const summonPrefixes = [
+        "bot ", "!bot ", "/bot ", "rin ", "erine ", "@catherin", "@erine", "@bot"
+      ];
+      const hasMention = Boolean(
+        event.message?.mention?.mentionees &&
+        event.message.mention.mentionees.length > 0
+      );
+
+      const matchedPrefix = summonPrefixes.find((p) => text.startsWith(p));
+      const isExactCall = text === "bot" || text === "rin" || text === "erine";
+
+      // Jika BUKAN panggilan sengaja ke bot -> DIAM / JANGAN BALAS APAPUN (0% SPAM!)
+      if (!matchedPrefix && !hasMention && !isExactCall) {
+        return;
+      }
+
+      // Bersihkan kata panggilan agar jawaban bot tepat sasaran
+      let cleanQuery = rawText;
+      if (matchedPrefix) {
+        cleanQuery = rawText.slice(matchedPrefix.length).trim();
+      } else if (isExactCall) {
+        cleanQuery = "halo";
+      }
+
+      if (!cleanQuery) {
+        cleanQuery = "halo";
+      }
+
+      try {
+        const replyText = await getAIOrSimiSimiReply(cleanQuery);
+        if (replyText) {
+          messagePayload = {
+            type: "text",
+            text: replyText,
+          };
+        }
+      } catch (e: any) {
+        console.error("[LINE Group Summon Reply Error]:", e);
+        return;
+      }
+    } else {
+      // CHAT PRIBADI (1-on-1):
+      // Bebas ngobrol interaktif 2 arah ala SimiSimi tanpa perlu tag / prefix!
+      try {
+        const replyText = await getAIOrSimiSimiReply(rawText);
+        if (replyText) {
+          messagePayload = {
+            type: "text",
+            text: replyText,
+          };
+        }
+      } catch (e: any) {
+        console.error("[LINE Private AI/SimiSimi Reply Error]:", e);
         messagePayload = {
           type: "text",
-          text: replyText,
+          text: "Iyaa kak! Seneng deh bisa ngobrol sama kamu. Mau cerita apa lagi nih? ✨",
         };
       }
-    } catch (e: any) {
-      console.error("[LINE AI/SimiSimi Reply Error]:", e);
-      messagePayload = {
-        type: "text",
-        text: "Iyaa kak! Seneng deh bisa ngobrol sama kamu. Mau cerita apa lagi nih? ✨",
-      };
     }
   }
 
