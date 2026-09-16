@@ -48,9 +48,17 @@ export async function POST(request: NextRequest) {
 
     const ext = path.extname(file.name) || ".jpg";
     const randomName = `${crypto.randomBytes(8).toString("hex")}${ext}`;
-    const absFilePath = path.join(absFolder, randomName);
+    try {
+      fs.writeFileSync(absFilePath, buffer);
+    } catch {}
 
-    fs.writeFileSync(absFilePath, buffer);
+    const { saveFileToDb } = await import("@/lib/mysqlStorage");
+    await saveFileToDb({
+      buffer,
+      filename: randomName,
+      folder: `twoshot/${year}/${month}`,
+      mimeType,
+    });
 
     const publicUrl = `/${relFolder}/${randomName}`.replace(/\\/g, "/");
 
