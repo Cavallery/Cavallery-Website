@@ -2,11 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { readBotConfig } from "../bot-config/route";
 
-// GET: Health-check endpoint untuk memastikan webhook aktif
+// GET: Health-check endpoint untuk memastikan webhook aktif dan env terbaca
 export async function GET() {
+  const token = (process.env.LINE_CHANNEL_ACCESS_TOKEN || "").trim().replace(/^["']|["']$/g, "");
+  const secret = (process.env.LINE_CHANNEL_SECRET || "").trim().replace(/^["']|["']$/g, "");
+
   return NextResponse.json({
     status: true,
     message: "Cavallery LINE Bot Webhook is running and ready!",
+    has_token: Boolean(token),
+    token_length: token.length,
+    token_preview: token ? token.slice(0, 10) + "..." + token.slice(-5) : "KOSONG / BELUM ADA",
+    has_secret: Boolean(secret),
+    secret_preview: secret ? secret.slice(0, 6) + "..." : "KOSONG / BELUM ADA",
     timestamp: new Date().toISOString(),
   });
 }
