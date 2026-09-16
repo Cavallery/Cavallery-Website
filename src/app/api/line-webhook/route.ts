@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { readBotConfig } from "../bot-config/route";
 
+declare global {
+  // eslint-disable-next-line no-var
+  var _lastLineEvents: any[] | undefined;
+  // eslint-disable-next-line no-var
+  var _lastLineReply: any;
+}
+
 // GET: Health-check endpoint untuk memastikan webhook aktif dan env terbaca
 export async function GET() {
   const token = (process.env.LINE_CHANNEL_ACCESS_TOKEN || "").trim().replace(/^["']|["']$/g, "");
@@ -15,6 +22,8 @@ export async function GET() {
     token_preview: token ? token.slice(0, 10) + "..." + token.slice(-5) : "KOSONG / BELUM ADA",
     has_secret: Boolean(secret),
     secret_preview: secret ? secret.slice(0, 6) + "..." : "KOSONG / BELUM ADA",
+    last_events: global._lastLineEvents || [],
+    last_reply: global._lastLineReply || null,
     timestamp: new Date().toISOString(),
   });
 }
@@ -39,6 +48,21 @@ export async function POST(req: NextRequest) {
     }
 
     const events = body.events || [];
+
+    if (!global._lastLineEvents) {
+      global._lastLineEvents = [];
+    }
+    global._lastLineEvents.unshift({
+      time: new Date().toISOString(),
+      events_count: events.length,
+      events: events.map((e: any) => ({
+        type: e.type,
+        source: e.source?.type,
+        text: e.message?.text,
+        replyToken: e.replyToken ? e.replyToken.slice(0, 10) + "..." : null,
+      })),
+    });
+    if (global._lastLineEvents.length > 5) global._lastLineEvents.pop();
 
     // Jika ini adalah tombol "Verify" dari LINE Developers Console (events kosong)
     // LINE mewajibkan respon HTTP 200 OK
@@ -280,11 +304,23 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         }),
       });
 
+      const resText = await response.text();
+      global._lastLineReply = {
+        time: new Date().toISOString(),
+        status: response.status,
+        ok: response.ok,
+        response: resText,
+        replyTo: event.message?.text,
+      };
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[LINE Reply Error]:", response.status, errorText);
+        console.error("[LINE Reply Error]:", response.status, resText);
       }
-    } catch (sendErr) {
+    } catch (sendErr: any) {
+      global._lastLineReply = {
+        time: new Date().toISOString(),
+        error: sendErr?.message || String(sendErr),
+      };
       console.error("[LINE Fetch Error]:", sendErr);
     }
   }
