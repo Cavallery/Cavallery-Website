@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { readBotConfig } from "../bot-config/route";
+import { getAIOrSimiSimiReply } from "@/lib/botConversation";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -256,36 +257,22 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         "Kamu juga bisa bertanya seputar Erine atau kegiatan Cavallery lho!",
     };
   }
-  // 4. Pertanyaan seputar Erine / Fanbase (mengambil knowledge base bot_config)
+  // 4. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI
   else {
     try {
-      const config = readBotConfig();
-      const rules = config?.rules || [];
-
-      for (const rule of rules) {
-        if (!rule.triggers || !Array.isArray(rule.triggers) || rule.triggers.length === 0) {
-          continue;
-        }
-
-        const groups: string[][] = rule.triggers.map((item: any) => {
-          if (Array.isArray(item)) return item;
-          return [item];
-        });
-
-        const isMatch = groups.every((group: string[]) =>
-          group.some((t: string) => text.includes(t.toLowerCase().trim()))
-        );
-
-        if (isMatch && rule.response) {
-          messagePayload = {
-            type: "text",
-            text: rule.response,
-          };
-          break;
-        }
+      const replyText = await getAIOrSimiSimiReply(rawText);
+      if (replyText) {
+        messagePayload = {
+          type: "text",
+          text: replyText,
+        };
       }
-    } catch {
-      // Abaikan jika tidak cocok dengan rule
+    } catch (e: any) {
+      console.error("[LINE AI/SimiSimi Reply Error]:", e);
+      messagePayload = {
+        type: "text",
+        text: "Iyaa kak! Seneng deh bisa ngobrol sama kamu. Mau cerita apa lagi nih? ✨",
+      };
     }
   }
 

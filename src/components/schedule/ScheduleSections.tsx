@@ -29,106 +29,150 @@ export function TheaterSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filterErine, setFilterErine] = useState(true);
+  const [selectedYear, setSelectedYear] = useState<string>("2026");
 
   const load = useCallback(async () => {
-    setLoading(true); setError("");
+    setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/theater", { cache: "no-store" });
       const json = await res.json();
       setShows(Array.isArray(json.data) ? json.data : []);
-    } catch (e) { setError(String(e)); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { load(); const id = setInterval(load, 180000); return () => clearInterval(id); }, [load]);
-
-  const isUpcoming = useMemo(() => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    return shows.some((s) => {
-      const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return false;
-      const d = new Date(dateStr).getTime();
-      return !isNaN(d) && d >= today;
-    });
-  }, [shows]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 180000);
+    return () => clearInterval(id);
+  }, [load]);
 
   const displayed = useMemo(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1).getTime();
+    let list = shows;
 
-    // 1. Filter: Hanya show dari bulan sekarang (atau bulan depan jika ada), buang bulan lalu
-    const currentMonthShows = shows.filter((s) => {
-      const dateStr = s.date ?? s.showDate ?? "";
-      if (!dateStr) return false;
-      const d = new Date(dateStr);
-      const time = d.getTime();
-      if (isNaN(time)) return false;
+    // 1. Filter Berdasarkan Tahun (2026, 2024, 2025, atau Semua)
+    if (selectedYear !== "all") {
+      const yNum = parseInt(selectedYear, 10);
+      list = list.filter((s) => {
+        const dateStr = s.date ?? s.showDate ?? "";
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return d.getFullYear() === yNum;
+      });
+    }
 
-      // Harus di bulan & tahun saat ini (atau mendatang di tahun ini/depan)
-      return time >= startOfCurrentMonth;
-    });
+    // 2. Filter Khusus Erine
+    if (filterErine) {
+      list = list.filter((s) => {
+        const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
+        return members.some((m) => isErine(m.name ?? ""));
+      });
+    }
 
-    const list = filterErine
-      ? currentMonthShows.filter((s) => {
-          const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
-          return members.some((m) => isErine(m.name ?? ""));
-        })
-      : currentMonthShows;
-
-    // Urutkan tanggal show terdekat / kronologis
+    // 3. Urutkan tanggal terbaru di atas
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
-      return da - db;
+      return db - da;
     });
-  }, [shows, filterErine]);
+  }, [shows, selectedYear, filterErine]);
 
   return (
     <section className={styles.section} id="theater">
       <div className={styles.sectionHeader}>
         <div>
           <div className="badge"><i className="bx bx-calendar" /> Theater Schedule</div>
-          {!isUpcoming && displayed.length > 0 && (
-            <p style={{ fontSize: "0.8rem", color: "#aaa", marginTop: "4px" }}>
-              Jadwal show resmi terbaru &bull; Nantikan pengumuman show Erine berikutnya
-            </p>
-          )}
+          <p style={{ fontSize: "0.85rem", color: "#aaa", marginTop: "4px" }}>
+            {selectedYear === "2024"
+              ? "Arsip Show Erine saat masa Trainee JKT48 (2024)"
+              : selectedYear === "2026"
+              ? "Jadwal & Riwayat Show Erine Tahun 2026 (Januari - Sekarang)"
+              : "Jadwal Lengkap Show Theater JKT48"}
+            {displayed.length > 0 && ` • (${displayed.length} show ditemukan)`}
+          </p>
         </div>
+
         <div className={styles.controls}>
+          {/* Filter Pilihan Tahun */}
+          <div className={styles.yearTabs}>
+            <button
+              type="button"
+              className={`${styles.yearBtn} ${selectedYear === "2026" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedYear("2026")}
+            >
+              2026
+            </button>
+            <button
+              type="button"
+              className={`${styles.yearBtn} ${selectedYear === "2024" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedYear("2024")}
+            >
+              2024 (Trainee)
+            </button>
+            <button
+              type="button"
+              className={`${styles.yearBtn} ${selectedYear === "2025" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedYear("2025")}
+            >
+              2025
+            </button>
+            <button
+              type="button"
+              className={`${styles.yearBtn} ${selectedYear === "all" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedYear("all")}
+            >
+              Semua
+            </button>
+          </div>
+
+          {/* Toggle Khusus Erine */}
           <button
+            type="button"
             className={`${styles.filterBtn} ${filterErine ? styles.filterActive : ""}`}
             onClick={() => setFilterErine((v) => !v)}
           >
             <i className={`bx ${filterErine ? "bxs-star" : "bx-star"}`} style={{ color: "orange" }} />
-            {filterErine ? "Semua Show" : "Khusus Jadwal Erine"}
+            {filterErine ? "Khusus Erine" : "Semua Member"}
           </button>
         </div>
       </div>
 
       {loading ? (
         <div className={styles.skeletons}>
-          {[0,1,2].map(i => <div key={i} className={styles.skeleton} />)}
+          {[0, 1, 2].map((i) => <div key={i} className={styles.skeleton} />)}
         </div>
       ) : displayed.length === 0 ? (
         <div className={styles.empty}>
           <i className="bx bx-calendar-x" />
-          <p>{filterErine ? "Belum ada jadwal show Erine untuk bulan ini." : "Belum ada jadwal show teater untuk bulan ini."}</p>
+          <p>
+            {filterErine
+              ? `Belum ada jadwal show Erine untuk tahun ${selectedYear === "all" ? "yang dipilih" : selectedYear}.`
+              : "Belum ada jadwal show teater untuk periode ini."}
+          </p>
         </div>
       ) : (
         <div className={styles.showList}>
-          {displayed.slice(0, 15).map((show, idx) => {
+          {displayed.map((show, idx) => {
             const date = show.date ?? show.showDate ?? "";
             const { dateStr, timeStr: fallback } = fmtDate(date);
             const timeStr = show.startTime ? show.startTime.slice(0, 5) : fallback;
             const members: ShowMember[] = show.members ?? show.member ?? show.lineup ?? [];
             const hasErine = members.some((m) => isErine(m.name ?? ""));
-            
+            const showYear = new Date(date).getFullYear();
+
             return (
               <div key={show.id ?? idx} className={`${styles.showCard} ${hasErine ? styles.showErine : ""}`}>
-                <div className={styles.showDate}>{dateStr} · {timeStr} WIB</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <div className={styles.showDate}>{dateStr} · {timeStr} WIB</div>
+                  <span className={`${styles.showBadgeYear} ${showYear === 2024 ? styles.showBadgeTrainee : ""}`}>
+                    {showYear === 2024 ? "Trainee 2024" : `Tahun ${showYear}`}
+                  </span>
+                </div>
+
                 <h3 className={styles.showTitle}>
                   {show.title}{" "}
                   {hasErine && (
@@ -137,6 +181,7 @@ export function TheaterSection() {
                     </span>
                   )}
                 </h3>
+
                 <div className={styles.memberTags}>
                   {members.map((m, mi) => (
                     <span key={mi} className={`${styles.memberTag} ${isErine(m.name) ? styles.tagErine : ""}`}>
@@ -144,8 +189,11 @@ export function TheaterSection() {
                     </span>
                   ))}
                 </div>
-                {show.url && (
-                  <a href={show.url} target="_blank" rel="noreferrer" className="btnPrimary">Tickets</a>
+
+                {show.url && show.url !== "#" && (
+                  <a href={show.url} target="_blank" rel="noreferrer" className="btnPrimary">
+                    {showYear === 2026 && new Date(date).getTime() >= Date.now() ? "Tickets" : "Info Show"}
+                  </a>
                 )}
               </div>
             );

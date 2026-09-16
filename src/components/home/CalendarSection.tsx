@@ -264,14 +264,23 @@ export default function CalendarSection() {
       return d.getFullYear() === year && d.getMonth() === month;
     });
 
-    return [
+    const allCombined = [
       ...filteredShows,
       ...(isCurrentMonth ? filteredLives : []),
       ...filteredRiwayat,
       ...filteredBirthdays,
       ...filteredManual,
     ];
+
+    const seenKeys = new Set<string>();
+    return allCombined.filter((item) => {
+      const key = `${(item.title || "").trim().toLowerCase()}-${(item.date || "").slice(0, 10)}`;
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+      return true;
+    });
   }, [apiShows, apiLives, apiRiwayat, apiBirthdays, apiManualEvents, year, month]);
+
 
   const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
   const firstDayIndex = useMemo(() => new Date(year, month, 1).getDay(), [year, month]);
