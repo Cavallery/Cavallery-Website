@@ -134,6 +134,14 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "bayar iuran" ||
     text === "iuran kas";
 
+  // JIKA DI GRUP ATAU MULTI-USER ROOM:
+  // Diam total! Cukup fokus merespon jika dipanggil "kas" atau "bayar kas".
+  if (isGroupOrRoom) {
+    if (!isKasCommand && !isBayarKasCommand) {
+      return; // Tidak bereaksi sama sekali di grup
+    }
+  }
+
   const isHelpCommand =
     text === "help" ||
     text === "!help" ||
@@ -144,6 +152,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
 
   // 1. Perintah: kas
   if (isKasCommand) {
+
     messagePayload = {
       type: "flex",
       altText:
@@ -283,75 +292,55 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         "Berikut perintah yang bisa kamu gunakan:\n" +
         "• kas : Menampilkan rincian halaman kas\n" +
         "• bayar kas : Menampilkan link pembayaran kas\n\n" +
-        (isGroupOrRoom
-          ? "💡 Tips di grup: Panggil dengan awalan 'rin ...' atau 'bot ...' jika ingin bertanya/mengobrol."
-          : "Kamu juga bisa bebas ngobrol santai seputar Erine atau curhat apa saja!"),
+        "Kamu juga bisa bebas ngobrol santai seputar Erine atau kirim kata kunci spesial seperti 'waduh', 'niterine', 'ngasal', atau 'happy diesvenerine'!",
     };
   }
-  // 4. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI
+  // 4. Perintah Video Khusus: waduh, niterine, ngasal, Happy DiesVenErine
+  else if (text.includes("waduh")) {
+    messagePayload = {
+      type: "video",
+      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/e081981a87a74168.mp4",
+      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+    };
+  } else if (text.includes("niterine") || text.includes("nite rine") || text.includes("night erine")) {
+    messagePayload = {
+      type: "video",
+      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/dc59a25de53f490b.mp4",
+      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+    };
+  } else if (text.includes("ngasal")) {
+    messagePayload = {
+      type: "video",
+      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/978ce9ed7e85445f.mp4",
+      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+    };
+  } else if (
+    text.includes("happy diesvenerine") ||
+    text.includes("diesvenerine") ||
+    text.includes("dies ven erine")
+  ) {
+    messagePayload = {
+      type: "video",
+      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/a5dfa966ca6c4636.mp4",
+      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+    };
+  }
+  // 5. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI (Hanya di Chat Pribadi)
   else {
-    // ANTI-SPAM GRUP:
-    // Jika di grup atau room, JANGAN merespon obrolan santai sesama member!
-    // HANYA balas jika sengaja dipanggil namanya (misal: "rin ...", "erine ...", "bot ...", "@catherin ...")
-    if (isGroupOrRoom) {
-      const summonPrefixes = [
-        "bot ", "!bot ", "/bot ", "rin ", "erine ", "@catherin", "@erine", "@bot"
-      ];
-      const hasMention = Boolean(
-        event.message?.mention?.mentionees &&
-        event.message.mention.mentionees.length > 0
-      );
-
-      const matchedPrefix = summonPrefixes.find((p) => text.startsWith(p));
-      const isExactCall = text === "bot" || text === "rin" || text === "erine";
-
-      // Jika BUKAN panggilan sengaja ke bot -> DIAM / JANGAN BALAS APAPUN (0% SPAM!)
-      if (!matchedPrefix && !hasMention && !isExactCall) {
-        return;
-      }
-
-      // Bersihkan kata panggilan agar jawaban bot tepat sasaran
-      let cleanQuery = rawText;
-      if (matchedPrefix) {
-        cleanQuery = rawText.slice(matchedPrefix.length).trim();
-      } else if (isExactCall) {
-        cleanQuery = "halo";
-      }
-
-      if (!cleanQuery) {
-        cleanQuery = "halo";
-      }
-
-      try {
-        const replyText = await getAIOrSimiSimiReply(cleanQuery);
-        if (replyText) {
-          messagePayload = {
-            type: "text",
-            text: replyText,
-          };
-        }
-      } catch (e: any) {
-        console.error("[LINE Group Summon Reply Error]:", e);
-        return;
-      }
-    } else {
-      // CHAT PRIBADI (1-on-1):
-      // Bebas ngobrol interaktif 2 arah ala SimiSimi tanpa perlu tag / prefix!
-      try {
-        const replyText = await getAIOrSimiSimiReply(rawText);
-        if (replyText) {
-          messagePayload = {
-            type: "text",
-            text: replyText,
-          };
-        }
-      } catch (e: any) {
-        console.error("[LINE Private AI/SimiSimi Reply Error]:", e);
+    try {
+      const replyText = await getAIOrSimiSimiReply(rawText);
+      if (replyText) {
         messagePayload = {
           type: "text",
-          text: "Iyaa kak! Seneng deh bisa ngobrol sama kamu. Mau cerita apa lagi nih? ✨",
+          text: replyText,
         };
       }
+    } catch (e: any) {
+      console.error("[LINE Private AI/SimiSimi Reply Error]:", e);
+      messagePayload = {
+        type: "text",
+        text: "Iyaa kak! Seneng deh bisa ngobrol sama kamu. Mau cerita apa lagi nih? ✨",
+      };
     }
   }
 
