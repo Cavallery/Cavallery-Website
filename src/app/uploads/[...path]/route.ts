@@ -82,12 +82,41 @@ export async function GET(
       }
     }
 
-    // Jika file tidak ditemukan di storage lokal
+    // Jika file tidak ditemukan di storage lokal, AMBIL DARI DATABASE MYSQL!
     if (!fileFound || !fileStat) {
+      const relativePath = pathSegments.join("/");
+      try {
+        const { getFileFromDb } = await import("@/lib/mysqlStorage");
+        const fileFromDb = await getFileFromDb(relativePath);
+
+        if (fileFromDb && fileFromDb.buffer) {
+          // Re-hydrate / pulihkan file ke disk lokal jika bisa
+          try {
+            const localDiskPath = path.resolve(process.cwd(), "public", "uploads", ...pathSegments);
+            const dirName = path.dirname(localDiskPath);
+            if (!fs.existsSync(dirName)) {
+              fs.mkdirSync(dirName, { recursive: true });
+            }
+            fs.writeFileSync(localDiskPath, fileFromDb.buffer);
+          } catch {}
+
+          const mime = fileFromDb.mimeType || MIME_MAP[path.extname(relativePath).toLowerCase()] || "image/jpeg";
+          return new NextResponse(new Uint8Array(fileFromDb.buffer), {
+            status: 200,
+            headers: {
+              "Content-Type": mime,
+              "Cache-Control": "public, max-age=31536000, immutable",
+            },
+          });
+        }
+      } catch (dbErr: any) {
+        console.error("[Uploads Static DB Recovery Error]:", dbErr?.message);
+      }
+
       const ext = path.extname(pathSegments[pathSegments.length - 1] || "").toLowerCase();
       const isImage = [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"].includes(ext);
 
-      // Jika request untuk gambar, kirim langsung file fallback dengan HTTP 200 (sehingga TIDAK PERNAH RUSAK)
+      // Jika request untuk gambar dan tidak ada di database, kirim file fallback dengan HTTP 200
       if (isImage) {
         const isTwoShot = pathSegments.some(s => s.toLowerCase().includes("twoshot"));
         const isBukti = pathSegments.some(s => s.toLowerCase().includes("bukti") || s.toLowerCase().includes("nota"));
@@ -102,7 +131,7 @@ export async function GET(
         try {
           if (fs.existsSync(fallbackAbsPath)) {
             const fallbackBuf = fs.readFileSync(fallbackAbsPath);
-            return new NextResponse(fallbackBuf, {
+            return new NextResponse(new Uint8Array(fallbackBuf), {
               status: 200,
               headers: {
                 "Content-Type": "image/jpeg",
