@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
 
     const ext = path.extname(file.name) || ".jpg";
     const randomName = `${crypto.randomBytes(8).toString("hex")}${ext}`;
+    const absFilePath = path.join(absFolder, randomName);
     try {
       fs.writeFileSync(absFilePath, buffer);
     } catch {}
