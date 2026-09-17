@@ -134,13 +134,21 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "bayar iuran" ||
     text === "iuran kas";
 
-  // JIKA DI GRUP ATAU MULTI-USER ROOM:
-  // Diam total! Cukup fokus merespon jika dipanggil "kas" atau "bayar kas".
-  if (isGroupOrRoom) {
-    if (!isKasCommand && !isBayarKasCommand) {
-      return; // Tidak bereaksi sama sekali di grup
-    }
-  }
+  // Deteksi perintah media khusus
+  const isWaduhCommand = text.includes("waduh");
+  const isNiterineCommand =
+    text.includes("niterine") ||
+    text.includes("nite rine") ||
+    text.includes("night erine");
+  const isNgasalCommand = text.includes("ngasal");
+  const isDiesvenerineCommand =
+    text.includes("happy diesvenerine") ||
+    text.includes("diesvenerine") ||
+    text.includes("dies ven erine");
+  const isImageTriggerCommand =
+    text.includes("gas") ||
+    text.includes("jiko oline") ||
+    text.includes("jikoline");
 
   const isHelpCommand =
     text === "help" ||
@@ -149,6 +157,23 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "bantuan" ||
     text === "menu" ||
     text === "perintah";
+
+  const isSpecialCommand =
+    isKasCommand ||
+    isBayarKasCommand ||
+    isHelpCommand ||
+    isWaduhCommand ||
+    isNiterineCommand ||
+    isNgasalCommand ||
+    isDiesvenerineCommand ||
+    isImageTriggerCommand;
+
+  // JIKA DI GRUP ATAU MULTI-USER ROOM:
+  // Hanya balas jika ada kata kunci khusus (kas, video, gambar, help).
+  // Jangan merespon obrolan bebas/santai (SimiSimi) di grup agar tidak spam!
+  if (isGroupOrRoom && !isSpecialCommand) {
+    return;
+  }
 
   // 1. Perintah: kas
   if (isKasCommand) {
