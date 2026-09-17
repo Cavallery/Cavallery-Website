@@ -28,7 +28,7 @@ export async function GET(
         else if (ext === ".gif") mimeType = "image/gif";
         else if (ext === ".svg") mimeType = "image/svg+xml";
 
-        return new NextResponse(fileBuffer, {
+        return new NextResponse(new Uint8Array(fileBuffer), {
           status: 200,
           headers: {
             "Content-Type": mimeType,
@@ -54,7 +54,7 @@ export async function GET(
         // Abaikan jika disk read-only (misal di serverless)
       }
 
-      return new NextResponse(fileFromDb.buffer, {
+      return new NextResponse(new Uint8Array(fileFromDb.buffer), {
         status: 200,
         headers: {
           "Content-Type": fileFromDb.mimeType || "image/jpeg",
