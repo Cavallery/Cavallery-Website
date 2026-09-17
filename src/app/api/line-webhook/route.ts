@@ -300,19 +300,19 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     messagePayload = {
       type: "video",
       originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/e081981a87a74168.mp4",
-      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/9153cfedf5554c61.jpg",
     };
   } else if (text.includes("niterine") || text.includes("nite rine") || text.includes("night erine")) {
     messagePayload = {
       type: "video",
       originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/dc59a25de53f490b.mp4",
-      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/3f23f73dd88f4364.jpg",
     };
   } else if (text.includes("ngasal")) {
     messagePayload = {
       type: "video",
       originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/978ce9ed7e85445f.mp4",
-      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/3a037f2ce2e14a38.jpg",
     };
   } else if (
     text.includes("happy diesvenerine") ||
@@ -322,10 +322,18 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     messagePayload = {
       type: "video",
       originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/a5dfa966ca6c4636.mp4",
-      previewImageUrl: "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
     };
   }
-  // 5. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI (Hanya di Chat Pribadi)
+  // 5. Perintah Gambar Khusus: gas, jiko oline
+  else if (text.includes("gas") || text.includes("jiko oline") || text.includes("jikoline")) {
+    messagePayload = {
+      type: "image",
+      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
+    };
+  }
+  // 6. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI (Hanya di Chat Pribadi)
   else {
     try {
       const replyText = await getAIOrSimiSimiReply(rawText);
