@@ -151,11 +151,6 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
-
-      {/* Decorative Chess Knight in background */}
-      <div className={styles.bgKnight}>
-        <i className="fa-solid fa-chess-knight" />
-      </div>
     </section>
   );
 }

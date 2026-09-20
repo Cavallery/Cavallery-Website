@@ -68,13 +68,12 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <div className="knight-watermark" />
-        <div className="board-watermark" />
         <PassionFireBackground />
+        <div className="board-watermark" aria-hidden="true" />
         <SplashScreen />
         <ScrollRevealProvider />
         <Navbar />
-        <main>{children}</main>
+        <main className="relative z-[1]">{children}</main>
         <Footer />
         <Chatbot />
         <MobileInstallPrompt />
