@@ -7,10 +7,9 @@
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
   overflow: hidden;
   user-select: none;
-  contain: strict;
 }
 
 /* Pause all animations when tab is inactive to preserve 100% battery */
@@ -24,13 +23,13 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 240px;
+  height: 380px;
   background: radial-gradient(
     ellipse at 50% 100%,
-    rgba(255, 69, 0, 0.12) 0%,
-    rgba(234, 88, 12, 0.08) 35%,
-    rgba(212, 175, 55, 0.04) 65%,
-    transparent 85%
+    rgba(255, 69, 0, 0.25) 0%,
+    rgba(234, 88, 12, 0.16) 40%,
+    rgba(212, 175, 55, 0.08) 70%,
+    transparent 90%
   );
   pointer-events: none;
 }
@@ -38,10 +37,10 @@
 :global([data-theme="dark"]) .ambientHeatGlow {
   background: radial-gradient(
     ellipse at 50% 100%,
-    rgba(255, 69, 0, 0.20) 0%,
-    rgba(234, 88, 12, 0.12) 40%,
-    rgba(212, 175, 55, 0.06) 70%,
-    transparent 90%
+    rgba(255, 69, 0, 0.38) 0%,
+    rgba(234, 88, 12, 0.24) 40%,
+    rgba(212, 175, 55, 0.12) 70%,
+    transparent 92%
   );
 }
 
@@ -51,7 +50,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 160px;
+  height: 240px;
   pointer-events: none;
   overflow: hidden;
 }
@@ -119,18 +118,19 @@
 /* ── 3. AURA API KNIGHT & PAWN ── */
 .knightFireAura {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 420px;
-  height: 420px;
+  top: 50%;
+  left: -60px;
+  transform: translateY(-50%);
+  width: 480px;
+  height: 480px;
   background: radial-gradient(
-    circle at 22% 82%,
-    rgba(255, 69, 0, 0.16) 0%,
-    rgba(234, 88, 12, 0.08) 35%,
-    rgba(212, 175, 55, 0.03) 65%,
-    transparent 75%
+    circle at 30% 50%,
+    rgba(255, 69, 0, 0.28) 0%,
+    rgba(234, 88, 12, 0.16) 40%,
+    rgba(212, 175, 55, 0.06) 65%,
+    transparent 80%
   );
-  transform-origin: 22% 82%;
+  transform-origin: 30% 50%;
   animation: auraBreathe 5s ease-in-out infinite alternate;
   will-change: transform, opacity;
   pointer-events: none;
@@ -138,28 +138,29 @@
 
 :global([data-theme="dark"]) .knightFireAura {
   background: radial-gradient(
-    circle at 22% 82%,
-    rgba(255, 69, 0, 0.22) 0%,
-    rgba(234, 88, 12, 0.12) 40%,
-    rgba(212, 175, 55, 0.05) 70%,
-    transparent 80%
+    circle at 30% 50%,
+    rgba(255, 69, 0, 0.38) 0%,
+    rgba(234, 88, 12, 0.22) 40%,
+    rgba(212, 175, 55, 0.10) 70%,
+    transparent 85%
   );
 }
 
 .pawnFireAura {
   position: absolute;
-  top: 45%;
-  right: 0;
-  width: 360px;
-  height: 360px;
+  top: 50%;
+  right: -60px;
+  transform: translateY(-50%);
+  width: 480px;
+  height: 480px;
   background: radial-gradient(
-    circle at 80% 50%,
-    rgba(255, 120, 0, 0.12) 0%,
-    rgba(234, 88, 12, 0.06) 40%,
-    rgba(212, 175, 55, 0.02) 65%,
-    transparent 75%
+    circle at 70% 50%,
+    rgba(255, 120, 0, 0.25) 0%,
+    rgba(234, 88, 12, 0.14) 40%,
+    rgba(212, 175, 55, 0.05) 65%,
+    transparent 80%
   );
-  transform-origin: 80% 50%;
+  transform-origin: 70% 50%;
   animation: auraBreathe 6.5s ease-in-out infinite alternate-reverse;
   will-change: transform, opacity;
   pointer-events: none;
@@ -167,26 +168,26 @@
 
 :global([data-theme="dark"]) .pawnFireAura {
   background: radial-gradient(
-    circle at 80% 50%,
-    rgba(255, 120, 0, 0.18) 0%,
-    rgba(234, 88, 12, 0.09) 45%,
-    rgba(212, 175, 55, 0.04) 70%,
-    transparent 80%
+    circle at 70% 50%,
+    rgba(255, 120, 0, 0.35) 0%,
+    rgba(234, 88, 12, 0.20) 45%,
+    rgba(212, 175, 55, 0.08) 70%,
+    transparent 85%
   );
 }
 
 @keyframes auraBreathe {
   0% {
-    transform: scale(0.95);
+    transform: translateY(-50%) scale(0.92);
     opacity: 0.8;
   }
   100% {
-    transform: scale(1.08);
+    transform: translateY(-50%) scale(1.12);
     opacity: 1;
   }
 }
 
-/* ── 4. RISING FIRE EMBERS (GPU-ONLY TRANSLATE3D, ZERO BLUR FILTER) ── */
+/* ── 4. RISING FIRE EMBERS (GPU-ONLY TRANSLATE3D, GLOWING BOX-SHADOW) ── */
 .embersContainer {
   position: absolute;
   inset: 0;
@@ -198,13 +199,13 @@
   position: absolute;
   bottom: -10px;
   border-radius: 50%;
-  /* Built-in radial gradient provides halo glow without expensive CSS blur */
   background: radial-gradient(
-    circle at 50% 50%,
-    #ffffff 15%,
-    var(--ember-color, #ff8c00) 65%,
+    circle at 40% 40%,
+    #ffffff 20%,
+    var(--ember-color, #ff4500) 70%,
     transparent 100%
   );
+  box-shadow: 0 0 8px var(--ember-color, #ff4500), 0 0 16px rgba(255, 140, 0, 0.6);
   animation-name: emberRise;
   animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   animation-iteration-count: infinite;
@@ -218,18 +219,18 @@
     transform: translate3d(0, 0, 0) scale(0.4);
     opacity: 0;
   }
-  12% {
-    opacity: 0.95;
+  15% {
+    opacity: 1;
   }
-  45% {
-    transform: translate3d(var(--dx1, 10px), -35vh, 0) scale(1);
-    opacity: 0.85;
+  50% {
+    transform: translate3d(var(--dx1, 10px), -45vh, 0) scale(1.1);
+    opacity: 0.9;
   }
   80% {
-    opacity: 0.6;
+    opacity: 0.7;
   }
   100% {
-    transform: translate3d(var(--dx2, -10px), -80vh, 0) scale(0.25);
+    transform: translate3d(var(--dx2, -10px), -92vh, 0) scale(0.35);
     opacity: 0;
   }
 }

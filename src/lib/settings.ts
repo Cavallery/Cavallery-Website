@@ -172,23 +172,24 @@ export const DEFAULT_MASTER_DATA: MasterData = {
     },
     {
       id: "banner-meet-greet",
-      badge: "MEET & GREET",
+      badge: "MEET & GREET & 2-SHOT",
       badgeColor: "blue",
-      title: "Jadwal & Info Meet n Greet Erine JKT48",
-      description: "Nantikan keseruan sesi meet n greet dan 2-shot bersama Erine. Pantau terus linimasa dan jadwal resmi kami di sini.",
-      dateInfo: "Informasi Resmi Fanbase",
-      locationInfo: "Event Official JKT48",
-      actionText: "Lihat Jadwal",
+      title: '"Ayo Senyumlah" JKT48 & AKB48 Personal Meet and Greet & 2-Shot Event 2026',
+      description: 'Jadwal resmi Personal Meet & Greet dan 2-Shot Catherina Vallencia (Erine) JKT48 pada event perayaan single ke-26 "Ayo Senyumlah". Pastikan kamu hadir sesuai sesi tiketmu!',
+      dateInfo: "Sabtu, 24 Oktober 2026",
+      locationInfo: "ICE Indonesia, BSD Tangerang",
+      actionText: "Lihat Jadwal Resmi",
       actionUrl: "/schedule",
       imageUrl: "",
       sessions: [
-        { sessionName: "Sesi 1", time: "11.00 – 12.00 WIB", info: "Jalur 3 (Meet & Greet)" },
-        { sessionName: "Sesi 2", time: "13.30 – 14.30 WIB", info: "Jalur 3 (Meet & Greet)" },
-        { sessionName: "Sesi 4", time: "16.00 – 17.00 WIB", info: "Jalur 3 (2-Shot)" },
+        { sessionName: "MnG Sesi 1", time: "10.00 – 11.00 WIB", info: "Personal Meet & Greet Erine" },
+        { sessionName: "MnG Sesi 2", time: "11.00 – 12.00 WIB", info: "Personal Meet & Greet Erine" },
+        { sessionName: "2-Shot Sesi 5", time: "15.00 – 16.00 WIB", info: "2-Shot Spesial Erine" },
+        { sessionName: "2-Shot Sesi 6", time: "16.00 – 17.00 WIB", info: "2-Shot Spesial Erine" },
       ],
       isActive: true,
-      priority: 2,
-      createdAt: new Date().toISOString(),
+      priority: 1,
+      createdAt: "2026-09-20T23:00:00.000Z",
     },
   ],
 };
@@ -196,6 +197,18 @@ export const DEFAULT_MASTER_DATA: MasterData = {
 export async function getMasterData(): Promise<MasterData> {
   try {
     const raw = await getSetting("master_data_json", "");
+    const directBannersRaw = await getSetting("home_banners", "");
+    let homeBannersList = DEFAULT_MASTER_DATA.homeBanners;
+
+    if (directBannersRaw && directBannersRaw.trim()) {
+      try {
+        const parsedBanners = JSON.parse(directBannersRaw);
+        if (Array.isArray(parsedBanners) && parsedBanners.length > 0) {
+          homeBannersList = parsedBanners;
+        }
+      } catch {}
+    }
+
     if (raw && raw.trim()) {
       const parsed = JSON.parse(raw);
       return {
@@ -209,7 +222,12 @@ export async function getMasterData(): Promise<MasterData> {
         tahunKasAktif: Array.isArray(parsed.tahunKasAktif) && parsed.tahunKasAktif.length > 0 ? parsed.tahunKasAktif : DEFAULT_MASTER_DATA.tahunKasAktif,
         jabatanBebasKas: Array.isArray(parsed.jabatanBebasKas) && parsed.jabatanBebasKas.length > 0 ? parsed.jabatanBebasKas : DEFAULT_MASTER_DATA.jabatanBebasKas,
         tipeRewardKupon: Array.isArray(parsed.tipeRewardKupon) && parsed.tipeRewardKupon.length > 0 ? parsed.tipeRewardKupon : DEFAULT_MASTER_DATA.tipeRewardKupon,
-        homeBanners: Array.isArray(parsed.homeBanners) ? parsed.homeBanners : DEFAULT_MASTER_DATA.homeBanners,
+        homeBanners: directBannersRaw ? homeBannersList : (Array.isArray(parsed.homeBanners) ? parsed.homeBanners : homeBannersList),
+      };
+    } else if (directBannersRaw) {
+      return {
+        ...DEFAULT_MASTER_DATA,
+        homeBanners: homeBannersList,
       };
     }
   } catch (err) {
@@ -225,6 +243,9 @@ export async function saveMasterData(data: Partial<MasterData>): Promise<MasterD
     ...data,
   };
   await setSetting("master_data_json", JSON.stringify(updated));
+  if (data.homeBanners) {
+    await setSetting("home_banners", JSON.stringify(data.homeBanners));
+  }
   return updated;
 }
 

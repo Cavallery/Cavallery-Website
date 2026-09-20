@@ -69,6 +69,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <PassionFireBackground />
+        <div className="knight-watermark" aria-hidden="true" />
         <div className="board-watermark" aria-hidden="true" />
         <SplashScreen />
         <ScrollRevealProvider />
