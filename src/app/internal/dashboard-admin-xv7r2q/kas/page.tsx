@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import styles from "../keanggotaan/page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import AdminSubNav from "@/components/admin/AdminSubNav";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
@@ -22,7 +23,13 @@ function formatRupiah(amount: number) {
 function normalizeProofUrl(url?: string | null): string {
   if (!url) return "";
   let clean = url.trim();
-  if (clean === "VOUCHER_LUNAS" || clean === "-") return "";
+  // Jika URL Google Drive biasa, konversi ke URL direct image lh3.googleusercontent.com/d/ID agar tag <img> dapat me-render langsung
+  if (clean.includes("drive.google.com")) {
+    const fileIdMatch = clean.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || clean.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (fileIdMatch && fileIdMatch[1]) {
+      return `https://lh3.googleusercontent.com/d/${fileIdMatch[1]}`;
+    }
+  }
 
   if (clean.includes("localhost:") || clean.includes("cavallery.id")) {
     try {
@@ -991,40 +998,12 @@ export default function AdminKasPage() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* ── TOP HEADER ── */}
-        <div className={styles.topHeader}>
-          <div>
-            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
-              <i className="bx bx-arrow-back" /> Dashboard Utama
-            </Link>
-            <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              Matriks &amp; Manajemen Uang Kas Cavallery
-            </h1>
-          </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/internal/dashboard-admin-xv7r2q/keanggotaan" className={styles.backBtn}>
-              <i className="bx bx-group" /> Keanggotaan
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
-              <i className="bx bx-heart-circle" /> Kontributor
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/donasi" className={styles.backBtn}>
-              <i className="bx bx-donate-heart" /> Verifikasi Donasi
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
-              <i className="bx bx-slider-alt" /> Master Data
-            </Link>
-            <a
-              href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
-              target="_blank" rel="noopener noreferrer"
-              className={styles.backBtn}
-              style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}
-            >
-              <i className="bx bx-table" /> Live Spreadsheet
-            </a>
-            <ThemeToggle />
-          </div>
-        </div>
+        {/* ── TOP SUB-NAVBAR KONSISTEN ── */}
+        <AdminSubNav
+          activeKey="kas"
+          title="Matriks & Manajemen Uang Kas"
+          subtitle="Verifikasi bukti transfer pembayaran kas anggota, rekap matriks tahunan, laporan pengeluaran, dan reward kupon."
+        />
 
         {/* ── TOMBOL AKSI CEPAT SINKRONISASI & INPUT KAS / PENGELUARAN ── */}
         <div style={{

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "../keanggotaan/page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import type { HomeBannerItem } from "@/lib/settings";
+import AdminSubNav from "@/components/admin/AdminSubNav";
 
 interface MasterDataState {
   divisi: string[];
@@ -16,6 +18,7 @@ interface MasterDataState {
   tahunKasAktif: number[];
   jabatanBebasKas: string[];
   tipeRewardKupon: string[];
+  homeBanners?: HomeBannerItem[];
 }
 
 export default function AdminMasterDataPage() {
@@ -30,6 +33,7 @@ export default function AdminMasterDataPage() {
     tahunKasAktif: [2024, 2025, 2026, 2027, 2028, 2029],
     jabatanBebasKas: ["Admin Fanbase", "Pengurus Fanbase"],
     tipeRewardKupon: [],
+    homeBanners: [],
   });
 
   const [loading, setLoading] = useState(true);
@@ -47,6 +51,24 @@ export default function AdminMasterDataPage() {
   const [newJabatanBebas, setNewJabatanBebas] = useState("");
   const [newTipeReward, setNewTipeReward] = useState("");
   const [editDefaultNominal, setEditDefaultNominal] = useState("");
+
+  // State untuk Kelola Banner & Informasi Pengumuman Home
+  const [showBannerModal, setShowBannerModal] = useState(false);
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [bannerForm, setBannerForm] = useState<HomeBannerItem>({
+    id: "",
+    badge: "OPEN MEMBER",
+    badgeColor: "gold",
+    title: "",
+    description: "",
+    dateInfo: "",
+    locationInfo: "",
+    actionText: "Daftar Sekarang",
+    actionUrl: "/join",
+    imageUrl: "",
+    isActive: true,
+    priority: 1,
+  });
 
   // State Pengaturan Master War Tiket & Template E-Ticket
   const [warEvent, setWarEvent] = useState<{
@@ -120,6 +142,7 @@ export default function AdminMasterDataPage() {
             "Akses Event Eksklusif",
             "Lainnya",
           ],
+          homeBanners: Array.isArray(json.data.homeBanners) ? json.data.homeBanners : [],
         });
         setEditDefaultNominal(
           Number(json.data.defaultNominalKas || 15000).toLocaleString("id-ID"),
@@ -233,6 +256,7 @@ export default function AdminMasterDataPage() {
           tahunKasAktif: json.data.tahunKasAktif || [],
           jabatanBebasKas: json.data.jabatanBebasKas || [],
           tipeRewardKupon: json.data.tipeRewardKupon || [],
+          homeBanners: Array.isArray(json.data.homeBanners) ? json.data.homeBanners : [],
         });
         setMsg(json.message || "Master data berhasil disimpan!");
       } else {
@@ -243,6 +267,80 @@ export default function AdminMasterDataPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // ── HANDLERS: Banner & Informasi Pengumuman Home ──────────
+  const openNewBannerModal = () => {
+    setEditingBannerId(null);
+    setBannerForm({
+      id: `banner-${Date.now()}`,
+      badge: "OPEN MEMBER",
+      badgeColor: "gold",
+      title: "",
+      description: "",
+      dateInfo: "",
+      locationInfo: "",
+      actionText: "Daftar Sekarang",
+      actionUrl: "/join",
+      imageUrl: "",
+      isActive: true,
+      priority: (data.homeBanners?.length || 0) + 1,
+    });
+    setShowBannerModal(true);
+  };
+
+  const openEditBannerModal = (banner: HomeBannerItem) => {
+    setEditingBannerId(banner.id);
+    setBannerForm({ ...banner });
+    setShowBannerModal(true);
+  };
+
+  const handleSaveBanner = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bannerForm.title.trim()) {
+      alert("Judul banner / pengumuman wajib diisi!");
+      return;
+    }
+
+    const currentBanners = data.homeBanners || [];
+    let updatedBanners: HomeBannerItem[];
+
+    if (editingBannerId) {
+      updatedBanners = currentBanners.map((b) =>
+        b.id === editingBannerId ? { ...bannerForm } : b
+      );
+    } else {
+      const newBanner: HomeBannerItem = {
+        ...bannerForm,
+        id: bannerForm.id || `banner-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+      };
+      updatedBanners = [...currentBanners, newBanner];
+    }
+
+    const updatedData = { ...data, homeBanners: updatedBanners };
+    setData(updatedData);
+    handleSave(updatedData);
+    setShowBannerModal(false);
+  };
+
+  const toggleBannerStatus = (id: string, currentActive: boolean) => {
+    const currentBanners = data.homeBanners || [];
+    const updatedBanners = currentBanners.map((b) =>
+      b.id === id ? { ...b, isActive: !currentActive } : b
+    );
+    const updatedData = { ...data, homeBanners: updatedBanners };
+    setData(updatedData);
+    handleSave(updatedData);
+  };
+
+  const deleteBanner = (id: string, title: string) => {
+    if (!confirm(`Hapus pengumuman "${title}" dari banner Home?`)) return;
+    const currentBanners = data.homeBanners || [];
+    const updatedBanners = currentBanners.filter((b) => b.id !== id);
+    const updatedData = { ...data, homeBanners: updatedBanners };
+    setData(updatedData);
+    handleSave(updatedData);
   };
 
   // Helper Divisi
@@ -490,36 +588,12 @@ export default function AdminMasterDataPage() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* TOP BAR */}
-        <div className={styles.topHeader}>
-          <div>
-            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
-              <i className="bx bx-arrow-back" /> Dashboard Utama
-            </Link>
-            <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              Master Data &amp; Konfigurasi Sistem Cavallery
-            </h1>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <Link href="/internal/dashboard-admin-xv7r2q/keanggotaan" className={styles.backBtn}>
-              <i className="bx bx-group" /> Keanggotaan
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
-              <i className="bx bx-heart-circle" /> Kontributor
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/kas" className={styles.backBtn}>
-              <i className="bx bx-wallet" /> Kas
-            </Link>
-            <ThemeToggle />
-          </div>
-        </div>
+        {/* TOP SUB-NAVBAR KONSISTEN */}
+        <AdminSubNav
+          activeKey="master-data"
+          title="Master Data & Konfigurasi Sistem"
+          subtitle="Kelola banner & pengumuman home, event war tiket, tarif kas, kategori, dan master opsi sistem."
+        />
 
         {/* NOTIFICATION */}
         {msg && (
@@ -549,7 +623,145 @@ export default function AdminMasterDataPage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {/* ── 0. PENGATURAN MASTER EVENT & TEMPLATE E-TICKET WAR (BARU) ── */}
+            {/* ── 0. KELOLA INFORMASI & BANNER HOME (OPEN MEMBER / MEET N GREET / EVENT) ── */}
+            <div
+              className={styles.sectionCard}
+              style={{
+                border: "2px solid rgba(201, 168, 76, 0.45)",
+                background: "linear-gradient(180deg, rgba(201, 168, 76, 0.08) 0%, rgba(15, 20, 30, 0.65) 100%)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+              }}
+            >
+              <div className={styles.sectionHeader} style={{ marginBottom: 14 }}>
+                <div>
+                  <h2 className={styles.sectionTitle} style={{ color: "var(--gold)", fontSize: "1.25rem" }}>
+                    <i className="bx bx-broadcast" style={{ color: "var(--gold)", fontSize: "1.4rem" }} />
+                    Informasi &amp; Banner Halaman Home
+                  </h2>
+                  <p style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                    Tambahkan info untuk tampil di halaman utama website, seperti pengumuman Open Member, jadwal Meet &amp; Greet, event spesial, atau agenda resmi.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={openNewBannerModal}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 16px",
+                    borderRadius: 10,
+                    background: "linear-gradient(135deg, #c9a84c 0%, #a07d2c 100%)",
+                    color: "#0d1117",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    border: "none",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 14px rgba(201, 168, 76, 0.3)",
+                  }}
+                >
+                  <i className="bx bx-plus-circle" style={{ fontSize: "1.1rem" }} /> Tambah Banner / Info
+                </button>
+              </div>
+
+              {/* DAFTAR BANNER */}
+              {(!data.homeBanners || data.homeBanners.length === 0) ? (
+                <div style={{ padding: "24px 0", textAlign: "center", opacity: 0.5 }}>
+                  <i className="bx bx-info-circle" style={{ fontSize: "2rem", marginBottom: 6 }} />
+                  <p style={{ margin: 0, fontSize: "0.88rem" }}>Belum ada banner info home. Klik tombol di atas untuk menambahkan.</p>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+                  {data.homeBanners.map((b) => (
+                    <div
+                      key={b.id}
+                      style={{
+                        padding: 16,
+                        borderRadius: 12,
+                        background: b.isActive ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.01)",
+                        border: b.isActive ? "1px solid rgba(201, 168, 76, 0.35)" : "1px dashed rgba(255, 255, 255, 0.15)",
+                        opacity: b.isActive ? 1 : 0.6,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        position: "relative",
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 8 }}>
+                          <span
+                            style={{
+                              fontSize: "0.72rem",
+                              fontWeight: 800,
+                              padding: "2px 8px",
+                              borderRadius: 12,
+                              background: b.badgeColor === "blue" ? "rgba(59, 130, 246, 0.2)" : b.badgeColor === "green" ? "rgba(16, 185, 129, 0.2)" : b.badgeColor === "red" ? "rgba(239, 68, 68, 0.2)" : "rgba(201, 168, 76, 0.2)",
+                              color: b.badgeColor === "blue" ? "#93c5fd" : b.badgeColor === "green" ? "#6ee7b7" : b.badgeColor === "red" ? "#fca5a5" : "#f7d57f",
+                              border: "1px solid currentColor",
+                            }}
+                          >
+                            {b.badge}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleBannerStatus(b.id, b.isActive)}
+                            style={{
+                              padding: "2px 8px",
+                              borderRadius: 10,
+                              fontSize: "0.72rem",
+                              fontWeight: 700,
+                              background: b.isActive ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                              border: `1px solid ${b.isActive ? "#10b981" : "#ef4444"}`,
+                              color: b.isActive ? "#34d399" : "#f87171",
+                              cursor: "pointer",
+                            }}
+                            title="Klik untuk toggle status aktif/nonaktif"
+                          >
+                            {b.isActive ? "● AKTIF DI HOME" : "○ NONAKTIF"}
+                          </button>
+                        </div>
+
+                        <h4 style={{ margin: "0 0 6px", fontSize: "1rem", color: "#fff" }}>{b.title}</h4>
+                        <p style={{ margin: "0 0 10px", fontSize: "0.82rem", color: "var(--fg-dim, #aaa)", lineHeight: 1.45 }}>{b.description}</p>
+
+                        {(b.dateInfo || b.locationInfo) && (
+                          <div style={{ fontSize: "0.76rem", color: "#d1d5db", display: "flex", flexDirection: "column", gap: 3, marginBottom: 8, background: "rgba(0,0,0,0.25)", padding: "6px 10px", borderRadius: 6 }}>
+                            {b.dateInfo && <div><i className="bx bx-calendar" style={{ color: "var(--gold)", marginRight: 6 }} />{b.dateInfo}</div>}
+                            {b.locationInfo && <div><i className="bx bx-map-pin" style={{ color: "var(--gold)", marginRight: 6 }} />{b.locationInfo}</div>}
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: "0.75rem", color: "var(--fg-dim)", display: "flex", alignItems: "center", gap: 6 }}>
+                          <i className="bx bx-link" /> Tombol: <strong>{b.actionText || "Selengkapnya"}</strong> &rarr; <code style={{ fontSize: "0.72rem", opacity: 0.8 }}>{b.actionUrl || "/"}</code>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        <button
+                          type="button"
+                          className={styles.actionBtnEdit}
+                          onClick={() => openEditBannerModal(b)}
+                          style={{ padding: "4px 10px", fontSize: "0.78rem" }}
+                        >
+                          <i className="bx bx-edit" /> Edit
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.actionBtnDel}
+                          onClick={() => deleteBanner(b.id, b.title)}
+                          style={{ padding: "4px 10px", fontSize: "0.78rem" }}
+                        >
+                          <i className="bx bx-trash" /> Hapus
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ── 1. PENGATURAN MASTER EVENT & TEMPLATE E-TICKET WAR ── */}
             <div
               className={styles.sectionCard}
               style={{
@@ -1819,6 +2031,177 @@ export default function AdminMasterDataPage() {
                   <i className="bx bx-plus" /> Tambah
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL TAMBAH / EDIT BANNER INFO HOME */}
+        {showBannerModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowBannerModal(false)}>
+            <div
+              className={styles.formModal}
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: 560, width: "95%" }}
+            >
+              <div className={styles.formModalHeader}>
+                <h3>
+                  <i className="bx bx-broadcast" style={{ color: "var(--gold)" }} />{" "}
+                  {editingBannerId ? "Edit Banner & Info Home" : "Tambah Banner & Info Home Baru"}
+                </h3>
+                <button className={styles.closeX} onClick={() => setShowBannerModal(false)}>
+                  <i className="bx bx-x" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveBanner} className={styles.formBody}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Kategori / Badge:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.badge}
+                      onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value.toUpperCase() })}
+                      placeholder="Contoh: OPEN MEMBER, MEET & GREET"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Warna Badge:
+                    </label>
+                    <select
+                      className={styles.modalInput}
+                      value={bannerForm.badgeColor || "gold"}
+                      onChange={(e) => setBannerForm({ ...bannerForm, badgeColor: e.target.value })}
+                    >
+                      <option value="gold">Emas (Gold) - Standar / Open Member</option>
+                      <option value="blue">Biru (Blue) - Meet & Greet / Jadwal</option>
+                      <option value="green">Hijau (Green) - Info Resmi / Buka</option>
+                      <option value="pink">Pink - Project / Seitansai</option>
+                      <option value="red">Merah (Red) - Penting / Urgent</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                    Judul Pengumuman / Banner: <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    value={bannerForm.title}
+                    onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                    placeholder="Contoh: Pendaftaran Anggota Cavallery 2026 Resmi Dibuka!"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                    Deskripsi / Isi Pengumuman:
+                  </label>
+                  <textarea
+                    className={styles.modalInput}
+                    rows={3}
+                    value={bannerForm.description}
+                    onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })}
+                    placeholder="Tuliskan keterangan lengkap pengumuman di sini..."
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Tanggal / Waktu (Opsional):
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.dateInfo || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, dateInfo: e.target.value })}
+                      placeholder="Contoh: 25 - 30 September 2026"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Lokasi / Tempat (Opsional):
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.locationInfo || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, locationInfo: e.target.value })}
+                      placeholder="Contoh: Theater JKT48 / Online"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Teks Tombol Aksi:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.actionText || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, actionText: e.target.value })}
+                      placeholder="Contoh: Daftar Sekarang, Lihat Jadwal"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Tautan / Link URL:
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.actionUrl || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, actionUrl: e.target.value })}
+                      placeholder="Contoh: /join, /schedule, atau URL https://..."
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                    URL Gambar Poster / Banner (Opsional):
+                  </label>
+                  <input
+                    type="url"
+                    className={styles.modalInput}
+                    value={bannerForm.imageUrl || ""}
+                    onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                    placeholder="https://... atau /uploads/..."
+                  />
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div>
+                    <strong style={{ fontSize: "0.88rem", display: "block" }}>Status Tampil di Home</strong>
+                    <span style={{ fontSize: "0.78rem", color: "var(--fg-dim)" }}>Jika dicentang, banner akan langsung muncul di halaman utama</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={bannerForm.isActive}
+                    onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
+                    style={{ width: 20, height: 20, cursor: "pointer" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+                  <button type="button" className={styles.btnGhost} onClick={() => setShowBannerModal(false)}>
+                    Batal
+                  </button>
+                  <button type="submit" className={styles.btnPrimary}>
+                    <i className="bx bx-save" /> {editingBannerId ? "Perbarui Pengumuman" : "Simpan & Tampilkan"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

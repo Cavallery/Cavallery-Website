@@ -66,6 +66,22 @@ export async function getAllRegistrationSettings() {
   };
 }
 
+export interface HomeBannerItem {
+  id: string;
+  badge: string; // contoh: "OPEN MEMBER", "MEET & GREET", "EVENT", "INFO RESMI"
+  badgeColor?: string; // contoh: "gold", "blue", "green", "pink", "red"
+  title: string;
+  description: string;
+  dateInfo?: string; // contoh: "25 - 30 September 2026"
+  locationInfo?: string; // contoh: "Theater JKT48 / Online"
+  actionText?: string; // contoh: "Daftar Sekarang", "Lihat Jadwal", "Selengkapnya"
+  actionUrl?: string; // contoh: "/join", "/schedule", "https://..."
+  imageUrl?: string; // poster / banner opsional
+  isActive: boolean;
+  priority?: number;
+  createdAt?: string;
+}
+
 export interface MasterData {
   divisi: string[];
   tipeDonasi: string[];
@@ -77,6 +93,7 @@ export interface MasterData {
   tahunKasAktif: number[];
   jabatanBebasKas: string[];
   tipeRewardKupon: string[];
+  homeBanners?: HomeBannerItem[];
 }
 
 export const DEFAULT_MASTER_DATA: MasterData = {
@@ -130,6 +147,38 @@ export const DEFAULT_MASTER_DATA: MasterData = {
     "Akses Event Eksklusif",
     "Lainnya",
   ],
+  homeBanners: [
+    {
+      id: "banner-open-member",
+      badge: "OPEN MEMBER",
+      badgeColor: "gold",
+      title: "Pendaftaran Anggota Cavallery 2026 Resmi Dibuka!",
+      description: "Jadilah bagian dari keluarga besar fanbase Catherina Vallencia (Erine) JKT48. Dapatkan akses grup eksklusif, event spesial, dan proyek komunitas.",
+      dateInfo: "Periode Pendaftaran Aktif",
+      locationInfo: "Komunitas Online & Offline",
+      actionText: "Daftar Sekarang",
+      actionUrl: "/join",
+      imageUrl: "",
+      isActive: true,
+      priority: 1,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "banner-meet-greet",
+      badge: "MEET & GREET",
+      badgeColor: "blue",
+      title: "Jadwal & Info Meet n Greet Erine JKT48",
+      description: "Nantikan keseruan sesi meet n greet dan 2-shot bersama Erine. Pantau terus linimasa dan jadwal resmi kami di sini.",
+      dateInfo: "Informasi Resmi Fanbase",
+      locationInfo: "Event Official JKT48",
+      actionText: "Lihat Jadwal",
+      actionUrl: "/schedule",
+      imageUrl: "",
+      isActive: true,
+      priority: 2,
+      createdAt: new Date().toISOString(),
+    },
+  ],
 };
 
 export async function getMasterData(): Promise<MasterData> {
@@ -148,6 +197,7 @@ export async function getMasterData(): Promise<MasterData> {
         tahunKasAktif: Array.isArray(parsed.tahunKasAktif) && parsed.tahunKasAktif.length > 0 ? parsed.tahunKasAktif : DEFAULT_MASTER_DATA.tahunKasAktif,
         jabatanBebasKas: Array.isArray(parsed.jabatanBebasKas) && parsed.jabatanBebasKas.length > 0 ? parsed.jabatanBebasKas : DEFAULT_MASTER_DATA.jabatanBebasKas,
         tipeRewardKupon: Array.isArray(parsed.tipeRewardKupon) && parsed.tipeRewardKupon.length > 0 ? parsed.tipeRewardKupon : DEFAULT_MASTER_DATA.tipeRewardKupon,
+        homeBanners: Array.isArray(parsed.homeBanners) ? parsed.homeBanners : DEFAULT_MASTER_DATA.homeBanners,
       };
     }
   } catch (err) {

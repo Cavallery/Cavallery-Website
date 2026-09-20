@@ -37,6 +37,7 @@ export async function GET() {
     const erineStreams = await fetchWithCacheAndFallback<any[]>({
       key: "erine_live_stream",
       ttlSeconds: 45,
+      allowEmptyOverwrite: true,
       fetcher: async () => {
         const res = await fetch(`${BASE}/live?priority_token=${API_KEY}`, {
           headers: {

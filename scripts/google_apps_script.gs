@@ -56,6 +56,12 @@ function doPost(e) {
         handleAppendRow(ss, "Laporan Pengeluaran", data.row || data);
         break;
 
+      case "upload_drive":
+      case "upload_file":
+        var uploadResult = handleUploadDrive(ss, data);
+        return ContentService.createTextOutput(JSON.stringify(uploadResult))
+          .setMimeType(ContentService.MimeType.JSON);
+
       case "update_status":
         handleUpdateStatus(ss, data.tab || "Kas", data.id, data.status, data.row);
         break;
@@ -366,5 +372,64 @@ function handleDeleteRow(ss, tabName, matchCol, matchValue) {
       sheet.deleteRow(i + 1);
       return;
     }
+  }
+}
+
+// ============================================================================
+// HANDLER: UPLOAD FILE KE GOOGLE DRIVE SECARA OTOMATIS
+// Menyimpan bukti bayar / nota ke Google Drive agar permanen & tidak hilang
+// ============================================================================
+function handleUploadDrive(ss, data) {
+  try {
+    var folderName = data.folderName || "Cavallery Bukti & Nota";
+    var folders = DriveApp.getFoldersByName(folderName);
+    var folder;
+    if (folders.hasNext()) {
+      folder = folders.next();
+    } else {
+      folder = DriveApp.createFolder(folderName);
+    }
+
+    var base64Data = data.base64;
+    if (!base64Data) {
+      return { status: false, message: "No base64 data provided" };
+    }
+
+    if (base64Data.indexOf(",") > -1) {
+      base64Data = base64Data.split(",")[1];
+    }
+
+    var decoded = Utilities.base64Decode(base64Data);
+    var mimeType = data.mimeType || "image/jpeg";
+    var filename = data.filename || ("bukti_" + new Date().getTime() + ".jpg");
+
+    var blob = Utilities.newBlob(decoded, mimeType, filename);
+    var file = folder.createFile(blob);
+
+    // Set permission agar siapa saja yang memiliki tautan dapat melihat
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr) {}
+
+    var fileId = file.getId();
+    // Direct link untuk tag <img> di web
+    var directUrl = "https://lh3.googleusercontent.com/d/" + fileId;
+    // Standard link untuk Google Spreadsheet
+    var viewUrl = "https://drive.google.com/file/d/" + fileId + "/view?usp=sharing";
+
+    return {
+      status: true,
+      fileId: fileId,
+      url: directUrl,
+      viewUrl: viewUrl,
+      directUrl: directUrl,
+      filename: filename,
+      message: "File nota berhasil disimpan ke Google Drive"
+    };
+  } catch (err) {
+    return {
+      status: false,
+      message: "Gagal upload ke Google Drive: " + err.toString()
+    };
   }
 }

@@ -420,7 +420,7 @@ export default function JoinPage() {
     }
     if (!feeAgreed) {
       setFormError(
-        "Anda wajib menyetujui ketentuan iuran Rp60.000 untuk melanjutkan pendaftaran.",
+        "Anda wajib menyetujui ketentuan iuran Rp30.000 untuk melanjutkan pendaftaran.",
       );
       return;
     }
@@ -475,7 +475,7 @@ export default function JoinPage() {
       }
       if (!feeAgreed) {
         setFormError(
-          "Anda wajib menyetujui ketentuan iuran Rp60.000 untuk melanjutkan pendaftaran.",
+          "Anda wajib menyetujui ketentuan iuran Rp30.000 untuk melanjutkan pendaftaran.",
         );
         return;
       }
@@ -2064,7 +2064,7 @@ export default function JoinPage() {
                               Sebelum melanjutkan pendaftaran, harap diperhatikan
                               bahwa calon anggota Cavallery yang terpilih memiliki
                               kewajiban untuk membayar iuran sebesar{" "}
-                              <strong>Rp60.000</strong>.
+                              <strong>Rp30.000</strong>.
                             </p>
                             <p style={{ margin: "0 0 8px" }}>
                               Dengan pembayaran ini, anggota baru tidak perlu
@@ -2090,7 +2090,7 @@ export default function JoinPage() {
                             />
                             <span>
                               Saya bersedia dan menyetujui kewajiban membayar
-                              iuran sebesar Rp60.000 jika terpilih sebagai
+                              iuran sebesar Rp30.000 jika terpilih sebagai
                               anggota resmi. <span>*</span>
                             </span>
                           </label>

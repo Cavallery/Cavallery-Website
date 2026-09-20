@@ -35,6 +35,76 @@ export async function sendToAppsScript(action: string, payload: any): Promise<bo
   return false;
 }
 
+export interface DriveUploadResult {
+  status: boolean;
+  fileId?: string;
+  url?: string;
+  viewUrl?: string;
+  directUrl?: string;
+  message?: string;
+}
+
+/**
+ * Upload file langsung ke Google Drive via Google Apps Script Web App
+ */
+export async function uploadFileToGoogleDrive(params: {
+  filename: string;
+  mimeType: string;
+  buffer: Buffer;
+  folderName?: string;
+}): Promise<DriveUploadResult> {
+  const url = process.env.GOOGLE_APPS_SCRIPT_URL || APPS_SCRIPT_URL;
+  if (!url) return { status: false, message: "Apps Script URL belum disetel" };
+
+  try {
+    const base64 = params.buffer.toString("base64");
+    const rawBody = JSON.stringify({
+      action: "upload_drive",
+      data: {
+        filename: params.filename,
+        mimeType: params.mimeType,
+        base64,
+        folderName: params.folderName || "Cavallery Bukti & Nota",
+      },
+    });
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: rawBody,
+      redirect: "follow",
+      signal: AbortSignal.timeout(20000), // max 20 detik untuk upload file ke Drive
+    });
+
+    const text = await res.text();
+    let json: any = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      return { status: false, message: `Invalid response: ${text.substring(0, 100)}` };
+    }
+
+    if (json && json.status && (json.url || json.viewUrl)) {
+      return {
+        status: true,
+        fileId: json.fileId,
+        url: json.directUrl || json.url,
+        viewUrl: json.viewUrl,
+        directUrl: json.directUrl || json.url,
+        message: json.message || "Berhasil upload ke Google Drive",
+      };
+    }
+
+    return {
+      status: false,
+      message: json.message || "Gagal upload ke Google Drive",
+    };
+  } catch (err: any) {
+    console.error("[GoogleDrive Upload Error]:", err?.message || err);
+    return { status: false, message: err?.message || "Koneksi ke Google Apps Script gagal" };
+  }
+}
+
 /**
  * 1. Push data Anggota ke tab "Anggota" di Google Sheets
  */

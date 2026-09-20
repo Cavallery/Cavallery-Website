@@ -31,11 +31,14 @@ export async function fetchWithCacheAndFallback<T>({
   ttlSeconds = 60,
   fetcher,
   fallbackData,
+  allowEmptyOverwrite = false,
 }: {
   key: string;
   ttlSeconds?: number;
   fetcher: () => Promise<T>;
   fallbackData?: T;
+  /** If true, an empty array result WILL overwrite stale cache (needed for live-stream status). */
+  allowEmptyOverwrite?: boolean;
 }): Promise<T> {
   const now = Date.now();
   const cached = memoryCache.get(key);
@@ -69,7 +72,8 @@ export async function fetchWithCacheAndFallback<T>({
 
       if (data !== undefined && data !== null) {
         // If data is array and empty, don't overwrite non-empty stale cache
-        if (Array.isArray(data) && data.length === 0 && cached && Array.isArray(cached.data) && cached.data.length > 0) {
+        // UNLESS allowEmptyOverwrite is set (e.g. live-stream status must reflect reality)
+        if (!allowEmptyOverwrite && Array.isArray(data) && data.length === 0 && cached && Array.isArray(cached.data) && cached.data.length > 0) {
           return cached.data as T;
         }
 
