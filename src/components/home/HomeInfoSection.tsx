@@ -113,6 +113,37 @@ export default function HomeInfoSection() {
                     )}
                   </div>
                 )}
+
+                {item.sessions && item.sessions.length > 0 && (
+                  <div className={styles.sessionsTableWrap}>
+                    <div className={styles.sessionsTableTitle}>
+                      <i className="bx bx-time-five" />
+                      <span>Jadwal Sesi &amp; Waktu</span>
+                    </div>
+                    <table className={styles.sessionsTable}>
+                      <thead>
+                        <tr>
+                          <th>Sesi</th>
+                          <th>Waktu / Jam</th>
+                          <th>Keterangan / Jalur</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {item.sessions.map((s, sIdx) => (
+                          <tr key={sIdx}>
+                            <td>
+                              <span className={styles.sessionTag}>{s.sessionName}</span>
+                            </td>
+                            <td style={{ fontWeight: 600 }}>{s.time}</td>
+                            <td style={{ color: "var(--fg-dim)", fontSize: "0.75rem" }}>
+                              {s.info || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
               <div>

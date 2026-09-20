@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "../keanggotaan/page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
-import type { HomeBannerItem } from "@/lib/settings";
+import type { HomeBannerItem, HomeBannerSessionItem } from "@/lib/settings";
 import AdminSubNav from "@/components/admin/AdminSubNav";
 
 interface MasterDataState {
@@ -66,9 +66,12 @@ export default function AdminMasterDataPage() {
     actionText: "Daftar Sekarang",
     actionUrl: "/join",
     imageUrl: "",
+    sessions: [],
     isActive: true,
     priority: 1,
   });
+  const [uploadingBannerImg, setUploadingBannerImg] = useState(false);
+  const [importingVc, setImportingVc] = useState(false);
 
   // State Pengaturan Master War Tiket & Template E-Ticket
   const [warEvent, setWarEvent] = useState<{
@@ -274,15 +277,19 @@ export default function AdminMasterDataPage() {
     setEditingBannerId(null);
     setBannerForm({
       id: `banner-${Date.now()}`,
-      badge: "OPEN MEMBER",
-      badgeColor: "gold",
+      badge: "MEET & GREET",
+      badgeColor: "blue",
       title: "",
       description: "",
       dateInfo: "",
       locationInfo: "",
-      actionText: "Daftar Sekarang",
-      actionUrl: "/join",
+      actionText: "Lihat Jadwal",
+      actionUrl: "/schedule",
       imageUrl: "",
+      sessions: [
+        { sessionName: "Sesi 1", time: "11.00 – 12.00 WIB", info: "Jalur 3 (Meet & Greet)" },
+        { sessionName: "Sesi 2", time: "13.30 – 14.30 WIB", info: "Jalur 3 (Meet & Greet)" },
+      ],
       isActive: true,
       priority: (data.homeBanners?.length || 0) + 1,
     });
@@ -291,8 +298,110 @@ export default function AdminMasterDataPage() {
 
   const openEditBannerModal = (banner: HomeBannerItem) => {
     setEditingBannerId(banner.id);
-    setBannerForm({ ...banner });
+    setBannerForm({
+      ...banner,
+      sessions: Array.isArray(banner.sessions) ? [...banner.sessions] : [],
+    });
     setShowBannerModal(true);
+  };
+
+  const addSessionRow = () => {
+    const cur = bannerForm.sessions || [];
+    setBannerForm({
+      ...bannerForm,
+      sessions: [
+        ...cur,
+        {
+          sessionName: `Sesi ${cur.length + 1}`,
+          time: "11.00 – 12.00 WIB",
+          info: "Jalur 3 • Meet & Greet",
+        },
+      ],
+    });
+  };
+
+  const updateSessionRow = (idx: number, field: keyof HomeBannerSessionItem, val: string) => {
+    const cur = [...(bannerForm.sessions || [])];
+    if (cur[idx]) {
+      cur[idx] = { ...cur[idx], [field]: val };
+      setBannerForm({ ...bannerForm, sessions: cur });
+    }
+  };
+
+  const removeSessionRow = (idx: number) => {
+    const cur = (bannerForm.sessions || []).filter((_, i) => i !== idx);
+    setBannerForm({ ...bannerForm, sessions: cur });
+  };
+
+  const handleUploadBannerImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingBannerImg(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("tipe", "banner");
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (json.status && json.url) {
+        setBannerForm((prev) => ({ ...prev, imageUrl: json.url }));
+        setMsg("✓ Foto poster berhasil diunggah!");
+        setTimeout(() => setMsg(""), 4000);
+      } else {
+        alert(json.message || "Gagal mengunggah foto");
+      }
+    } catch (err: any) {
+      alert("Error upload: " + err.message);
+    } finally {
+      setUploadingBannerImg(false);
+    }
+  };
+
+  const handleImportVcSchedule = async () => {
+    setImportingVc(true);
+    try {
+      const res = await fetch("/api/vcschedule");
+      if (res.ok) {
+        const json = await res.json();
+        const d = json.data;
+        if (d) {
+          const newSessions: HomeBannerSessionItem[] = [];
+          for (let i = 1; i <= 6; i++) {
+            const raw = d[`session${i}`];
+            if (raw && typeof raw === "string" && raw.trim()) {
+              const parts = raw.split(":");
+              const sName = parts[0]?.trim() || `Sesi ${i}`;
+              const sTime = parts.slice(1).join(":").trim() || raw;
+              newSessions.push({
+                sessionName: sName,
+                time: sTime,
+                info: "Jadwal Resmi Erine",
+              });
+            }
+          }
+          setBannerForm((prev) => ({
+            ...prev,
+            badge: "MEET & GREET",
+            badgeColor: "blue",
+            title: `Jadwal Meet & Greet / Video Call Erine (${d.date || "Terbaru"})`,
+            description: `Jadwal sesi temu dan video call bersama Catherina Vallencia (Erine) JKT48 pada ${d.date || "waktu yang ditentukan"}. Siapkan tiketmu dan hadir tepat waktu!`,
+            dateInfo: d.date || prev.dateInfo,
+            imageUrl: d.imageUrl || prev.imageUrl,
+            actionText: "Lihat Jadwal Lengkap",
+            actionUrl: "/schedule",
+            sessions: newSessions.length > 0 ? newSessions : prev.sessions,
+          }));
+          alert("✓ Berhasil mengimpor jadwal resmi VC/M&G Erine ke dalam form pengumuman!");
+        }
+      }
+    } catch (err: any) {
+      alert("Gagal impor jadwal: " + err.message);
+    } finally {
+      setImportingVc(false);
+    }
   };
 
   const handleSaveBanner = (e: React.FormEvent) => {
@@ -722,8 +831,29 @@ export default function AdminMasterDataPage() {
                           </button>
                         </div>
 
+                        {b.imageUrl && (
+                          <div style={{ width: "100%", height: 110, borderRadius: 8, overflow: "hidden", marginBottom: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
+                            <img src={b.imageUrl} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        )}
+
                         <h4 style={{ margin: "0 0 6px", fontSize: "1rem", color: "#fff" }}>{b.title}</h4>
                         <p style={{ margin: "0 0 10px", fontSize: "0.82rem", color: "var(--fg-dim, #aaa)", lineHeight: 1.45 }}>{b.description}</p>
+
+                        {b.sessions && b.sessions.length > 0 && (
+                          <div style={{ marginBottom: 8, padding: "6px 10px", background: "rgba(201, 168, 76, 0.1)", borderRadius: 6, border: "1px solid rgba(201, 168, 76, 0.25)", fontSize: "0.76rem" }}>
+                            <strong style={{ color: "var(--gold)", display: "block", marginBottom: 2 }}>
+                              <i className="bx bx-time-five" /> {b.sessions.length} Sesi Terjadwal:
+                            </strong>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                              {b.sessions.map((s, si) => (
+                                <span key={si} style={{ background: "rgba(0,0,0,0.3)", padding: "2px 6px", borderRadius: 4, color: "#e5e7eb" }}>
+                                  {s.sessionName}: {s.time}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {(b.dateInfo || b.locationInfo) && (
                           <div style={{ fontSize: "0.76rem", color: "#d1d5db", display: "flex", flexDirection: "column", gap: 3, marginBottom: 8, background: "rgba(0,0,0,0.25)", padding: "6px 10px", borderRadius: 6 }}>
@@ -2167,17 +2297,187 @@ export default function AdminMasterDataPage() {
                   </div>
                 </div>
 
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(59, 130, 246, 0.12)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                  <span style={{ fontSize: "0.78rem", color: "#93c5fd", display: "flex", alignItems: "center", gap: 6 }}>
+                    <i className="bx bx-bulb" style={{ fontSize: "1rem" }} /> Impor data otomatis dari Jadwal VC / M&amp;G Erine?
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleImportVcSchedule}
+                    disabled={importingVc}
+                    style={{
+                      padding: "5px 12px",
+                      fontSize: "0.75rem",
+                      borderRadius: 6,
+                      background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                      color: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+                    }}
+                  >
+                    <i className={`bx ${importingVc ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
+                    {importingVc ? "Mengimpor..." : "⚡ Impor API M&G"}
+                  </button>
+                </div>
+
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                    URL Gambar Poster / Banner (Opsional):
+                    Foto / Poster Banner (Bisa Upload atau Masukkan URL):
                   </label>
-                  <input
-                    type="url"
-                    className={styles.modalInput}
-                    value={bannerForm.imageUrl || ""}
-                    onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
-                    placeholder="https://... atau /uploads/..."
-                  />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.imageUrl || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                      placeholder="https://... atau klik Upload Foto"
+                      style={{ flex: 1 }}
+                    />
+                    <label
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: 8,
+                        background: "rgba(201, 168, 76, 0.18)",
+                        border: "1px solid var(--gold)",
+                        color: "var(--gold)",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      <i className={`bx ${uploadingBannerImg ? "bx-loader-alt bx-spin" : "bx-upload"}`} />
+                      {uploadingBannerImg ? "Mengunggah..." : "Upload Foto"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={handleUploadBannerImage}
+                        disabled={uploadingBannerImg}
+                      />
+                    </label>
+                  </div>
+                  {bannerForm.imageUrl && (
+                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: 6, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <img
+                        src={bannerForm.imageUrl}
+                        alt="Preview"
+                        style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)" }}
+                      />
+                      <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", flex: 1, wordBreak: "break-all" }}>
+                        {bannerForm.imageUrl.length > 50 ? `${bannerForm.imageUrl.slice(0, 50)}...` : bannerForm.imageUrl}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setBannerForm({ ...bannerForm, imageUrl: "" })}
+                        style={{ padding: "4px 8px", fontSize: "0.72rem", color: "#f87171", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 6, cursor: "pointer" }}
+                      >
+                        Hapus Foto
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* TABEL SESI & JAM ERINE */}
+                <div style={{ padding: "12px", background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, border: "1px solid rgba(201, 168, 76, 0.25)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <div>
+                      <strong style={{ fontSize: "0.85rem", color: "var(--gold)", display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="bx bx-time-five" /> Tabel Sesi &amp; Jam Erine (Opsional)
+                      </strong>
+                      <span style={{ fontSize: "0.74rem", color: "var(--fg-dim)", display: "block", marginTop: 2 }}>
+                        Rincian jam dan sesi untuk tampil dalam bentuk tabel di halaman Home
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addSessionRow}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 6,
+                        background: "rgba(201, 168, 76, 0.2)",
+                        border: "1px solid var(--gold)",
+                        color: "var(--gold)",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <i className="bx bx-plus" /> Tambah Sesi
+                    </button>
+                  </div>
+
+                  {(!bannerForm.sessions || bannerForm.sessions.length === 0) ? (
+                    <p style={{ fontSize: "0.75rem", color: "var(--fg-dim)", margin: 0, fontStyle: "italic", padding: "6px 0" }}>
+                      Belum ada rincian sesi. Klik tombol &quot;+ Tambah Sesi&quot; di atas untuk menambahkan jadwal sesi &amp; jam.
+                    </p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.3fr 32px", gap: 6, fontSize: "0.72rem", color: "var(--gold)", fontWeight: 700, paddingLeft: 2 }}>
+                        <span>Sesi</span>
+                        <span>Waktu / Jam</span>
+                        <span>Jalur / Keterangan</span>
+                        <span></span>
+                      </div>
+                      {bannerForm.sessions.map((ses, sIdx) => (
+                        <div key={sIdx} style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.3fr 32px", gap: 6, alignItems: "center" }}>
+                          <input
+                            type="text"
+                            className={styles.modalInput}
+                            value={ses.sessionName}
+                            onChange={(e) => updateSessionRow(sIdx, "sessionName", e.target.value)}
+                            placeholder="Sesi 1"
+                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
+                          />
+                          <input
+                            type="text"
+                            className={styles.modalInput}
+                            value={ses.time}
+                            onChange={(e) => updateSessionRow(sIdx, "time", e.target.value)}
+                            placeholder="11.00 – 12.00 WIB"
+                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
+                          />
+                          <input
+                            type="text"
+                            className={styles.modalInput}
+                            value={ses.info || ""}
+                            onChange={(e) => updateSessionRow(sIdx, "info", e.target.value)}
+                            placeholder="Jalur 3 (Meet &amp; Greet)"
+                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSessionRow(sIdx)}
+                            style={{
+                              background: "rgba(239, 68, 68, 0.2)",
+                              border: "1px solid #ef4444",
+                              color: "#f87171",
+                              borderRadius: 6,
+                              height: 32,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                            title="Hapus baris sesi"
+                          >
+                            <i className="bx bx-trash" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>

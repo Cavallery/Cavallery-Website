@@ -66,6 +66,12 @@ export async function getAllRegistrationSettings() {
   };
 }
 
+export interface HomeBannerSessionItem {
+  sessionName: string; // contoh: "Sesi 1", "Sesi 2"
+  time: string;        // contoh: "11.00 – 12.00 WIB"
+  info?: string;       // contoh: "Jalur 3 (Meet & Greet)", "2-Shot", "Tersedia"
+}
+
 export interface HomeBannerItem {
   id: string;
   badge: string; // contoh: "OPEN MEMBER", "MEET & GREET", "EVENT", "INFO RESMI"
@@ -77,6 +83,7 @@ export interface HomeBannerItem {
   actionText?: string; // contoh: "Daftar Sekarang", "Lihat Jadwal", "Selengkapnya"
   actionUrl?: string; // contoh: "/join", "/schedule", "https://..."
   imageUrl?: string; // poster / banner opsional
+  sessions?: HomeBannerSessionItem[]; // tabel sesi dan jam
   isActive: boolean;
   priority?: number;
   createdAt?: string;
@@ -174,6 +181,11 @@ export const DEFAULT_MASTER_DATA: MasterData = {
       actionText: "Lihat Jadwal",
       actionUrl: "/schedule",
       imageUrl: "",
+      sessions: [
+        { sessionName: "Sesi 1", time: "11.00 – 12.00 WIB", info: "Jalur 3 (Meet & Greet)" },
+        { sessionName: "Sesi 2", time: "13.30 – 14.30 WIB", info: "Jalur 3 (Meet & Greet)" },
+        { sessionName: "Sesi 4", time: "16.00 – 17.00 WIB", info: "Jalur 3 (2-Shot)" },
+      ],
       isActive: true,
       priority: 2,
       createdAt: new Date().toISOString(),

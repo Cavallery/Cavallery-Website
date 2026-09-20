@@ -163,6 +163,62 @@
   object-fit: cover;
 }
 
+.sessionsTableWrap {
+  margin-bottom: 16px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  overflow: hidden;
+}
+
+.sessionsTableTitle {
+  padding: 7px 12px;
+  background: rgba(201, 168, 76, 0.12);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f7d57f;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+}
+
+.sessionsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.sessionsTable th {
+  text-align: left;
+  padding: 6px 10px;
+  font-weight: 700;
+  color: #d1d5db;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sessionsTable td {
+  padding: 7px 10px;
+  color: #e5e7eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sessionsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.sessionTag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  background: rgba(201, 168, 76, 0.18);
+  color: #f7d57f;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
 .actionBtn {
   display: inline-flex;
   align-items: center;
