@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
+import AdminSubNav from "@/components/admin/AdminSubNav";
 import { BADGE_OPTIONS, getMemberBadge, MEMBER_BADGES } from "@/lib/badges";
 
 const JABATAN_OPTIONS = [
@@ -304,48 +305,23 @@ export default function AdminKeanggotaanPage() {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* Top Header */}
-        <div className={styles.topHeader}>
-          <div>
-            <Link href="/internal/dashboard-admin-xv7r2q" className={styles.backBtn}>
-              <i className="bx bx-arrow-back" /> Dashboard Utama
-            </Link>
-            <h1 className={styles.pageTitle} style={{ marginTop: 12 }}>
-              Manajemen Keanggotaan Cavallery
-            </h1>
-          </div>
+        {/* Top Header Sub-Navbar Konsisten */}
+        <AdminSubNav
+          activeKey="keanggotaan"
+          title="Manajemen Keanggotaan Cavallery"
+          subtitle="Kelola status approval anggota baru, direktori nomor anggota resmi, jabatan pengurus, dan badge apresiasi."
+        />
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <button
-              type="button"
-              className={styles.btnCreate}
-              onClick={() => setShowCreateModal(true)}
-            >
-              <i className="bx bx-user-plus" /> Tambah Anggota Manual
-            </button>
-            <Link href="/internal/dashboard-admin-xv7r2q/kontributor" className={styles.backBtn}>
-              <i className="bx bx-heart-circle" /> Kontributor
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/kas" className={styles.backBtn}>
-              <i className="bx bx-wallet" /> Verifikasi Kas
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/donasi" className={styles.backBtn}>
-              <i className="bx bx-donate-heart" /> Verifikasi Donasi
-            </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
-              <i className="bx bx-slider-alt" /> Master Data
-            </Link>
-            <a
-              href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit?gid=1846326647#gid=1846326647"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.backBtn}
-              style={{ color: "#10b981", borderColor: "rgba(16,185,129,0.4)" }}
-            >
-              <i className="bx bx-table" /> Live Spreadsheet
-            </a>
-            <ThemeToggle />
-          </div>
+        {/* Action Bar */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+          <button
+            type="button"
+            className={styles.btnCreate}
+            onClick={() => setShowCreateModal(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            <i className="bx bx-user-plus" /> Tambah Anggota Manual
+          </button>
         </div>
 
         {/* Global Feedback Message */}

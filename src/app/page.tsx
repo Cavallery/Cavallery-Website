@@ -1,5 +1,6 @@
 import styles from "./page.module.css";
 import HeroSection from "@/components/home/HeroSection";
+import HomeInfoSection from "@/components/home/HomeInfoSection";
 import HomePortalSection from "@/components/home/HomePortalSection";
 import CalendarSection from "@/components/home/CalendarSection";
 import TicketingSection from "@/components/home/TicketingSection";
@@ -22,6 +23,8 @@ export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
+      <SectionDivider />
+      <HomeInfoSection />
       <SectionDivider />
       <HomePortalSection />
       <SectionDivider />

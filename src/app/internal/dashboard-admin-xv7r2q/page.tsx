@@ -5505,7 +5505,7 @@ function RecruitmentManager() {
       `"${(s.reason || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       `"${(s.support_type || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
       `"${(s.activity_suggestion || "-").replace(/"/g, '""').replace(/\n/g, " ")}"`,
-      s.fee_agreed ? "Bersedia (Rp60.000)" : "-",
+      s.fee_agreed ? "Bersedia (Rp30.000)" : "-",
       s.status === "approved" ? "Diterima" : s.status === "rejected" ? "Ditolak" : "Pending",
     ]);
 
@@ -6000,7 +6000,7 @@ function RecruitmentManager() {
 
                 {detailModal.role_id === "member" && (
                   <>
-                    <span style={{ color: "var(--adm-muted)" }}>Iuran Rp60.000:</span>
+                    <span style={{ color: "var(--adm-muted)" }}>Iuran Rp30.000:</span>
                     <span style={{ color: detailModal.fee_agreed ? "#10b981" : "#ef4444", fontWeight: 700 }}>
                       {detailModal.fee_agreed ? "✓ Bersedia" : "✗ Belum / Tidak"}
                     </span>
@@ -7357,52 +7357,201 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     });
   }, []);
 
-  const cards: { key: Section; icon: string; label: string; color: string }[] = [
-    { key: "keanggotaan" as any, icon: "bx-user-check",   label: "Keanggotaan", color: "#10b981" },
-    { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "#6366f1" },
-    { key: "adminkas" as any,    icon: "bx-wallet",       label: "Kas Anggota", color: "#f59e0b" },
-    { key: "adminwartiket" as any, icon: "bx-flame",      label: "War Tiket STS", color: "#c9a84c" },
-    { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48" },
-    { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6" },
-    { key: "adminspreadsheet" as any, icon: "bx-table",   label: "Spreadsheet", color: "#10b981" },
-    { key: "adminexcel" as any,       icon: "bxs-file-export", label: "Download Excel", color: "#059669" },
-    { key: "recruitment",icon: "bx-group",        label: "Recruitment",color: "#10b981" },
-    { key: "esport",     icon: "bx-trophy",       label: "Esport",     color: "#f59e0b" },
-    { key: "invitations",icon: "bx-envelope",     label: "Undangan",   color: "#c9a84c" },
-    { key: "news",       icon: "bx-news",         label: "News",       color: "#b45309" },
-    { key: "timeline",   icon: "bx-map-pin",      label: "Milestone",  color: "#047857" },
-    { key: "gallery",    icon: "bx-image-alt",    label: "Gallery",    color: "#7c3aed" },
-    { key: "setlists",   icon: "bx-music",        label: "Setlists",   color: "#0369a1" },
-    { key: "youtube",    icon: "bxl-youtube",     label: "YouTube",    color: "#dc2626" },
-    { key: "merch",      icon: "bx-store",        label: "Merchandise",color: "#f59e0b" },
-    { key: "funfacts",   icon: "bx-laugh",        label: "Funfacts",   color: "#059669" },
-    { key: "kabesha",    icon: "bx-star",         label: "Kabesha",    color: "#d97706" },
-    { key: "stats",      icon: "bx-bar-chart",    label: "Stats",      color: "#9333ea" },
-    { key: "media",      icon: "bx-folder-open",  label: "Media",      color: "#0891b2" },
-    { key: "discord",    icon: "bxl-discord-alt", label: "Discord",    color: "#5865f2" },
-    { key: "journal",    icon: "bx-book-open",    label: "MemoRine",   color: "#db2777" },
-    { key: "bot",        icon: "bx-bot",          label: "Bot",        color: "#f59e0b" },
-    { key: "tickets",    icon: "bx-receipt",      label: "Tickets",    color: "#10b981" },
-    { key: "calendar",   icon: "bx-calendar",     label: "Calendar",   color: "#3b82f6" },
-    { key: "updates",    icon: "bx-refresh",      label: "Updates",    color: "#10b981" },
-    { key: "vcschedule", icon: "bx-video",        label: "Video Call", color: "#ec4899" },
-    { key: "abouterine", icon: "bx-image",        label: "About Erine",color: "#ec4899" },
-    { key: "anggotakota",icon: "bx-map",          label: "Anggota Kota",color: "#3b82f6" },
+  const sectionsGrouped = [
+    {
+      groupTitle: "Keuangan & Keanggotaan Utama",
+      groupIcon: "bx-wallet",
+      groupColor: "#c9a84c",
+      cards: [
+        { key: "keanggotaan" as any, icon: "bx-user-check", label: "Keanggotaan", color: "#10b981", desc: "Verifikasi & Direktori" },
+        { key: "adminkas" as any, icon: "bx-wallet", label: "Kas Anggota", color: "#f59e0b", desc: "Matriks & Pengeluaran" },
+        { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48", desc: "Verifikasi Donasi" },
+        { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "#6366f1", desc: "Data Donatur Publik" },
+        { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6", desc: "Banner Home & Opsi" },
+        { key: "adminwartiket" as any, icon: "bx-flame", label: "War Tiket STS", color: "#c9a84c", desc: "Live Antrean War" },
+        { key: "adminspreadsheet" as any, icon: "bx-table", label: "Live Spreadsheet", color: "#10b981", desc: "Google Sheets Backup" },
+        { key: "adminexcel" as any, icon: "bxs-file-export", label: "Download Excel", color: "#059669", desc: "Export Matriks Kas" },
+      ],
+    },
+    {
+      groupTitle: "Rekrutmen & Interaksi Komunitas",
+      groupIcon: "bx-conversation",
+      groupColor: "#3b82f6",
+      cards: [
+        { key: "recruitment", icon: "bx-group", label: "Recruitment", color: "#3b82f6", desc: "Pendaftar Masuk" },
+        { key: "invitations", icon: "bx-envelope", label: "Undangan", color: "#c9a84c", desc: "RSVP Acara" },
+        { key: "journal", icon: "bx-book-open", label: "MemoRine", color: "#db2777", desc: "Pesan & Doa Fans" },
+        { key: "fanart", icon: "bx-palette", label: "Fanart Erine", color: "#ec4899", desc: "Karya Seni Fans" },
+        { key: "twoshot", icon: "bx-camera", label: "2S with Erine", color: "#f43f5e", desc: "Mading Foto 2-Shot" },
+        { key: "dengerine", icon: "bx-headphone", label: "Dengerine", color: "#10b981", desc: "Playlist Lagu Fans" },
+        { key: "esport", icon: "bx-trophy", label: "Esport", color: "#f59e0b", desc: "Turnamen & Game" },
+        { key: "tickets", icon: "bx-receipt", label: "Tickets", color: "#14b8a6", desc: "Kritik & Saran Fans" },
+        { key: "anggotakota", icon: "bx-map", label: "Anggota Kota", color: "#0284c7", desc: "Sebaran Domisili" },
+        { key: "bot", icon: "bx-bot", label: "Bot LINE", color: "#22c55e", desc: "Webhook & Trigger" },
+      ],
+    },
+    {
+      groupTitle: "Publikasi Konten & Media",
+      groupIcon: "bx-layer",
+      groupColor: "#8b5cf6",
+      cards: [
+        { key: "news", icon: "bx-news", label: "News", color: "#b45309", desc: "Cavallery Statement" },
+        { key: "timeline", icon: "bx-map-pin", label: "Milestone", color: "#047857", desc: "Linimasa Perjalanan" },
+        { key: "gallery", icon: "bx-image-alt", label: "Gallery", color: "#7c3aed", desc: "Galeri Dokumentasi" },
+        { key: "media", icon: "bx-folder-open", label: "Media Vault", color: "#0891b2", desc: "Penyimpanan File" },
+        { key: "youtube", icon: "bxl-youtube", label: "YouTube", color: "#dc2626", desc: "Video Komunitas" },
+        { key: "updates", icon: "bx-refresh", label: "Updates", color: "#10b981", desc: "Log Perubahan" },
+      ],
+    },
+    {
+      groupTitle: "Erine & Show Tracker",
+      groupIcon: "bx-star",
+      groupColor: "#ec4899",
+      cards: [
+        { key: "abouterine", icon: "bx-image", label: "About Erine", color: "#ec4899", desc: "Biodata & Profil" },
+        { key: "setlists", icon: "bx-music", label: "Setlists", color: "#0369a1", desc: "Show Theater JKT48" },
+        { key: "kabesha", icon: "bx-star", label: "Kabesha", color: "#d97706", desc: "Foto Resmi Member" },
+        { key: "vcschedule", icon: "bx-video", label: "Video Call", color: "#f43f5e", desc: "Jadwal Video Call" },
+        { key: "calendar", icon: "bx-calendar", label: "Calendar", color: "#3b82f6", desc: "Agenda Bulanan" },
+        { key: "stats", icon: "bx-bar-chart", label: "Stats", color: "#9333ea", desc: "Statistik Pertunjukan" },
+        { key: "funfacts", icon: "bx-laugh", label: "Funfacts", color: "#059669", desc: "Fakta Menarik" },
+        { key: "merch", icon: "bx-store", label: "Merchandise", color: "#f59e0b", desc: "Katalog Merchandise" },
+      ],
+    },
   ];
 
   return (
     <div className={styles.dashHome}>
-      <div className={styles.welcomeBanner}>
-        <div><h2>Selamat datang, Vallencia!</h2><p>Kelola konten Cavallery dari sini.</p></div>
-        <i className="bx bxs-shield-alt-2" style={{ fontSize: "4rem", opacity: 0.15 }} />
+      {/* WELCOME BANNER DENGAN QUICK ACTION */}
+      <div
+        className={styles.welcomeBanner}
+        style={{
+          background: "linear-gradient(135deg, rgba(36, 36, 36, 0.95) 0%, rgba(20, 24, 33, 0.95) 100%)",
+          border: "1px solid rgba(201, 168, 76, 0.3)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+          padding: "1.5rem 1.75rem",
+          borderRadius: 16,
+        }}
+      >
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 12, background: "rgba(201, 168, 76, 0.15)", color: "var(--gold)", fontSize: "0.74rem", fontWeight: 800, marginBottom: 8 }}>
+            <i className="bx bxs-shield-alt-2" /> CAVALLERY ADMIN PANEL
+          </div>
+          <h2 style={{ margin: "0 0 4px", fontSize: "1.4rem", color: "#f0f0f0", fontWeight: 800 }}>
+            Selamat datang di Dashboard Admin!
+          </h2>
+          <p style={{ margin: 0, color: "var(--fg-dim, #999)", fontSize: "0.86rem" }}>
+            Pusat kendali seluruh fitur, data anggota, keuangan kas, dan konten website resmi Cavallery.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+          <a
+            href="/"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.06)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.15)",
+              textDecoration: "none",
+              fontSize: "0.82rem",
+              fontWeight: 600,
+            }}
+          >
+            <i className="bx bx-globe" /> Buka Website
+          </a>
+          <a
+            href="https://docs.google.com/spreadsheets/d/1t9PlUNLN2rdskLq-ZpellJI0umclokLm7G-DI-VnFXg/edit"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 14px",
+              borderRadius: 10,
+              background: "rgba(16, 185, 129, 0.15)",
+              color: "#34d399",
+              border: "1px solid rgba(16, 185, 129, 0.4)",
+              textDecoration: "none",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+            }}
+          >
+            <i className="bx bx-table" /> Live Spreadsheet
+          </a>
+        </div>
       </div>
-      <div className={styles.dashGrid}>
-        {cards.map(card => (
-          <button key={card.key} className={styles.dashCard} onClick={() => onNav(card.key)} style={{ "--accent": card.color } as any}>
-            <i className={`bx ${card.icon}`} style={{ color: card.color }} />
-            <div className={styles.dashCardCount}>{counts[card.key] ?? "—"}</div>
-            <div className={styles.dashCardLabel}>{card.label}</div>
-          </button>
+
+      {/* RENDER GROUPED DASHBOARD CARDS */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        {sectionsGrouped.map((group, gIdx) => (
+          <div key={gIdx}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 12,
+                paddingBottom: 8,
+                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+              }}
+            >
+              <i className={`bx ${group.groupIcon}`} style={{ color: group.groupColor, fontSize: "1.2rem" }} />
+              <h3 style={{ margin: 0, fontSize: "1rem", color: "#f0f0f0", fontWeight: 700 }}>
+                {group.groupTitle}
+              </h3>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(145px, 1fr))",
+                gap: "0.85rem",
+              }}
+            >
+              {group.cards.map((card) => (
+                <button
+                  key={card.key}
+                  className={styles.dashCard}
+                  onClick={() => onNav(card.key)}
+                  style={{
+                    "--accent": card.color,
+                    padding: "1rem 0.65rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    position: "relative",
+                  } as any}
+                >
+                  <i className={`bx ${card.icon}`} style={{ color: card.color, fontSize: "1.7rem" }} />
+                  <div className={styles.dashCardCount} style={{ fontSize: "1.3rem" }}>
+                    {counts[card.key] ?? "—"}
+                  </div>
+                  <div className={styles.dashCardLabel} style={{ fontWeight: 700, color: "#eee" }}>
+                    {card.label}
+                  </div>
+                  {card.desc && (
+                    <div style={{ fontSize: "0.68rem", color: "var(--fg-dim, #777)", marginTop: -2 }}>
+                      {card.desc}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>

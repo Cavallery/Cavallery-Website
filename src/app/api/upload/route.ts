@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       console.warn("[Upload] Warning: Cannot write to disk, using DB only:", fsErr?.message);
     }
 
-    // 2. SIMPAN KE DATABASE MYSQL (Permanen, tidak akan hilang saat push/redeploy)
+    // 2. SIMPAN KE DATABASE MYSQL (Backup lokal, jika koneksi drive offline)
     await saveFileToDb({
       buffer,
       filename,
@@ -58,11 +58,40 @@ export async function POST(req: NextRequest) {
     // Jalankan background sync file lama jika belum masuk database
     syncLocalUploadsToDb().catch(() => {});
 
-    const publicUrl = `/uploads/bukti/${filename}`;
+    // 3. SIMPAN KE GOOGLE DRIVE VIA APPS SCRIPT (Agar foto nota permanen, ada link drive di spreadsheet & website)
+    let driveUrl = "";
+    let driveViewUrl = "";
+    try {
+      const { uploadFileToGoogleDrive } = await import("@/lib/googleSheets");
+      const driveRes = await uploadFileToGoogleDrive({
+        filename,
+        mimeType: file.type || "image/jpeg",
+        buffer,
+        folderName: "Cavallery Bukti & Nota",
+      });
+
+      if (driveRes.status && (driveRes.url || driveRes.viewUrl)) {
+        driveUrl = driveRes.directUrl || driveRes.url || "";
+        driveViewUrl = driveRes.viewUrl || driveUrl;
+        console.log(`[Upload] File ${filename} berhasil disimpan ke Google Drive:`, driveViewUrl);
+      } else {
+        console.warn("[Upload] Google Drive upload gagal/belum dikonfigurasi, gunakan fallback lokal:", driveRes.message);
+      }
+    } catch (driveErr: any) {
+      console.warn("[Upload] Warning saat upload ke Google Drive:", driveErr?.message);
+    }
+
+    const publicUrl = driveUrl || `/uploads/bukti/${filename}`;
+
     return NextResponse.json({
       status: true,
       url: publicUrl,
-      message: "Bukti bayar / nota berhasil disimpan ke database",
+      viewUrl: driveViewUrl || publicUrl,
+      driveUrl: driveViewUrl || "",
+      storage: driveUrl ? "google_drive" : "mysql_local",
+      message: driveUrl
+        ? "Bukti bayar / nota berhasil disimpan permanen ke Google Drive & Database"
+        : "Bukti bayar / nota berhasil disimpan ke database",
     });
   } catch (error: any) {
     console.error("Upload error:", error);
