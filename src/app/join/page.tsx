@@ -420,7 +420,7 @@ export default function JoinPage() {
     }
     if (!feeAgreed) {
       setFormError(
-        "Anda wajib menyetujui ketentuan iuran Rp30.000 untuk melanjutkan pendaftaran.",
+        "Anda wajib menyetujui ketentuan iuran Rp30.000 (2 bulan: September & Oktober) untuk melanjutkan pendaftaran.",
       );
       return;
     }
@@ -475,7 +475,7 @@ export default function JoinPage() {
       }
       if (!feeAgreed) {
         setFormError(
-          "Anda wajib menyetujui ketentuan iuran Rp30.000 untuk melanjutkan pendaftaran.",
+          "Anda wajib menyetujui ketentuan iuran Rp30.000 (2 bulan: September & Oktober) untuk melanjutkan pendaftaran.",
         );
         return;
       }
@@ -2063,14 +2063,15 @@ export default function JoinPage() {
                             <p style={{ margin: "0 0 8px" }}>
                               Sebelum melanjutkan pendaftaran, harap diperhatikan
                               bahwa calon anggota Cavallery yang terpilih memiliki
-                              kewajiban untuk membayar iuran sebesar{" "}
+                              kewajiban untuk membayar iuran awal sebesar{" "}
                               <strong>Rp30.000</strong>.
                             </p>
                             <p style={{ margin: "0 0 8px" }}>
-                              Dengan pembayaran ini, anggota baru tidak perlu
-                              melakukan pembayaran kas hingga akhir Desember 2026,
-                              dan akan mulai aktif kembali pada periode berikutnya
-                              yaitu Januari 2027.
+                              Iuran sebesar Rp30.000 ini mencakup pembayaran kas untuk{" "}
+                              <strong>2 bulan sekaligus (September 2026 dan Oktober 2026)</strong>.
+                              Dengan demikian, anggota baru tidak perlu melakukan pembayaran kas lagi hingga akhir Oktober 2026,
+                              dan kewajiban iuran kas baru akan mulai aktif kembali pada periode berikutnya yaitu{" "}
+                              <strong>November 2026</strong>.
                             </p>
                             <p style={{ margin: "0 0 8px" }}>
                               Jika Anda tidak bersedia berpartisipasi dalam iuran
@@ -2090,7 +2091,7 @@ export default function JoinPage() {
                             />
                             <span>
                               Saya bersedia dan menyetujui kewajiban membayar
-                              iuran sebesar Rp30.000 jika terpilih sebagai
+                              iuran sebesar Rp30.000 (mencakup 2 bulan: September & Oktober) jika terpilih sebagai
                               anggota resmi. <span>*</span>
                             </span>
                           </label>
