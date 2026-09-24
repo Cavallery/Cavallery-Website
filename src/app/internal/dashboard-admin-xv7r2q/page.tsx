@@ -4628,7 +4628,7 @@ function InvitationsManager() {
 
   const handleCopyLink = (item: any) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://cavallery.id";
-    const url = `${origin}/the-wayfinder/${item.slug}`;
+    const url = `${origin}/undangan/${item.slug}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
         setCopiedId(item.id || item.slug);
@@ -4687,7 +4687,7 @@ function InvitationsManager() {
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       {confirmDelete && (
         <ConfirmModal
-          msg={`Hapus undangan untuk "${confirmDelete.name}"? Halaman /the-wayfinder/${confirmDelete.slug} tidak akan dapat diakses lagi.`}
+          msg={`Hapus undangan untuk "${confirmDelete.name}"? Halaman /undangan/${confirmDelete.slug} tidak akan dapat diakses lagi.`}
           onConfirm={handleDelete}
           onCancel={() => setConfirmDelete(null)}
         />
@@ -4749,7 +4749,7 @@ function InvitationsManager() {
                     placeholder="Contoh: Nabil-Rasyaaa"
                   />
                   <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>
-                    URL: <span style={{ color: "#c9a84c" }}>/the-wayfinder/{slug || "slug-url"}</span>
+                    URL: <span style={{ color: "#c9a84c" }}>/undangan/{slug || "slug-url"}</span>
                   </div>
                 </div>
               </div>
@@ -4778,12 +4778,12 @@ function InvitationsManager() {
       {/* Header Section with Subtabs */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-envelope" style={{ color: "#c9a84c" }} /> Undangan (The Wayfinder)
+          <i className="bx bx-envelope" style={{ color: "#c9a84c" }} /> Undangan Fanbase
           <span className={styles.count}>{invitations.length} Undangan</span>
         </h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <a
-            href="/the-wayfinder/links"
+            href="/undangan/links"
             target="_blank"
             rel="noreferrer"
             className={styles.btnGhost}
@@ -4792,7 +4792,7 @@ function InvitationsManager() {
             <i className="bx bx-link-external" /> Link Generator
           </a>
           <a
-            href="/the-wayfinder/scan"
+            href="/undangan/scan"
             target="_blank"
             rel="noreferrer"
             className={styles.btnGhost}
@@ -4944,7 +4944,7 @@ function InvitationsManager() {
                             borderRadius: 4,
                           }}
                         >
-                          /the-wayfinder/{item.slug}
+                          /undangan/{item.slug}
                         </code>
                       </td>
                       {/* Check-in status */}
@@ -4980,7 +4980,7 @@ function InvitationsManager() {
 
                           {/* Open Link Button */}
                           <a
-                            href={`/the-wayfinder/${item.slug}`}
+                            href={`/undangan/${item.slug}`}
                             target="_blank"
                             rel="noreferrer"
                             className={styles.btnGhost}
