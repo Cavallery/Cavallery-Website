@@ -407,8 +407,67 @@ export default function WayfinderClient({
         </div>
       </div>
 
+      {/* ---- QR Code Check-in ---- */}
+      <QrCodeSection slug={fanbase} cfg={cfg} />
+
       {/* ---- Download Card Button ---- */}
       <DownloadCard fanbase={fanbase} cfg={cfg} />
+    </div>
+  );
+}
+
+/* ============================================================
+   QR Code Section
+   Menggunakan URL undangan sebagai QR content.
+   Panitia scan QR ini untuk check-in di halaman /the-wayfinder/scan
+   ============================================================ */
+function QrCodeSection({ slug, cfg }: { slug: string; cfg: WayfinderConfig }) {
+  const [origin, setOrigin] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const url = origin ? `${origin}/the-wayfinder/${slug}` : "";
+  const qrUrl = url
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}&bgcolor=0a0f0c&color=c9a84c&margin=10`
+    : "";
+
+  const handleCopy = () => {
+    if (url && navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
+
+  if (!url) return null;
+
+  return (
+    <div className={styles.qrSection}>
+      <div className={styles.qrTitle}>
+        <i className="bx bx-qr" style={{ fontSize: 18 }} />
+        QR Code Check-in
+      </div>
+      <div className={styles.qrBox}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={qrUrl}
+          alt="QR Code Undangan"
+          className={styles.qrImage}
+          width={180}
+          height={180}
+        />
+      </div>
+      <p className={styles.qrHint}>
+        Panitia scan QR ini saat hari acara untuk verifikasi kehadiran fanbase
+      </p>
+      <button className={styles.qrCopyBtn} onClick={handleCopy}>
+        <i className={`bx ${copied ? "bx-check" : "bx-link"}`} />
+        {copied ? "Link disalin!" : "Salin Link Undangan"}
+      </button>
     </div>
   );
 }

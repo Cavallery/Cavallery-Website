@@ -15,6 +15,8 @@ export interface InvitationItem {
   id: string;
   name: string;
   slug: string;
+  checked_in?: boolean;
+  checked_in_at?: string;
 }
 
 export interface WayfinderConfig {
@@ -156,12 +158,19 @@ export async function GET() {
   // If MySQL is configured, fetch live data from MySQL
   if (isMySqlConfigured()) {
     try {
-      const rows = await query<any[]>("SELECT id, fanbase_name, slug FROM wayfinder_invitations WHERE is_active = 1 ORDER BY id ASC");
+      let rows: any[] | null = null;
+      try {
+        rows = await query<any[]>("SELECT id, fanbase_name, slug, checked_in, checked_in_at FROM wayfinder_invitations WHERE is_active = 1 ORDER BY id ASC");
+      } catch {
+        rows = await query<any[]>("SELECT id, fanbase_name, slug FROM wayfinder_invitations WHERE is_active = 1 ORDER BY id ASC");
+      }
       if (rows && rows.length > 0) {
         data = rows.map((r) => ({
           id: String(r.id),
           name: r.fanbase_name,
           slug: r.slug,
+          checked_in: Boolean(r.checked_in),
+          checked_in_at: r.checked_in_at || undefined,
         }));
       }
 
@@ -278,6 +287,59 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, data });
+    }
+
+    // ── CHECK-IN via barcode scan ──
+    if (body.action === "checkin") {
+      const slug = String(body.slug || "").trim();
+      if (!slug) {
+        return NextResponse.json({ success: false, message: "Slug tidak valid" }, { status: 400 });
+      }
+
+      const data = readInvitations();
+      const index = data.findIndex((item) => item.slug === slug);
+      if (index === -1) {
+        return NextResponse.json({ success: false, message: "Undangan tidak ditemukan" }, { status: 404 });
+      }
+
+      const now = new Date().toISOString();
+      data[index] = { ...data[index], checked_in: true, checked_in_at: now };
+      writeInvitations(data);
+
+      if (isMySqlConfigured()) {
+        await query(
+          "UPDATE wayfinder_invitations SET checked_in = 1, checked_in_at = ? WHERE slug = ?",
+          [now, slug]
+        );
+      }
+
+      return NextResponse.json({ success: true, item: data[index], data });
+    }
+
+    // ── RESET CHECK-IN ──
+    if (body.action === "resetCheckin") {
+      const slug = String(body.slug || "").trim();
+      if (!slug) {
+        return NextResponse.json({ success: false, message: "Slug tidak valid" }, { status: 400 });
+      }
+
+      const data = readInvitations();
+      const index = data.findIndex((item) => item.slug === slug);
+      if (index === -1) {
+        return NextResponse.json({ success: false, message: "Undangan tidak ditemukan" }, { status: 404 });
+      }
+
+      data[index] = { ...data[index], checked_in: false, checked_in_at: undefined };
+      writeInvitations(data);
+
+      if (isMySqlConfigured()) {
+        await query(
+          "UPDATE wayfinder_invitations SET checked_in = 0, checked_in_at = NULL WHERE slug = ?",
+          [slug]
+        );
+      }
+
+      return NextResponse.json({ success: true, item: data[index], data });
     }
 
     if (body.action === "saveAll") {
