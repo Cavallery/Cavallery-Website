@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ALL_SLUGS, getFanbaseByNameOrSlug, getWayfinderConfig } from "@/data/wayfinder-fanbases";
 import WayfinderClient from "./WayfinderClient";
+import ScanPage from "../scan/page";
 
 type Props = {
   params: Promise<{ code: string }>;
@@ -14,6 +15,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
+  if (code === "scan") {
+    return {
+      title: "Scan Check-in Undangan — The Wayfinder | Cavallery",
+      robots: "noindex, nofollow",
+    };
+  }
+
   const fanbase = getFanbaseByNameOrSlug(code);
   const config = getWayfinderConfig();
 
@@ -37,6 +45,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function WayfinderPage({ params }: Props) {
   const { code } = await params;
+  if (code === "scan") {
+    return <ScanPage />;
+  }
+
   const fanbase = getFanbaseByNameOrSlug(code);
   const config = getWayfinderConfig();
 
