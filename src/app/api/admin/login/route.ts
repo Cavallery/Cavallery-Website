@@ -216,6 +216,7 @@ export async function POST(req: NextRequest) {
       vallencia: "kurn!@wan",
       dior: "dior2026!",
       rf: "rf2026!",
+      aditya: "aditya2026!",
     };
 
     const targetFallback = fallbackAdmins[u.toLowerCase()];

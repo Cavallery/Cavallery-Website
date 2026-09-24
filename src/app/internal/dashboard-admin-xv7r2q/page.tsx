@@ -1755,18 +1755,7 @@ interface JournalMessage {
   rawDate: string;
 }
 
-const DEFAULT_JOURNAL_MESSAGES: JournalMessage[] = [
-  { id: 1, name: "lalallalalala", msg: "haloo ci erinee sayangg!! tauu gaa kehidupan aku jadi lebih berwarna saat ada ci erineee, ci erine tu uda aku anggap seperti kaka kandung tauuu ya walaupun ci erine gatau aku hidup huhuhu soalnya belum bisa vc in another day akuu vc ya ci tunggu akuu!!!, bertahan lebih lama di jkt48 ya ci!! aku adalah salah satu orang yang bangga smaa ciciii, HARUS SELALU PERCAYA DIRI YA CII OKAIIII, aku tau banyak yang selalu dukung ciciii, I LOVE U CATHERINA VALLENCIA KETUA BEBEK KUUUU🐣🤍", date: "9 Mar 2026, 19.50", rawDate: "2026-03-09T12:50:42.000Z" },
-  { id: 2, name: "Dinda duyoung ", msg: "Hai ci erine semangat terus yaa kegiatannya jaga kesehatannya jugaa apalagi sekarang kamu lagi sibuk\"nya latihan buat shonici setlist baru dan mv baru juga yaa semangat yaa, minum air putih yang cukup sehat\" cerine 🤍🍀. Cinta kamu banget 🫶🏻 jujur kangen 🥹", date: "12 Mar 2026, 21.25", rawDate: "2026-03-12T14:25:54.000Z" },
-  { id: 3, name: "faiz mahmud", msg: "hai erine! bagaimana kabarmu? semoga kamu sehat selalu ya. jangan jaga kesehatan, istirahat yang cukup, dan bersemangat dalam menjalani hari yang penuh dengan seribu kejutan. udah deh itu aja o ya sebelum itu aku punya kata-kata untuk erine agar semangat dalam menjalani hari. kata-kata hari ini= jalani hidupmu dengan sungguh-sungguh agar hati mu tetap teguh", date: "15 Mar 2026, 20.48", rawDate: "2026-03-15T13:48:05.000Z" },
-  { id: 4, name: "vernx ", msg: "Hai ci Erine semangat terus ya, jaga kesehatan selalu pokoknya apapun kegiatannya tetap semangat. Aku yakin kamu pasti bisa dan mampu untuk melakukannya dengan terbaik. Aku akan terus menemani perjalananmu sampai akhir, ci Erine kamu itu hebat, keren, luar biasa jadi jangan pernah merasa bahwa dirimu itu tidak layak ataupun tidak cocok untuk mendapatkan dukungan dan kebahagiaan yang dirasakan di JKT48. Ci Erine oshi kesayanganku yang tidak pernah tergantikan aku cuma mau bilang, tolong bertahan lebih lama di JKT48 kita sama-sama berjuang bikin chapter yang indah dan raih mimpi-mimpi besarmu. I love Ci Erine 🫶🏻💌", date: "19 Mar 2026, 09.55", rawDate: "2026-03-19T02:55:07.000Z" },
-  { id: 5, name: "dhafinnn", msg: "semangat yaa dalam menjalani semuanya, you are stronger than you think. you dont have to carry it all alone, we've got your back. sehat sehat terus yaaaa 🤍", date: "19 Mar 2026, 23.52", rawDate: "2026-03-19T16:52:14.000Z" },
-  { id: 6, name: "R_Syaa (aisyah_adl) ", msg: "Hai kak ci erine! minal aidzin wal faidzin, mohon maaf lahir dan batin yaa kakk🙏🏻 kakak semangattt terus yaaa kakk! aku selalu mendukung apapun yang kakak lakukan, terimakasih untuk semua kerja keras kak erine! kak ci erine hebat! aku sayang banget sama kak erine 🫂🤍", date: "20 Mar 2026, 02.51", rawDate: "2026-03-19T19:51:21.000Z" },
-  { id: 7, name: "dari yg punya akun: jasjusscoklat", msg: "KA RINEEE TERIMAKASI YAA SUDAH HADIRR MEMBAWA BANYAK KEJUTANNN DAN BAHAGIAAA, you're the sun to the moon, eak~😝✌🏻✌🏻", date: "20 Mar 2026, 21.43", rawDate: "2026-03-20T14:43:39.000Z" },
-  { id: 8, name: "odi", msg: "halowww erine terima kasih atas kerja keras dan semangatmu dari awal sampai sekarang! jaga kesehatan karna itu sangat sangat penting!😡", date: "20 Mar 2026, 22.55", rawDate: "2026-03-20T15:55:20.000Z" },
-  { id: 9, name: "Jaden A.", msg: "kamu adalah manusia yang paling dinantikan kehadirannya oleh banyak orang. sehat selalu dan bahagia selalu manusia baik", date: "24 Mar 2026, 22.15", rawDate: "2026-03-24T15:15:59.000Z" },
-  { id: 10, name: "Alisha", msg: "Hi Ci Erinee ^^ Semangat terus yaa, selalu ada banyak orang yang akan selalu support cicii! Love sekebonn ( *¯ ³¯*)♡", date: "28 Mar 2026, 22.01", rawDate: "2026-03-28T15:01:07.000Z" }
-];
+const DEFAULT_JOURNAL_MESSAGES: JournalMessage[] = [];
 
 function JournalManager() {
   const [messages, setMessages] = useState<JournalMessage[]>(DEFAULT_JOURNAL_MESSAGES);
@@ -4802,6 +4791,15 @@ function InvitationsManager() {
           >
             <i className="bx bx-link-external" /> Link Generator
           </a>
+          <a
+            href="/the-wayfinder/scan"
+            target="_blank"
+            rel="noreferrer"
+            className={styles.btnGhost}
+            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, color: "#10b981" }}
+          >
+            <i className="bx bx-qr-scan" /> Scan Check-in
+          </a>
           {activeTab === "list" && (
             <button className={styles.btnPrimary} onClick={openAdd}>
               <i className="bx bx-plus" /> Tambah Undangan
@@ -4923,7 +4921,8 @@ function InvitationsManager() {
                     <th style={{ width: 45, textAlign: "center" }}>#</th>
                     <th>Penerima / Fanbase</th>
                     <th>Slug Link</th>
-                    <th style={{ width: 220, textAlign: "center" }}>Aksi</th>
+                    <th style={{ width: 100, textAlign: "center" }}>Check-in</th>
+                    <th style={{ width: 260, textAlign: "center" }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -4948,8 +4947,23 @@ function InvitationsManager() {
                           /the-wayfinder/{item.slug}
                         </code>
                       </td>
+                      {/* Check-in status */}
                       <td style={{ textAlign: "center" }}>
-                        <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                        {item.checked_in ? (
+                          <span style={{ color: "#10b981", fontWeight: 700, fontSize: 13 }}>
+                            ✅ Hadir
+                          </span>
+                        ) : (
+                          <span style={{ color: "#6b7280", fontSize: 13 }}>—</span>
+                        )}
+                        {item.checked_in_at && (
+                          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
+                            {new Date(item.checked_in_at).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
                           {/* Copy Link Button */}
                           <button
                             className={styles.btnGhost}
@@ -4975,6 +4989,31 @@ function InvitationsManager() {
                           >
                             <i className="bx bx-link-external" />
                           </a>
+
+                          {/* Reset Check-in button (only if checked in) */}
+                          {item.checked_in && (
+                            <button
+                              className={styles.btnGhost}
+                              style={{ padding: "5px 9px", color: "#f59e0b", fontSize: 13 }}
+                              title="Reset Status Check-in"
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch("/api/invitations", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ action: "resetCheckin", slug: item.slug }),
+                                  });
+                                  const json = await res.json();
+                                  if (json.success) {
+                                    setInvitations(json.data);
+                                    showToast(`Check-in ${item.name} berhasil direset`, "success");
+                                  }
+                                } catch { showToast("Gagal reset check-in", "error"); }
+                              }}
+                            >
+                              <i className="bx bx-reset" />
+                            </button>
+                          )}
 
                           {/* Edit Button */}
                           <button

@@ -6,6 +6,26 @@ const JKT48_API_KEY = "sJbpVqLinYlp";
 const JKT48_BASE = "https://v5.jkt48connect.com/api/jkt48";
 const CAVA_NEWS_URL = "https://v5.jkt48connect.com/api/cavallery/news?apikey=JKTCONNECT";
 
+// Judul berita JKT48 official yang disembunyikan dari tampilan (dikelola admin)
+const BLOCKED_NEWS_TITLE_KEYWORDS = [
+  "Birthday 2-Shot Online bulan Agustus",
+  "Graduation 2-Shot Online Cathleen Nixie",
+  "JKT48 Vocal Project",
+  "REVOICE",
+  "Pertunjukan Teater Kelulusan",
+  "Pengunduran Diri Gendis Mayrannisa",
+  "Berakhirnya Operasional Proyek JKT48 Virtual",
+  "Birthday 2-Shot Online dengan Chekicha",
+  "Pre-Order JKT48 Digital Photobook",
+  "Birthday 2-Shot Online bulan Juli",
+  "FUN ON BOARD #3",
+];
+
+function isBlockedNews(title: string): boolean {
+  const t = title.toLowerCase();
+  return BLOCKED_NEWS_TITLE_KEYWORDS.some((kw) => t.includes(kw.toLowerCase()));
+}
+
 async function fetchJkt48OfficialNews(): Promise<any[]> {
   return fetchWithCacheAndFallback<any[]>({
     key: "jkt48_official_news",
@@ -23,22 +43,24 @@ async function fetchJkt48OfficialNews(): Promise<any[]> {
       if (!res.ok) return [];
       const json = await res.json();
       const list = Array.isArray(json.news) ? json.news : (Array.isArray(json.data) ? json.data : []);
-      return list.map((n: any) => ({
-        id: String(n.id || n._id || Math.random()),
-        title: n.title || "",
-        label: n.category || "Official JKT48",
-        category: n.category || "Official JKT48",
-        date: n.date || n.published_at || new Date().toISOString(),
-        published_at: n.date || n.published_at || new Date().toISOString(),
-        link_url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
-        url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
-        image_url: n.background_image || n.image_url || "/images/cava-logo.jpg",
-        background_image: n.background_image || n.image_url || "/images/cava-logo.jpg",
-        description: n.summary || n.description || "",
-        is_pinned: false,
-        is_active: true,
-        is_internal: false,
-      }));
+      return list
+        .filter((n: any) => !isBlockedNews(n.title || ""))
+        .map((n: any) => ({
+          id: String(n.id || n._id || Math.random()),
+          title: n.title || "",
+          label: n.category || "Official JKT48",
+          category: n.category || "Official JKT48",
+          date: n.date || n.published_at || new Date().toISOString(),
+          published_at: n.date || n.published_at || new Date().toISOString(),
+          link_url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
+          url: n.url || (n.id ? `https://jkt48.com/news/detail/id/${n.id}?lang=id` : "#"),
+          image_url: n.background_image || n.image_url || "/images/cava-logo.jpg",
+          background_image: n.background_image || n.image_url || "/images/cava-logo.jpg",
+          description: n.summary || n.description || "",
+          is_pinned: false,
+          is_active: true,
+          is_internal: false,
+        }));
     },
     fallbackData: [],
   });
