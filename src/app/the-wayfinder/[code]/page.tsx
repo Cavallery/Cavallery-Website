@@ -15,7 +15,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
-  if (code === "scan") {
+  const normalizedCode = decodeURIComponent(code || "").trim().toLowerCase();
+  if (normalizedCode === "scan") {
     return {
       title: "Scan Check-in Undangan — The Wayfinder | Cavallery",
       robots: "noindex, nofollow",
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function WayfinderPage({ params }: Props) {
   const { code } = await params;
-  if (code === "scan") {
+  const normalizedCode = decodeURIComponent(code || "").trim().toLowerCase();
+  if (normalizedCode === "scan") {
     return <ScanPage />;
   }
 
