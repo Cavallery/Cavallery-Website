@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { ALL_SLUGS, getFanbaseByNameOrSlug, getWayfinderConfig } from "@/data/wayfinder-fanbases";
 import UndanganClient from "./UndanganClient";
-import ScanPage from "../scan/page";
 import { redirect } from "next/navigation";
 
 type Props = {
@@ -16,15 +15,6 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
-  const normalized = decodeURIComponent(code || "").trim().toLowerCase();
-
-  if (normalized === "scan") {
-    return {
-      title: "Scanner Check-in Undangan Fanbase | CAVALLERY",
-      robots: "noindex, nofollow",
-    };
-  }
-
   const fanbase = getFanbaseByNameOrSlug(code);
   const config = getWayfinderConfig();
 
@@ -51,7 +41,7 @@ export default async function UndanganPage({ params }: Props) {
   const normalized = decodeURIComponent(code || "").trim().toLowerCase();
 
   if (normalized === "scan") {
-    return <ScanPage />;
+    redirect("/undangan/scan");
   }
 
   if (normalized === "links") {

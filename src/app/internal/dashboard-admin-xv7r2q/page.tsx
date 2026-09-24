@@ -20,8 +20,25 @@ type Section =
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
   | "bot"       | "tickets"     | "calendar" | "updates" 
-  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine";
+  | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine"
+  | "users"     | "activitylogs"| "loginlogs";
 
+
+// ─── ACTIVITY LOGGING HELPER ─────────────────────────────────
+async function recordDashboardActivity(actionName: string, module: string, details?: string) {
+  try {
+    await fetch("/api/admin/logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "log_activity",
+        actionName,
+        module,
+        details,
+      }),
+    });
+  } catch {}
+}
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function sanitizeArrayField(val: any): string[] {
@@ -3480,7 +3497,16 @@ function SectionManager({ section }: { section: Section }) {
       const url    = isEdit ? api(`${c.endpoint}/${editId}`) : api(c.endpoint);
       const res    = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(preparePayload(section, formData)) });
       const json   = await res.json();
-      if (json.status) { showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success"); setModal(null); load(); }
+      if (json.status) {
+        showToast(isEdit ? "Berhasil diperbarui!" : "Berhasil ditambahkan!", "success");
+        recordDashboardActivity(
+          isEdit ? "Edit Data" : "Tambah Data",
+          section.toUpperCase(),
+          `${isEdit ? "Memperbarui" : "Menambahkan"} item di modul ${section}`
+        );
+        setModal(null);
+        load();
+      }
       else showToast(json.message || "Gagal menyimpan", "error");
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
     setSaving(false);
@@ -3492,7 +3518,15 @@ function SectionManager({ section }: { section: Section }) {
       const id  = section === "stats" ? row.stat_key : section === "youtube" ? row.video_id : row.id;
       const res  = await fetch(api(`${c.endpoint}/${id}`), { method: "DELETE" });
       const json = await res.json();
-      if (json.status) { showToast("Berhasil dihapus!", "success"); load(); }
+      if (json.status) {
+        showToast("Berhasil dihapus!", "success");
+        recordDashboardActivity(
+          "Hapus Data",
+          section.toUpperCase(),
+          `Menghapus item di modul ${section}`
+        );
+        load();
+      }
       else showToast(json.message || "Gagal menghapus", "error");
     } catch { showToast("Terjadi kesalahan jaringan", "error"); }
   };
@@ -4573,6 +4607,7 @@ function InvitationsManager() {
             localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
           }
           showToast(isEdit ? "Undangan berhasil diperbarui" : "Undangan baru berhasil ditambahkan", "success");
+          recordDashboardActivity(isEdit ? "Edit Undangan" : "Tambah Undangan", "UNDANGAN", `${cleanName} (/undangan/${formattedSlug})`);
           setShowModal(false);
           setSaving(false);
           return;
@@ -4588,6 +4623,7 @@ function InvitationsManager() {
         localStorage.setItem("cavallery_invitations", JSON.stringify(updated));
       }
       showToast(isEdit ? "Undangan berhasil diperbarui" : "Undangan baru berhasil ditambahkan", "success");
+      recordDashboardActivity(isEdit ? "Edit Undangan" : "Tambah Undangan", "UNDANGAN", `${cleanName} (/undangan/${formattedSlug})`);
       setShowModal(false);
     } catch {
       showToast("Gagal menyimpan undangan", "error");
@@ -4611,6 +4647,7 @@ function InvitationsManager() {
             localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
           }
           showToast("Undangan berhasil dihapus", "success");
+          recordDashboardActivity("Hapus Undangan", "UNDANGAN", `Menghapus undangan: ${confirmDelete.name}`);
           setConfirmDelete(null);
           return;
         }
@@ -4623,6 +4660,7 @@ function InvitationsManager() {
       localStorage.setItem("cavallery_invitations", JSON.stringify(updated));
     }
     showToast("Undangan berhasil dihapus", "success");
+    recordDashboardActivity("Hapus Undangan", "UNDANGAN", `Menghapus undangan: ${confirmDelete.name}`);
     setConfirmDelete(null);
   };
 
@@ -4655,6 +4693,7 @@ function InvitationsManager() {
             localStorage.setItem("cavallery_wayfinder_config", JSON.stringify(json.config));
           }
           showToast("Teks & Background kartu undangan berhasil disimpan!", "success");
+          recordDashboardActivity("Edit Desain Undangan", "UNDANGAN", "Menyimpan konfigurasi desain teks & background");
           setSaving(false);
           return;
         }
@@ -4663,6 +4702,7 @@ function InvitationsManager() {
         localStorage.setItem("cavallery_wayfinder_config", JSON.stringify(cardConfig));
       }
       showToast("Teks & Background kartu undangan berhasil disimpan!", "success");
+      recordDashboardActivity("Edit Desain Undangan", "UNDANGAN", "Menyimpan konfigurasi desain teks & background");
     } catch {
       showToast("Gagal menyimpan konfigurasi kartu", "error");
     }
@@ -8979,6 +9019,660 @@ function DengerineManager() {
 }
 
 
+// ─── MANAJEMEN PENGGUNA (USERS MANAGER) ──────────────────────────
+function UsersManager() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [form, setForm] = useState({ username: "", name: "", password: "", role: "admin" });
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setUsers(json.data);
+      }
+    } catch {
+      setToast({ msg: "Gagal memuat pengguna", type: "error" });
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ username: "", name: "", password: "", role: "admin" });
+    setShowModal(true);
+  };
+
+  const openEdit = (u: any) => {
+    setEditing(u);
+    setForm({ username: u.username, name: u.name, password: "", role: u.role || "admin" });
+    setShowModal(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: editing ? "update" : "create",
+          id: editing?.id,
+          ...form,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message || "Berhasil disimpan", type: "success" });
+        setShowModal(false);
+        fetchUsers();
+      } else {
+        setToast({ msg: json.message || "Gagal menyimpan", type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Terjadi kesalahan", type: "error" });
+    }
+    setSaving(false);
+  };
+
+  const handleDelete = async (u: any) => {
+    if (!window.confirm(`Hapus admin "${u.username}"?`)) return;
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id: u.id, username: u.username }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        fetchUsers();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal menghapus", type: "error" });
+    }
+  };
+
+  const filtered = users.filter(u => {
+    const q = search.toLowerCase();
+    return (u.username && u.username.toLowerCase().includes(q)) || (u.name && u.name.toLowerCase().includes(q));
+  });
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-user-pin" style={{ color: "#c9a84c" }} /> Manajemen Pengguna
+          <span className={styles.count}>{users.length} Akun</span>
+        </h2>
+        <button className={styles.btnPrimary} onClick={openAdd}>
+          <i className="bx bx-plus" /> Tambah Admin
+        </button>
+      </div>
+
+      <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
+        <input
+          type="text"
+          placeholder="Cari admin..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 300, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        />
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data admin...</div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 45, textAlign: "center" }}>#</th>
+                <th>Username</th>
+                <th>Nama Lengkap</th>
+                <th>Role</th>
+                <th>Dibuat</th>
+                <th style={{ width: 120, textAlign: "center" }}>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u, i) => (
+                <tr key={u.id || u.username}>
+                  <td style={{ textAlign: "center", color: "#888" }}>{i + 1}</td>
+                  <td style={{ fontWeight: 600, color: "#c9a84c" }}>{u.username}</td>
+                  <td>{u.name}</td>
+                  <td>
+                    <span style={{
+                      padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
+                      background: u.role === "superadmin" ? "rgba(201,168,76,0.2)" : "rgba(59,130,246,0.2)",
+                      color: u.role === "superadmin" ? "#c9a84c" : "#60a5fa",
+                    }}>
+                      {u.role || "admin"}
+                    </span>
+                  </td>
+                  <td style={{ fontSize: 12, color: "#888" }}>
+                    {u.created_at ? new Date(u.created_at).toLocaleDateString("id-ID") : "—"}
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(u)} title="Edit">
+                        <i className="bx bx-edit" />
+                      </button>
+                      {u.username !== "admin" && u.username !== "vallencia" && (
+                        <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => handleDelete(u)} title="Hapus">
+                          <i className="bx bx-trash" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal Add/Edit */}
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()} style={{ maxWidth: 450 }}>
+            <div className={styles.formModalHeader}>
+              <h3>{editing ? "Edit Admin" : "Tambah Admin Baru"}</h3>
+              <button className={styles.closeX} onClick={() => setShowModal(false)}><i className="bx bx-x" /></button>
+            </div>
+            <form onSubmit={handleSave}>
+              <div className={styles.formBody}>
+                <div className={styles.field}>
+                  <label>Username *</label>
+                  <input
+                    value={form.username}
+                    onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
+                    disabled={Boolean(editing)}
+                    required
+                    placeholder="misal: aditya"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Nama Tampilan *</label>
+                  <input
+                    value={form.name}
+                    onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                    required
+                    placeholder="misal: Aditya Kurniawan"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>{editing ? "Password Baru (kosongkan jika tidak diganti)" : "Password *"}</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                    required={!editing}
+                    placeholder="******"
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Role</label>
+                  <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
+                    <option value="admin">Admin</option>
+                    <option value="superadmin">Superadmin</option>
+                    <option value="editor">Editor</option>
+                  </select>
+                </div>
+              </div>
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving}>
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : "Simpan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── RIWAYAT AKTIVITAS (ACTIVITY LOGS MANAGER) ───────────────────
+function ActivityLogsManager() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [moduleFilter, setModuleFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/logs?type=activity");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setLogs(json.data);
+      }
+    } catch {
+      setToast({ msg: "Gagal memuat log aktivitas", type: "error" });
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  const filtered = logs.filter(l => {
+    const q = search.toLowerCase();
+    const matchSearch = (l.username && l.username.toLowerCase().includes(q)) ||
+      (l.action && l.action.toLowerCase().includes(q)) ||
+      (l.details && l.details.toLowerCase().includes(q));
+    const matchMod = moduleFilter === "all" || l.module === moduleFilter;
+    return matchSearch && matchMod;
+  });
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every(l => selectedIds.has(l.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(l => l.id)));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Hapus ${selectedIds.size} log terpilih?`)) return;
+
+    try {
+      const res = await fetch("/api/admin/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", type: "activity", ids: Array.from(selectedIds) }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLogs();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal menghapus log", type: "error" });
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!window.confirm("PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat aktivitas?")) return;
+    try {
+      const res = await fetch("/api/admin/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear_all", type: "activity" }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLogs();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal membersihkan log", type: "error" });
+    }
+  };
+
+  // Modules list for filter
+  const modules = Array.from(new Set(logs.map(l => l.module).filter(Boolean)));
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-history" style={{ color: "#c9a84c" }} /> Riwayat Aktivitas
+          <span className={styles.count}>{logs.length} Log</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className={styles.btnGhost}
+            onClick={handleDeleteSelected}
+            disabled={selectedIds.size === 0}
+            style={{ color: selectedIds.size > 0 ? "#ef4444" : "#666", borderColor: selectedIds.size > 0 ? "#ef4444" : "#444" }}
+          >
+            <i className="bx bx-trash" /> Hapus Terpilih ({selectedIds.size})
+          </button>
+          <button
+            className={styles.btnGhost}
+            onClick={handleClearAll}
+            style={{ color: "#f87171" }}
+          >
+            <i className="bx bx-brush" /> Bersihkan Semua
+          </button>
+          <button className={styles.btnGhost} onClick={fetchLogs} title="Refresh">
+            <i className="bx bx-refresh" />
+          </button>
+        </div>
+      </div>
+
+      {/* Filter and Search */}
+      <div style={{ marginBottom: 16, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Cari aksi, detail, username..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        />
+        <select
+          value={moduleFilter}
+          onChange={e => setModuleFilter(e.target.value)}
+          style={{ padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        >
+          <option value="all">Semua Modul</option>
+          {modules.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        {selectedIds.size > 0 && (
+          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+            {selectedIds.size} log terpilih
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat riwayat aktivitas...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>Tidak ada riwayat aktivitas</div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 45, textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleSelectAll}
+                    title="Pilih Semua"
+                    style={{ cursor: "pointer" }}
+                  />
+                </th>
+                <th>Waktu</th>
+                <th>User</th>
+                <th>Modul</th>
+                <th>Aksi</th>
+                <th>Detail</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(l => (
+                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "rgba(201,168,76,0.08)" : undefined }}>
+                  <td style={{ textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(l.id)}
+                      onChange={() => toggleSelectRow(l.id)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </td>
+                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                    {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
+                  </td>
+                  <td style={{ fontWeight: 600, color: "#c9a84c" }}>{l.username}</td>
+                  <td>
+                    <span style={{ background: "rgba(255,255,255,0.08)", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>
+                      {l.module}
+                    </span>
+                  </td>
+                  <td style={{ fontWeight: 600, color: "#f3f4f6" }}>{l.action}</td>
+                  <td style={{ fontSize: 12, color: "#9ca3af" }}>{l.details || "—"}</td>
+                  <td style={{ fontSize: 12, color: "#6b7280", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── RIWAYAT LOGIN (LOGIN LOGS MANAGER) ─────────────────────────
+function LoginLogsManager() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/logs?type=login");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setLogs(json.data);
+      }
+    } catch {
+      setToast({ msg: "Gagal memuat log login", type: "error" });
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  const filtered = logs.filter(l => {
+    const q = search.toLowerCase();
+    const matchSearch = (l.username && l.username.toLowerCase().includes(q)) ||
+      (l.ip_address && l.ip_address.toLowerCase().includes(q));
+    const matchStatus = statusFilter === "all" || l.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every(l => selectedIds.has(l.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(l => l.id)));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Hapus ${selectedIds.size} log login terpilih?`)) return;
+
+    try {
+      const res = await fetch("/api/admin/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", type: "login", ids: Array.from(selectedIds) }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLogs();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal menghapus log login", type: "error" });
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!window.confirm("PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat login?")) return;
+    try {
+      const res = await fetch("/api/admin/logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear_all", type: "login" }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLogs();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal membersihkan log", type: "error" });
+    }
+  };
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-log-in-circle" style={{ color: "#c9a84c" }} /> Riwayat Login
+          <span className={styles.count}>{logs.length} Percobaan</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className={styles.btnGhost}
+            onClick={handleDeleteSelected}
+            disabled={selectedIds.size === 0}
+            style={{ color: selectedIds.size > 0 ? "#ef4444" : "#666", borderColor: selectedIds.size > 0 ? "#ef4444" : "#444" }}
+          >
+            <i className="bx bx-trash" /> Hapus Terpilih ({selectedIds.size})
+          </button>
+          <button
+            className={styles.btnGhost}
+            onClick={handleClearAll}
+            style={{ color: "#f87171" }}
+          >
+            <i className="bx bx-brush" /> Bersihkan Semua
+          </button>
+          <button className={styles.btnGhost} onClick={fetchLogs} title="Refresh">
+            <i className="bx bx-refresh" />
+          </button>
+        </div>
+      </div>
+
+      {/* Filter and Search */}
+      <div style={{ marginBottom: 16, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Cari username atau IP..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        />
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          style={{ padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        >
+          <option value="all">Semua Status</option>
+          <option value="success">Berhasil Saja</option>
+          <option value="failed">Gagal Saja</option>
+        </select>
+        {selectedIds.size > 0 && (
+          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+            {selectedIds.size} log terpilih
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat riwayat login...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>Tidak ada riwayat login</div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 45, textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleSelectAll}
+                    title="Pilih Semua"
+                    style={{ cursor: "pointer" }}
+                  />
+                </th>
+                <th>Waktu</th>
+                <th>Username</th>
+                <th>Status</th>
+                <th>IP Address</th>
+                <th>Perangkat / Browser</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(l => (
+                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "rgba(201,168,76,0.08)" : undefined }}>
+                  <td style={{ textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(l.id)}
+                      onChange={() => toggleSelectRow(l.id)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </td>
+                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                    {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
+                  </td>
+                  <td style={{ fontWeight: 600, color: "#fff" }}>{l.username}</td>
+                  <td>
+                    {l.status === "success" ? (
+                      <span style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>
+                        <i className="bx bx-check" /> Berhasil
+                      </span>
+                    ) : (
+                      <span style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>
+                        <i className="bx bx-x" /> Gagal
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ fontSize: 12, color: "#9ca3af", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
+                  <td style={{ fontSize: 11, color: "#6b7280", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={l.user_agent}>
+                    {l.user_agent || "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 interface NavGroup {
   id: string;
   label: string;
@@ -8995,7 +9689,7 @@ const navGroups: NavGroup[] = [
       { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
       { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
-      { key: "adminwartiket" as any,    icon: "bx-flame",        label: "War Tiket STS" },
+      { key: "adminwartiket" as any,    icon: "bxs-flame",       label: "War Tiket STS" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
@@ -9054,6 +9748,16 @@ const navGroups: NavGroup[] = [
       { key: "merch",       icon: "bx-store",        label: "Merchandise" },
       { key: "tickets",     icon: "bx-receipt",      label: "Tickets"     },
       { key: "calendar",    icon: "bx-calendar",     label: "Calendar"    },
+    ],
+  },
+  {
+    id: "sistem",
+    label: "Manajemen Sistem",
+    icon: "bx-cog",
+    items: [
+      { key: "users",        icon: "bx-user-pin",      label: "Manajemen Pengguna" },
+      { key: "activitylogs", icon: "bx-history",       label: "Riwayat Aktivitas"  },
+      { key: "loginlogs",    icon: "bx-log-in-circle", label: "Riwayat Login"     },
     ],
   },
 ];
@@ -9244,6 +9948,9 @@ export default function AdminPage() {
             : active === "fanart"     ? <FanartManager />
             : active === "twoshot"    ? <TwoShotManager />
             : active === "dengerine"  ? <DengerineManager />
+            : active === "users"      ? <UsersManager />
+            : active === "activitylogs"? <ActivityLogsManager />
+            : active === "loginlogs"  ? <LoginLogsManager />
             : <SectionManager section={active} />}
           </div>
         </div>

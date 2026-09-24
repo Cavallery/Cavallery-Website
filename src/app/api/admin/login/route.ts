@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { query, isMySqlConfigured } from "@/lib/mysql";
+import { logLogin } from "@/lib/logger";
 
 // In-memory rate limiting map (IP -> { count, lockedUntil })
 interface AttemptRecord {
@@ -195,9 +196,11 @@ export async function POST(req: NextRequest) {
               path: "/",
             });
 
+            await logLogin({ username: displayName, status: "success", ip_address: ip, user_agent: req.headers.get("user-agent") || undefined });
             return response;
           } else {
             recordFailedAttempt(ip);
+            await logLogin({ username: u, status: "failed", ip_address: ip, user_agent: req.headers.get("user-agent") || undefined });
             await new Promise((r) => setTimeout(r, 600));
             return NextResponse.json(
               { status: false, message: "Username atau password salah" },
@@ -251,11 +254,13 @@ export async function POST(req: NextRequest) {
         path: "/",
       });
 
+      await logLogin({ username: u, status: "success", ip_address: ip, user_agent: req.headers.get("user-agent") || undefined });
       return response;
     }
 
     // Tolak jika tidak cocok
     recordFailedAttempt(ip);
+    await logLogin({ username: u, status: "failed", ip_address: ip, user_agent: req.headers.get("user-agent") || undefined });
     await new Promise((r) => setTimeout(r, 600));
     return NextResponse.json(
       { status: false, message: "Username atau password salah" },
