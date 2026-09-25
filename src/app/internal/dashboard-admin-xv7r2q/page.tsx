@@ -9028,13 +9028,12 @@ function DengerineManager() {
 
 // ─── MANAJEMEN PENGGUNA (USERS MANAGER) ──────────────────────────
 function UsersManager({ currentRole, currentUsername }: { currentRole?: string; currentUsername?: string }) {
-  const isSuperadmin = currentRole === "superadmin";
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
-  const [form, setForm] = useState({ username: "", name: "", password: "", role: "admin" });
+  const [form, setForm] = useState({ username: "", name: "", division: "Operasional", password: "", role: "admin" });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -9055,23 +9054,20 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const openAdd = () => {
-    if (!isSuperadmin) {
-      setToast({ msg: "Hanya Superadmin yang dapat menambahkan akun baru", type: "error" });
-      return;
-    }
     setEditing(null);
-    setForm({ username: "", name: "", password: "", role: "admin" });
+    setForm({ username: "", name: "", division: "Operasional", password: "", role: "admin" });
     setShowModal(true);
   };
 
   const openEdit = (u: any) => {
-    // Admin biasa hanya boleh edit nama/password akun miliknya sendiri
-    if (!isSuperadmin && currentUsername && u.username.toLowerCase() !== currentUsername.toLowerCase()) {
-      setToast({ msg: "Admin hanya dapat mengedit akun sendiri", type: "error" });
-      return;
-    }
     setEditing(u);
-    setForm({ username: u.username, name: u.name, password: "", role: u.role || "admin" });
+    setForm({
+      username: u.username,
+      name: u.name,
+      division: u.division || (u.username.toLowerCase() === "dior" ? "Bendahara" : "Operasional"),
+      password: "",
+      role: u.role || "admin",
+    });
     setShowModal(true);
   };
 
@@ -9103,11 +9099,12 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
   };
 
   const handleDelete = async (u: any) => {
-    if (!isSuperadmin) {
-      setToast({ msg: "Hanya Superadmin yang dapat menghapus akun", type: "error" });
+    const lower = (u.username || "").toLowerCase();
+    if (lower === "admin" || lower === "vallencia" || lower === "aditya") {
+      setToast({ msg: "Akun Super Admin utama tidak dapat dihapus!", type: "error" });
       return;
     }
-    if (!window.confirm(`Hapus admin "${u.username}"?`)) return;
+    if (!window.confirm(`Hapus admin "${u.username}" (${u.name})?`)) return;
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -9128,45 +9125,30 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
 
   const filtered = users.filter(u => {
     const q = search.toLowerCase();
-    return (u.username && u.username.toLowerCase().includes(q)) || (u.name && u.name.toLowerCase().includes(q));
+    return (u.username && u.username.toLowerCase().includes(q)) ||
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.division && u.division.toLowerCase().includes(q)) ||
+      (u.role && u.role.toLowerCase().includes(q));
   });
 
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      
-      {/* RBAC Notice for Regular Admin */}
-      {!isSuperadmin && (
-        <div style={{
-          background: "rgba(96, 165, 250, 0.08)",
-          border: "1px solid rgba(96, 165, 250, 0.25)",
-          borderRadius: 10,
-          padding: "10px 14px",
-          marginBottom: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          color: "#93c5fd",
-          fontSize: 13,
-        }}>
-          <i className="bx bx-shield-quarter" style={{ fontSize: 20, color: "#60a5fa" }} />
-          <span>
-            <strong>Hak Akses Admin:</strong> Superadmin memegang tingkatan tertinggi. Akun bertingkat Admin (seperti RF & Dior) dapat mengelola operasional konten, namun hanya Superadmin yang berwenang menambah akun, mengubah role, atau menghapus pengguna.
-          </span>
-        </div>
-      )}
 
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>
-          <i className="bx bx-user-pin" style={{ color: "#c9a84c" }} /> Manajemen Pengguna
-          <span className={styles.count}>{users.length} Akun</span>
-        </h2>
+        <div>
+          <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="bx bx-user-pin" style={{ color: "#c9a84c" }} /> Manajemen Pengguna & Divisi
+            <span className={styles.count}>{users.length} Akun</span>
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#888" }}>
+            Kelola akun administrator Cavallery, pembagian divisi kerja, dan tingkatan role RBAC.
+          </p>
+        </div>
         <button
           className={styles.btnPrimary}
           onClick={openAdd}
-          disabled={!isSuperadmin}
-          style={!isSuperadmin ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-          title={!isSuperadmin ? "Hanya Superadmin yang dapat menambah admin baru" : "Tambah Admin"}
+          title="Tambah Admin Baru"
         >
           <i className="bx bx-plus" /> Tambah Admin
         </button>
@@ -9175,10 +9157,10 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
       <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
         <input
           type="text"
-          placeholder="Cari username atau nama..."
+          placeholder="Cari username, nama, divisi, atau role..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 300, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
         />
       </div>
 
@@ -9192,6 +9174,7 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                 <th style={{ width: 45, textAlign: "center" }}>#</th>
                 <th>Username</th>
                 <th>Nama Lengkap</th>
+                <th>Divisi</th>
                 <th>Role (Tingkatan)</th>
                 <th>Dibuat</th>
                 <th style={{ width: 120, textAlign: "center" }}>Aksi</th>
@@ -9208,6 +9191,20 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                     </span>
                   </td>
                   <td>{u.name}</td>
+                  <td>
+                    <span style={{
+                      padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
+                      background: "rgba(201,168,76,0.12)",
+                      color: "#c9a84c",
+                      border: "1px solid rgba(201,168,76,0.3)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}>
+                      <i className="bx bx-briefcase" />
+                      {u.division || (u.username.toLowerCase() === "dior" ? "Bendahara" : "Operasional")}
+                    </span>
+                  </td>
                   <td>
                     <span style={{
                       padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
@@ -9228,11 +9225,11 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                         className={styles.btnGhost}
                         style={{ padding: "4px 8px" }}
                         onClick={() => openEdit(u)}
-                        title={isSuperadmin ? "Edit Akun" : "Edit Profil"}
+                        title="Edit Admin & Role"
                       >
                         <i className="bx bx-edit" />
                       </button>
-                      {isSuperadmin && u.username !== "admin" && u.username !== "vallencia" && (
+                      {u.username !== "admin" && u.username !== "vallencia" && u.username !== "aditya" && (
                         <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => handleDelete(u)} title="Hapus">
                           <i className="bx bx-trash" />
                         </button>
@@ -9263,20 +9260,49 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                     onChange={e => setForm(p => ({ ...p, username: e.target.value }))}
                     disabled={Boolean(editing)}
                     required
-                    placeholder="misal: aditya"
+                    placeholder="misal: dior"
                   />
                 </div>
                 <div className={styles.field}>
-                  <label>Nama Tampilan *</label>
+                  <label>Nama Lengkap / Panggilan *</label>
                   <input
                     value={form.name}
                     onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                     required
-                    placeholder="misal: Aditya Kurniawan"
+                    placeholder="misal: Dior"
                   />
                 </div>
                 <div className={styles.field}>
-                  <label>{editing ? "Password Baru (kosongkan jika tidak diganti)" : "Password *"}</label>
+                  <label>Divisi *</label>
+                  <input
+                    value={form.division}
+                    onChange={e => setForm(p => ({ ...p, division: e.target.value }))}
+                    required
+                    placeholder="misal: Bendahara, Humas, Event, IT & Tech..."
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Role (Tingkatan Hak Akses)</label>
+                  <select
+                    value={form.role}
+                    onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+                    style={{
+                      background: "#141414",
+                      color: "#f0f0f0",
+                      border: "1px solid #333",
+                      borderRadius: 8,
+                      padding: "9px 12px",
+                      cursor: "pointer",
+                      width: "100%",
+                    }}
+                  >
+                    <option value="superadmin" style={{ background: "#1e1e1e", color: "#fff" }}>Superadmin (Pangkat Tertinggi / Akses Penuh)</option>
+                    <option value="admin" style={{ background: "#1e1e1e", color: "#fff" }}>Admin (Operasional & Kelola Konten)</option>
+                    <option value="editor" style={{ background: "#1e1e1e", color: "#fff" }}>Editor (Hanya Tulis & Edit Berita/Galeri)</option>
+                  </select>
+                </div>
+                <div className={styles.field}>
+                  <label>{editing ? "Password Baru (kosongkan jika tidak ingin diubah)" : "Password *"}</label>
                   <input
                     type="password"
                     value={form.password}
@@ -9285,36 +9311,11 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                     placeholder="******"
                   />
                 </div>
-                <div className={styles.field}>
-                  <label>Role (Tingkatan Hak Akses)</label>
-                  <select
-                    value={form.role}
-                    onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-                    disabled={!isSuperadmin}
-                    style={{
-                      background: "#141414",
-                      color: "#f0f0f0",
-                      border: "1px solid #333",
-                      borderRadius: 8,
-                      padding: "9px 12px",
-                      cursor: isSuperadmin ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    <option value="superadmin" style={{ background: "#1e1e1e", color: "#fff" }}>Superadmin (Pangkat Tertinggi / Akses Penuh)</option>
-                    <option value="admin" style={{ background: "#1e1e1e", color: "#fff" }}>Admin (Operasional & Kelola Konten)</option>
-                    <option value="editor" style={{ background: "#1e1e1e", color: "#fff" }}>Editor (Hanya Tulis & Edit Berita/Galeri)</option>
-                  </select>
-                  {!isSuperadmin && (
-                    <span style={{ fontSize: 11, color: "#888", marginTop: 4 }}>
-                      Hanya Superadmin yang dapat mengubah tingkatan role.
-                    </span>
-                  )}
-                </div>
               </div>
               <div className={styles.formFooter}>
                 <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Batal</button>
                 <button type="submit" className={styles.btnPrimary} disabled={saving}>
-                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : "Simpan Perubahan"}
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : "Simpan Pengguna"}
                 </button>
               </div>
             </form>
