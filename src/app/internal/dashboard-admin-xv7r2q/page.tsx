@@ -90,6 +90,8 @@ function AdminPortal({ children }: { children: React.ReactNode }) {
 // ─── AUTH HOOK (PENGGANTI sessionStorage — server-side verified) ──────────────
 function useAdminAuth() {
   const [authed,   setAuthed]   = useState(false);
+  const [role,     setRole]     = useState<string>("admin");
+  const [username, setUsername] = useState<string>("");
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -104,7 +106,12 @@ function useAdminAuth() {
     })
       .then(res => res.json())
       .then(data => {
-        setAuthed(data.status === true && data.valid === true);
+        const isValid = data.status === true && data.valid === true;
+        setAuthed(isValid);
+        if (isValid) {
+          setRole(data.role || (["admin", "vallencia", "aditya"].includes((data.username || "").toLowerCase()) ? "superadmin" : "admin"));
+          setUsername(data.username || "Admin");
+        }
       })
       .catch(() => {
         setAuthed(false);
@@ -130,7 +137,7 @@ function useAdminAuth() {
     setAuthed(false);
   };
 
-  return { authed, checking, setAuthed, logout };
+  return { authed, role, username, checking, setAuthed, logout };
 }
 
 // ─── LOGIN PAGE (auth via API → httpOnly cookie) ──────────────
@@ -4990,8 +4997,8 @@ function InvitationsManager() {
                       {/* Check-in status */}
                       <td style={{ textAlign: "center" }}>
                         {item.checked_in ? (
-                          <span style={{ color: "#10b981", fontWeight: 700, fontSize: 13 }}>
-                            ✅ Hadir
+                          <span style={{ color: "#10b981", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                            <i className="bx bxs-check-circle" /> Hadir
                           </span>
                         ) : (
                           <span style={{ color: "#6b7280", fontSize: 13 }}>—</span>
@@ -9020,7 +9027,8 @@ function DengerineManager() {
 
 
 // ─── MANAJEMEN PENGGUNA (USERS MANAGER) ──────────────────────────
-function UsersManager() {
+function UsersManager({ currentRole, currentUsername }: { currentRole?: string; currentUsername?: string }) {
+  const isSuperadmin = currentRole === "superadmin";
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -9047,12 +9055,21 @@ function UsersManager() {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const openAdd = () => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat menambahkan akun baru", type: "error" });
+      return;
+    }
     setEditing(null);
     setForm({ username: "", name: "", password: "", role: "admin" });
     setShowModal(true);
   };
 
   const openEdit = (u: any) => {
+    // Admin biasa hanya boleh edit nama/password akun miliknya sendiri
+    if (!isSuperadmin && currentUsername && u.username.toLowerCase() !== currentUsername.toLowerCase()) {
+      setToast({ msg: "Admin hanya dapat mengedit akun sendiri", type: "error" });
+      return;
+    }
     setEditing(u);
     setForm({ username: u.username, name: u.name, password: "", role: u.role || "admin" });
     setShowModal(true);
@@ -9086,6 +9103,10 @@ function UsersManager() {
   };
 
   const handleDelete = async (u: any) => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat menghapus akun", type: "error" });
+      return;
+    }
     if (!window.confirm(`Hapus admin "${u.username}"?`)) return;
     try {
       const res = await fetch("/api/admin/users", {
@@ -9113,12 +9134,40 @@ function UsersManager() {
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      
+      {/* RBAC Notice for Regular Admin */}
+      {!isSuperadmin && (
+        <div style={{
+          background: "rgba(96, 165, 250, 0.08)",
+          border: "1px solid rgba(96, 165, 250, 0.25)",
+          borderRadius: 10,
+          padding: "10px 14px",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          color: "#93c5fd",
+          fontSize: 13,
+        }}>
+          <i className="bx bx-shield-quarter" style={{ fontSize: 20, color: "#60a5fa" }} />
+          <span>
+            <strong>Hak Akses Admin:</strong> Superadmin memegang tingkatan tertinggi. Akun bertingkat Admin (seperti RF & Dior) dapat mengelola operasional konten, namun hanya Superadmin yang berwenang menambah akun, mengubah role, atau menghapus pengguna.
+          </span>
+        </div>
+      )}
+
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
           <i className="bx bx-user-pin" style={{ color: "#c9a84c" }} /> Manajemen Pengguna
           <span className={styles.count}>{users.length} Akun</span>
         </h2>
-        <button className={styles.btnPrimary} onClick={openAdd}>
+        <button
+          className={styles.btnPrimary}
+          onClick={openAdd}
+          disabled={!isSuperadmin}
+          style={!isSuperadmin ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+          title={!isSuperadmin ? "Hanya Superadmin yang dapat menambah admin baru" : "Tambah Admin"}
+        >
           <i className="bx bx-plus" /> Tambah Admin
         </button>
       </div>
@@ -9126,7 +9175,7 @@ function UsersManager() {
       <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
         <input
           type="text"
-          placeholder="Cari admin..."
+          placeholder="Cari username atau nama..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ maxWidth: 300, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
@@ -9143,7 +9192,7 @@ function UsersManager() {
                 <th style={{ width: 45, textAlign: "center" }}>#</th>
                 <th>Username</th>
                 <th>Nama Lengkap</th>
-                <th>Role</th>
+                <th>Role (Tingkatan)</th>
                 <th>Dibuat</th>
                 <th style={{ width: 120, textAlign: "center" }}>Aksi</th>
               </tr>
@@ -9152,13 +9201,20 @@ function UsersManager() {
               {filtered.map((u, i) => (
                 <tr key={u.id || u.username}>
                   <td style={{ textAlign: "center", color: "#888" }}>{i + 1}</td>
-                  <td style={{ fontWeight: 600, color: "#c9a84c" }}>{u.username}</td>
+                  <td style={{ fontWeight: 600, color: u.role === "superadmin" ? "#c9a84c" : "#60a5fa" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <i className={`bx ${u.role === "superadmin" ? "bxs-badge-check" : "bx-shield"}`} />
+                      {u.username}
+                    </span>
+                  </td>
                   <td>{u.name}</td>
                   <td>
                     <span style={{
                       padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
                       background: u.role === "superadmin" ? "rgba(201,168,76,0.2)" : "rgba(59,130,246,0.2)",
                       color: u.role === "superadmin" ? "#c9a84c" : "#60a5fa",
+                      border: `1px solid ${u.role === "superadmin" ? "rgba(201,168,76,0.4)" : "rgba(59,130,246,0.4)"}`,
+                      textTransform: "uppercase",
                     }}>
                       {u.role || "admin"}
                     </span>
@@ -9168,10 +9224,15 @@ function UsersManager() {
                   </td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                      <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(u)} title="Edit">
+                      <button
+                        className={styles.btnGhost}
+                        style={{ padding: "4px 8px" }}
+                        onClick={() => openEdit(u)}
+                        title={isSuperadmin ? "Edit Akun" : "Edit Profil"}
+                      >
                         <i className="bx bx-edit" />
                       </button>
-                      {u.username !== "admin" && u.username !== "vallencia" && (
+                      {isSuperadmin && u.username !== "admin" && u.username !== "vallencia" && (
                         <button className={styles.btnGhost} style={{ padding: "4px 8px", color: "#ef4444" }} onClick={() => handleDelete(u)} title="Hapus">
                           <i className="bx bx-trash" />
                         </button>
@@ -9188,9 +9249,9 @@ function UsersManager() {
       {/* Modal Add/Edit */}
       {showModal && (
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
-          <div className={styles.formModal} onClick={e => e.stopPropagation()} style={{ maxWidth: 450 }}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()} style={{ maxWidth: 460 }}>
             <div className={styles.formModalHeader}>
-              <h3>{editing ? "Edit Admin" : "Tambah Admin Baru"}</h3>
+              <h3>{editing ? `Edit ${editing.username}` : "Tambah Admin Baru"}</h3>
               <button className={styles.closeX} onClick={() => setShowModal(false)}><i className="bx bx-x" /></button>
             </div>
             <form onSubmit={handleSave}>
@@ -9225,18 +9286,35 @@ function UsersManager() {
                   />
                 </div>
                 <div className={styles.field}>
-                  <label>Role</label>
-                  <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-                    <option value="admin">Admin</option>
-                    <option value="superadmin">Superadmin</option>
-                    <option value="editor">Editor</option>
+                  <label>Role (Tingkatan Hak Akses)</label>
+                  <select
+                    value={form.role}
+                    onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+                    disabled={!isSuperadmin}
+                    style={{
+                      background: "#141414",
+                      color: "#f0f0f0",
+                      border: "1px solid #333",
+                      borderRadius: 8,
+                      padding: "9px 12px",
+                      cursor: isSuperadmin ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    <option value="superadmin" style={{ background: "#1e1e1e", color: "#fff" }}>Superadmin (Pangkat Tertinggi / Akses Penuh)</option>
+                    <option value="admin" style={{ background: "#1e1e1e", color: "#fff" }}>Admin (Operasional & Kelola Konten)</option>
+                    <option value="editor" style={{ background: "#1e1e1e", color: "#fff" }}>Editor (Hanya Tulis & Edit Berita/Galeri)</option>
                   </select>
+                  {!isSuperadmin && (
+                    <span style={{ fontSize: 11, color: "#888", marginTop: 4 }}>
+                      Hanya Superadmin yang dapat mengubah tingkatan role.
+                    </span>
+                  )}
                 </div>
               </div>
               <div className={styles.formFooter}>
                 <button type="button" className={styles.btnGhost} onClick={() => setShowModal(false)}>Batal</button>
                 <button type="submit" className={styles.btnPrimary} disabled={saving}>
-                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : "Simpan"}
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : "Simpan Perubahan"}
                 </button>
               </div>
             </form>
@@ -9248,7 +9326,8 @@ function UsersManager() {
 }
 
 // ─── RIWAYAT AKTIVITAS (ACTIVITY LOGS MANAGER) ───────────────────
-function ActivityLogsManager() {
+function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
+  const isSuperadmin = currentRole === "superadmin";
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -9299,6 +9378,10 @@ function ActivityLogsManager() {
   };
 
   const handleDeleteSelected = async () => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat menghapus riwayat aktivitas", type: "error" });
+      return;
+    }
     if (selectedIds.size === 0) return;
     if (!window.confirm(`Hapus ${selectedIds.size} log terpilih?`)) return;
 
@@ -9322,6 +9405,10 @@ function ActivityLogsManager() {
   };
 
   const handleClearAll = async () => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat membersihkan riwayat log", type: "error" });
+      return;
+    }
     if (!window.confirm("PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat aktivitas?")) return;
     try {
       const res = await fetch("/api/admin/logs", {
@@ -9357,15 +9444,27 @@ function ActivityLogsManager() {
           <button
             className={styles.btnGhost}
             onClick={handleDeleteSelected}
-            disabled={selectedIds.size === 0}
-            style={{ color: selectedIds.size > 0 ? "#ef4444" : "#666", borderColor: selectedIds.size > 0 ? "#ef4444" : "#444" }}
+            disabled={!isSuperadmin || selectedIds.size === 0}
+            style={{
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={!isSuperadmin ? "Hanya Superadmin yang dapat menghapus log" : "Hapus Log Terpilih"}
           >
             <i className="bx bx-trash" /> Hapus Terpilih ({selectedIds.size})
           </button>
           <button
             className={styles.btnGhost}
             onClick={handleClearAll}
-            style={{ color: "#f87171" }}
+            disabled={!isSuperadmin}
+            style={{
+              color: isSuperadmin ? "#f87171" : "#666",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={!isSuperadmin ? "Hanya Superadmin yang dapat membersihkan seluruh log" : "Bersihkan Semua Log"}
           >
             <i className="bx bx-brush" /> Bersihkan Semua
           </button>
@@ -9387,10 +9486,22 @@ function ActivityLogsManager() {
         <select
           value={moduleFilter}
           onChange={e => setModuleFilter(e.target.value)}
-          style={{ padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{
+            padding: "8px 12px",
+            background: "#141414",
+            border: "1px solid #333",
+            borderRadius: 8,
+            color: "#fff",
+            fontSize: 13,
+            cursor: "pointer",
+          }}
         >
-          <option value="all">Semua Modul</option>
-          {modules.map(m => <option key={m} value={m}>{m}</option>)}
+          <option value="all" style={{ background: "#1e1e1e", color: "#fff" }}>Semua Modul</option>
+          {modules.map(m => (
+            <option key={m} value={m} style={{ background: "#1e1e1e", color: "#fff" }}>
+              {m}
+            </option>
+          ))}
         </select>
         {selectedIds.size > 0 && (
           <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
@@ -9459,7 +9570,8 @@ function ActivityLogsManager() {
 }
 
 // ─── RIWAYAT LOGIN (LOGIN LOGS MANAGER) ─────────────────────────
-function LoginLogsManager() {
+function LoginLogsManager({ currentRole }: { currentRole?: string }) {
+  const isSuperadmin = currentRole === "superadmin";
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -9509,6 +9621,10 @@ function LoginLogsManager() {
   };
 
   const handleDeleteSelected = async () => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat menghapus log login", type: "error" });
+      return;
+    }
     if (selectedIds.size === 0) return;
     if (!window.confirm(`Hapus ${selectedIds.size} log login terpilih?`)) return;
 
@@ -9532,6 +9648,10 @@ function LoginLogsManager() {
   };
 
   const handleClearAll = async () => {
+    if (!isSuperadmin) {
+      setToast({ msg: "Hanya Superadmin yang dapat membersihkan seluruh log login", type: "error" });
+      return;
+    }
     if (!window.confirm("PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat login?")) return;
     try {
       const res = await fetch("/api/admin/logs", {
@@ -9564,15 +9684,27 @@ function LoginLogsManager() {
           <button
             className={styles.btnGhost}
             onClick={handleDeleteSelected}
-            disabled={selectedIds.size === 0}
-            style={{ color: selectedIds.size > 0 ? "#ef4444" : "#666", borderColor: selectedIds.size > 0 ? "#ef4444" : "#444" }}
+            disabled={!isSuperadmin || selectedIds.size === 0}
+            style={{
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={!isSuperadmin ? "Hanya Superadmin yang dapat menghapus log" : "Hapus Log Terpilih"}
           >
             <i className="bx bx-trash" /> Hapus Terpilih ({selectedIds.size})
           </button>
           <button
             className={styles.btnGhost}
             onClick={handleClearAll}
-            style={{ color: "#f87171" }}
+            disabled={!isSuperadmin}
+            style={{
+              color: isSuperadmin ? "#f87171" : "#666",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={!isSuperadmin ? "Hanya Superadmin yang dapat membersihkan seluruh log" : "Bersihkan Semua Log"}
           >
             <i className="bx bx-brush" /> Bersihkan Semua
           </button>
@@ -9594,11 +9726,19 @@ function LoginLogsManager() {
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{
+            padding: "8px 12px",
+            background: "#141414",
+            border: "1px solid #333",
+            borderRadius: 8,
+            color: "#fff",
+            fontSize: 13,
+            cursor: "pointer",
+          }}
         >
-          <option value="all">Semua Status</option>
-          <option value="success">Berhasil Saja</option>
-          <option value="failed">Gagal Saja</option>
+          <option value="all" style={{ background: "#1e1e1e", color: "#fff" }}>Semua Status</option>
+          <option value="success" style={{ background: "#1e1e1e", color: "#fff" }}>Berhasil Saja</option>
+          <option value="failed" style={{ background: "#1e1e1e", color: "#fff" }}>Gagal Saja</option>
         </select>
         {selectedIds.size > 0 && (
           <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
@@ -9649,11 +9789,11 @@ function LoginLogsManager() {
                   <td style={{ fontWeight: 600, color: "#fff" }}>{l.username}</td>
                   <td>
                     {l.status === "success" ? (
-                      <span style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>
+                      <span style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
                         <i className="bx bx-check" /> Berhasil
                       </span>
                     ) : (
-                      <span style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>
+                      <span style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
                         <i className="bx bx-x" /> Gagal
                       </span>
                     )}
@@ -9764,7 +9904,7 @@ const navGroups: NavGroup[] = [
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
-  const { authed, checking, setAuthed, logout } = useAdminAuth();
+  const { authed, role, username, checking, setAuthed, logout } = useAdminAuth();
 
   const [active, setActive] = useState<Section>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -9924,7 +10064,24 @@ export default function AdminPage() {
             <button className={styles.menuBtn} onClick={() => setDrawerOpen(true)}><i className="bx bx-menu" /></button>
             <div className={styles.topbarTitle}>{currentTitle}</div>
             <div className={styles.topbarRight}>
-              <span className={styles.adminBadge}><i className="bx bx-user" /> Admin</span>
+              <span
+                className={styles.adminBadge}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  background: role === "superadmin" ? "rgba(201,168,76,0.15)" : "rgba(96,165,250,0.15)",
+                  border: `1px solid ${role === "superadmin" ? "rgba(201,168,76,0.4)" : "rgba(96,165,250,0.4)"}`,
+                  color: role === "superadmin" ? "#c9a84c" : "#60a5fa",
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                <i className={`bx ${role === "superadmin" ? "bxs-badge-check" : "bx-shield"}`} />
+                {role === "superadmin" ? "Super Admin" : "Admin"} ({username || "Admin"})
+              </span>
               <button className={styles.logoutIconBtn} onClick={logout} title="Keluar"><i className="bx bx-log-out" /></button>
             </div>
           </header>
@@ -9948,9 +10105,9 @@ export default function AdminPage() {
             : active === "fanart"     ? <FanartManager />
             : active === "twoshot"    ? <TwoShotManager />
             : active === "dengerine"  ? <DengerineManager />
-            : active === "users"      ? <UsersManager />
-            : active === "activitylogs"? <ActivityLogsManager />
-            : active === "loginlogs"  ? <LoginLogsManager />
+            : active === "users"      ? <UsersManager currentRole={role} currentUsername={username} />
+            : active === "activitylogs"? <ActivityLogsManager currentRole={role} />
+            : active === "loginlogs"  ? <LoginLogsManager currentRole={role} />
             : <SectionManager section={active} />}
           </div>
         </div>

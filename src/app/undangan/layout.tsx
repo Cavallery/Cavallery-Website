@@ -17,6 +17,10 @@ export default function UndanganLayout({
 }) {
   return (
     <>
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      />
       {/* Hide main site chrome but keep background */}
       <style>{`
         nav, footer,

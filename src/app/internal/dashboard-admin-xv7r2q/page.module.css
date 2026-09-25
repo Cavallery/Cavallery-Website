@@ -514,7 +514,8 @@
 .fieldHint { color: #666; font-weight: 400; }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   background: #141414;
   border: 1px solid #333;
   border-radius: 8px;
@@ -526,8 +527,18 @@
   resize: vertical;
   transition: border-color 0.15s;
 }
+.field select {
+  cursor: pointer;
+}
+.field select option,
+select option {
+  background: #1e1e1e !important;
+  color: #f0f0f0 !important;
+  padding: 8px 12px;
+}
 .field input:focus,
-.field textarea:focus { border-color: #c9a84c; }
+.field textarea:focus,
+.field select:focus { border-color: #c9a84c; }
 
 /* ── TOGGLE CHECKBOX ────────────────────────────────────────── */
 .toggle {

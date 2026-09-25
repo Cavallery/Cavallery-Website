@@ -6,7 +6,7 @@ import crypto from "crypto";
 
 const HONO_BASE = process.env.HONO_API_BASE_URL || "https://v5.jkt48connect.com";
 
-function verifyLocalToken(token: string): { valid: boolean; username?: string; expiresAt?: string } {
+function verifyLocalToken(token: string): { valid: boolean; username?: string; role?: string; expiresAt?: string } {
   try {
     const parts = token.split(".");
     if (parts.length !== 2) return { valid: false };
@@ -15,7 +15,10 @@ function verifyLocalToken(token: string): { valid: boolean; username?: string; e
     if (sig !== parts[1]) return { valid: false };
     const parsed = JSON.parse(str);
     if (parsed.exp < Date.now()) return { valid: false };
-    return { valid: true, username: parsed.username, expiresAt: new Date(parsed.exp).toISOString() };
+    const username = parsed.username || "Vallencia";
+    const u = username.toLowerCase();
+    const role = parsed.role || (["admin", "vallencia", "aditya"].includes(u) ? "superadmin" : "admin");
+    return { valid: true, username, role, expiresAt: new Date(parsed.exp).toISOString() };
   } catch {
     return { valid: false };
   }
@@ -48,6 +51,7 @@ async function verifySession(req: NextRequest) {
           status: true,
           valid: true,
           username: local.username || "Vallencia",
+          role: local.role || "admin",
           expiresAt: local.expiresAt,
         },
         { status: 200 }
