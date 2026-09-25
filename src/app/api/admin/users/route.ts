@@ -42,25 +42,25 @@ async function ensureAdminTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // 2. Tambah kolom yang mungkin belum ada
+    // 2. Tambah kolom ke kedua tabel jika belum ada
     try { await query("ALTER TABLE `admin_users` ADD COLUMN `division` VARCHAR(100) DEFAULT 'Operasional'"); } catch {}
     try { await query("ALTER TABLE `admin_users` ADD COLUMN `role` VARCHAR(50) DEFAULT 'admin'"); } catch {}
-    try { await query("ALTER TABLE `admin` ADD COLUMN `role` VARCHAR(50) DEFAULT 'admin'"); } catch {}
     try { await query("ALTER TABLE `admin` ADD COLUMN `division` VARCHAR(100) DEFAULT 'Operasional'"); } catch {}
+    try { await query("ALTER TABLE `admin` ADD COLUMN `role` VARCHAR(50) DEFAULT 'admin'"); } catch {}
 
-    // 3. Sinkronkan default akun (aditya, vallencia, admin -> superadmin | dior, rf -> admin)
-    const countRes = await query<any[]>("SELECT COUNT(*) AS c FROM `admin_users`");
+    // 3. Sinkronkan seluruh data akun dari tabel admin ke admin_users
+    try {
+      await query(`
+        INSERT INTO \`admin_users\` (\`username\`, \`password_hash\`, \`name\`, \`role\`, \`division\`)
+        SELECT \`username\`, \`password_hash\`, COALESCE(\`nama\`, \`username\`), 'admin', 'Operasional'
+        FROM \`admin\`
+        ON DUPLICATE KEY UPDATE \`name\` = VALUES(\`name\`);
+      `);
+    } catch {}
+
+    // 4. Jika admin_users masih kosong (database baru), masukkan seed default
+    const countRes = await query<any[]>("SELECT COUNT(*) AS c FROM \`admin_users\`");
     if (!countRes || countRes[0]?.c === 0) {
-      // Migrasikan data dari tabel admin lama jika ada
-      try {
-        await query(`
-          INSERT INTO \`admin_users\` (\`username\`, \`password_hash\`, \`name\`, \`role\`, \`division\`)
-          SELECT \`username\`, \`password_hash\`, COALESCE(\`nama\`, \`username\`), 'admin', 'Operasional' FROM \`admin\`
-          ON DUPLICATE KEY UPDATE \`name\` = VALUES(\`name\`);
-        `);
-      } catch {}
-
-      // Masukkan akun-akun utama dengan role dan divisi
       await query(`
         INSERT INTO \`admin_users\` (\`username\`, \`password_hash\`, \`name\`, \`role\`, \`division\`)
         VALUES 
@@ -71,14 +71,6 @@ async function ensureAdminTables() {
           ('rf', '$2b$10$wmkgC7X9waNv7/p1NSdml.QvdwFRnZhHNj3ydOTVj0oXSWlqgcPNO', 'RF', 'admin', 'Humas & Event')
         ON DUPLICATE KEY UPDATE \`role\` = VALUES(\`role\`), \`division\` = VALUES(\`division\`);
       `);
-    } else {
-      // Pastikan RBAC & Divisi terupdate di database
-      try {
-        await query("UPDATE `admin_users` SET `role` = 'superadmin', `division` = 'IT & Webmaster' WHERE `username` = 'aditya'");
-        await query("UPDATE `admin_users` SET `role` = 'superadmin', `division` = 'Project Leader' WHERE `username` IN ('admin', 'vallencia')");
-        await query("UPDATE `admin_users` SET `role` = 'admin', `division` = 'Bendahara' WHERE `username` = 'dior'");
-        await query("UPDATE `admin_users` SET `role` = 'admin', `division` = 'Humas & Event' WHERE `username` = 'rf'");
-      } catch {}
     }
 
     tablesInitialized = true;
@@ -97,9 +89,10 @@ export async function GET() {
         "SELECT id, username, COALESCE(name, nama, username) AS name, COALESCE(role, 'admin') AS role, COALESCE(division, 'Operasional') AS division, created_at FROM `admin_users` ORDER BY id ASC"
       );
 
+      // Fallback ke tabel admin jika admin_users kosong
       if (!rows || rows.length === 0) {
         rows = await query<any[]>(
-          "SELECT id, username, COALESCE(nama, username) AS name, 'admin' AS role, 'Operasional' AS division, created_at FROM `admin` ORDER BY id ASC"
+          "SELECT id, username, COALESCE(nama, username) AS name, COALESCE(role, 'admin') AS role, COALESCE(division, 'Operasional') AS division, created_at FROM `admin` ORDER BY id ASC"
         );
       }
 
@@ -108,8 +101,8 @@ export async function GET() {
           id: r.id,
           username: r.username,
           name: r.name,
-          role: r.role || (["admin", "vallencia", "aditya"].includes(r.username.toLowerCase()) ? "superadmin" : "admin"),
-          division: r.division || (r.username.toLowerCase() === "dior" ? "Bendahara" : r.username.toLowerCase() === "rf" ? "Humas & Event" : r.username.toLowerCase() === "aditya" ? "IT & Webmaster" : "Operasional"),
+          role: r.role || "admin",
+          division: r.division || "Operasional",
           created_at: r.created_at || null,
         }));
         return NextResponse.json({ success: true, data: users });
@@ -137,28 +130,29 @@ export async function POST(req: NextRequest) {
       }
 
       const hash = await bcrypt.hash(password, 10);
-      const cleanUsername = username.trim().toLowerCase();
-      const cleanName = (name || username).trim();
-      const cleanDivision = (division || "Operasional").trim();
+      const cleanUsername = String(username).trim().toLowerCase();
+      const cleanName = String(name || username).trim();
+      const cleanDivision = String(division || "Operasional").trim();
+      const cleanRole = String(role || "admin").trim().toLowerCase();
 
       if (isMySqlConfigured()) {
         try {
           // Insert ke admin_users
           await query(
             "INSERT INTO `admin_users` (`username`, `password_hash`, `role`, `name`, `division`, `created_at`) VALUES (?, ?, ?, ?, ?, NOW())",
-            [cleanUsername, hash, role, cleanName, cleanDivision]
+            [cleanUsername, hash, cleanRole, cleanName, cleanDivision]
           );
 
-          // Coba sync ke tabel admin jika ada
+          // Sync ke tabel admin
           try {
             await query(
-              "INSERT INTO `admin` (`username`, `password_hash`, `nama`, `role`) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `password_hash`=VALUES(`password_hash`), `role`=VALUES(`role`)",
-              [cleanUsername, hash, cleanName, role]
+              "INSERT INTO `admin` (`username`, `password_hash`, `nama`, `role`, `division`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `password_hash`=VALUES(`password_hash`), `role`=VALUES(`role`), `division`=VALUES(`division`), `nama`=VALUES(`nama`)",
+              [cleanUsername, hash, cleanName, cleanRole, cleanDivision]
             );
           } catch {
             try {
               await query(
-                "INSERT INTO `admin` (`username`, `password_hash`, `nama`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `password_hash`=VALUES(`password_hash`)",
+                "INSERT INTO `admin` (`username`, `password_hash`, `nama`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `password_hash`=VALUES(`password_hash`), `nama`=VALUES(`nama`)",
                 [cleanUsername, hash, cleanName]
               );
             } catch {}
@@ -168,7 +162,7 @@ export async function POST(req: NextRequest) {
             username: "admin",
             action: "Tambah Pengguna",
             module: "Manajemen Pengguna",
-            details: `Menambahkan admin: ${cleanUsername} (Divisi: ${cleanDivision}, Role: ${role})`,
+            details: `Menambahkan admin: ${cleanUsername} (Divisi: ${cleanDivision}, Role: ${cleanRole})`,
           });
 
           return NextResponse.json({ success: true, message: `Admin ${cleanUsername} berhasil ditambahkan` });
@@ -185,7 +179,7 @@ export async function POST(req: NextRequest) {
         id: Date.now(),
         username: cleanUsername,
         name: cleanName,
-        role,
+        role: cleanRole,
         division: cleanDivision,
         created_at: new Date().toISOString(),
       });
@@ -200,8 +194,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, message: "ID atau username diperlukan" }, { status: 400 });
       }
 
-      const cleanName = (name || username).trim();
-      const cleanDivision = (division || "Operasional").trim();
+      const cleanUsername = String(username || "").trim().toLowerCase();
+      const cleanName = String(name || username).trim();
+      const cleanDivision = String(division || "Operasional").trim();
+      const cleanRole = String(role || "admin").trim().toLowerCase();
+
       let hash: string | null = null;
       if (password && password.trim()) {
         hash = await bcrypt.hash(password.trim(), 10);
@@ -209,100 +206,120 @@ export async function POST(req: NextRequest) {
 
       if (isMySqlConfigured()) {
         try {
+          // 1. Pastikan kolom division dan role ada di kedua tabel
+          try { await query("ALTER TABLE `admin_users` ADD COLUMN `division` VARCHAR(100) DEFAULT 'Operasional'"); } catch {}
+          try { await query("ALTER TABLE `admin_users` ADD COLUMN `role` VARCHAR(50) DEFAULT 'admin'"); } catch {}
+          try { await query("ALTER TABLE `admin` ADD COLUMN `division` VARCHAR(100) DEFAULT 'Operasional'"); } catch {}
+          try { await query("ALTER TABLE `admin` ADD COLUMN `role` VARCHAR(50) DEFAULT 'admin'"); } catch {}
+
+          // 2. Update di admin_users
+          let resUpdate: any;
           if (hash) {
-            await query(
+            resUpdate = await query(
               "UPDATE `admin_users` SET `name` = ?, `role` = ?, `division` = ?, `password_hash` = ? WHERE `id` = ? OR `username` = ?",
-              [cleanName, role, cleanDivision, hash, id, username]
+              [cleanName, cleanRole, cleanDivision, hash, id, cleanUsername]
             );
-            try {
-              await query(
-                "UPDATE `admin` SET `nama` = ?, `role` = ?, `password_hash` = ? WHERE `id` = ? OR `username` = ?",
-                [cleanName, role, hash, id, username]
-              );
-            } catch {
-              try {
-                await query(
-                  "UPDATE `admin` SET `nama` = ?, `password_hash` = ? WHERE `id` = ? OR `username` = ?",
-                  [cleanName, hash, id, username]
-                );
-              } catch {}
-            }
           } else {
-            await query(
+            resUpdate = await query(
               "UPDATE `admin_users` SET `name` = ?, `role` = ?, `division` = ? WHERE `id` = ? OR `username` = ?",
-              [cleanName, role, cleanDivision, id, username]
+              [cleanName, cleanRole, cleanDivision, id, cleanUsername]
             );
+          }
+
+          // 3. Jika di admin_users belum ada row yang ter-update, lakukan INSERT
+          if (!resUpdate || resUpdate.affectedRows === 0) {
+            const defaultHash = hash || "$2b$10$wmkgC7X9waNv7/p1NSdml.QvdwFRnZhHNj3ydOTVj0oXSWlqgcPNO";
+            await query(
+              "INSERT INTO `admin_users` (`username`, `password_hash`, `name`, `role`, `division`, `created_at`) VALUES (?, ?, ?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `role`=VALUES(`role`), `division`=VALUES(`division`)",
+              [cleanUsername, defaultHash, cleanName, cleanRole, cleanDivision]
+            );
+          }
+
+          // 4. Update juga tabel admin lama untuk sinkronisasi
+          try {
+            if (hash) {
+              await query(
+                "UPDATE `admin` SET `nama` = ?, `role` = ?, `division` = ?, `password_hash` = ? WHERE `id` = ? OR `username` = ?",
+                [cleanName, cleanRole, cleanDivision, hash, id, cleanUsername]
+              );
+            } else {
+              await query(
+                "UPDATE `admin` SET `nama` = ?, `role` = ?, `division` = ? WHERE `id` = ? OR `username` = ?",
+                [cleanName, cleanRole, cleanDivision, id, cleanUsername]
+              );
+            }
+          } catch {
             try {
               await query(
-                "UPDATE `admin` SET `nama` = ?, `role` = ? WHERE `id` = ? OR `username` = ?",
-                [cleanName, role, id, username]
+                "UPDATE `admin` SET `nama` = ? WHERE `id` = ? OR `username` = ?",
+                [cleanName, id, cleanUsername]
               );
-            } catch {
-              try {
-                await query(
-                  "UPDATE `admin` SET `nama` = ? WHERE `id` = ? OR `username` = ?",
-                  [cleanName, id, username]
-                );
-              } catch {}
-            }
+            } catch {}
           }
 
           await logActivity({
             username: "admin",
             action: "Update Pengguna",
             module: "Manajemen Pengguna",
-            details: `Memperbarui admin: ${username} (Divisi: ${cleanDivision}, Role: ${role})`,
+            details: `Memperbarui admin: ${cleanUsername} (Divisi: ${cleanDivision}, Role: ${cleanRole})`,
           });
 
-          return NextResponse.json({ success: true, message: `Data admin ${username} berhasil diperbarui (Divisi: ${cleanDivision}, Role: ${role})` });
+          return NextResponse.json({
+            success: true,
+            message: `Data admin ${cleanUsername} berhasil diperbarui (Divisi: ${cleanDivision}, Role: ${cleanRole})`,
+          });
         } catch (e: any) {
           console.error("MySQL update user error:", e.message);
+          return NextResponse.json({ success: false, message: `Gagal database: ${e.message}` }, { status: 500 });
         }
       }
 
       // Memory fallback
-      const found = fallbackUsers.find(u => u.id === id || u.username === username);
+      const found = fallbackUsers.find(u => u.id === id || u.username === cleanUsername);
       if (found) {
         if (cleanName) found.name = cleanName;
-        if (role) found.role = role;
+        if (cleanRole) found.role = cleanRole;
         if (cleanDivision) found.division = cleanDivision;
       }
-      return NextResponse.json({ success: true, message: `Data admin ${username} berhasil diperbarui (Divisi: ${cleanDivision}, Role: ${role})` });
+      return NextResponse.json({
+        success: true,
+        message: `Data admin ${cleanUsername} berhasil diperbarui (Divisi: ${cleanDivision}, Role: ${cleanRole})`,
+      });
     }
 
     // 3. DELETE USER
     if (action === "delete") {
       const { id, username } = body;
-      const lower = (username || "").toLowerCase();
+      const lower = String(username || "").trim().toLowerCase();
       if (lower === "admin" || lower === "vallencia" || lower === "aditya") {
-        return NextResponse.json({ success: false, message: "Akun superadmin utama tidak boleh dihapus!" }, { status: 403 });
+        return NextResponse.json({ success: false, message: "Akun Super Admin utama tidak boleh dihapus!" }, { status: 403 });
       }
 
       if (isMySqlConfigured()) {
         try {
-          await query("DELETE FROM `admin_users` WHERE `id` = ? OR `username` = ?", [id, username]);
+          await query("DELETE FROM `admin_users` WHERE `id` = ? OR `username` = ?", [id, lower]);
           try {
-            await query("DELETE FROM `admin` WHERE `id` = ? OR `username` = ?", [id, username]);
+            await query("DELETE FROM `admin` WHERE `id` = ? OR `username` = ?", [id, lower]);
           } catch {}
 
           await logActivity({
             username: "admin",
             action: "Hapus Pengguna",
             module: "Manajemen Pengguna",
-            details: `Menghapus admin: ${username}`,
+            details: `Menghapus admin: ${lower}`,
           });
 
-          return NextResponse.json({ success: true, message: `Admin ${username} berhasil dihapus` });
+          return NextResponse.json({ success: true, message: `Admin ${lower} berhasil dihapus` });
         } catch (e: any) {
           console.error("MySQL delete user error:", e.message);
         }
       }
 
       // Memory fallback
-      const idx = fallbackUsers.findIndex(u => u.id === id || u.username === username);
+      const idx = fallbackUsers.findIndex(u => u.id === id || u.username.toLowerCase() === lower);
       if (idx !== -1) fallbackUsers.splice(idx, 1);
 
-      return NextResponse.json({ success: true, message: `Admin ${username} berhasil dihapus` });
+      return NextResponse.json({ success: true, message: `Admin ${lower} berhasil dihapus` });
     }
 
     return NextResponse.json({ success: false, message: "Aksi tidak dikenal" }, { status: 400 });
