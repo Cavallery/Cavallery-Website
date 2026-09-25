@@ -72,7 +72,7 @@ export default function ScanPage() {
           name: "—",
           checked_in: false,
           status: "notfound",
-          message: "❌ Undangan tidak terdaftar di sistem",
+          message: "Undangan tidak terdaftar di sistem",
         };
       } else if (json.success) {
         const item = json.item;
@@ -82,7 +82,7 @@ export default function ScanPage() {
           checked_in: true,
           checked_in_at: item.checked_in_at,
           status: "success",
-          message: `✅ ${item.name} berhasil check-in!`,
+          message: `${item.name} berhasil check-in!`,
         };
       } else {
         scanResult = {
@@ -157,12 +157,12 @@ export default function ScanPage() {
     <div style={{ minHeight: "100vh", background: "#0a0f0c", color: "#fff", fontFamily: "Montserrat, sans-serif" }}>
       {/* Header */}
       <div style={{ background: "#111a14", padding: "16px 24px", borderBottom: "1px solid #1e2d22", display: "flex", alignItems: "center", gap: 12 }}>
-        <a href="/undangan/links" style={{ color: "#c9a84c", textDecoration: "none", fontSize: 13 }}>
-          ← Daftar Link
+        <a href="/undangan/links" style={{ color: "#c9a84c", textDecoration: "none", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <i className="bx bx-arrow-back" /> Daftar Link
         </a>
         <span style={{ color: "#3a4a3e" }}>|</span>
-        <span style={{ color: "#c9a84c", fontWeight: 700, fontSize: 16 }}>
-          📷 Scanner Check-in Undangan Fanbase
+        <span style={{ color: "#c9a84c", fontWeight: 700, fontSize: 16, display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <i className="bx bx-qr-scan" style={{ fontSize: 20 }} /> Scanner Check-in Undangan Fanbase
         </span>
       </div>
 
@@ -197,7 +197,7 @@ export default function ScanPage() {
           {!scanning && (
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
+                <i className="bx bx-camera" style={{ fontSize: 52, color: "#4b5563", marginBottom: 12, display: "block" }} />
                 <div style={{ color: "#a0a8a3", fontSize: 14 }}>Kamera belum aktif</div>
               </div>
             </div>
@@ -206,8 +206,8 @@ export default function ScanPage() {
 
         {/* Error */}
         {error && (
-          <div style={{ background: "#1a0a0a", border: "1px solid #ef4444", borderRadius: 10, padding: "12px 16px", marginBottom: 16, color: "#ef4444", fontSize: 14 }}>
-            {error}
+          <div style={{ background: "#1a0a0a", border: "1px solid #ef4444", borderRadius: 10, padding: "12px 16px", marginBottom: 16, color: "#ef4444", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="bx bx-error-circle" style={{ fontSize: 20 }} /> {error}
           </div>
         )}
 
@@ -216,16 +216,16 @@ export default function ScanPage() {
           {!scanning ? (
             <button
               onClick={startScan}
-              style={{ flex: 1, background: "#c9a84c", color: "#0a0f0c", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+              style={{ flex: 1, background: "#c9a84c", color: "#0a0f0c", border: "none", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 15, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
-              📷 Buka Kamera & Scan QR
+              <i className="bx bx-camera" style={{ fontSize: 18 }} /> Buka Kamera & Scan QR
             </button>
           ) : (
             <button
               onClick={stopCamera}
-              style={{ flex: 1, background: "#1e2d22", color: "#ef4444", border: "1px solid #ef4444", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 15, cursor: "pointer" }}
+              style={{ flex: 1, background: "#1e2d22", color: "#ef4444", border: "1px solid #ef4444", borderRadius: 10, padding: "14px 0", fontWeight: 700, fontSize: 15, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
-              ⏹ Matikan Kamera
+              <i className="bx bx-stop-circle" style={{ fontSize: 18 }} /> Matikan Kamera
             </button>
           )}
         </div>
@@ -242,13 +242,19 @@ export default function ScanPage() {
           }}>
             {loading ? (
               <div style={{ textAlign: "center", color: "#c9a84c", fontSize: 15 }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>⏳</div>
+                <i className="bx bx-loader-alt bx-spin" style={{ fontSize: 36, marginBottom: 8, display: "block" }} />
                 Memverifikasi data undangan...
               </div>
             ) : result ? (
               <>
-                <div style={{ fontSize: 28, textAlign: "center", marginBottom: 8 }}>
-                  {result.status === "success" ? "✅" : result.status === "already" ? "⚠️" : "❌"}
+                <div style={{ textAlign: "center", marginBottom: 8 }}>
+                  {result.status === "success" ? (
+                    <i className="bx bxs-check-circle" style={{ color: "#10b981", fontSize: 48 }} />
+                  ) : result.status === "already" ? (
+                    <i className="bx bxs-error" style={{ color: "#f59e0b", fontSize: 48 }} />
+                  ) : (
+                    <i className="bx bxs-x-circle" style={{ color: "#ef4444", fontSize: 48 }} />
+                  )}
                 </div>
                 <div style={{ textAlign: "center", fontWeight: 700, fontSize: 17, color: statusColor(result.status), marginBottom: 6 }}>
                   {result.message}
@@ -281,11 +287,13 @@ export default function ScanPage() {
                   padding: "10px 14px",
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                 }}>
-                  <span style={{ fontSize: 18 }}>
-                    {s.status === "success" ? "✅" : "⚠️"}
-                  </span>
+                  {s.status === "success" ? (
+                    <i className="bx bxs-check-circle" style={{ color: "#10b981", fontSize: 22 }} />
+                  ) : (
+                    <i className="bx bxs-error" style={{ color: "#f59e0b", fontSize: 22 }} />
+                  )}
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 14, color: "#e5e7eb" }}>{s.name}</div>
                     <div style={{ fontSize: 12, color: "#6b7280" }}>{s.slug}</div>

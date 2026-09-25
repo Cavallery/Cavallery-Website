@@ -39,10 +39,10 @@ function clearAttempts(ip: string) {
   rateLimitMap.delete(ip);
 }
 
-function createSessionToken(username: string): string {
+function createSessionToken(username: string, role: string = "admin"): string {
   const payload = {
     username,
-    role: "superadmin",
+    role,
     exp: Date.now() + 8 * 60 * 60 * 1000, // 8 hours
   };
   const str = JSON.stringify(payload);
@@ -167,7 +167,8 @@ export async function POST(req: NextRequest) {
           if (isValid) {
             clearAttempts(ip);
             const displayName = userRow.nama || userRow.name || userRow.username;
-            const token = createSessionToken(displayName);
+            const userRole = userRow.role || (['admin', 'vallencia', 'aditya'].includes(u.toLowerCase()) ? 'superadmin' : 'admin');
+            const token = createSessionToken(displayName, userRole);
             const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
 
             const response = NextResponse.json(
@@ -175,6 +176,7 @@ export async function POST(req: NextRequest) {
                 status: true,
                 message: "Login berhasil",
                 username: displayName,
+                role: userRole,
                 expiresAt,
               },
               { status: 200 }
@@ -222,10 +224,19 @@ export async function POST(req: NextRequest) {
       aditya: "aditya2026!",
     };
 
+    const fallbackRoles: Record<string, string> = {
+      admin: "superadmin",
+      vallencia: "superadmin",
+      aditya: "superadmin",
+      dior: "admin",
+      rf: "admin",
+    };
+
     const targetFallback = fallbackAdmins[u.toLowerCase()];
     if (targetFallback && targetFallback === p) {
       clearAttempts(ip);
-      const token = createSessionToken(u);
+      const userRole = fallbackRoles[u.toLowerCase()] || "admin";
+      const token = createSessionToken(u, userRole);
       const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
 
       const response = NextResponse.json(
@@ -233,6 +244,7 @@ export async function POST(req: NextRequest) {
           status: true,
           message: "Login berhasil",
           username: u,
+          role: userRole,
           expiresAt,
         },
         { status: 200 }
