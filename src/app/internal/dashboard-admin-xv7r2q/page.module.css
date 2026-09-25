@@ -530,8 +530,7 @@
 .field select {
   cursor: pointer;
 }
-.field select option,
-select option {
+.field select option {
   background: #1e1e1e !important;
   color: #f0f0f0 !important;
   padding: 8px 12px;
