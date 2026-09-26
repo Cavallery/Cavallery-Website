@@ -2040,3 +2040,1677 @@
     font-size: 0.9rem;
   }
 }
+
+/* ── 1. WIDGET QUICK SUMMARY KAS KOMUNITAS (TRANSPARANSI KAS) ── */
+.communityKasSummaryCard {
+  background: var(--surface);
+  border: 1px solid var(--border-gold, rgba(180, 83, 9, 0.3));
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.communityKasHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.communityKasTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--primary, #b45309);
+}
+
+.communityKasLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--gold, #b45309);
+  text-decoration: none;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.communityKasLink:hover {
+  background: var(--gold, #b45309);
+  color: #fff;
+}
+
+.communityKasGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.communityStatItem {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:global([data-theme="dark"]) .communityStatItem {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.statIconWrapGreen,
+.statIconWrapRed,
+.statIconWrapGold {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.statIconWrapGreen {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.statIconWrapRed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.statIconWrapGold {
+  background: rgba(201, 168, 76, 0.18);
+  color: var(--gold, #b45309);
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.statLabel {
+  font-size: 0.72rem;
+  color: var(--fg-muted, #574d44);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statValueGreen {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.statValueRed {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.statValueGold {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--gold, #b45309);
+}
+
+/* ── 2. KARTU STATUS KEANGGOTAAN & PROGRESS BAR 12 BULAN ── */
+.memberKasTrackerCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold, rgba(180, 83, 9, 0.3));
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.trackerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.trackerHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.trackerTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--primary, #b45309);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trackerBadge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.trackerStatusSuccess {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.trackerStatusWarning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.trackerStatusInfo {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.trackerYearPills {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+:global([data-theme="dark"]) .trackerYearPills {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.trackerYearBtn {
+  background: transparent;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trackerYearBtnActive {
+  background: var(--gold, #b45309);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--gold-glow);
+}
+
+.trackerProgressBarContainer {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+:global([data-theme="dark"]) .trackerProgressBarContainer {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.trackerProgressBarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.trackerProgressBarTrack {
+  height: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+:global([data-theme="dark"]) .trackerProgressBarTrack {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.trackerProgressBarFill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #10b981 0%, var(--gold, #b45309) 100%);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+
+.trackerMonthGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.trackerMonthItem {
+  padding: 8px 6px;
+  border-radius: 10px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.trackerMonthItem:hover {
+  transform: translateY(-2px);
+}
+
+.trackerMonthItemPaid {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #10b981;
+}
+
+.trackerMonthItemPending {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.trackerMonthItemUnpaid {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: var(--border);
+  color: var(--fg-muted);
+}
+
+:global([data-theme="dark"]) .trackerMonthItemUnpaid {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.trackerMonthName {
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.trackerMonthIcon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.trackerMonthStatus {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── 3. TOMBOL & MODAL E-KWITANSI DIGITAL ── */
+.receiptBtn {
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  color: var(--gold, #b45309);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.receiptBtn:hover {
+  background: var(--gold, #b45309);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--gold-glow);
+}
+
+.receiptModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.receiptModalCard {
+  background: #ffffff;
+  color: #1a1612;
+  border-radius: 20px;
+  max-width: 540px;
+  width: 100%;
+  padding: 28px 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--border-gold, #c9a84c);
+  position: relative;
+  animation: modalScaleIn 0.25s ease-out;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.receiptHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.receiptLogoWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.receiptLogoImg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #c9a84c;
+  object-fit: cover;
+}
+
+.receiptBrandTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #8c4206;
+}
+
+.receiptBrandSub {
+  font-size: 0.72rem;
+  color: #716254;
+  display: block;
+}
+
+.receiptInvoiceBadge {
+  background: #faf6eb;
+  border: 1px dashed #c9a84c;
+  border-radius: 8px;
+  padding: 6px 12px;
+  text-align: right;
+}
+
+.receiptInvoiceLabel {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #8c4206;
+  display: block;
+}
+
+.receiptInvoiceNumber {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #1a1612;
+  font-family: monospace;
+}
+
+.receiptDivider {
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+  margin: 16px 0;
+}
+
+.receiptTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.receiptDocTitle {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #1a1612;
+  margin: 0 0 2px;
+}
+
+.receiptDocSubtitle {
+  font-size: 0.75rem;
+  color: #716254;
+  display: block;
+}
+
+.receiptStamp {
+  border: 2px dashed #10b981;
+  border-radius: 10px;
+  padding: 4px 8px;
+  transform: rotate(-4deg);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.stampInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #10b981;
+  font-size: 0.75rem;
+}
+
+.stampText {
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.stampSub {
+  font-size: 0.58rem;
+  font-weight: 800;
+}
+
+.receiptInfoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #fdfbf7;
+  border: 1px solid #ebd9b7;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.receiptInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.receiptInfoLabel {
+  font-size: 0.7rem;
+  color: #8c7e73;
+  font-weight: 600;
+}
+
+.receiptInfoValue {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #2c241c;
+}
+
+.receiptInfoValueHighlight {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #8c4206;
+}
+
+.receiptAmountBox {
+  background: linear-gradient(135deg, #f7efe1 0%, #ebd9b7 100%);
+  border: 1.5px solid #c9a84c;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.receiptAmountLabel {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #8c4206;
+  letter-spacing: 0.5px;
+}
+
+.receiptAmountValue {
+  margin: 2px 0 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #8c4206;
+}
+
+.receiptStatusPill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #10b981;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.receiptFooterRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  border-top: 1px solid #ebd9b7;
+  padding-top: 14px;
+  margin-bottom: 20px;
+}
+
+.receiptNote {
+  font-size: 0.72rem;
+  color: #716254;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 60%;
+}
+
+.receiptSignature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.sigDate {
+  font-size: 0.68rem;
+  color: #8c7e73;
+  margin-bottom: 4px;
+}
+
+.sigImgWrap {
+  margin: 2px 0;
+}
+
+.sigTitle {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #2c241c;
+}
+
+.sigOrg {
+  font-size: 0.65rem;
+  color: #8c7e73;
+}
+
+.receiptActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.receiptPrintBtn {
+  background: #b45309;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.receiptPrintBtn:hover {
+  background: #92400e;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35);
+}
+
+.receiptCloseBtn {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.receiptCloseBtn:hover {
+  background: #d1d5db;
+}
+
+/* ── RESPONSIVE MOBILE UNTUK FITUR BARU ── */
+@media (max-width: 640px) {
+  .communityKasGrid {
+    grid-template-columns: 1fr;
+  }
+  .trackerMonthGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .receiptInfoGrid {
+    grid-template-columns: 1fr;
+  }
+  .receiptFooterRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .receiptNote {
+    max-width: 100%;
+  }
+  .receiptSignature {
+    align-self: flex-end;
+  }
+}
+
+/* ── CETAK PRINT STYLES UNTUK KWITANSI ── */
+@media print {
+  :global(body) * {
+    visibility: hidden;
+  }
+  :global(#printable-receipt),
+  :global(#printable-receipt) * {
+    visibility: visible;
+  }
+  :global(#printable-receipt) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 30px;
+    border: none;
+    box-shadow: none;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .receiptActions {
+    display: none !important;
+  }
+}
+
+/* ── BANNER FESTIF ULANG TAHUN ── */
+.birthdayBannerAlert {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.22) 0%, rgba(212, 175, 55, 0.2) 100%);
+  border: 1.5px solid rgba(236, 72, 153, 0.5);
+  border-radius: 18px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.15), 0 0 20px rgba(212, 175, 55, 0.1);
+  animation: pulseGlow 2.5s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15); }
+  100% { box-shadow: 0 8px 35px rgba(236, 72, 153, 0.35); }
+}
+
+.birthdayBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.birthdayCakeIconWrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+}
+
+.birthdayBannerTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ec4899;
+}
+
+.birthdayBannerDesc {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: var(--fg);
+  line-height: 1.4;
+}
+
+.birthdayBannerBtn {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.birthdayBannerBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.6);
+}
+
+/* ── KTA DIGITAL MODAL & CARD ── */
+.ktaModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.ktaModalCard {
+  background: var(--surface);
+  border: 1.5px solid var(--border-gold, #c9a84c);
+  border-radius: 24px;
+  max-width: 620px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  position: relative;
+  animation: modalScaleIn 0.25s ease-out;
+}
+
+.ktaToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ktaToolbarTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.ktaToolbarBtn {
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  color: var(--gold);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ktaToolbarPrintBtn {
+  background: var(--gold);
+  border: none;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ktaCloseBtn {
+  background: rgba(0, 0, 0, 0.08);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+:global([data-theme="dark"]) .ktaCloseBtn {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ktaTtlEditForm {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+:global([data-theme="dark"]) .ktaTtlEditForm {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ktaTtlGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+/* ── KTA CARD THEME SWITCHER & TOOLBAR ── */
+.ktaThemeToggle {
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  padding: 2px;
+  border: 1px solid var(--border);
+}
+
+:global([data-theme="dark"]) .ktaThemeToggle {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ktaThemeOption {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--fg-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ktaThemeOptionActive {
+  background: var(--gold);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+}
+
+/* ── KTA CARD PHYSICAL CONTAINER (CR-80 PVC ID CARD) ── */
+.ktaCardContainer {
+  width: 100%;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
+  border: 2px solid #d4af37;
+  padding: 18px 22px 14px;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+/* Mode Resmi PVC Standar (Sesuai Referensi Foto KTA Fans Italy versi Cavallery) */
+.ktaCardResmi {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* Latar Belakang 3 Garis Vertikal (Gold - Putih - Passion Rose) */
+.ktaTricolorBg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ktaTricolorLeft {
+  flex: 30;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.06) 100%);
+}
+
+.ktaTricolorMid {
+  flex: 40;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.ktaTricolorRight {
+  flex: 30;
+  background: linear-gradient(225deg, rgba(244, 63, 94, 0.16) 0%, rgba(244, 63, 94, 0.05) 100%);
+}
+
+/* Mode Luxury (Dark Gold) */
+.ktaCardLuxury {
+  background: linear-gradient(135deg, #18140f 0%, #0d0b09 60%, #15110d 100%);
+  color: #ffffff;
+}
+
+/* Glossy Laminate Reflection */
+.ktaCardGlossOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.12) 32%,
+    transparent 52%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ktaWatermarkEmblem {
+  position: absolute;
+  left: 45%;
+  top: 55%;
+  transform: translate(-50%, -50%);
+  font-size: 15rem;
+  color: rgba(180, 83, 9, 0.045);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ktaCardLuxury .ktaWatermarkEmblem {
+  color: rgba(212, 175, 55, 0.045);
+}
+
+/* ── KTA HEADER ── */
+.ktaCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 3;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid rgba(212, 175, 55, 0.35);
+  margin-bottom: 12px;
+}
+
+.ktaHeaderLogoLeft {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #b45309;
+  object-fit: cover;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.ktaHeaderCenter {
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+
+.ktaMainTitle {
+  font-size: 1.08rem;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ktaCardResmi .ktaMainTitle {
+  color: #0f172a;
+}
+
+.ktaCardLuxury .ktaMainTitle {
+  color: #f7d57f;
+}
+
+.ktaSubTitle1 {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #b45309;
+  display: block;
+  margin-top: 2px;
+}
+
+.ktaCardLuxury .ktaSubTitle1 {
+  color: #e5c068;
+}
+
+.ktaSubTitle2 {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #64748b;
+  display: block;
+  margin-top: 1px;
+}
+
+.ktaCardLuxury .ktaSubTitle2 {
+  color: #94a3b8;
+}
+
+.ktaHeaderCrestRight {
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ktaGarudaBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #b45309, #d97706);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(180, 83, 9, 0.35);
+  border: 1.5px solid #fef08a;
+}
+
+.ktaGarudaBadge i {
+  font-size: 1.2rem;
+}
+
+.ktaGarudaBadge span {
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+/* ── KTA BODY ── */
+.ktaCardBody {
+  display: flex;
+  gap: 16px;
+  position: relative;
+  z-index: 3;
+}
+
+/* Kolom Kiri: Tabel Data Anggota */
+.ktaDataColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4.5px;
+  min-width: 0;
+}
+
+.ktaDataRow {
+  display: grid;
+  grid-template-columns: 110px 12px 1fr;
+  align-items: baseline;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.ktaDataLabel {
+  font-weight: 800;
+  font-size: 0.74rem;
+  letter-spacing: 0.4px;
+}
+
+.ktaCardResmi .ktaDataLabel {
+  color: #334155;
+}
+
+.ktaCardLuxury .ktaDataLabel {
+  color: #a89476;
+}
+
+.ktaDataColon {
+  font-weight: 800;
+  text-align: center;
+}
+
+.ktaCardResmi .ktaDataColon {
+  color: #64748b;
+}
+
+.ktaCardLuxury .ktaDataColon {
+  color: #d4af37;
+}
+
+.ktaDataValue {
+  font-weight: 700;
+  text-transform: uppercase;
+  word-break: break-word;
+}
+
+.ktaCardResmi .ktaDataValue {
+  color: #0f172a;
+}
+
+.ktaCardLuxury .ktaDataValue {
+  color: #f1f5f9;
+}
+
+/* Baris Nomor Kartu (Spesial: Lebih Besar & Tebal Sesuai Gambar Referensi) */
+.ktaNoKartuRow .ktaDataLabel {
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.ktaNoKartuRow .ktaDataValue {
+  font-size: 1.08rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #b45309 !important;
+}
+
+.ktaCardLuxury .ktaNoKartuRow .ktaDataValue {
+  color: #f7d57f !important;
+}
+
+.ktaStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 900;
+  color: #16a34a;
+}
+
+.ktaCardLuxury .ktaStatusBadge {
+  color: #4ade80;
+}
+
+/* Kolom Kanan: Foto, Golongan Darah & Barcode */
+.ktaPhotoBarcodeColumn {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
+.ktaPassportPhotoFrame {
+  width: 108px;
+  height: 138px;
+  border: 2px solid #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f1f5f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ktaPassportEmpty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  text-align: center;
+  gap: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ktaPassportEmpty i {
+  font-size: 2.2rem;
+  color: #94a3b8;
+}
+
+.ktaCardLuxury .ktaPassportEmpty {
+  background: #1a1713;
+  color: #a89476;
+}
+
+.ktaCardLuxury .ktaPassportEmpty i {
+  color: #d4af37;
+}
+
+.ktaCardLuxury .ktaPassportPhotoFrame {
+  border-color: #d4af37;
+  background: #111;
+}
+
+.ktaPassportImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ktaPhotoCaption {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 5px 0 3px;
+  line-height: 1.1;
+}
+
+.ktaCardResmi .ktaPhotoCaption {
+  color: #0f172a;
+}
+
+.ktaCardLuxury .ktaPhotoCaption {
+  color: #f7d57f;
+}
+
+/* Barcode Box */
+.ktaBarcodeBox {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 3px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.ktaBarcodeBars {
+  width: 100%;
+  height: 22px;
+  background: repeating-linear-gradient(
+    90deg,
+    #000000 0,
+    #000000 1.5px,
+    transparent 1.5px,
+    transparent 3px,
+    #000000 3px,
+    #000000 5px,
+    transparent 5px,
+    transparent 6.5px,
+    #000000 6.5px,
+    #000000 7.5px,
+    transparent 7.5px,
+    transparent 9px,
+    #000000 9px,
+    #000000 11.5px,
+    transparent 11.5px,
+    transparent 13px
+  );
+}
+
+.ktaBarcodeNum {
+  font-size: 0.6rem;
+  font-family: monospace;
+  font-weight: 800;
+  color: #000000;
+  letter-spacing: 1px;
+  margin-top: 1px;
+}
+
+/* Micro Security Chip / Seal */
+.ktaDigitalSecuritySeal {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(212, 175, 55, 0.35);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+}
+
+.ktaSecurityTag {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ktaCardResmi .ktaSecurityTag {
+  color: #64748b;
+}
+
+.ktaCardLuxury .ktaSecurityTag {
+  color: #a89476;
+}
+
+.ktaHoloChip {
+  width: 32px;
+  height: 22px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #d4af37, #f7e099, #aa820a);
+  border: 1px solid #785a03;
+  position: relative;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
+}
+
+.ktaCardNotice {
+  font-size: 0.73rem;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  margin: 14px 0 0;
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  .ktaCardContainer {
+    padding: 12px 10px 10px;
+  }
+  .ktaCardHeader {
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+  }
+  .ktaHeaderLogoLeft {
+    width: 38px;
+    height: 38px;
+  }
+  .ktaGarudaBadge {
+    width: 34px;
+    height: 34px;
+  }
+  .ktaMainTitle {
+    font-size: 0.8rem;
+  }
+  .ktaSubTitle1 {
+    font-size: 0.58rem;
+  }
+  .ktaSubTitle2 {
+    font-size: 0.5rem;
+  }
+  .ktaCardBody {
+    gap: 8px;
+  }
+  .ktaDataRow {
+    grid-template-columns: 84px 8px 1fr;
+    font-size: 0.66rem;
+  }
+  .ktaDataLabel {
+    font-size: 0.63rem;
+  }
+  .ktaNoKartuRow .ktaDataValue {
+    font-size: 0.85rem;
+  }
+  .ktaPhotoBarcodeColumn {
+    width: 86px;
+  }
+  .ktaPassportPhotoFrame {
+    width: 80px;
+    height: 104px;
+  }
+  .ktaBarcodeBars {
+    height: 16px;
+  }
+  .ktaPhotoCaption {
+    font-size: 0.5rem;
+  }
+}
+
+/* ── MODAL UCAPAN ULANG TAHUN ERINE ── */
+.birthdayModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.birthdayModalCard {
+  background: var(--surface);
+  border: 2px solid #ec4899;
+  border-radius: 28px;
+  max-width: 540px;
+  width: 100%;
+  padding: 28px 24px;
+  box-shadow: 0 25px 70px rgba(236, 72, 153, 0.35);
+  position: relative;
+  animation: modalScaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.birthdayFestiveHeader {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.birthdayPartyBadge {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+  margin-bottom: 10px;
+}
+
+.birthdayTitle {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: var(--fg);
+}
+
+.birthdaySubtitle {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  display: block;
+}
+
+.birthdayMediaCard {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  margin-bottom: 18px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background: #000;
+}
+
+.birthdayMediaImgWrap {
+  position: relative;
+  width: 100%;
+  max-height: 280px;
+  overflow: hidden;
+}
+
+.birthdayMediaImg {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.birthdayPhotoOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+}
+
+.birthdayErineBadge {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  color: #f7d57f;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.birthdayPlayBtn {
+  align-self: center;
+  background: linear-gradient(135deg, #d4af37, #b45309);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.birthdayPlayBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(212, 175, 55, 0.7);
+}
+
+.birthdayLetterBox {
+  background: rgba(236, 72, 153, 0.06);
+  border: 1px dashed rgba(236, 72, 153, 0.4);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.birthdayLetterHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ec4899;
+  margin-bottom: 8px;
+}
+
+.birthdayLetterText {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--fg);
+  margin: 0 0 12px;
+}
+
+.birthdayLetterSignature {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border-top: 1px solid rgba(236, 72, 153, 0.2);
+  padding-top: 8px;
+}
+
+.erineSigName {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.erineSigTeam {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+}
+
+.birthdayActionsRow {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.birthdayMusicBtn {
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  color: var(--gold);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.birthdayCloseBtn {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  transition: all 0.2s ease;
+}
+
+.birthdayCloseBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.6);
+}
+
+/* ── CETAK PRINT KTA ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  :global(#printable-kta),
+  :global(#printable-kta) * {
+    visibility: visible;
+  }
+  :global(#printable-kta) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 580px !important;
+    max-width: 580px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .ktaToolbar,
+  .ktaTtlEditForm,
+  .ktaCardNotice {
+    display: none !important;
+  }
+}
+

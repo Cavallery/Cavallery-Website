@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserSessionFromReq } from "@/lib/auth";
 import { query } from "@/lib/mysql";
-import { ensurePinColumn } from "@/lib/membership";
+import { ensurePinColumn, ensureKtaColumns } from "@/lib/membership";
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
 
     if (session.type === "anggota") {
       await ensurePinColumn();
+      await ensureKtaColumns();
       const rows = await query<any[]>(
         "SELECT * FROM anggota WHERE id = ? LIMIT 1",
         [session.id]
@@ -62,6 +63,10 @@ export async function GET(req: NextRequest) {
           pin: anggota.pin || "",
           discord: anggota.discord,
           gender: anggota.gender,
+          golonganDarah: anggota.golongan_darah || "-",
+          tempatLahir: anggota.tempat_lahir || "",
+          tanggalLahir: anggota.tanggal_lahir || "",
+          oshi: "Catherina Vallencia Kurniawan",
           domisili: anggota.domisili,
           kontakPlatform: anggota.kontak_platform,
           kontakId: anggota.kontak_id,

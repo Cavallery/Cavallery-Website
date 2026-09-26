@@ -270,6 +270,27 @@
     font-size: 0.55rem;
     padding: 2px 4px;
   }
+  .calendarHeader {
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+  .monthTitle {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  .monthNav {
+    width: 100%;
+    justify-content: center;
+  }
+  .navBtn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  .calendarCard {
+    padding: 16px;
+  }
 }
 
 

@@ -281,8 +281,8 @@
     gap: 24px;
   }
   .bottom {
-    flex-direction: column;
-    align-items: center;
+    grid-template-columns: 1fr;
+    justify-items: center;
     text-align: center;
     gap: 12px;
   }
@@ -310,9 +310,9 @@
 
 
 @media (max-width: 768px) {
-  .footer { padding: 40px 16px 20px; }
-  .grid { grid-template-columns: 1fr; gap: 32px; }
-  .brandSection { text-align: center; align-items: center; }
-  .linksSection { text-align: center; }
-  .bottomBar { flex-direction: column; text-align: center; gap: 12px; }
+  .footer { padding: 40px 16px 24px; }
+  .top { gap: 28px; }
+  .container { padding: 0 16px; }
+  .bottom { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .copy { white-space: normal; }
 }
