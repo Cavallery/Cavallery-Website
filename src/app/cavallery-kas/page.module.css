@@ -2717,24 +2717,9 @@
 
 /* ── CETAK PRINT STYLES UNTUK KWITANSI ── */
 @media print {
-  :global(body) * {
-    visibility: hidden;
-  }
-  :global(#printable-receipt),
-  :global(#printable-receipt) * {
-    visibility: visible;
-  }
-  :global(#printable-receipt) {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    padding: 30px;
-    border: none;
-    box-shadow: none;
-    background: #fff !important;
-    color: #000 !important;
+  .receiptModalOverlay {
+    background: transparent !important;
+    padding: 0 !important;
   }
   .receiptActions {
     display: none !important;
@@ -3685,27 +3670,9 @@
 
 /* ── CETAK PRINT KTA ── */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  :global(#printable-kta),
-  :global(#printable-kta) * {
-    visibility: visible;
-  }
-  :global(#printable-kta) {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 580px !important;
-    max-width: 580px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
+  .ktaModalOverlay {
     background: transparent !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    padding: 0 !important;
   }
   .ktaToolbar,
   .ktaTtlEditForm,

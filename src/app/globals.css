@@ -497,3 +497,48 @@ select option {
   background-color: #1e1e1e !important;
   color: #f0f0f0 !important;
 }
+
+/* ── GLOBAL PRINT STYLES (E-Kwitansi & KTA Digital) ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: fixed;
+    inset: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printable-kta,
+  #printable-kta * {
+    visibility: visible;
+  }
+  #printable-kta {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 580px !important;
+    max-width: 580px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
