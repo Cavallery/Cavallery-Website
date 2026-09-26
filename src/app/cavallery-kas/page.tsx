@@ -259,6 +259,36 @@ export default function CavalleryKasPage() {
   );
   const [loadingKasHistory, setLoadingKasHistory] = useState(false);
 
+  // E-Kwitansi Digital State
+  const [selectedReceipt, setSelectedReceipt] = useState<any | null>(null);
+
+  // Widget Transparansi Kas Komunitas
+  const [communityKasStats, setCommunityKasStats] = useState<{
+    totalPemasukan: number;
+    totalPengeluaran: number;
+    saldoBersih: number;
+    loading: boolean;
+  }>({
+    totalPemasukan: 0,
+    totalPengeluaran: 0,
+    saldoBersih: 0,
+    loading: true,
+  });
+
+  // KTA Digital & Birthday Greeting State
+  const [showKtaModal, setShowKtaModal] = useState(false);
+  const [ktaCardTheme, setKtaCardTheme] = useState<"resmi" | "luxury">("resmi");
+  const [showBirthdayModal, setShowBirthdayModal] = useState(false);
+  const [birthdayAutoOpened, setBirthdayAutoOpened] = useState(false);
+  const [editingTtl, setEditingTtl] = useState(false);
+  const [inputTempatLahir, setInputTempatLahir] = useState("");
+  const [inputTanggalLahir, setInputTanggalLahir] = useState("");
+  const [inputGender, setInputGender] = useState("LAKI-LAKI");
+  const [inputDomisili, setInputDomisili] = useState("");
+  const [savingTtl, setSavingTtl] = useState(false);
+  const [ttlSuccessMsg, setTtlSuccessMsg] = useState("");
+  const [isPlayingBirthdayVideo, setIsPlayingBirthdayVideo] = useState(false);
+
   // Donasi State
   const [tipeDonasi, setTipeDonasi] = useState(DONATION_TYPES[0]);
   const [nominalDonasi, setNominalDonasi] = useState("50.000");
@@ -339,6 +369,134 @@ export default function CavalleryKasPage() {
       alert(err.message || "Terjadi kesalahan saat mengganti foto profil");
     } finally {
       setUploadingUserAvatar(false);
+    }
+  };
+
+  // Helper: Format Tanggal Indonesia
+  const formatIndoDate = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Helper: Cek apakah hari ini ulang tahun anggota (Hanya jika pengguna sudah mengisi tanggal lahir)
+  const checkIsBirthdayToday = (tanggalLahirStr?: string): boolean => {
+    if (!tanggalLahirStr || typeof tanggalLahirStr !== "string") return false;
+    const trimmed = tanggalLahirStr.trim();
+    if (!trimmed) return false;
+    try {
+      const today = new Date();
+      // Format dari <input type="date"> adalah YYYY-MM-DD
+      const parts = trimmed.split(/[-/.]/);
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          // YYYY-MM-DD
+          const month = parseInt(parts[1], 10) - 1; // 0-indexed month
+          const day = parseInt(parts[2], 10);
+          return today.getDate() === day && today.getMonth() === month;
+        } else {
+          // DD-MM-YYYY
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          return today.getDate() === day && today.getMonth() === month;
+        }
+      }
+      const d = new Date(trimmed);
+      if (!isNaN(d.getTime())) {
+        return today.getDate() === d.getDate() && today.getMonth() === d.getMonth();
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  // Simpan Biodata KTA (Tempat Lahir, Tanggal Lahir, Gender, Domisili)
+  const handleSaveTtl = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputTempatLahir.trim() || !inputTanggalLahir.trim()) return;
+    setSavingTtl(true);
+    setTtlSuccessMsg("");
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tempatLahir: inputTempatLahir.trim(),
+          tanggalLahir: inputTanggalLahir.trim(),
+          gender: inputGender.trim(),
+          domisili: inputDomisili.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setSessionUser((prev: any) => ({
+          ...prev,
+          tempatLahir: inputTempatLahir.trim(),
+          tanggalLahir: inputTanggalLahir.trim(),
+          gender: inputGender.trim(),
+          domisili: inputDomisili.trim(),
+        }));
+        setEditingTtl(false);
+        setTtlSuccessMsg("Biodata KTA berhasil diperbarui!");
+        setTimeout(() => setTtlSuccessMsg(""), 4000);
+      } else {
+        alert(json.message || "Gagal menyimpan data");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan saat menyimpan data");
+    } finally {
+      setSavingTtl(false);
+    }
+  };
+
+  // Melody Lagu Ulang Tahun (Web Audio API - Ceria & Lembut)
+  const playBirthdayMelody = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      setIsPlayingBirthdayVideo(true);
+
+      const notes = [
+        { f: 261.63, d: 0.35 }, { f: 261.63, d: 0.35 }, { f: 293.66, d: 0.7 }, { f: 261.63, d: 0.7 }, { f: 349.23, d: 0.7 }, { f: 329.63, d: 1.2 },
+        { f: 261.63, d: 0.35 }, { f: 261.63, d: 0.35 }, { f: 293.66, d: 0.7 }, { f: 261.63, d: 0.7 }, { f: 392.00, d: 0.7 }, { f: 349.23, d: 1.2 },
+        { f: 261.63, d: 0.35 }, { f: 261.63, d: 0.35 }, { f: 523.25, d: 0.7 }, { f: 440.00, d: 0.7 }, { f: 349.23, d: 0.7 }, { f: 329.63, d: 0.7 }, { f: 293.66, d: 0.9 },
+        { f: 466.16, d: 0.35 }, { f: 466.16, d: 0.35 }, { f: 440.00, d: 0.7 }, { f: 349.23, d: 0.7 }, { f: 392.00, d: 0.7 }, { f: 349.23, d: 1.4 },
+      ];
+
+      let t = ctx.currentTime + 0.1;
+      notes.forEach((note) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(note.f, t);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + note.d - 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + note.d);
+        t += note.d;
+      });
+
+      setTimeout(() => {
+        setIsPlayingBirthdayVideo(false);
+      }, (t - ctx.currentTime) * 1000);
+    } catch (e) {
+      console.error(e);
+      setIsPlayingBirthdayVideo(false);
     }
   };
 
@@ -954,10 +1112,46 @@ export default function CavalleryKasPage() {
   }, [portalTab, sessionUser, fetchWarEvent]);
 
   useEffect(() => {
-    if (sessionUser && portalTab === "riwayat") {
+    if (sessionUser) {
       loadKasHistory();
     }
   }, [portalTab, sessionUser]);
+
+  useEffect(() => {
+    if (sessionUser) {
+      fetch(`/api/internal/kas-matrix?tahun=${new Date().getFullYear()}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json && json.status) {
+            setCommunityKasStats({
+              totalPemasukan: json.allTimePemasukan ?? json.grandTotalPemasukan ?? 0,
+              totalPengeluaran: json.allTimePengeluaran ?? json.totalPengeluaran ?? 0,
+              saldoBersih: json.allTimeSaldo ?? json.saldoKasBersih ?? 0,
+              loading: false,
+            });
+          } else {
+            setCommunityKasStats((prev) => ({ ...prev, loading: false }));
+          }
+        })
+        .catch(() => setCommunityKasStats((prev) => ({ ...prev, loading: false })));
+    }
+  }, [sessionUser]);
+
+  useEffect(() => {
+    if (sessionUser?.tempatLahir) setInputTempatLahir(sessionUser.tempatLahir);
+    if (sessionUser?.tanggalLahir) setInputTanggalLahir(sessionUser.tanggalLahir);
+    if (sessionUser?.gender) setInputGender(sessionUser.gender);
+    if (sessionUser?.domisili) setInputDomisili(sessionUser.domisili);
+  }, [sessionUser]);
+
+  useEffect(() => {
+    if (sessionUser?.tanggalLahir && sessionUser.tanggalLahir.trim() && !birthdayAutoOpened) {
+      if (checkIsBirthdayToday(sessionUser.tanggalLahir)) {
+        setShowBirthdayModal(true);
+        setBirthdayAutoOpened(true);
+      }
+    }
+  }, [sessionUser, birthdayAutoOpened]);
 
   useEffect(() => {
     if (sessionUser && portalTab === "donasi") {
@@ -2088,6 +2282,32 @@ export default function CavalleryKasPage() {
           </div>
         )}
 
+        {/* ── BANNER FESTIF ULANG TAHUN ANGGOTA (Hanya jika pengguna sudah mengisi tanggal lahir & hari ini ulang tahunnya) ── */}
+        {sessionUser?.tanggalLahir && sessionUser.tanggalLahir.trim() && checkIsBirthdayToday(sessionUser.tanggalLahir) && (
+          <div className={styles.birthdayBannerAlert}>
+            <div className={styles.birthdayBannerLeft}>
+              <div className={styles.birthdayCakeIconWrap}>
+                <i className="bx bxs-cake" />
+              </div>
+              <div>
+                <h3 className={styles.birthdayBannerTitle}>
+                  🎉 Selamat Ulang Tahun, {displayName}! 🎂✨
+                </h3>
+                <p className={styles.birthdayBannerDesc}>
+                  Hari ini adalah hari istimewamu! Ada kado video ucapan hangat dan pesan cinta dari Erine JKT48 menunggumu.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className={styles.birthdayBannerBtn}
+              onClick={() => setShowBirthdayModal(true)}
+            >
+              <i className="bx bx-gift" /> Buka Kado dari Erine
+            </button>
+          </div>
+        )}
+
         {/* ── TOP MEMBER LUXURY CARD (Style Referensi Gambar 2) ── */}
         <div className={styles.memberCard}>
           <div className={styles.memberCardHeader}>
@@ -2114,8 +2334,8 @@ export default function CavalleryKasPage() {
             <div className={styles.memberAvatarWrapper}>
               <div
                 className={styles.memberAvatarCircle}
-                onClick={() => setShowVerifyModal(true)}
-                title="Klik untuk melihat Kartu Verifikasi Anggota"
+                onClick={() => setShowKtaModal(true)}
+                title="Klik untuk melihat Kartu Tanda Anggota (KTA)"
               >
                 {sessionUser.fotoProfil || sessionUser.foto_profil ? (
                   <img
@@ -2162,14 +2382,51 @@ export default function CavalleryKasPage() {
               </p>
               <div
                 className={styles.memberCodeRow}
-                onClick={() => setShowVerifyModal(true)}
-                title="Klik untuk Verifikasi Kartu Anggota"
+                onClick={() => setShowKtaModal(true)}
+                title="Klik untuk membuka Kartu Tanda Anggota (KTA)"
               >
                 <span className={styles.memberCodeText}>
                   {sessionUser.noAnggota || "CAVA-0001"}
                 </span>
                 <i className={`bx bx-qr-scan ${styles.memberCodeQr}`} />
               </div>
+
+              {sessionUser.type === "anggota" && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  <i className="bx bx-cake" style={{ color: "var(--gold)" }} />
+                  <span>
+                    TTL:{" "}
+                    <strong style={{ color: "var(--fg)" }}>
+                      {sessionUser.tempatLahir && sessionUser.tanggalLahir
+                        ? `${sessionUser.tempatLahir}, ${formatIndoDate(sessionUser.tanggalLahir)}`
+                        : sessionUser.tanggalLahir
+                          ? formatIndoDate(sessionUser.tanggalLahir)
+                          : "Belum Diisi"}
+                    </strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingTtl(true);
+                      setShowKtaModal(true);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--gold)",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      padding: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                    title="Ubah / Lengkapi Tempat & Tanggal Lahir KTA"
+                  >
+                    <i className="bx bx-edit-alt" />
+                  </button>
+                </div>
+              )}
+
               <span className={styles.memberSinceText}>
                 Anggota Sejak: {formattedJoinDate}
               </span>
@@ -2199,7 +2456,52 @@ export default function CavalleryKasPage() {
               })()}
 
               {sessionUser.type === "anggota" && (
-                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowKtaModal(true)}
+                    style={{
+                      background: "linear-gradient(135deg, rgba(201, 168, 76, 0.2), rgba(201, 168, 76, 0.08))",
+                      border: "1px solid rgba(201, 168, 76, 0.5)",
+                      color: "var(--gold)",
+                      borderRadius: 20,
+                      padding: "4px 12px",
+                      fontSize: "0.75rem",
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      boxShadow: "0 2px 8px rgba(201, 168, 76, 0.15)",
+                    }}
+                  >
+                    <i className="bx bx-id-card" /> KTA Digital
+                  </button>
+
+                  {sessionUser.tanggalLahir && sessionUser.tanggalLahir.trim() && checkIsBirthdayToday(sessionUser.tanggalLahir) && (
+                    <button
+                      type="button"
+                      onClick={() => setShowBirthdayModal(true)}
+                      style={{
+                        background: "linear-gradient(135deg, #ec4899, #db2777)",
+                        border: "none",
+                        color: "#ffffff",
+                        borderRadius: 20,
+                        padding: "4px 12px",
+                        fontSize: "0.75rem",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        boxShadow: "0 4px 12px rgba(236, 72, 153, 0.35)",
+                      }}
+                      title="Buka Ucapan Ulang Tahun Spesial dari Erine JKT48"
+                    >
+                      <i className="bx bxs-cake" /> Ucapan Ultah Erine 🎉
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -2354,6 +2656,190 @@ export default function CavalleryKasPage() {
             <i className="bx bx-log-out" /> Keluar Akun
           </button>
         </div>
+
+        {/* ── 1. WIDGET QUICK SUMMARY KAS KOMUNITAS (TRANSPARANSI KAS) ── */}
+        {(portalTab === "bayar" || portalTab === "riwayat") && (
+          <div className={styles.communityKasSummaryCard}>
+            <div className={styles.communityKasHeader}>
+              <div className={styles.communityKasTitle}>
+                <i className="bx bx-pie-chart-alt-2" style={{ color: "var(--gold)", fontSize: "1.25rem" }} />
+                <span>Transparansi Kas Komunitas Cavallery</span>
+              </div>
+              <a
+                href="/internal/iuran-kas-xv7r2q"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.communityKasLink}
+                title="Buka pembukuan kas & nota pengeluaran publik"
+              >
+                <span>Buku Kas & Nota Publik</span>
+                <i className="bx bx-link-external" />
+              </a>
+            </div>
+
+            <div className={styles.communityKasGrid}>
+              <div className={styles.communityStatItem}>
+                <div className={styles.statIconWrapGreen}>
+                  <i className="bx bx-arrow-to-bottom" />
+                </div>
+                <div className={styles.statContent}>
+                  <span className={styles.statLabel}>Total Kas Terkumpul</span>
+                  <span className={styles.statValueGreen}>
+                    {communityKasStats.loading ? "Memuat..." : formatRupiah(communityKasStats.totalPemasukan)}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.communityStatItem}>
+                <div className={styles.statIconWrapRed}>
+                  <i className="bx bx-arrow-from-bottom" />
+                </div>
+                <div className={styles.statContent}>
+                  <span className={styles.statLabel}>Total Pengeluaran Project</span>
+                  <span className={styles.statValueRed}>
+                    {communityKasStats.loading ? "Memuat..." : formatRupiah(communityKasStats.totalPengeluaran)}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.communityStatItem}>
+                <div className={styles.statIconWrapGold}>
+                  <i className="bx bx-shield-quarter" />
+                </div>
+                <div className={styles.statContent}>
+                  <span className={styles.statLabel}>Saldo Kas Aktif</span>
+                  <span className={styles.statValueGold}>
+                    {communityKasStats.loading ? "Memuat..." : formatRupiah(communityKasStats.saldoBersih)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── 2. KARTU STATUS KEANGGOTAAN & PROGRESS BAR 12 BULAN ── */}
+        {(portalTab === "bayar" || portalTab === "riwayat") && sessionUser?.type === "anggota" && (() => {
+          const currentYearNow = new Date().getFullYear();
+          const currentMonthNow = new Date().getMonth() + 1;
+          const paidThisYear = monthlyStatus.filter(
+            (s) => Number(s.tahun) === trackerYear && s.status === "diverifikasi"
+          );
+          const totalPaidCount = paidThisYear.length;
+          const percent = Math.min(100, Math.round((totalPaidCount / 12) * 100));
+
+          let statusBadgeText = `Tunggakan ${Math.max(0, currentMonthNow - totalPaidCount)} Bulan`;
+          let statusBadgeClass = styles.trackerStatusWarning;
+
+          if (totalPaidCount >= 12) {
+            statusBadgeText = "Lunas 1 Tahun Penuh! 👑";
+            statusBadgeClass = styles.trackerStatusSuccess;
+          } else if (trackerYear === currentYearNow && totalPaidCount >= currentMonthNow) {
+            statusBadgeText = "Lunas s/d Bulan Ini 🛡️";
+            statusBadgeClass = styles.trackerStatusSuccess;
+          } else if (trackerYear > currentYearNow) {
+            statusBadgeText = `${totalPaidCount} Bulan Terbayar di Muka`;
+            statusBadgeClass = styles.trackerStatusInfo;
+          }
+
+          return (
+            <div className={styles.memberKasTrackerCard}>
+              <div className={styles.trackerHeader}>
+                <div className={styles.trackerHeaderLeft}>
+                  <div className={styles.trackerTitle}>
+                    <i className="bx bx-calendar-star" style={{ color: "var(--gold)" }} />
+                    <span>Progress Kas Anggota {trackerYear}</span>
+                  </div>
+                  <span className={`${styles.trackerBadge} ${statusBadgeClass}`}>
+                    {statusBadgeText}
+                  </span>
+                </div>
+
+                <div className={styles.trackerYearPills}>
+                  {[2024, 2025, 2026, 2027].map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => setTrackerYear(yr)}
+                      className={`${styles.trackerYearBtn} ${trackerYear === yr ? styles.trackerYearBtnActive : ""}`}
+                    >
+                      {yr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress Bar Container */}
+              <div className={styles.trackerProgressBarContainer}>
+                <div className={styles.trackerProgressBarHeader}>
+                  <span style={{ fontSize: "0.82rem", color: "var(--fg-muted)" }}>
+                    Keterpenuhan Iuran Kas: <strong style={{ color: "var(--gold)" }}>{totalPaidCount}</strong> dari 12 Bulan
+                  </span>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--gold)" }}>
+                    {percent}%
+                  </span>
+                </div>
+                <div className={styles.trackerProgressBarTrack}>
+                  <div
+                    className={styles.trackerProgressBarFill}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* 12 Bulan Grid */}
+              <div className={styles.trackerMonthGrid}>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                  const isPaid = monthlyStatus.some(
+                    (s) =>
+                      Number(s.tahun) === trackerYear &&
+                      Number(s.bulan) === m &&
+                      s.status === "diverifikasi"
+                  );
+                  const isPending = monthlyStatus.some(
+                    (s) =>
+                      Number(s.tahun) === trackerYear &&
+                      Number(s.bulan) === m &&
+                      s.status === "pending"
+                  );
+                  const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+                  const mName = monthNamesShort[m - 1];
+
+                  return (
+                    <div
+                      key={m}
+                      className={`${styles.trackerMonthItem} ${isPaid ? styles.trackerMonthItemPaid : isPending ? styles.trackerMonthItemPending : styles.trackerMonthItemUnpaid}`}
+                      onClick={() => {
+                        if (!isPaid) {
+                          setPeriodeBulan(m);
+                          setPeriodeTahun(trackerYear);
+                          setPortalTab("bayar");
+                          const el = document.getElementById("form-kas-input");
+                          if (el) el.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
+                      title={isPaid ? `${mName} ${trackerYear}: LUNAS` : isPending ? `${mName} ${trackerYear}: Menunggu Verifikasi` : `Klik untuk membayar kas ${mName} ${trackerYear}`}
+                      style={{ cursor: isPaid ? "default" : "pointer" }}
+                    >
+                      <span className={styles.trackerMonthName}>{mName}</span>
+                      <div className={styles.trackerMonthIcon}>
+                        {isPaid ? (
+                          <i className="bx bxs-check-circle" />
+                        ) : isPending ? (
+                          <i className="bx bx-time" />
+                        ) : (
+                          <i className="bx bx-circle" />
+                        )}
+                      </div>
+                      <span className={styles.trackerMonthStatus}>
+                        {isPaid ? "Lunas" : isPending ? "Pending" : "Bayar"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── SUB-TABS ROW FOR KAS / RIWAYAT ── */}
         {(portalTab === "bayar" || portalTab === "riwayat") && (
@@ -2540,7 +3026,7 @@ export default function CavalleryKasPage() {
             </div>
           ) : (
             /* FORM PEMBAYARAN KAS ANGGOTA REGULER */
-            <div className={`glassCard ${styles.dashCard}`}>
+            <div id="form-kas-input" className={`glassCard ${styles.dashCard}`}>
               <div className={styles.header}>
                 <div className="badge">
                   <i className="bx bx-wallet" /> Kas Keanggotaan
@@ -3843,16 +4329,28 @@ export default function CavalleryKasPage() {
                             }}
                           >
                             <span className={badgeClass}>{badgeText}</span>
-                            {proofUrl && (
-                              <a
-                                href={proofUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.viewProofBtn}
-                              >
-                                <i className="bx bx-image" /> Lihat Bukti
-                              </a>
-                            )}
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                              {item.status === "diverifikasi" && (
+                                <button
+                                  type="button"
+                                  className={styles.receiptBtn}
+                                  onClick={() => setSelectedReceipt(item)}
+                                  title="Buka & Cetak E-Kwitansi Resmi"
+                                >
+                                  <i className="bx bx-receipt" /> E-Kwitansi
+                                </button>
+                              )}
+                              {proofUrl && (
+                                <a
+                                  href={proofUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.viewProofBtn}
+                                >
+                                  <i className="bx bx-image" /> Lihat Bukti
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -5266,6 +5764,555 @@ export default function CavalleryKasPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── 3. MODAL E-KWITANSI DIGITAL RESMI CAVALLERY ── */}
+      {selectedReceipt && (
+        <div
+          className={styles.receiptModalOverlay}
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div
+            className={styles.receiptModalCard}
+            onClick={(e) => e.stopPropagation()}
+            id="printable-receipt"
+          >
+            {/* Header Kwitansi */}
+            <div className={styles.receiptHeader}>
+              <div className={styles.receiptLogoWrap}>
+                <img
+                  src="/images/cava-logo.jpg"
+                  alt="Cavallery Logo"
+                  className={styles.receiptLogoImg}
+                />
+                <div>
+                  <h3 className={styles.receiptBrandTitle}>CAVALLERY</h3>
+                  <span className={styles.receiptBrandSub}>
+                    Official Fanbase Catherina Vallencia (Erine JKT48)
+                  </span>
+                </div>
+              </div>
+              <div className={styles.receiptInvoiceBadge}>
+                <span className={styles.receiptInvoiceLabel}>NO. KWITANSI</span>
+                <span className={styles.receiptInvoiceNumber}>
+                  KW-CAVA-{String(selectedReceipt.id || 0).padStart(5, "0")}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.receiptDivider} />
+
+            {/* Title & Stempel Resmi */}
+            <div className={styles.receiptTitleRow}>
+              <div>
+                <h2 className={styles.receiptDocTitle}>
+                  KWITANSI PEMBAYARAN IURAN KAS
+                </h2>
+                <span className={styles.receiptDocSubtitle}>
+                  Tanda bukti pembayaran iuran anggota resmi fanbase Cavallery
+                </span>
+              </div>
+              <div className={styles.receiptStamp}>
+                <div className={styles.stampInner}>
+                  <i className="bx bxs-check-shield" />
+                  <span className={styles.stampText}>LUNAS</span>
+                  <span className={styles.stampSub}>BENDAHARA CAVALLERY</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rincian Pembayaran */}
+            <div className={styles.receiptInfoGrid}>
+              <div className={styles.receiptInfoItem}>
+                <span className={styles.receiptInfoLabel}>Nama Anggota</span>
+                <span className={styles.receiptInfoValue}>
+                  {sessionUser?.namaLengkap || displayName}
+                </span>
+              </div>
+              <div className={styles.receiptInfoItem}>
+                <span className={styles.receiptInfoLabel}>No. Anggota (ID)</span>
+                <span className={styles.receiptInfoValue}>
+                  {sessionUser?.noAnggota || "-"}
+                </span>
+              </div>
+              <div className={styles.receiptInfoItem}>
+                <span className={styles.receiptInfoLabel}>Periode Kas</span>
+                <span className={styles.receiptInfoValueHighlight}>
+                  {selectedReceipt.periode}
+                </span>
+              </div>
+              <div className={styles.receiptInfoItem}>
+                <span className={styles.receiptInfoLabel}>Tanggal Pembayaran</span>
+                <span className={styles.receiptInfoValue}>
+                  {(() => {
+                    const rawDate = selectedReceipt.created_at || selectedReceipt.createdAt;
+                    if (!rawDate) return "-";
+                    const d = new Date(rawDate);
+                    return isNaN(d.getTime())
+                      ? "-"
+                      : d.toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        });
+                  })()}
+                </span>
+              </div>
+            </div>
+
+            {/* Kotak Nominal Besar */}
+            <div className={styles.receiptAmountBox}>
+              <div>
+                <span className={styles.receiptAmountLabel}>JUMLAH DIBAYARKAN</span>
+                <h1 className={styles.receiptAmountValue}>
+                  {formatRupiah(selectedReceipt.nominal)}
+                </h1>
+              </div>
+              <div className={styles.receiptStatusPill}>
+                <i className="bx bx-check-double" />
+                <span>Terverifikasi Sah</span>
+              </div>
+            </div>
+
+            {/* Note & Footer */}
+            <div className={styles.receiptFooterRow}>
+              <p className={styles.receiptNote}>
+                * Kwitansi digital ini merupakan dokumen tanda terima sah yang diterbitkan oleh Sistem Informasi Kas Fanbase Cavallery. Terima kasih atas dukungan dan loyalitasmu untuk Erine & Cavallery!
+              </p>
+              <div className={styles.receiptSignature}>
+                <span className={styles.sigDate}>
+                  Jakarta, {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </span>
+                <div className={styles.sigImgWrap}>
+                  <i className="bx bx-badge-check" style={{ color: "var(--gold)", fontSize: "2rem" }} />
+                </div>
+                <span className={styles.sigTitle}>Divisi Bendahara & Keuangan</span>
+                <span className={styles.sigOrg}>Cavallery Official</span>
+              </div>
+            </div>
+
+            {/* Action Buttons (Hidden when printing) */}
+            <div className={styles.receiptActions}>
+              <button
+                type="button"
+                className={styles.receiptPrintBtn}
+                onClick={() => window.print()}
+              >
+                <i className="bx bx-printer" /> Cetak / Simpan PDF
+              </button>
+              <button
+                type="button"
+                className={styles.receiptCloseBtn}
+                onClick={() => setSelectedReceipt(null)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. MODAL KARTU TANDA ANGGOTA (KTA) RESMI CAVALLERY ── */}
+      {showKtaModal && (
+        <div
+          className={styles.ktaModalOverlay}
+          onClick={() => {
+            setShowKtaModal(false);
+            setEditingTtl(false);
+          }}
+        >
+          <div
+            className={styles.ktaModalCard}
+            onClick={(e) => e.stopPropagation()}
+            id="printable-kta"
+          >
+            {/* Top Toolbar (Non-printable) */}
+            <div className={styles.ktaToolbar}>
+              <div className={styles.ktaToolbarTitle}>
+                <i className="bx bx-id-card" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
+                <span>KTA Digital Cavallery</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                {/* Theme Toggle */}
+                <div className={styles.ktaThemeToggle}>
+                  <button
+                    type="button"
+                    className={`${styles.ktaThemeOption} ${ktaCardTheme === "resmi" ? styles.ktaThemeOptionActive : ""}`}
+                    onClick={() => setKtaCardTheme("resmi")}
+                  >
+                    Resmi
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.ktaThemeOption} ${ktaCardTheme === "luxury" ? styles.ktaThemeOptionActive : ""}`}
+                    onClick={() => setKtaCardTheme("luxury")}
+                  >
+                    Luxury
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className={styles.ktaToolbarBtn}
+                  onClick={() => setEditingTtl((v) => !v)}
+                  title="Lengkapi Biodata KTA"
+                >
+                  <i className="bx bx-edit" /> {editingTtl ? "Tutup Form" : "Edit Biodata"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.ktaToolbarPrintBtn}
+                  onClick={() => window.print()}
+                  title="Cetak atau Simpan KTA sebagai PDF"
+                >
+                  <i className="bx bx-printer" /> Cetak / PDF
+                </button>
+                <button
+                  type="button"
+                  className={styles.ktaCloseBtn}
+                  onClick={() => {
+                    setShowKtaModal(false);
+                    setEditingTtl(false);
+                  }}
+                >
+                  <i className="bx bx-x" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form Edit Biodata KTA */}
+            {editingTtl && (
+              <form onSubmit={handleSaveTtl} className={styles.ktaTtlEditForm}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--gold)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="bx bx-user-circle" /> Lengkapi Biodata Kartu Anggota
+                </div>
+                <div className={styles.ktaTtlGrid}>
+                  <div>
+                    <label style={{ fontSize: "0.72rem", color: "var(--fg-muted)", display: "block", marginBottom: 4, fontWeight: 700 }}>
+                      Tempat Lahir (Kota)
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="Contoh: Jakarta"
+                      value={inputTempatLahir}
+                      onChange={(e) => setInputTempatLahir(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.72rem", color: "var(--fg-muted)", display: "block", marginBottom: 4, fontWeight: 700 }}>
+                      Tanggal Lahir
+                    </label>
+                    <input
+                      type="date"
+                      className={styles.input}
+                      value={inputTanggalLahir}
+                      onChange={(e) => setInputTanggalLahir(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.72rem", color: "var(--fg-muted)", display: "block", marginBottom: 4, fontWeight: 700 }}>
+                      Jenis Kelamin
+                    </label>
+                    <select
+                      className={styles.input}
+                      value={inputGender}
+                      onChange={(e) => setInputGender(e.target.value)}
+                    >
+                      <option value="LAKI-LAKI">Laki-laki</option>
+                      <option value="PEREMPUAN">Perempuan</option>
+                    </select>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <label style={{ fontSize: "0.72rem", color: "var(--fg-muted)", display: "block", marginBottom: 4, fontWeight: 700 }}>
+                      Domisili / Alamat
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="Contoh: Bandung, Jawa Barat"
+                      value={inputDomisili}
+                      onChange={(e) => setInputDomisili(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditingTtl(false)}
+                    className={styles.secondaryBtn}
+                    style={{ padding: "6px 12px", fontSize: "0.8rem" }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingTtl}
+                    className={styles.submitBtn}
+                    style={{ padding: "6px 14px", fontSize: "0.8rem", width: "auto" }}
+                  >
+                    {savingTtl ? <i className="bx bx-loader-alt bx-spin" /> : <i className="bx bx-save" />} Simpan Biodata
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {ttlSuccessMsg && (
+              <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(16, 185, 129, 0.15)", color: "#10b981", fontSize: "0.82rem", fontWeight: 700, margin: "10px 0" }}>
+                <i className="bx bx-check-circle" /> {ttlSuccessMsg}
+              </div>
+            )}
+
+            {/* ── DESAIN KTA PVC ID CARD (Sesuai Referensi KTA Fans Italy) ── */}
+            <div className={`${styles.ktaCardContainer} ${ktaCardTheme === "luxury" ? styles.ktaCardLuxury : styles.ktaCardResmi}`}>
+              {/* Latar Belakang Warna Tricolor (hanya mode resmi) */}
+              {ktaCardTheme === "resmi" && (
+                <div className={styles.ktaTricolorBg}>
+                  <div className={styles.ktaTricolorLeft} />
+                  <div className={styles.ktaTricolorMid} />
+                  <div className={styles.ktaTricolorRight} />
+                </div>
+              )}
+
+              {/* Watermark Emblem */}
+              <div className={styles.ktaWatermarkEmblem}>
+                <i className="fa-solid fa-chess-knight" />
+              </div>
+
+              {/* Glossy Laminate Overlay */}
+              <div className={styles.ktaCardGlossOverlay} />
+
+              {/* ── KTA HEADER (Logo Kiri - Judul Tengah - Badge Kanan) ── */}
+              <div className={styles.ktaCardHeader}>
+                <img
+                  src="/images/cava-logo.jpg"
+                  alt="Cavallery"
+                  className={styles.ktaHeaderLogoLeft}
+                />
+                <div className={styles.ktaHeaderCenter}>
+                  <h2 className={styles.ktaMainTitle}>KARTU TANDA ANGGOTA</h2>
+                  <span className={styles.ktaSubTitle1}>FANBASE CAVALLERY</span>
+                  <span className={styles.ktaSubTitle2}>Official Fanbase Erine JKT48 • Est. 2024</span>
+                </div>
+                <div className={styles.ktaHeaderCrestRight}>
+                  <div className={styles.ktaGarudaBadge}>
+                    <i className="fa-solid fa-chess-knight" />
+                    <span>CAVA</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── KTA BODY (Data Kiri - Foto Kanan) ── */}
+              <div className={styles.ktaCardBody}>
+                {/* Kolom Kiri: Data Tabel */}
+                <div className={styles.ktaDataColumn}>
+                  {/* No. Kartu (Besar & Tebal) */}
+                  <div className={`${styles.ktaDataRow} ${styles.ktaNoKartuRow}`}>
+                    <span className={styles.ktaDataLabel}>No. Kartu</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      {sessionUser.noAnggota || "CAVA-0001"}
+                    </span>
+                  </div>
+
+                  {/* Nama */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Nama</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      {sessionUser.namaLengkap || displayName}
+                    </span>
+                  </div>
+
+                  {/* Jenis Kelamin */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Jenis Kelamin</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      {sessionUser.gender || "LAKI-LAKI"}
+                    </span>
+                  </div>
+
+                  {/* Alamat / Domisili */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Alamat</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      {sessionUser.domisili || "Belum Diisi"}
+                    </span>
+                  </div>
+
+                  {/* TTL */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Tempat, Tgl Lahir</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      {sessionUser.tempatLahir && sessionUser.tanggalLahir
+                        ? `${sessionUser.tempatLahir}, ${formatIndoDate(sessionUser.tanggalLahir)}`
+                        : sessionUser.tanggalLahir
+                          ? formatIndoDate(sessionUser.tanggalLahir)
+                          : "Belum Diisi"}
+                    </span>
+                  </div>
+
+                  {/* Oshi */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Oshi</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      <i className="bx bxs-heart" style={{ color: "#ef4444", marginRight: 3, fontSize: "0.7rem" }} />
+                      Catherina Vallencia K.
+                    </span>
+                  </div>
+
+                  {/* Status Anggota */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Status Anggota</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue}>
+                      <span className={styles.ktaStatusBadge}>
+                        <i className="bx bxs-badge-check" /> {sessionUser.status === "aktif" ? "AKTIF" : (sessionUser.status || "AKTIF").toUpperCase()}
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* Masa Berlaku */}
+                  <div className={styles.ktaDataRow}>
+                    <span className={styles.ktaDataLabel}>Masa Berlaku</span>
+                    <span className={styles.ktaDataColon}>:</span>
+                    <span className={styles.ktaDataValue} style={{ fontWeight: 900 }}>
+                      SEUMUR HIDUP
+                    </span>
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Foto Profil Dashboard & Barcode */}
+                <div className={styles.ktaPhotoBarcodeColumn}>
+                  {/* Foto Passport 3x4 (Muncul otomatis saat user memasang profil di dashboard) */}
+                  <div className={styles.ktaPassportPhotoFrame}>
+                    {sessionUser.fotoProfil || sessionUser.foto_profil ? (
+                      <img
+                        src={sessionUser.fotoProfil || sessionUser.foto_profil}
+                        alt={displayName}
+                        className={styles.ktaPassportImg}
+                      />
+                    ) : (
+                      <div
+                        className={styles.ktaPassportEmpty}
+                        onClick={() => {
+                          setShowKtaModal(false);
+                          avatarFileInputRef.current?.click();
+                        }}
+                        style={{ cursor: "pointer" }}
+                        title="Klik untuk pasang foto profil dari dashboard kas"
+                      >
+                        <i className="bx bx-camera" />
+                        <span>Pasang Foto di Profil Kas</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Caption di bawah foto */}
+                  <div className={styles.ktaPhotoCaption}>
+                    CAVALLERY<br />OFFICIAL
+                  </div>
+
+                  {/* Barcode Box */}
+                  <div className={styles.ktaBarcodeBox}>
+                    <div className={styles.ktaBarcodeBars} />
+                    <span className={styles.ktaBarcodeNum}>{sessionUser.noAnggota || "CAVA-0001"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Security Seal ── */}
+              <div className={styles.ktaDigitalSecuritySeal}>
+                <div className={styles.ktaSecurityTag}>
+                  <i className="bx bx-shield-quarter" />
+                  <span>Diterbitkan oleh Fanbase Cavallery • Sejak {formattedJoinDate}</span>
+                </div>
+                <div className={styles.ktaHoloChip} title="Holographic Security Chip" />
+              </div>
+            </div>
+
+            <p className={styles.ktaCardNotice}>
+              * KTA Digital ini diterbitkan resmi oleh Fanbase Cavallery untuk identitas pendukung Erine JKT48. Tunjukkan KTA ini untuk verifikasi event, photobooth, &amp; pembagian merchandise.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. MODAL VIDEO / UCAPAN ULANG TAHUN DARI ERINE ── */}
+      {showBirthdayModal && (
+        <div
+          className={styles.birthdayModalOverlay}
+          onClick={() => setShowBirthdayModal(false)}
+        >
+          <div
+            className={styles.birthdayModalCard}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Animasi Festive Header */}
+            <div className={styles.birthdayFestiveHeader}>
+              <div className={styles.birthdayPartyBadge}>
+                <i className="bx bxs-party" /> SPECIAL BIRTHDAY SURPRISE
+              </div>
+              <h2 className={styles.birthdayTitle}>
+                Selamat Ulang Tahun, {displayName}! 🎂🎉
+              </h2>
+              <span className={styles.birthdaySubtitle}>
+                Ada ucapan hangat dan pesan cinta dari Oshi kesayanganmu, Erine JKT48!
+              </span>
+            </div>
+
+            {/* Video Ucapan Ultah dari Erine */}
+            <div className={styles.birthdayMediaCard}>
+              <div className={styles.birthdayMediaImgWrap}>
+                <video
+                  src="https://images.jkt48connect.com/cavallery/images/2026/09/88f6584a5c714b26.mp4"
+                  className={styles.birthdayMediaImg}
+                  autoPlay
+                  controls
+                  playsInline
+                  style={{ objectFit: "cover", objectPosition: "center 20%", width: "100%", maxHeight: "360px" }}
+                />
+              </div>
+            </div>
+
+            {/* Surat Pesan Hangat Personal dari Erine */}
+            <div className={styles.birthdayLetterBox}>
+              <div className={styles.birthdayLetterHeader}>
+                <i className="bx bxs-heart" style={{ color: "#ef4444", fontSize: "1.2rem" }} />
+                <span>Pesan Spesial dari Erine:</span>
+              </div>
+              <p className={styles.birthdayLetterText}>
+                "Halo {displayName}! 💙
+                <br /><br />
+                Selamat ulang tahun yaa! 🎉✨ Di hari yang sangat istimewa ini, Erine mau mengucapkan terima kasih yang sebesar-besarnya karena kamu sudah selalu setia ada di samping Erine, memberi semangat, dan mendukung perjalanan Erine di JKT48 bersama keluarga Cavallery.
+                <br /><br />
+                Semoga di usiamu yang baru ini, kamu selalu diberikan kesehatan yang prima, kebahagiaan yang melimpah, dan segala impianmu segera terwujud! Terus dampingi dan temani Erine yaa sampai kita meraih panggung yang lebih tinggi lagi!
+                <br /><br />
+                <strong>Hadir dengan seribu kejutan, Checkmate! ♟️💙✨</strong>"
+              </p>
+              <div className={styles.birthdayLetterSignature}>
+                <span className={styles.erineSigName}>— Catherina Vallencia (Erine)</span>
+                <span className={styles.erineSigTeam}>Team Passion • JKT48 Generasi 12</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className={styles.birthdayActionsRow}>
+              <button
+                type="button"
+                className={styles.birthdayCloseBtn}
+                onClick={() => setShowBirthdayModal(false)}
+              >
+                Terima Kasih, Erine! 💙
+              </button>
+            </div>
           </div>
         </div>
       )}

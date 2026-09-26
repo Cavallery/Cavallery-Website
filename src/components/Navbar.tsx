@@ -21,6 +21,7 @@ interface NavNestedGroup {
 interface NavSingle {
   href: string;
   label: string;
+  icon?: string;
 }
 
 type NavLink = NavSingle | { label: string; children: (NavChild | NavNestedGroup)[] };
@@ -42,7 +43,7 @@ const navLinks: NavLink[] = [
       { href: "/gallery",        label: "Gallery Erine",   icon: "bx-image-alt",         desc: "Koleksi foto & momen spesial Erine" },
     ],
   },
-  { href: "/schedule", label: "Schedule" },
+  { href: "/schedule", label: "Schedule", icon: "bx-calendar" },
   {
     label: "Community",
     children: [
@@ -54,7 +55,7 @@ const navLinks: NavLink[] = [
       { href: "/journal",      label: "Journal MemoRine", icon: "bx-book-heart",        desc: "Tulis pesan & dukungan untuk Erine" },
     ],
   },
-  { href: "/merchandise", label: "Merchandise" },
+  { href: "/merchandise", label: "Merchandise", icon: "bx-store-alt" },
   {
     label: "Project",
     children: [
@@ -315,6 +316,7 @@ export default function Navbar() {
                 className={`${styles.mobileLink} ${pathname === link.href ? styles.mobileActive : ""}`}
                 onClick={link.href === "/" ? () => window.dispatchEvent(new Event("trigger-splash")) : undefined}
               >
+                {link.icon && <span className={styles.mobileIcon}>{renderNavIcon(link.icon)}</span>}
                 <span>{link.label}</span>
               </Link>
             )

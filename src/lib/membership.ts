@@ -35,3 +35,18 @@ export async function ensurePinColumn(): Promise<void> {
   }
 }
 
+let _ktaColsEnsured = false;
+export async function ensureKtaColumns(): Promise<void> {
+  if (_ktaColsEnsured) return;
+  try {
+    await query("ALTER TABLE anggota ADD COLUMN tempat_lahir VARCHAR(100) DEFAULT NULL");
+  } catch {}
+  try {
+    await query("ALTER TABLE anggota ADD COLUMN tanggal_lahir VARCHAR(50) DEFAULT NULL");
+  } catch {}
+  try {
+    await query("ALTER TABLE anggota ADD COLUMN golongan_darah VARCHAR(10) DEFAULT NULL");
+  } catch {}
+  _ktaColsEnsured = true;
+}
+
