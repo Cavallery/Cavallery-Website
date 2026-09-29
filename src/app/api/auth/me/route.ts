@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
         .reduce((sum: number, d: any) => sum + Number(d.nominal || 0), 0);
 
       const hasPin = Boolean(anggota.pin && anggota.pin.trim().length > 0);
+      const privacyDefault = anggota.privacy_mode_default !== undefined && anggota.privacy_mode_default !== null ? Boolean(anggota.privacy_mode_default) : true;
 
       return NextResponse.json({
         status: true,
@@ -64,10 +65,10 @@ export async function GET(req: NextRequest) {
           discord: anggota.discord,
           gender: anggota.gender,
           golonganDarah: anggota.golongan_darah || "-",
-          tempatLahir: anggota.tempat_lahir || "",
-          tanggalLahir: anggota.tanggal_lahir || "",
+          tempatLahir: privacyDefault ? "" : anggota.tempat_lahir || "",
+          tanggalLahir: privacyDefault ? "" : anggota.tanggal_lahir || "",
           oshi: "Catherina Vallencia Kurniawan",
-          domisili: anggota.domisili,
+          domisili: privacyDefault ? "" : anggota.domisili || "",
           kontakPlatform: anggota.kontak_platform,
           kontakId: anggota.kontak_id,
           status: anggota.status,
@@ -76,6 +77,9 @@ export async function GET(req: NextRequest) {
           badge: anggota.badge || "squire",
           fotoProfil: anggota.foto_profil || null,
           foto_profil: anggota.foto_profil || null,
+          publicCode: anggota.public_code || null,
+          publicCardEnabled: Boolean(anggota.public_card_enabled),
+          privacyModeDefault: privacyDefault,
           anggotaSejak: anggota.anggota_sejak,
           createdAt: anggota.created_at,
           totalKasVerified,

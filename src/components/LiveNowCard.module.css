@@ -1,0 +1,511 @@
+/* CSS Variables & Design Tokens for LiveNowCard */
+.liveCardWrapper {
+  --live-card-bg: linear-gradient(145deg, #28231e, #1a1613);
+  --live-card-border: rgba(212, 175, 55, 0.35);
+  --live-gold: #d4af37;
+  --live-gold-glow: rgba(212, 175, 55, 0.2);
+  --live-teal: #4cc9c0;
+  --live-teal-glow: rgba(76, 201, 192, 0.2);
+  --live-red: #ff4d4d;
+  --live-red-glow: rgba(255, 77, 77, 0.25);
+  --live-text-primary: #f6efe0;
+  --live-text-secondary: #b9a988;
+  --live-text-muted: #8e806a;
+  
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* Card Container */
+.liveCard {
+  position: relative;
+  background: var(--live-card-bg);
+  border: 1px solid var(--live-card-border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(255, 77, 77, 0.08), 0 0 15px rgba(212, 175, 55, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+}
+
+.liveCard:hover {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 8px 32px rgba(255, 77, 77, 0.14), 0 0 20px rgba(212, 175, 55, 0.12);
+}
+
+/* Decorative ambient top glow */
+.cardGlowAmbient {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── BARIS ATAS: AVATAR & INFO MEMBER ── */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+/* Avatar Container with Badge LIVE */
+.avatarContainer {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatarImg {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--live-gold);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: #201a15;
+  display: block;
+}
+
+/* Badge LIVE Merah di bawah avatar */
+.liveBadge {
+  position: absolute;
+  bottom: -6px;
+  background: var(--live-red);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(255, 77, 77, 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: liveBlink 2.2s infinite ease-in-out;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.liveBadgeOffline {
+  position: absolute;
+  bottom: -6px;
+  background: #4b453e;
+  color: #d6ccbd;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* Member Info Column */
+.memberInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.memberNameRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.memberName {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--live-text-primary);
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+
+.nickname {
+  color: var(--live-gold);
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+
+/* Meta Row (Chips & Total Viewers) */
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.platformChipsGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Platform Chip */
+.platformChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.platformChipIdn {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--live-gold);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.platformChipShowroom {
+  background: rgba(76, 201, 192, 0.15);
+  color: var(--live-teal);
+  border: 1px solid rgba(76, 201, 192, 0.35);
+}
+
+.redDotPulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--live-red);
+  box-shadow: 0 0 0 rgba(255, 77, 77, 0.5);
+  animation: livePulse 1.8s infinite ease-out;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.totalViewersText {
+  font-size: 0.8rem;
+  color: var(--live-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+}
+
+.totalViewersText i {
+  color: var(--live-gold);
+  font-size: 0.9rem;
+}
+
+/* ── BARIS BAWAH: TOMBOL AKSI PER PLATFORM ── */
+.actionButtonsRow {
+  display: grid;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+/* One button = full width, two buttons = 1fr 1fr */
+.actionButtonsSingle {
+  grid-template-columns: 1fr;
+}
+
+.actionButtonsDual {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Action Button */
+.liveActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  text-decoration: none;
+  transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.liveActionBtn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.liveActionBtn:focus-visible {
+  outline: 2px solid var(--live-gold);
+  outline-offset: 2px;
+}
+
+/* IDN Platform Style */
+.btnIdn {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.1));
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: var(--live-text-primary);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.btnIdn:hover {
+  border-color: var(--live-gold);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+/* Showroom Platform Style */
+.btnShowroom {
+  background: linear-gradient(135deg, rgba(76, 201, 192, 0.22), rgba(76, 201, 192, 0.1));
+  border: 1px solid rgba(76, 201, 192, 0.45);
+  color: var(--live-text-primary);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.btnShowroom:hover {
+  border-color: var(--live-teal);
+  box-shadow: 0 6px 20px rgba(76, 201, 192, 0.25);
+}
+
+.btnLeftInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.btnLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.btnIconIdn {
+  color: var(--live-gold);
+  font-size: 1.1rem;
+}
+
+.btnIconShowroom {
+  color: var(--live-teal);
+  font-size: 1.1rem;
+}
+
+.btnMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: var(--live-text-secondary);
+  font-weight: 500;
+}
+
+.btnMetaDot {
+  opacity: 0.5;
+}
+
+.btnArrow {
+  font-size: 1.25rem;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.liveActionBtn:hover .btnArrow {
+  transform: translateX(3px);
+  opacity: 1;
+}
+
+/* ── OFFLINE CARD VARIANT ── */
+.offlineCard {
+  position: relative;
+  background: var(--live-card-bg);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.offlineStatusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--live-text-muted);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 3px 10px;
+  border-radius: 50px;
+  width: fit-content;
+}
+
+.offlineDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #736b5e;
+}
+
+.offlineNotice {
+  font-size: 0.84rem;
+  color: var(--live-text-secondary);
+  line-height: 1.6;
+  margin: 6px 0 16px;
+}
+
+.offlineChannelsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.offlineChannelBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--live-text-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.offlineChannelBtn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--live-gold);
+  transform: translateY(-2px);
+}
+
+.offlineChannelBtn:focus-visible {
+  outline: 2px solid var(--live-gold);
+  outline-offset: 2px;
+}
+
+.offlineChannelIcon {
+  font-size: 1.4rem;
+  color: var(--live-gold);
+  flex-shrink: 0;
+}
+
+.offlineChannelTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.offlineChannelSub {
+  font-size: 0.72rem;
+  color: var(--live-text-muted);
+  margin: 2px 0 0;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(255, 77, 77, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+  }
+}
+
+@keyframes liveBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(0.97);
+  }
+}
+
+/* ── PREFERS-REDUCED-MOTION SUPPORT (Wajib) ── */
+@media (prefers-reduced-motion: reduce) {
+  .liveCard,
+  .liveActionBtn,
+  .offlineChannelBtn,
+  .btnArrow,
+  .redDotPulse,
+  .liveBadge {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* ── RESPONSIVE MOBILE (<= 480px) ── */
+@media (max-width: 480px) {
+  .liveCard,
+  .offlineCard {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .topRow {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .avatarImg {
+    width: 66px;
+    height: 66px;
+  }
+
+  .liveBadge,
+  .liveBadgeOffline {
+    font-size: 0.58rem;
+    padding: 2px 6px;
+    bottom: -4px;
+  }
+
+  .memberName {
+    font-size: 1.18rem;
+  }
+
+  .nickname {
+    font-size: 1.05rem;
+  }
+
+  .metaRow {
+    gap: 8px;
+  }
+
+  .totalViewersText {
+    font-size: 0.74rem;
+  }
+
+  /* Tombol menumpuk vertikal dengan lebar penuh di mobile */
+  .actionButtonsDual {
+    grid-template-columns: 1fr;
+  }
+
+  .liveActionBtn {
+    padding: 12px 14px;
+  }
+
+  .btnLabelRow {
+    font-size: 0.86rem;
+  }
+
+  .btnMetaRow {
+    font-size: 0.72rem;
+  }
+
+  .offlineChannelsGrid {
+    grid-template-columns: 1fr;
+  }
+}

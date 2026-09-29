@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import * as htmlToImage from "html-to-image";
 import styles from "./page.module.css";
 import { getMemberBadge } from "@/lib/badges";
 
@@ -290,6 +291,40 @@ export default function CavalleryKasPage() {
   const [ttlSuccessMsg, setTtlSuccessMsg] = useState("");
   const [isPlayingBirthdayVideo, setIsPlayingBirthdayVideo] = useState(false);
 
+  // Fitur 1: Holographic Foil & 3D Tilt State & Refs
+  const tiltCardRef = useRef<HTMLDivElement | null>(null);
+  const tiltTarget = useRef({ x: 0, y: 0 });
+  const tiltCurrent = useRef({ x: 0, y: 0 });
+  const tiltRafId = useRef<number | null>(null);
+  const [iosSensorNeeded, setIosSensorNeeded] = useState(false);
+  const [iosSensorGranted, setIosSensorGranted] = useState(false);
+
+  // Fitur 2: Mode Privat State & Refs
+  const [privacyMode, setPrivacyMode] = useState(false);
+  const [revealedPrivateFields, setRevealedPrivateFields] = useState<{
+    tempatLahir?: string;
+    tanggalLahir?: string;
+    domisili?: string;
+  } | null>(null);
+  const [revealingPrivate, setRevealingPrivate] = useState(false);
+  const [revealCountdown, setRevealCountdown] = useState(15);
+  const revealTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const revealIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [privacyToastMsg, setPrivacyToastMsg] = useState<string | null>(null);
+
+  // Fitur 3: Kartu Publik yang Bisa Dibagikan State & Refs
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareRatio, setShareRatio] = useState<"4:5" | "9:16">("4:5");
+  const [publicCardEnabled, setPublicCardEnabled] = useState(false);
+  const [publicCode, setPublicCode] = useState<string>("");
+  const [togglingPublic, setTogglingPublic] = useState(false);
+  const [regeneratingCode, setRegeneratingCode] = useState(false);
+  const [exportingPng, setExportingPng] = useState(false);
+  const [sharingWeb, setSharingWeb] = useState(false);
+  const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+  const exportCardRef = useRef<HTMLDivElement | null>(null);
+
+
   // Donasi State
   const [tipeDonasi, setTipeDonasi] = useState(DONATION_TYPES[0]);
   const [nominalDonasi, setNominalDonasi] = useState("50.000");
@@ -462,6 +497,275 @@ export default function CavalleryKasPage() {
     }
   };
 
+  // ── FITUR 1: HOLOGRAPHIC FOIL & 3D TILT HANDLERS ──
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      typeof (window as any).DeviceOrientationEvent !== "undefined" &&
+      typeof (DeviceOrientationEvent as any).requestPermission === "function"
+    ) {
+      setIosSensorNeeded(true);
+    }
+  }, []);
+
+  const handleRequestIosSensor = async () => {
+    try {
+      if (
+        typeof window !== "undefined" &&
+        typeof (DeviceOrientationEvent as any).requestPermission === "function"
+      ) {
+        const response = await (DeviceOrientationEvent as any).requestPermission();
+        if (response === "granted") {
+          setIosSensorGranted(true);
+          setIosSensorNeeded(false);
+        }
+      }
+    } catch (e) {
+      console.error("Device orientation permission error:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (!showKtaModal) return;
+
+    if (typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      if (mediaQuery.matches) return;
+    }
+
+    let isRunning = true;
+
+    const updateTilt = () => {
+      if (!isRunning) return;
+      // Lerp smoothing with 0.08 factor
+      tiltCurrent.current.x += (tiltTarget.current.x - tiltCurrent.current.x) * 0.08;
+      tiltCurrent.current.y += (tiltTarget.current.y - tiltCurrent.current.y) * 0.08;
+
+      if (tiltCardRef.current) {
+        tiltCardRef.current.style.setProperty("--rx", tiltCurrent.current.x.toFixed(2));
+        tiltCardRef.current.style.setProperty("--ry", tiltCurrent.current.y.toFixed(2));
+        const mx = 50 + (tiltCurrent.current.y / 8) * 35;
+        const my = 50 - (tiltCurrent.current.x / 8) * 35;
+        tiltCardRef.current.style.setProperty("--mx", `${mx.toFixed(1)}%`);
+        tiltCardRef.current.style.setProperty("--my", `${my.toFixed(1)}%`);
+        const angle = 135 + (tiltCurrent.current.y / 8) * 45;
+        tiltCardRef.current.style.setProperty("--angle", `${angle.toFixed(1)}deg`);
+      }
+
+      tiltRafId.current = requestAnimationFrame(updateTilt);
+    };
+
+    tiltRafId.current = requestAnimationFrame(updateTilt);
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (e.gamma === null || e.beta === null) return;
+      const clampedGamma = Math.max(-30, Math.min(30, e.gamma));
+      const clampedBeta = Math.max(-30, Math.min(30, e.beta - 45));
+      tiltTarget.current = {
+        x: -(clampedBeta / 30) * 8,
+        y: (clampedGamma / 30) * 8,
+      };
+    };
+
+    window.addEventListener("deviceorientation", handleOrientation);
+
+    return () => {
+      isRunning = false;
+      if (tiltRafId.current) cancelAnimationFrame(tiltRafId.current);
+      window.removeEventListener("deviceorientation", handleOrientation);
+    };
+  }, [showKtaModal]);
+
+  const handleCardPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!tiltCardRef.current) return;
+    const rect = tiltCardRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const ratioX = (e.clientX - cx) / (rect.width / 2);
+    const ratioY = (e.clientY - cy) / (rect.height / 2);
+    tiltTarget.current = {
+      x: -Math.max(-1, Math.min(1, ratioY)) * 8,
+      y: Math.max(-1, Math.min(1, ratioX)) * 8,
+    };
+  };
+
+  const handleCardPointerLeave = () => {
+    tiltTarget.current = { x: 0, y: 0 };
+  };
+
+  // ── FITUR 2: MODE PRIVAT HANDLERS ──
+  const handleTogglePrivacyMode = async () => {
+    const nextVal = !privacyMode;
+    setPrivacyMode(nextVal);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("kta_privacy_mode", String(nextVal));
+    }
+    setPrivacyToastMsg(nextVal ? "Mode privat diaktifkan" : "Mode privat dinonaktifkan");
+    setTimeout(() => setPrivacyToastMsg(null), 3000);
+
+    try {
+      await fetch("/api/kta/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ privacyModeDefault: nextVal }),
+      });
+    } catch (e) {
+      console.error("Save privacy preference error:", e);
+    }
+  };
+
+  const handleRevealPrivateFields = async () => {
+    if (revealingPrivate || revealedPrivateFields) return;
+    setRevealingPrivate(true);
+    try {
+      const res = await fetch("/api/kta/private-fields", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (data.status && data.fields) {
+        setRevealedPrivateFields(data.fields);
+        setRevealCountdown(15);
+
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        if (revealIntervalRef.current) clearInterval(revealIntervalRef.current);
+
+        revealIntervalRef.current = setInterval(() => {
+          setRevealCountdown((c) => {
+            if (c <= 1) {
+              clearInterval(revealIntervalRef.current!);
+              return 0;
+            }
+            return c - 1;
+          });
+        }, 1000);
+
+        revealTimerRef.current = setTimeout(() => {
+          setRevealedPrivateFields(null);
+          if (revealIntervalRef.current) clearInterval(revealIntervalRef.current);
+        }, 15000);
+      }
+    } catch (e) {
+      console.error("Reveal private fields error:", e);
+    } finally {
+      setRevealingPrivate(false);
+    }
+  };
+
+  // ── FITUR 3: KARTU PUBLIK & SHARE HANDLERS ──
+  const handleTogglePublicCard = async () => {
+    setTogglingPublic(true);
+    try {
+      const nextVal = !publicCardEnabled;
+      const res = await fetch("/api/kta/public", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: nextVal }),
+      });
+      const data = await res.json();
+      if (data.status) {
+        setPublicCardEnabled(data.publicCardEnabled);
+        if (data.publicCode) setPublicCode(data.publicCode);
+      }
+    } catch (e) {
+      console.error("Toggle public card error:", e);
+    } finally {
+      setTogglingPublic(false);
+    }
+  };
+
+  const handleRegeneratePublicCode = async () => {
+    if (!confirm("Kode tautan lama tidak akan berfungsi lagi. Buat kode tautan baru?")) return;
+    setRegeneratingCode(true);
+    try {
+      const res = await fetch("/api/kta/public", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regenerate: true }),
+      });
+      const data = await res.json();
+      if (data.status && data.publicCode) {
+        setPublicCode(data.publicCode);
+      }
+    } catch (e) {
+      console.error("Regenerate code error:", e);
+    } finally {
+      setRegeneratingCode(false);
+    }
+  };
+
+  const handleExportPng = async () => {
+    if (!exportCardRef.current || exportingPng) return;
+    setExportingPng(true);
+    try {
+      if (document.fonts) await document.fonts.ready;
+      const dataUrl = await htmlToImage.toPng(exportCardRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+      const link = document.createElement("a");
+      link.download = `KTA-Cavallery-${sessionUser?.noAnggota || "KTA"}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error("Export PNG error:", e);
+      alert("Gagal mengunduh gambar. Silakan coba lagi.");
+    } finally {
+      setExportingPng(false);
+    }
+  };
+
+  const handleWebShare = async () => {
+    if (sharingWeb) return;
+    setSharingWeb(true);
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const publicUrl = publicCode ? `${origin}/v/${publicCode}` : "";
+
+    try {
+      if (!exportCardRef.current) return;
+      if (document.fonts) await document.fonts.ready;
+      const blob = await htmlToImage.toBlob(exportCardRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+      });
+
+      if (
+        blob &&
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({ files: [new File([blob], "kta.png", { type: "image/png" })] })
+      ) {
+        const file = new File(
+          [blob],
+          `KTA-Cavallery-${sessionUser?.noAnggota || "KTA"}.png`,
+          { type: "image/png" }
+        );
+        await navigator.share({
+          title: "KTA Fanbase Cavallery",
+          text: `KTA Resmi Cavallery Erine JKT48 • ${sessionUser?.namaLengkap || displayName}`,
+          files: [file],
+          url: publicUrl || undefined,
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: "KTA Fanbase Cavallery",
+          text: `KTA Resmi Cavallery Erine JKT48 • ${sessionUser?.namaLengkap || displayName}`,
+          url: publicUrl || origin,
+        });
+      } else {
+        await handleExportPng();
+        if (publicUrl) {
+          navigator.clipboard.writeText(publicUrl);
+          alert("Gambar KTA diunduh & tautan publik berhasil disalin ke clipboard!");
+        }
+      }
+    } catch (e) {
+      console.error("Web share error:", e);
+    } finally {
+      setSharingWeb(false);
+    }
+  };
+
   // Melody Lagu Ulang Tahun (Web Audio API - Ceria & Lembut)
   const playBirthdayMelody = () => {
     try {
@@ -555,6 +859,16 @@ export default function CavalleryKasPage() {
           setSessionUser(json.user);
           if (json.user.riwayatKas) {
             setKasHistory(json.user.riwayatKas);
+          }
+          if (json.user.publicCode) {
+            setPublicCode(json.user.publicCode);
+          }
+          setPublicCardEnabled(Boolean(json.user.publicCardEnabled));
+          const cachedPrivacy = typeof window !== "undefined" ? localStorage.getItem("kta_privacy_mode") : null;
+          if (cachedPrivacy !== null) {
+            setPrivacyMode(cachedPrivacy === "true");
+          } else if (json.user.privacyModeDefault !== undefined) {
+            setPrivacyMode(Boolean(json.user.privacyModeDefault));
           }
         } else {
           setSessionUser(null);
@@ -5918,6 +6232,39 @@ export default function CavalleryKasPage() {
                   </button>
                 </div>
 
+                {/* iOS DeviceOrientation Sensor Permission Button */}
+                {iosSensorNeeded && !iosSensorGranted && (
+                  <button
+                    type="button"
+                    className={styles.ktaIosSensorBtn}
+                    onClick={handleRequestIosSensor}
+                    title="Izinkan sensor gerak untuk efek kilau holografik"
+                  >
+                    <i className="bx bx-compass" /> Efek Kilau
+                  </button>
+                )}
+
+                {/* Fitur 2: Mode Privat Toggle Button */}
+                <button
+                  type="button"
+                  className={`${styles.ktaPrivacyToggleBtn} ${privacyMode ? styles.ktaPrivacyToggleBtnActive : ""}`}
+                  onClick={handleTogglePrivacyMode}
+                  title={privacyMode ? "Mode privat aktif (data sensitif disamarkan)" : "Aktifkan mode privat"}
+                >
+                  <i className={privacyMode ? "bx bx-hide" : "bx bx-show"} />
+                  <span>{privacyMode ? "Mode privat: Aktif" : "Mode privat: Nonaktif"}</span>
+                </button>
+
+                {/* Fitur 3: Bagikan Kartu Button */}
+                <button
+                  type="button"
+                  className={styles.ktaShareToolbarBtn}
+                  onClick={() => setShowShareModal(true)}
+                  title="Bagikan Kartu Anggota ke Media Sosial"
+                >
+                  <i className="bx bx-share-alt" /> Bagikan
+                </button>
+
                 <button
                   type="button"
                   className={styles.ktaToolbarBtn}
@@ -5946,6 +6293,13 @@ export default function CavalleryKasPage() {
                 </button>
               </div>
             </div>
+
+            {/* Privacy Notification Toast */}
+            {privacyToastMsg && (
+              <div className={styles.ktaPrivacyToast}>
+                <i className="bx bx-check-circle" /> {privacyToastMsg}
+              </div>
+            )}
 
             {/* Form Edit Biodata KTA */}
             {editingTtl && (
@@ -6044,239 +6398,326 @@ export default function CavalleryKasPage() {
               </span>
             </div>
 
-            {/* ── 3D FLIP KTA CARD (CR-80 PORTRAIT 54:86) ── */}
+            {/* ── 3D FLIP KTA CARD (CR-80 PORTRAIT 54:86) DENGAN TILT WRAPPER (FITUR 1) ── */}
             <div
               className={styles.ktaCardScene}
+              onPointerMove={handleCardPointerMove}
+              onPointerLeave={handleCardPointerLeave}
               onClick={() => setKtaCardSide((s) => (s === "front" ? "back" : "front"))}
               title="Ketuk kartu untuk membalik"
             >
-              <div
-                className={`${styles.ktaCard3DWrapper} ${
-                  ktaCardSide === "back" ? styles.ktaCard3DWrapperFlipped : ""
-                }`}
-              >
-                {/* ── SISI DEPAN (FRONT FACE) ── */}
+              <div className={styles.ktaCardTiltWrapper} ref={tiltCardRef}>
                 <div
-                  className={`${styles.ktaCardFaceFront} ${
-                    ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
+                  className={`${styles.ktaCard3DWrapper} ${
+                    ktaCardSide === "back" ? styles.ktaCard3DWrapperFlipped : ""
                   }`}
                 >
-                  {/* Subtle Chess Knight Watermark */}
-                  <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
+                  {/* ── SISI DEPAN (FRONT FACE) ── */}
+                  <div
+                    className={`${styles.ktaCardFaceFront} ${
+                      ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
+                    }`}
+                  >
+                    {/* Efek Kilau Holografik (Fitur 1) */}
+                    {ktaCardTheme === "luxury" ? (
+                      <div className={styles.ktaHoloOverlayLuxury} />
+                    ) : (
+                      <div className={styles.ktaHoloOverlayResmi} />
+                    )}
 
-                  <div className={styles.ktaCardContentLayer}>
-                    {/* Front Header */}
-                    <div className={styles.ktaFrontHeader}>
-                      <div className={styles.ktaHeaderBrand}>
-                        <img
-                          src="/images/cava-logo.jpg"
-                          alt="Cavallery"
-                          className={styles.ktaLogoImg}
-                        />
-                        <div className={styles.ktaHeaderText}>
-                          <h2 className={styles.ktaFrontHeaderTitle}>KARTU TANDA ANGGOTA</h2>
-                          <span className={styles.ktaFrontHeaderSub}>FANBASE CAVALLERY</span>
+                    {/* Subtle Chess Knight Watermark */}
+                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
+
+                    <div className={styles.ktaCardContentLayer}>
+                      {/* Front Header */}
+                      <div className={styles.ktaFrontHeader}>
+                        <div className={styles.ktaHeaderBrand}>
+                          <img
+                            src="/images/cava-logo.jpg"
+                            alt="Cavallery"
+                            className={styles.ktaLogoImg}
+                          />
+                          <div className={styles.ktaHeaderText}>
+                            <h2 className={styles.ktaFrontHeaderTitle}>KARTU TANDA ANGGOTA</h2>
+                            <span className={styles.ktaFrontHeaderSub}>FANBASE CAVALLERY</span>
+                          </div>
+                        </div>
+                        <div className={styles.ktaGarudaBadge}>
+                          <i className="fa-solid fa-chess-knight" />
+                          <span>CAVA</span>
                         </div>
                       </div>
-                      <div className={styles.ktaGarudaBadge}>
-                        <i className="fa-solid fa-chess-knight" />
-                        <span>CAVA</span>
+
+                      {/* Top Row: Passport Photo + No. Kartu & Status */}
+                      <div className={styles.ktaTopRow}>
+                        <div
+                          className={styles.ktaPhotoFrame}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowKtaModal(false);
+                            avatarFileInputRef.current?.click();
+                          }}
+                          title="Klik untuk pasang / ubah foto profil"
+                        >
+                          <img
+                            src={
+                              sessionUser.fotoProfil ||
+                              sessionUser.foto_profil ||
+                              "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+                            }
+                            alt={displayName}
+                            className={styles.ktaPassportImg}
+                          />
+                          <div className={styles.ktaPhotoChangeOverlay}>
+                            <i className="bx bx-camera" />
+                            <span>Ganti Foto</span>
+                          </div>
+                        </div>
+
+                        <div className={styles.ktaCardMetaRight}>
+                          <div className={styles.ktaCardNoBlock}>
+                            <span className={styles.ktaCardNoLabel}>Nomor Anggota</span>
+                            <span className={styles.ktaCardNoValue}>
+                              {sessionUser.noAnggota || "CAVA-0001"}
+                            </span>
+                          </div>
+                          <div className={styles.ktaStatusBadgeRow}>
+                            <span className={styles.ktaStatusBadgeActive}>
+                              <i className="bx bxs-badge-check" />{" "}
+                              {sessionUser.status === "aktif"
+                                ? "AKTIF"
+                                : (sessionUser.status || "AKTIF").toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Nama Anggota */}
+                      <div className={styles.ktaNameBlock}>
+                        <div className={styles.ktaMemberName}>
+                          {sessionUser.namaLengkap || displayName}
+                        </div>
+                        <div className={styles.ktaMemberHandle}>
+                          {sessionUser.idLine
+                            ? `@${sessionUser.idLine}`
+                            : sessionUser.kontakId || displayName}
+                        </div>
+                      </div>
+
+                      {/* Biodata Grid 2 Kolom (dengan masking Mode Privat Fitur 2) */}
+                      <div className={styles.ktaBiodataGrid}>
+                        <div className={styles.ktaBioItem}>
+                          <span className={styles.ktaBioLabel}>Jenis kelamin</span>
+                          <span className={styles.ktaBioValue}>
+                            {sessionUser.gender || "Laki-laki"}
+                          </span>
+                        </div>
+
+                        {/* Tempat, Tgl Lahir (Sensitive Field) */}
+                        <div className={styles.ktaBioItem}>
+                          <span className={styles.ktaBioLabel}>Tempat, tgl lahir</span>
+                          {privacyMode && !revealedPrivateFields ? (
+                            <div className={styles.ktaMaskedValueRow}>
+                              <span className={styles.ktaMaskedValue}>••••••••••</span>
+                              <button
+                                type="button"
+                                className={styles.ktaRevealBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRevealPrivateFields();
+                                }}
+                                disabled={revealingPrivate}
+                                title="Tampilkan data asli selama 15 detik"
+                              >
+                                {revealingPrivate ? (
+                                  <i className="bx bx-loader-alt bx-spin" />
+                                ) : (
+                                  <><i className="bx bx-show" /> Tampilkan</>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className={styles.ktaBioValue}>
+                              {(() => {
+                                const tempat = revealedPrivateFields
+                                  ? revealedPrivateFields.tempatLahir
+                                  : sessionUser.tempatLahir;
+                                const tanggal = revealedPrivateFields
+                                  ? revealedPrivateFields.tanggalLahir
+                                  : sessionUser.tanggalLahir;
+                                if (tempat && tanggal) {
+                                  return `${tempat}, ${formatIndoDate(tanggal)}`;
+                                }
+                                if (tanggal) return formatIndoDate(tanggal);
+                                return "Belum diisi";
+                              })()}
+                              {revealedPrivateFields && (
+                                <span style={{ fontSize: "0.62rem", color: "#f59e0b", marginLeft: 4, fontWeight: 700 }}>
+                                  ({revealCountdown}s)
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Alamat Domisili (Sensitive Field) */}
+                        <div className={styles.ktaBioItem}>
+                          <span className={styles.ktaBioLabel}>Alamat domisili</span>
+                          {privacyMode && !revealedPrivateFields ? (
+                            <div className={styles.ktaMaskedValueRow}>
+                              <span className={styles.ktaMaskedValue}>••••••••••</span>
+                              <button
+                                type="button"
+                                className={styles.ktaRevealBtn}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRevealPrivateFields();
+                                }}
+                                disabled={revealingPrivate}
+                                title="Tampilkan data asli selama 15 detik"
+                              >
+                                {revealingPrivate ? (
+                                  <i className="bx bx-loader-alt bx-spin" />
+                                ) : (
+                                  <><i className="bx bx-show" /> Tampilkan</>
+                                )}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className={styles.ktaBioValue}>
+                              {(revealedPrivateFields ? revealedPrivateFields.domisili : sessionUser.domisili) || "Indonesia"}
+                              {revealedPrivateFields && (
+                                <span style={{ fontSize: "0.62rem", color: "#f59e0b", marginLeft: 4, fontWeight: 700 }}>
+                                  ({revealCountdown}s)
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className={styles.ktaBioItem}>
+                          <span className={styles.ktaBioLabel}>Oshi</span>
+                          <span className={styles.ktaBioValue}>
+                            <i
+                              className="bx bxs-heart"
+                              style={{ color: "#ef4444", marginRight: 3, fontSize: "0.75rem" }}
+                            />
+                            Catherina Vallencia K.
+                          </span>
+                        </div>
+                        <div className={styles.ktaBioItem} style={{ gridColumn: "1 / -1" }}>
+                          <span className={styles.ktaBioLabel}>Masa berlaku</span>
+                          <span className={styles.ktaBioValue} style={{ letterSpacing: "0.04em" }}>
+                            SEUMUR HIDUP
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Front Footer */}
+                      <div className={styles.ktaFrontFooter}>
+                        <div className={styles.ktaFrontSecurityTag}>
+                          <i className="bx bx-shield-quarter" />
+                          <span>Fanbase Cavallery • Sejak {formattedJoinDate}</span>
+                        </div>
+                        <div className={styles.ktaHoloChip} title="Holographic Security Chip" />
                       </div>
                     </div>
+                  </div>
 
-                    {/* Top Row: Passport Photo + No. Kartu & Status */}
-                    <div className={styles.ktaTopRow}>
-                      <div
-                        className={styles.ktaPhotoFrame}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowKtaModal(false);
-                          avatarFileInputRef.current?.click();
-                        }}
-                        title="Klik untuk pasang / ubah foto profil"
-                      >
-                        <img
-                          src={
-                            sessionUser.fotoProfil ||
-                            sessionUser.foto_profil ||
-                            "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
-                          }
-                          alt={displayName}
-                          className={styles.ktaPassportImg}
-                        />
-                        <div className={styles.ktaPhotoChangeOverlay}>
-                          <i className="bx bx-camera" />
-                          <span>Ganti Foto</span>
+                  {/* ── SISI BELAKANG (BACK FACE) ── */}
+                  <div
+                    className={`${styles.ktaCardFaceBack} ${
+                      ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
+                    }`}
+                  >
+                    {/* Efek Kilau Holografik Belakang (Fitur 1) */}
+                    {ktaCardTheme === "luxury" ? (
+                      <div className={styles.ktaHoloOverlayLuxury} />
+                    ) : (
+                      <div className={styles.ktaHoloOverlayResmi} />
+                    )}
+
+                    {/* Subtle Chess Knight Watermark */}
+                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
+
+                    <div className={styles.ktaCardContentLayer}>
+                      {/* Back Header */}
+                      <div className={styles.ktaBackHeader}>
+                        <div className={styles.ktaHeaderBrand}>
+                          <img
+                            src="/images/cava-logo.jpg"
+                            alt="Cavallery"
+                            className={styles.ktaLogoImg}
+                          />
+                          <div className={styles.ktaHeaderText}>
+                            <h2 className={styles.ktaBackHeaderTitle}>KETENTUAN PENGGUNAAN</h2>
+                            <span className={styles.ktaFrontHeaderSub}>OFFICIAL FANBASE CAVALLERY</span>
+                          </div>
+                        </div>
+                        <div className={styles.ktaGarudaBadge}>
+                          <i className="fa-solid fa-chess-knight" />
+                          <span>CAVA</span>
                         </div>
                       </div>
 
-                      <div className={styles.ktaCardMetaRight}>
-                        <div className={styles.ktaCardNoBlock}>
-                          <span className={styles.ktaCardNoLabel}>Nomor Anggota</span>
-                          <span className={styles.ktaCardNoValue}>
+                      {/* Center QR Container */}
+                      <div className={styles.ktaQrContainer}>
+                        <div className={styles.ktaQrWhiteBox}>
+                          <img
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(
+                              typeof window !== "undefined" && publicCode && publicCardEnabled
+                                ? `${window.location.origin}/v/${publicCode}`
+                                : sessionUser.noAnggota || "CAVA-0001"
+                            )}`}
+                            alt="QR Code Anggota"
+                            className={styles.ktaQrImg}
+                          />
+                        </div>
+                        <div className={styles.ktaQrCaption}>
+                          Scan untuk Verifikasi Keanggotaan
+                        </div>
+                      </div>
+
+                      {/* Terms List (3 Ketentuan) */}
+                      <div className={styles.ktaTermsList}>
+                        <div className={styles.ktaTermsItem}>
+                          <span className={styles.ktaTermsNumber}>1</span>
+                          <span>
+                            KTA Digital ini sah sebagai tanda pengenal resmi pendukung Erine JKT48.
+                          </span>
+                        </div>
+                        <div className={styles.ktaTermsItem}>
+                          <span className={styles.ktaTermsNumber}>2</span>
+                          <span>
+                            Wajib ditunjukkan untuk presensi event, gathering, &amp; merchandise fanbase.
+                          </span>
+                        </div>
+                        <div className={styles.ktaTermsItem}>
+                          <span className={styles.ktaTermsNumber}>3</span>
+                          <span>
+                            Hak cipta &amp; kepemilikan kartu berada di bawah naungan Fanbase Cavallery.
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Signature & Barcode Row */}
+                      <div className={styles.ktaBackSignatureRow}>
+                        <div className={styles.ktaDecorativeBarcode}>
+                          <div className={styles.ktaBarcodeLines} />
+                          <span className={styles.ktaBarcodeNum}>
                             {sessionUser.noAnggota || "CAVA-0001"}
                           </span>
                         </div>
-                        <div className={styles.ktaStatusBadgeRow}>
-                          <span className={styles.ktaStatusBadgeActive}>
-                            <i className="bx bxs-badge-check" />{" "}
-                            {sessionUser.status === "aktif"
-                              ? "AKTIF"
-                              : (sessionUser.status || "AKTIF").toUpperCase()}
-                          </span>
+                        <div className={styles.ktaSignatureBox}>
+                          <div className={styles.ktaSignatureImg}>Cavallery Management</div>
+                          <span className={styles.ktaSignatureTitle}>Official Fanbase</span>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Nama Anggota */}
-                    <div className={styles.ktaNameBlock}>
-                      <div className={styles.ktaMemberName}>
-                        {sessionUser.namaLengkap || displayName}
+                      {/* Back Footer Note */}
+                      <div className={styles.ktaBackFooterNote}>
+                        Diterbitkan oleh Fanbase Cavallery • Terdaftar Sejak {formattedJoinDate}
                       </div>
-                      <div className={styles.ktaMemberHandle}>
-                        {sessionUser.idLine
-                          ? `@${sessionUser.idLine}`
-                          : sessionUser.kontakId || displayName}
-                      </div>
-                    </div>
-
-                    {/* Biodata Grid 2 Kolom (Sentence case, no gol darah) */}
-                    <div className={styles.ktaBiodataGrid}>
-                      <div className={styles.ktaBioItem}>
-                        <span className={styles.ktaBioLabel}>Jenis kelamin</span>
-                        <span className={styles.ktaBioValue}>
-                          {sessionUser.gender || "Laki-laki"}
-                        </span>
-                      </div>
-                      <div className={styles.ktaBioItem}>
-                        <span className={styles.ktaBioLabel}>Tempat, tgl lahir</span>
-                        <span className={styles.ktaBioValue}>
-                          {sessionUser.tempatLahir && sessionUser.tanggalLahir
-                            ? `${sessionUser.tempatLahir}, ${formatIndoDate(sessionUser.tanggalLahir)}`
-                            : sessionUser.tanggalLahir
-                              ? formatIndoDate(sessionUser.tanggalLahir)
-                              : "Belum diisi"}
-                        </span>
-                      </div>
-                      <div className={styles.ktaBioItem}>
-                        <span className={styles.ktaBioLabel}>Alamat domisili</span>
-                        <span className={styles.ktaBioValue}>
-                          {sessionUser.domisili || "Indonesia"}
-                        </span>
-                      </div>
-                      <div className={styles.ktaBioItem}>
-                        <span className={styles.ktaBioLabel}>Oshi</span>
-                        <span className={styles.ktaBioValue}>
-                          <i
-                            className="bx bxs-heart"
-                            style={{ color: "#ef4444", marginRight: 3, fontSize: "0.75rem" }}
-                          />
-                          Catherina Vallencia K.
-                        </span>
-                      </div>
-                      <div className={styles.ktaBioItem} style={{ gridColumn: "1 / -1" }}>
-                        <span className={styles.ktaBioLabel}>Masa berlaku</span>
-                        <span className={styles.ktaBioValue} style={{ letterSpacing: "0.04em" }}>
-                          SEUMUR HIDUP
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Front Footer */}
-                    <div className={styles.ktaFrontFooter}>
-                      <div className={styles.ktaFrontSecurityTag}>
-                        <i className="bx bx-shield-quarter" />
-                        <span>Fanbase Cavallery • Sejak {formattedJoinDate}</span>
-                      </div>
-                      <div className={styles.ktaHoloChip} title="Holographic Security Chip" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── SISI BELAKANG (BACK FACE) ── */}
-                <div
-                  className={`${styles.ktaCardFaceBack} ${
-                    ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
-                  }`}
-                >
-                  {/* Subtle Chess Knight Watermark */}
-                  <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
-
-                  <div className={styles.ktaCardContentLayer}>
-                    {/* Back Header */}
-                    <div className={styles.ktaBackHeader}>
-                      <div className={styles.ktaHeaderBrand}>
-                        <img
-                          src="/images/cava-logo.jpg"
-                          alt="Cavallery"
-                          className={styles.ktaLogoImg}
-                        />
-                        <div className={styles.ktaHeaderText}>
-                          <h2 className={styles.ktaBackHeaderTitle}>KETENTUAN PENGGUNAAN</h2>
-                          <span className={styles.ktaFrontHeaderSub}>OFFICIAL FANBASE CAVALLERY</span>
-                        </div>
-                      </div>
-                      <div className={styles.ktaGarudaBadge}>
-                        <i className="fa-solid fa-chess-knight" />
-                        <span>CAVA</span>
-                      </div>
-                    </div>
-
-                    {/* Center QR Container */}
-                    <div className={styles.ktaQrContainer}>
-                      <div className={styles.ktaQrWhiteBox}>
-                        <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(
-                            sessionUser.noAnggota || "CAVA-0001"
-                          )}`}
-                          alt="QR Code Anggota"
-                          className={styles.ktaQrImg}
-                        />
-                      </div>
-                      <div className={styles.ktaQrCaption}>
-                        Scan untuk Verifikasi Keanggotaan
-                      </div>
-                    </div>
-
-                    {/* Terms List (3 Ketentuan) */}
-                    <div className={styles.ktaTermsList}>
-                      <div className={styles.ktaTermsItem}>
-                        <span className={styles.ktaTermsNumber}>1</span>
-                        <span>
-                          KTA Digital ini sah sebagai tanda pengenal resmi pendukung Erine JKT48.
-                        </span>
-                      </div>
-                      <div className={styles.ktaTermsItem}>
-                        <span className={styles.ktaTermsNumber}>2</span>
-                        <span>
-                          Wajib ditunjukkan untuk presensi event, gathering, &amp; merchandise fanbase.
-                        </span>
-                      </div>
-                      <div className={styles.ktaTermsItem}>
-                        <span className={styles.ktaTermsNumber}>3</span>
-                        <span>
-                          Hak cipta &amp; kepemilikan kartu berada di bawah naungan Fanbase Cavallery.
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Signature & Barcode Row */}
-                    <div className={styles.ktaBackSignatureRow}>
-                      <div className={styles.ktaDecorativeBarcode}>
-                        <div className={styles.ktaBarcodeLines} />
-                        <span className={styles.ktaBarcodeNum}>
-                          {sessionUser.noAnggota || "CAVA-0001"}
-                        </span>
-                      </div>
-                      <div className={styles.ktaSignatureBox}>
-                        <div className={styles.ktaSignatureImg}>Cavallery Management</div>
-                        <span className={styles.ktaSignatureTitle}>Official Fanbase</span>
-                      </div>
-                    </div>
-
-                    {/* Back Footer Note */}
-                    <div className={styles.ktaBackFooterNote}>
-                      Diterbitkan oleh Fanbase Cavallery • Terdaftar Sejak {formattedJoinDate}
                     </div>
                   </div>
                 </div>
@@ -6286,6 +6727,260 @@ export default function CavalleryKasPage() {
             <p className={styles.ktaCardNotice}>
               * KTA Digital ini diterbitkan resmi oleh Fanbase Cavallery untuk identitas pendukung Erine JKT48. Tunjukkan KTA ini untuk verifikasi event, photobooth, &amp; pembagian merchandise.
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL BAGIKAN KARTU PUBLIK (FITUR 3) ── */}
+      {showShareModal && (
+        <div
+          className={styles.ktaShareModalOverlay}
+          onClick={() => setShowShareModal(false)}
+        >
+          <div
+            className={styles.ktaShareModalCard}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.ktaShareHeader}>
+              <h3 className={styles.ktaShareHeaderTitle}>
+                <i className="bx bx-share-alt" style={{ color: "var(--gold)" }} />
+                <span>Bagikan Kartu Anggota</span>
+              </h3>
+              <button
+                type="button"
+                className={styles.ktaCloseBtn}
+                onClick={() => setShowShareModal(false)}
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            {/* Ratio Toggle: 4:5 (Feed/Post) | 9:16 (Story) */}
+            <div className={styles.ktaShareRatioToggle}>
+              <button
+                type="button"
+                className={`${styles.ktaShareRatioBtn} ${shareRatio === "4:5" ? styles.ktaShareRatioBtnActive : ""}`}
+                onClick={() => setShareRatio("4:5")}
+              >
+                4:5 (Feed / Post)
+              </button>
+              <button
+                type="button"
+                className={`${styles.ktaShareRatioBtn} ${shareRatio === "9:16" ? styles.ktaShareRatioBtnActive : ""}`}
+                onClick={() => setShareRatio("9:16")}
+              >
+                9:16 (Story)
+              </button>
+            </div>
+
+            {/* Public Link Settings */}
+            <div className={styles.ktaSharePublicSettings}>
+              <div className={styles.ktaShareToggleRow}>
+                <div>
+                  <div className={styles.ktaShareToggleLabel}>Aktifkan Tautan Kartu Publik</div>
+                  <div className={styles.ktaShareToggleDesc}>
+                    Siapa saja yang memiliki tautan dapat memverifikasi kartu ini
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={publicCardEnabled}
+                  onChange={handleTogglePublicCard}
+                  disabled={togglingPublic}
+                  style={{ width: 20, height: 20, accentColor: "#d4af37", cursor: "pointer" }}
+                />
+              </div>
+
+              {publicCardEnabled && (
+                <>
+                  <div className={styles.ktaShareUrlBox}>
+                    <span className={styles.ktaShareUrlText}>
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/v/${publicCode || ""}`
+                        : `/v/${publicCode || ""}`}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.ktaShareCopyBtn}
+                      onClick={() => {
+                        const url = `${window.location.origin}/v/${publicCode}`;
+                        navigator.clipboard.writeText(url);
+                        setCopiedShareUrl(true);
+                        setTimeout(() => setCopiedShareUrl(false), 2500);
+                      }}
+                    >
+                      {copiedShareUrl ? "Tersalin!" : "Salin Tautan"}
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.ktaShareRegenBtn}
+                    onClick={handleRegeneratePublicCode}
+                    disabled={regeneratingCode}
+                  >
+                    {regeneratingCode ? "Membuat kode baru..." : "Ganti Kode Tautan"}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Sanitized Card Preview for Export (Zero private data) */}
+            <div className={styles.ktaShareExportPreviewWrapper}>
+              <div
+                ref={exportCardRef}
+                className={`${styles.ktaExportCard} ${
+                  shareRatio === "4:5" ? styles.ktaExportCard45 : styles.ktaExportCard916
+                } ${ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi}`}
+              >
+                {/* Subtle background effects */}
+                {ktaCardTheme === "luxury" ? (
+                  <div className={styles.ktaHoloOverlayLuxury} />
+                ) : (
+                  <div className={styles.ktaHoloOverlayResmi} />
+                )}
+
+                {/* Header */}
+                <div className={styles.ktaFrontHeader}>
+                  <div className={styles.ktaHeaderBrand}>
+                    <img
+                      src="/images/cava-logo.jpg"
+                      alt="Cavallery"
+                      className={styles.ktaLogoImg}
+                    />
+                    <div className={styles.ktaHeaderText}>
+                      <h2 className={styles.ktaFrontHeaderTitle}>KARTU TANDA ANGGOTA</h2>
+                      <span className={styles.ktaFrontHeaderSub}>FANBASE CAVALLERY</span>
+                    </div>
+                  </div>
+                  <div className={styles.ktaGarudaBadge}>
+                    <i className="fa-solid fa-chess-knight" />
+                    <span>CAVA</span>
+                  </div>
+                </div>
+
+                {/* Body: Photo + No. Kartu & Status */}
+                <div className={styles.ktaTopRow} style={{ marginTop: 10 }}>
+                  <div className={styles.ktaPhotoFrame}>
+                    <img
+                      src={
+                        sessionUser.fotoProfil
+                          ? `/api/kta/proxy-image?url=${encodeURIComponent(sessionUser.fotoProfil)}`
+                          : "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+                      }
+                      alt={displayName}
+                      className={styles.ktaPassportImg}
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                  <div className={styles.ktaCardMetaRight}>
+                    <div className={styles.ktaCardNoBlock}>
+                      <span className={styles.ktaCardNoLabel}>Nomor Anggota</span>
+                      <span className={styles.ktaCardNoValue}>
+                        {sessionUser.noAnggota || "CAVA-0001"}
+                      </span>
+                    </div>
+                    <div className={styles.ktaStatusBadgeRow}>
+                      <span className={styles.ktaStatusBadgeActive}>
+                        <i className="bx bxs-badge-check" />{" "}
+                        {sessionUser.status === "aktif"
+                          ? "AKTIF"
+                          : (sessionUser.status || "AKTIF").toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.ktaNameBlock}>
+                  <div className={styles.ktaMemberName}>
+                    {sessionUser.namaLengkap || displayName}
+                  </div>
+                  <div className={styles.ktaMemberHandle}>
+                    {sessionUser.idLine
+                      ? `@${sessionUser.idLine}`
+                      : sessionUser.kontakId || displayName}
+                  </div>
+                </div>
+
+                {/* Safe Sanitized Data Summary (No address, no TTL, no gender) */}
+                <div className={styles.ktaBiodataGrid} style={{ marginTop: 8 }}>
+                  <div className={styles.ktaBioItem}>
+                    <span className={styles.ktaBioLabel}>Oshi</span>
+                    <span className={styles.ktaBioValue}>
+                      <i className="bx bxs-heart" style={{ color: "#ef4444", marginRight: 3, fontSize: "0.75rem" }} />
+                      Catherina Vallencia
+                    </span>
+                  </div>
+                  <div className={styles.ktaBioItem}>
+                    <span className={styles.ktaBioLabel}>Anggota Sejak</span>
+                    <span className={styles.ktaBioValue}>
+                      {formattedJoinDate}
+                    </span>
+                  </div>
+                </div>
+
+                {/* QR Code to public verification */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginTop: "auto",
+                    paddingTop: 8,
+                    borderTop: "1px dashed rgba(212, 175, 55, 0.3)",
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--gold)" }}>
+                      VERIFIKASI RESMI
+                    </span>
+                    <span style={{ fontSize: "0.55rem", opacity: 0.75 }}>
+                      Scan QR untuk keaslian KTA
+                    </span>
+                  </div>
+                  <div style={{ background: "#ffffff", padding: 3, borderRadius: 6 }}>
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=90x90&margin=0&data=${encodeURIComponent(
+                        typeof window !== "undefined"
+                          ? `${window.location.origin}/v/${publicCode || sessionUser.noAnggota || "kta"}`
+                          : `/v/${publicCode || "kta"}`
+                      )}`}
+                      alt="QR Verifikasi"
+                      style={{ width: 44, height: 44, display: "block" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className={styles.ktaShareActionButtonsRow}>
+              <button
+                type="button"
+                className={styles.ktaSharePrimaryActionBtn}
+                onClick={handleExportPng}
+                disabled={exportingPng}
+              >
+                {exportingPng ? (
+                  <i className="bx bx-loader-alt bx-spin" />
+                ) : (
+                  <i className="bx bx-download" />
+                )}
+                <span>{exportingPng ? "Mengunduh..." : "Simpan Gambar (PNG)"}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.ktaShareSecondaryActionBtn}
+                onClick={handleWebShare}
+                disabled={sharingWeb}
+              >
+                {sharingWeb ? (
+                  <i className="bx bx-loader-alt bx-spin" />
+                ) : (
+                  <i className="bx bx-share" />
+                )}
+                <span>Bagikan</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -3230,6 +3230,130 @@
   border-color: rgba(239, 68, 68, 0.4);
 }
 
+/* Privacy Mode Toggle Button */
+.ktaPrivacyToggleBtn {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.ktaPrivacyToggleBtn:hover {
+  background: var(--gold-dim);
+  color: var(--fg);
+}
+
+.ktaPrivacyToggleBtnActive {
+  background: rgba(212, 175, 55, 0.15) !important;
+  border-color: rgba(212, 175, 55, 0.5) !important;
+  color: #d4af37 !important;
+}
+
+/* Share Card Toolbar Button */
+.ktaShareToolbarBtn {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(180, 83, 15, 0.18));
+  color: #f59e0b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.ktaShareToolbarBtn:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(180, 83, 15, 0.3));
+  color: #ffffff;
+}
+
+/* iOS Gyroscope Permission Button */
+.ktaIosSensorBtn {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.1);
+  color: #f6e7bf;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.ktaIosSensorBtn:hover {
+  background: rgba(212, 175, 55, 0.25);
+  color: #ffffff;
+}
+
+/* Masked Private Fields */
+.ktaMaskedValueRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ktaMaskedValue {
+  font-family: monospace;
+  letter-spacing: 0.15em;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.ktaRevealBtn {
+  background: none;
+  border: none;
+  color: #d4af37;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.ktaRevealBtn:hover {
+  color: #f59e0b;
+}
+
+.ktaPrivacyToast {
+  max-width: 360px;
+  margin: 0 auto 12px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #f6e7bf;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 .ktaFlipHint {
   text-align: center;
   font-family: var(--font-jakarta), sans-serif;
@@ -3259,6 +3383,18 @@
   user-select: none;
 }
 
+/* Wrapper Khusus Tilt 3D (Fitur 1 - Terpisah dari Flip Wrapper) */
+.ktaCardTiltWrapper {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  transform: perspective(1200px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
+  transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+/* Wrapper Khusus 3D Flip (Depan | Belakang) */
 .ktaCard3DWrapper {
   width: 100%;
   aspect-ratio: 54 / 86;
@@ -3273,6 +3409,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ktaCardTiltWrapper {
+    transform: none !important;
+    transition: none !important;
+  }
   .ktaCard3DWrapper {
     transition: none !important;
   }
@@ -3299,6 +3439,57 @@
 
 .ktaCardFaceBack {
   transform: rotateY(180deg);
+}
+
+/* ── OVERLAY HOLOGRAFIK BERKILAU (FITUR 1) ── */
+.ktaHoloOverlayLuxury {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+  mix-blend-mode: overlay;
+  opacity: 0.44;
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.6) 0%, rgba(246, 231, 191, 0.22) 25%, transparent 60%),
+    linear-gradient(calc(var(--angle, 135deg)), transparent 0%, rgba(246, 231, 191, 0.12) 30%, rgba(217, 180, 90, 0.4) 50%, rgba(246, 231, 191, 0.12) 70%, transparent 100%),
+    repeating-linear-gradient(45deg, transparent 0, transparent 3px, rgba(217, 180, 90, 0.05) 3px, rgba(217, 180, 90, 0.05) 4px);
+  transition: opacity 0.3s ease;
+}
+
+.ktaHoloOverlayResmi {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+  mix-blend-mode: soft-light;
+  opacity: 0.16;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.5) 0%, transparent 60%);
+}
+
+@keyframes ktaShimmerAnimation {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.ktaShimmerFallback {
+  animation: ktaShimmerAnimation 6s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ktaHoloOverlayLuxury,
+  .ktaHoloOverlayResmi {
+    animation: none !important;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 60%) !important;
+  }
 }
 
 /* ── THEME RESMI (Single smooth Ivory-Burnt Orange Gradient, no stripes) ── */
@@ -3833,6 +4024,249 @@
   line-height: 1.45;
   color: var(--fg-muted);
   text-align: center;
+}
+
+/* ── MODAL BAGIKAN KARTU PUBLIK & EKSPOR (FITUR 3) ── */
+.ktaShareModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(12px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.ktaShareModalCard {
+  width: 100%;
+  max-width: 440px;
+  background: #151311;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  border-radius: 24px;
+  padding: 22px 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+  color: #f6e7bf;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.ktaShareHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ktaShareHeaderTitle {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff3d0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.ktaShareRatioToggle {
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  padding: 3px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  align-self: center;
+}
+
+.ktaShareRatioBtn {
+  min-height: 32px;
+  padding: 4px 14px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #a8997a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ktaShareRatioBtnActive {
+  background: linear-gradient(135deg, #b4530f, #d97706);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(180, 83, 15, 0.4);
+}
+
+.ktaSharePublicSettings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.ktaShareToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ktaShareToggleLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff3d0;
+}
+
+.ktaShareToggleDesc {
+  font-size: 0.7rem;
+  color: #a8997a;
+  margin-top: 1px;
+}
+
+.ktaShareUrlBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d0c0a;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 10px;
+  padding: 6px 10px;
+  margin-top: 4px;
+}
+
+.ktaShareUrlText {
+  flex: 1;
+  font-size: 0.72rem;
+  color: #f59e0b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: monospace;
+}
+
+.ktaShareCopyBtn {
+  min-height: 30px;
+  padding: 2px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.15);
+  color: #f6e7bf;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.ktaShareCopyBtn:hover {
+  background: rgba(212, 175, 55, 0.3);
+  color: #ffffff;
+}
+
+.ktaShareRegenBtn {
+  background: none;
+  border: none;
+  color: #d4af37;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  align-self: flex-start;
+  padding: 0;
+}
+
+.ktaShareExportPreviewWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+/* Card Container to Export as PNG (Zero private data) */
+.ktaExportCard {
+  width: 100%;
+  border-radius: 20px;
+  padding: 20px 18px 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.ktaExportCard45 {
+  aspect-ratio: 4 / 5;
+  max-width: 320px;
+}
+
+.ktaExportCard916 {
+  aspect-ratio: 9 / 16;
+  max-width: 290px;
+}
+
+.ktaShareActionButtonsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ktaSharePrimaryActionBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #b4530f 0%, #d97706 100%);
+  color: #ffffff;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(180, 83, 15, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.ktaSharePrimaryActionBtn:hover {
+  transform: translateY(-1px);
+}
+
+.ktaShareSecondaryActionBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f6e7bf;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.ktaShareSecondaryActionBtn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: #ffffff;
 }
 
 /* ── MODAL UCAPAN ULANG TAHUN ERINE ── */
