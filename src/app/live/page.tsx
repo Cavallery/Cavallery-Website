@@ -1,6 +1,11 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import styles from "./page.module.css";
+import {
+  LiveNowList,
+  LiveOfflineCard,
+  mapApiToLiveCardProps,
+} from "@/components/LiveNowCard";
 
 const ERINE_IDN_URL = "https://www.idn.app/jkt48_erine";
 const ERINE_SHOWROOM_URL = "https://www.showroom-live.com/r/JKT48_Erine";
@@ -49,7 +54,7 @@ export default function LivePage() {
     return () => clearInterval(id);
   }, [load]);
 
-  const currentLive = lives[0] || null;
+  const liveMembers = useMemo(() => mapApiToLiveCardProps(lives), [lives]);
 
   return (
     <div className={styles.page}>
@@ -64,8 +69,8 @@ export default function LivePage() {
             Live Streaming <span className="textGold">Erine</span>
           </h1>
           <p className={styles.heroSub}>
-            {erineLive
-              ? "Catherina Vallencia (Erine) sedang LIVE sekarang! Klik tombol di bawah untuk langsung menonton siarannya."
+            {erineLive && liveMembers.length > 0
+              ? "Catherina Vallencia (Erine) sedang live sekarang! Tonton siarannya langsung melalui tombol di bawah."
               : "Pantau siaran langsung Catherina Vallencia (Erine) di IDN Live dan Showroom secara real-time."}
           </p>
         </div>
@@ -92,98 +97,20 @@ export default function LivePage() {
           <div className={styles.errorBox}>
             <i className="bx bx-error-circle" /> {error}
           </div>
-        ) : erineLive && currentLive ? (
-          /* Erine is Currently Live */
-          <div style={{ maxWidth: 540, margin: "0 auto" }}>
-            <div className={`glassCard ${styles.card} ${styles.cardErine}`}>
-              <div className={styles.erineBadge}>
-                <i className="bx bxs-star" /> Erine sedang LIVE!
-              </div>
-
-              <div className={styles.cardImg} style={{ height: 260 }}>
-                {currentLive.img ? (
-                  <img src={currentLive.img} alt="Erine Live" loading="lazy" />
-                ) : (
-                  <div className={styles.noImg}>
-                    <i className="bx bxs-user" />
-                  </div>
-                )}
-                <div className={`${styles.liveDot} ${styles.liveDotGold}`} />
-              </div>
-
-              <div className={styles.cardBody} style={{ padding: "1.4rem", textAlign: "center" }}>
-                <div className={styles.platform} style={{ justifyContent: "center", marginBottom: 6 }}>
-                  <i
-                    className={`bx ${
-                      currentLive.type?.includes("showroom") ? "bx-broadcast" : "bx-video"
-                    }`}
-                  />
-                  {currentLive.platform || "IDN LIVE"}
-                </div>
-
-                <h2 className={styles.memberName} style={{ fontSize: "1.4rem", marginBottom: 6 }}>
-                  Catherina Vallencia (Erine)
-                </h2>
-
-                <p style={{ fontSize: "0.85rem", color: "#aaa", marginBottom: 16 }}>
-                  Sedang melangsungkan siaran langsung. Yuk gabung dan berikan semangat untuk Erine!
-                </p>
-
-                {(() => {
-                  const directUrl =
-                    currentLive.url?.includes("/live/")
-                      ? currentLive.url
-                      : currentLive.slug
-                        ? `https://www.idn.app/${currentLive.url_key || "jkt48_erine"}/live/${currentLive.slug}`
-                        : currentLive.url || ERINE_IDN_URL;
-                  return (
-                    <a
-                      href={directUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`btnPrimary ${styles.watchBtn}`}
-                      style={{ fontSize: "1rem", padding: "12px 24px" }}
-                    >
-                      <i className="bx bx-play-circle" /> Tonton Live Erine Sekarang!
-                    </a>
-                  );
-                })()}
-              </div>
-            </div>
+        ) : liveMembers.length > 0 ? (
+          /* Erine / Member is Currently Live */
+          <div style={{ maxWidth: 680, margin: "0 auto" }}>
+            <LiveNowList members={liveMembers} />
           </div>
         ) : (
-          /* Erine is Currently Offline */
-          <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-            <div className={styles.empty} style={{ padding: "3rem 1.5rem" }}>
-              <i className="bx bx-video-off" style={{ fontSize: "3.5rem", color: "var(--gold)", opacity: 0.6 }} />
-              <h3 style={{ fontSize: "1.3rem", color: "#fff", margin: "1rem 0 0.5rem" }}>
-                Erine Belum Live Saat Ini
-              </h3>
-              <p style={{ fontSize: "0.92rem", color: "#aaa", maxWidth: 460, margin: "0 auto 1.8rem" }}>
-                Saat ini Catherina Vallencia belum melangsungkan live streaming. Kamu bisa memantau dan mem-follow akun resmi Erine di bawah ini agar tidak ketinggalan saat live dimulai:
-              </p>
-
-              <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                <a
-                  href={ERINE_IDN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btnPrimary"
-                  style={{ padding: "10px 20px", fontSize: "0.9rem" }}
-                >
-                  <i className="bx bx-video" /> IDN Live Erine
-                </a>
-                <a
-                  href={ERINE_SHOWROOM_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btnOutline"
-                  style={{ padding: "10px 20px", fontSize: "0.9rem" }}
-                >
-                  <i className="bx bx-broadcast" /> Showroom Erine
-                </a>
-              </div>
-            </div>
+          /* Erine is Currently Offline (Redesigned UI) */
+          <div style={{ maxWidth: 680, margin: "0 auto" }}>
+            <LiveOfflineCard
+              name="Catherina Vallencia"
+              nickname="Erine"
+              idnUrl={ERINE_IDN_URL}
+              showroomUrl={ERINE_SHOWROOM_URL}
+            />
           </div>
         )}
       </div>

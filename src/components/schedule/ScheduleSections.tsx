@@ -1,6 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./ScheduleSections.module.css";
+import {
+  LiveNowList,
+  LiveOfflineCard,
+  mapApiToLiveCardProps,
+} from "@/components/LiveNowCard";
 
 const ERINE_KEYS = ["erine", "catherina", "vallencia"];
 function isErine(name: string) {
@@ -222,119 +227,79 @@ export function LiveSection() {
       const res = await fetch("/api/live", { cache: "no-store" });
       const json = await res.json();
       setLives(Array.isArray(json.data) ? json.data : []);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { load(); const id = setInterval(load, 60000); return () => clearInterval(id); }, [load]);
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 60000);
+    return () => clearInterval(id);
+  }, [load]);
+
+  const liveMembers = useMemo(() => mapApiToLiveCardProps(lives), [lives]);
 
   if (loading) return <div className={styles.loading}>Memeriksa siaran live Erine...</div>;
 
   // Jika Erine sedang live sekarang
-  if (lives.length > 0) {
+  if (liveMembers.length > 0) {
     return (
       <section className={styles.section} id="live">
         <div className={styles.sectionHeader}>
-          <div className="badge" style={{ background: "rgba(239, 68, 68, 0.15)", color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.3)" }}>
+          <div
+            className="badge"
+            style={{
+              background: "rgba(239, 68, 68, 0.15)",
+              color: "#ef4444",
+              borderColor: "rgba(239, 68, 68, 0.3)",
+            }}
+          >
             <i className="bx bx-broadcast bx-flashing" /> Sedang Live Sekarang!
           </div>
         </div>
-        <div className={styles.liveGrid}>
-          {lives.map((l, i) => {
-            const name = l.name ?? l.member_name ?? "Catherina Vallencia (Erine)";
-            const img = l.image ?? l.img ?? l.avatar ?? "https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg";
-            const highlight = l.is_erine || isErine(name);
-            const url =
-              l.url && l.url !== "#" && l.url.includes("/live/")
-                ? l.url
-                : highlight
-                  ? (l.slug
-                      ? `https://www.idn.app/${l.url_key || "jkt48_erine"}/live/${l.slug}`
-                      : l.url || "https://www.idn.app/jkt48_erine")
-                  : (l.slug && l.url_key
-                      ? `https://www.idn.app/${l.url_key}/live/${l.slug}`
-                      : l.url || (l.url_key ? `https://www.idn.app/${l.url_key}` : "#"));
-
-            return (
-              <div key={l.id ?? i} className={`${styles.liveCard} ${styles.liveErine}`}>
-                <div className={styles.liveImg}><img src={img} alt={name} /></div>
-                <div className={styles.liveInfo}>
-                  <h4>{name}</h4>
-                  <span style={{ fontSize: "0.75rem", color: "var(--gold)", display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                    <i className="bx bxs-star" /> {l.platform || "IDN Live"}
-                  </span>
-                  <a href={url} target="_blank" rel="noreferrer" className="btnPrimary" style={{ marginTop: "8px" }}>
-                    Tonton Live Erine Sekarang!
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <LiveNowList members={liveMembers} />
       </section>
     );
   }
 
-  // Jika sedang offline, tampilkan kanal live resmi Erine agar selalu muncul di halaman schedule
+  // Jika sedang offline, tampilkan kanal live resmi Erine dengan UI elegan
   return (
     <section className={styles.section} id="live">
       <div className={styles.sectionHeader}>
-        <div className="badge"><i className="bx bx-broadcast" /> Kanal Live Erine</div>
-        <span style={{ fontSize: "0.8rem", color: "#888", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#6b7280" }} /> Sedang Offline
+        <div className="badge">
+          <i className="bx bx-broadcast" /> Kanal Live Erine
+        </div>
+        <span
+          style={{
+            fontSize: "0.8rem",
+            color: "#888",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "#6b7280",
+            }}
+          />{" "}
+          Sedang Offline
         </span>
       </div>
-      <div className={styles.liveGrid}>
-        {/* IDN Live Channel Card */}
-        <div className={`${styles.liveCard} ${styles.liveErine}`}>
-          <div className={styles.liveImg}>
-            <img src="https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg" alt="Erine IDN Live" />
-          </div>
-          <div className={styles.liveInfo} style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <h4 style={{ margin: 0 }}>Catherina Vallencia</h4>
-              <span className="badge" style={{ fontSize: "0.65rem", padding: "2px 6px" }}>IDN Live</span>
-            </div>
-            <p style={{ fontSize: "0.78rem", color: "#888", margin: "4px 0 10px" }}>
-              @jkt48_erine &bull; Live interaktif & mabar rutin
-            </p>
-            <a
-              href="https://www.idn.app/jkt48_erine"
-              target="_blank"
-              rel="noreferrer"
-              className="btnOutline"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", padding: "6px 14px" }}
-            >
-              <i className="bx bx-play-circle" /> Buka IDN Live Erine
-            </a>
-          </div>
-        </div>
-
-        {/* Showroom Channel Card */}
-        <div className={styles.liveCard}>
-          <div className={styles.liveImg}>
-            <img src="/images/erine1.jpg" alt="Erine Showroom" />
-          </div>
-          <div className={styles.liveInfo} style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <h4 style={{ margin: 0 }}>JKT48_Erine</h4>
-              <span className="badge" style={{ fontSize: "0.65rem", padding: "2px 6px" }}>Showroom</span>
-            </div>
-            <p style={{ fontSize: "0.78rem", color: "#888", margin: "4px 0 10px" }}>
-              Ruang siaran resmi Erine di SHOWROOM
-            </p>
-            <a
-              href="https://www.showroom-live.com/r/JKT48_Erine"
-              target="_blank"
-              rel="noreferrer"
-              className="btnOutline"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", padding: "6px 14px" }}
-            >
-              <i className="bx bx-video" /> Buka Showroom Erine
-            </a>
-          </div>
-        </div>
-      </div>
+      <LiveOfflineCard
+        name="Catherina Vallencia"
+        nickname="Erine"
+        avatarUrl="https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg"
+        idnUrl="https://www.idn.app/jkt48_erine"
+        showroomUrl="https://www.showroom-live.com/r/JKT48_Erine"
+        notice="Saat ini Erine belum melangsungkan siaran langsung. Kamu bisa mengunjungi kanal resmi IDN Live atau Showroom di bawah ini:"
+      />
     </section>
   );
 }
