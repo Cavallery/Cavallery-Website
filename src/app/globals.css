@@ -1,10 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:wght@300..800&family=Caveat:wght@400..700&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Montserrat:wght@300..800&family=Caveat:wght@400..700&family=Patrick+Hand&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  --font-cinzel: 'Cinzel', Georgia, serif;
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --bg: #f4efe6;
   --bg-checker: #ebe4d5;
   --fg: #372e27;
@@ -531,8 +533,8 @@ select option {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 580px !important;
-    max-width: 580px !important;
+    width: 360px !important;
+    max-width: 360px !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
