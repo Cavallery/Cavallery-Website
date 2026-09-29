@@ -379,16 +379,15 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background: #171410;
-  background: linear-gradient(145deg, #1d1914 0%, #110f0c 100%);
-  border: 1.5px solid rgba(201, 168, 76, 0.45);
-  border-radius: 24px;
-  padding: 24px 28px;
+  background: #111111;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 22px;
+  padding: 24px 26px;
   color: #ffffff;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 0 20px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
   z-index: 2;
@@ -403,20 +402,21 @@
 }
 
 .brandBadge {
-  font-family: var(--serif);
+  font-family: var(--font-cinzel), var(--serif);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.15em;
   color: #ffffff;
-  border: 1.5px solid rgba(201, 168, 76, 0.6);
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
   padding: 4px 14px;
   border-radius: 50px;
-  background: #252019;
+  background: #1f1b15;
   position: relative;
   z-index: 4;
 }
 
 .memberStatusText {
+  font-family: var(--font-jakarta), sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   color: #10b981;
@@ -427,69 +427,79 @@
 
 .memberCardBody {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  align-items: flex-start;
+  gap: 18px;
 }
 
 .memberAvatarWrapper {
   position: relative;
   display: inline-block;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .memberAvatarCircle {
-  width: 76px;
-  height: 76px;
-  min-width: 76px;
+  width: 84px;
+  height: 84px;
+  min-width: 84px;
   border-radius: 50%;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--serif);
+  font-family: var(--font-cinzel), var(--serif);
   font-size: 2.2rem;
   font-weight: 900;
-  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+  border: 2.5px solid #d4af37;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
   position: relative;
 }
 
 .memberAvatarCircle:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+.memberAvatarCircle:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
 }
 
 .memberAvatarImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .avatarEditBadge {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 26px;
-  height: 26px;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #1e1b18;
-  border: 1.5px solid var(--gold, #c9a84c);
-  color: var(--gold, #c9a84c);
+  background: #181512;
+  border: 1.5px solid var(--gold, #d4af37);
+  color: var(--gold, #d4af37);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   transition: all 0.2s ease;
   z-index: 2;
 }
 
 .avatarEditBadge:hover {
-  background: var(--gold, #c9a84c);
-  color: #1e1b18;
+  background: var(--gold, #d4af37);
+  color: #181512;
   transform: scale(1.15);
 }
 
@@ -549,23 +559,26 @@
 }
 
 .memberCardDetails {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
 .memberNameMain {
-  font-family: var(--serif);
-  font-size: 1.55rem;
-  font-weight: 900;
+  font-family: var(--font-cinzel), var(--serif);
+  font-size: 1.45rem;
+  font-weight: 800;
   color: #ffffff;
   margin: 0;
   line-height: 1.2;
 }
 
 .memberSubText {
+  font-family: var(--font-jakarta), sans-serif;
   font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #e2d5ba;
   margin: 0;
 }
 
@@ -575,31 +588,162 @@
   gap: 8px;
   margin-top: 2px;
   cursor: pointer;
+  width: fit-content;
 }
 
 .memberCodeText {
-  font-family: var(--mono, monospace);
-  font-size: 1.15rem;
-  font-weight: 900;
+  font-family: var(--font-cinzel), monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #f59e0b;
   letter-spacing: 0.05em;
 }
 
 .memberCodeQr {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: #f59e0b;
   opacity: 0.9;
   transition: transform 0.2s ease;
 }
 
 .memberCodeRow:hover .memberCodeQr {
+  transform: scale(1.18);
+}
+
+.memberTtlRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.82rem;
+  color: #d8c9a8; /* Warm light sand: high contrast on #111 */
+  margin-top: 3px;
+}
+
+.memberTtlRow i {
+  color: #d4af37;
+  font-size: 0.95rem;
+}
+
+.memberTtlRow strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.memberTtlEditBtn {
+  background: none;
+  border: none;
+  color: #d4af37;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.15s ease;
+}
+
+.memberTtlEditBtn:hover {
   transform: scale(1.2);
 }
 
 .memberSinceText {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.8rem;
+  color: #d8c9a8; /* High contrast on #111 */
   margin-top: 2px;
+}
+
+/* Row Aksi Profil: Badge + KTA Utama + PIN Sekunder (Min 44px Tap Target) */
+.memberActionsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.memberBadgePill {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+}
+
+.memberKtaPrimaryBtn {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  border: none;
+  background: linear-gradient(135deg, #b4530f 0%, #d97706 100%);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(180, 83, 15, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.memberKtaPrimaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(180, 83, 15, 0.55);
+}
+
+.memberPinSecondaryBtn {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  color: #d8c9a8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.memberPinSecondaryBtn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  color: #ffffff;
+}
+
+.memberBirthdayActionBtn {
+  min-height: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: none;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+  box-sizing: border-box;
 }
 
 /* ── Admin Fanbase Exemption Card (Bebas Kas) ── */
@@ -719,39 +863,69 @@
   color: var(--gold, #c9a84c);
 }
 
-/* ── Bottom Navigation Card (Pills + Keluar) ── */
+/* ── Bottom Navigation Card (Horizontal Scroll Tabs + Keluar Outline) ── */
 .navPillsCard {
   background: var(--surface, #ffffff);
   border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 16px 20px;
+  border-radius: 22px;
+  padding: 14px 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.navPillsRow {
+:global([data-theme="dark"]) .navPillsCard {
+  background: #171513;
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* Horizontal scrollable track with hidden scrollbar */
+.navTabsScrollTrack {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 2px 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navTabsScrollTrack::-webkit-scrollbar {
+  display: none;
 }
 
 .navPillBtn {
-  flex: 1;
-  padding: 14px 20px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-height: 44px;
+  height: 44px;
+  padding: 10px 20px;
   border-radius: 50px;
   border: 1px solid var(--border);
-  font-family: var(--sans);
-  font-size: 1rem;
-  font-weight: 800;
+  font-family: var(--font-jakarta), var(--sans);
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
   background: var(--bg);
   color: var(--fg-muted);
-  transition: all 0.25s ease;
-  display: flex;
+  transition: all 0.2s ease;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+:global([data-theme="dark"]) .navPillBtn {
+  background: #24201c;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #d8c9a8;
 }
 
 .navPillBtn:hover {
@@ -760,21 +934,23 @@
 }
 
 .navPillBtnActive {
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, var(--primary, #b45309) 100%);
-  color: #ffffff;
-  border: 1.5px solid var(--border-gold);
-  box-shadow: 0 6px 18px rgba(180, 83, 9, 0.35);
+  background: linear-gradient(135deg, #b4530f 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border-color: #b4530f !important;
+  box-shadow: 0 4px 14px rgba(180, 83, 15, 0.4);
 }
 
 .logoutOutlineBtn {
   width: 100%;
-  padding: 11px 20px;
-  border-radius: 50px;
-  border: 1.5px solid var(--border);
+  min-height: 44px;
+  height: 44px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
   background: transparent;
-  color: var(--fg-muted);
-  font-family: var(--sans);
-  font-size: 0.92rem;
+  color: #ef4444;
+  font-family: var(--font-jakarta), var(--sans);
+  font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -782,12 +958,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .logoutOutlineBtn:hover {
   border-color: #ef4444;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
+  color: #ffffff;
+  background: #ef4444;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
 }
 
 /* ── Verification Modal (Sesuai Referensi Gambar 1) ── */
@@ -1957,48 +2135,61 @@
   }
   .memberCard {
     padding: 20px 16px;
-    border-radius: 20px;
+    border-radius: 22px;
     gap: 14px;
   }
   .memberCardBody {
     gap: 14px;
   }
   .memberAvatarCircle {
-    width: 64px;
-    height: 64px;
-    min-width: 64px;
-    font-size: 1.8rem;
+    width: 84px;
+    height: 84px;
+    min-width: 84px;
+    font-size: 2.1rem;
   }
   .memberNameMain {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
   .memberCodeText {
-    font-size: 1rem;
+    font-size: 1.05rem;
+  }
+  .memberActionsRow {
+    gap: 8px;
+    width: 100%;
+  }
+  .memberKtaPrimaryBtn {
+    flex: 1;
+    min-width: 140px;
+    justify-content: center;
+  }
+  .memberPinSecondaryBtn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
   }
   .navPillsCard {
-    padding: 10px 10px;
-    border-radius: 20px;
+    padding: 12px;
+    border-radius: 22px;
     box-sizing: border-box;
   }
-  .navPillsRow {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    width: 100%;
-    box-sizing: border-box;
+  .navTabsScrollTrack {
+    gap: 8px;
+    padding-bottom: 4px;
   }
   .navPillBtn {
-    padding: 9px 2px;
-    font-size: 0.72rem;
-    gap: 3px;
+    flex: 0 0 auto;
+    min-height: 44px;
+    height: 44px;
+    padding: 10px 18px;
+    font-size: 0.84rem;
+    gap: 6px;
     border-radius: 50px;
-    min-width: 0;
     box-sizing: border-box;
-    white-space: nowrap;
   }
   .logoutOutlineBtn {
-    padding: 9px 14px;
-    font-size: 0.85rem;
+    min-height: 44px;
+    height: 44px;
+    font-size: 0.88rem;
   }
   .authCard,
   .dashCard {
@@ -2912,546 +3103,736 @@
   gap: 10px;
 }
 
-/* ── KTA CARD THEME SWITCHER & TOOLBAR ── */
-.ktaThemeToggle {
+/* ── KTA CONTROLS & SEGMENTED SWITCHER ── */
+.ktaToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.ktaToolbarTitle {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ktaControlsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ktaSegmentedControl {
   display: inline-flex;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  padding: 2px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 3px;
   border: 1px solid var(--border);
 }
 
-:global([data-theme="dark"]) .ktaThemeToggle {
+:global([data-theme="dark"]) .ktaSegmentedControl {
   background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.ktaThemeOption {
-  padding: 4px 10px;
-  font-size: 0.72rem;
+.ktaSegmentBtn {
+  min-height: 34px;
+  padding: 4px 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.76rem;
   font-weight: 700;
   border: none;
   background: transparent;
   color: var(--fg-muted);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ktaSegmentBtnActive {
+  background: linear-gradient(135deg, #b4530f 0%, #d97706 100%);
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(180, 83, 15, 0.35);
+}
+
+.ktaToolbarBtn {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: all 0.2s ease;
 }
 
-.ktaThemeOptionActive {
-  background: var(--gold);
+.ktaToolbarBtn:hover {
+  background: var(--gold-dim);
+  border-color: var(--border-gold);
+}
+
+.ktaToolbarPrintBtn {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #b4530f 0%, #d97706 100%);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(180, 83, 15, 0.3);
+  transition: transform 0.15s ease;
 }
 
-/* ── KTA CARD PHYSICAL CONTAINER (CR-80 PVC ID CARD) ── */
-.ktaCardContainer {
-  width: 100%;
-  border-radius: 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35);
-  border: 2px solid #d4af37;
-  padding: 18px 22px 14px;
-  user-select: none;
-  transition: all 0.3s ease;
+.ktaToolbarPrintBtn:hover {
+  transform: translateY(-1px);
 }
 
-/* Mode Resmi PVC Standar (Sesuai Referensi Foto KTA Fans Italy versi Cavallery) */
-.ktaCardResmi {
-  background: #ffffff;
-  color: #0f172a;
-}
-
-/* Latar Belakang 3 Garis Vertikal (Gold - Putih - Passion Rose) */
-.ktaTricolorBg {
-  position: absolute;
-  inset: 0;
+.ktaCloseBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  cursor: pointer;
   display: flex;
-  pointer-events: none;
-  z-index: 1;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
 }
 
-.ktaTricolorLeft {
-  flex: 30;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.06) 100%);
+.ktaCloseBtn:hover {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
-.ktaTricolorMid {
-  flex: 40;
-  background: rgba(255, 255, 255, 0.94);
+.ktaFlipHint {
+  text-align: center;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  user-select: none;
 }
 
-.ktaTricolorRight {
-  flex: 30;
-  background: linear-gradient(225deg, rgba(244, 63, 94, 0.16) 0%, rgba(244, 63, 94, 0.05) 100%);
+.ktaFlipHint i {
+  color: #d4af37;
+  font-size: 0.95rem;
 }
 
-/* Mode Luxury (Dark Gold) */
-.ktaCardLuxury {
-  background: linear-gradient(135deg, #18140f 0%, #0d0b09 60%, #15110d 100%);
-  color: #ffffff;
+/* ── 3D FLIP CARD SCENE (CR-80 PORTRAIT 54:86, MAX-WIDTH 360PX) ── */
+.ktaCardScene {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  perspective: 1200px;
+  cursor: pointer;
+  user-select: none;
 }
 
-/* Glossy Laminate Reflection */
-.ktaCardGlossOverlay {
+.ktaCard3DWrapper {
+  width: 100%;
+  aspect-ratio: 54 / 86;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 22px;
+}
+
+.ktaCard3DWrapperFlipped {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ktaCard3DWrapper {
+    transition: none !important;
+  }
+}
+
+/* Card Faces */
+.ktaCardFaceFront,
+.ktaCardFaceBack {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    120deg,
-    rgba(255, 255, 255, 0.42) 0%,
-    rgba(255, 255, 255, 0.12) 32%,
-    transparent 52%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  pointer-events: none;
-  z-index: 5;
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  box-sizing: border-box;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
-.ktaWatermarkEmblem {
+.ktaCardFaceBack {
+  transform: rotateY(180deg);
+}
+
+/* ── THEME RESMI (Single smooth Ivory-Burnt Orange Gradient, no stripes) ── */
+.ktaThemeResmi {
+  background: linear-gradient(155deg, #fffaf1 0%, #f6e6cc 100%);
+  border: 1.5px solid rgba(180, 83, 15, 0.35);
+  color: #2a1a10;
+}
+
+.ktaThemeResmi .ktaFrontHeaderSub {
+  color: #b4530f;
+}
+
+.ktaThemeResmi .ktaMemberName {
+  color: #2a1a10;
+}
+
+.ktaThemeResmi .ktaBioLabel {
+  color: #785a44;
+}
+
+.ktaThemeResmi .ktaBioValue {
+  color: #1a1008;
+}
+
+.ktaThemeResmi .ktaTermsItem {
+  color: #3b281c;
+}
+
+.ktaThemeResmi .ktaTermsNumber {
+  background: rgba(180, 83, 15, 0.12);
+  color: #b4530f;
+  border: 1px solid rgba(180, 83, 15, 0.25);
+}
+
+.ktaThemeResmi .ktaPhotoFrame {
+  border-color: #b4530f;
+  box-shadow: 0 4px 14px rgba(180, 83, 15, 0.2);
+}
+
+.ktaThemeResmi .ktaCardNoValue {
+  color: #b4530f;
+}
+
+.ktaThemeResmi .ktaCardDashedLine {
+  border-top-color: rgba(180, 83, 15, 0.25);
+}
+
+/* ── THEME LUXURY (Pure Black-Gold, ZERO BLUE) ── */
+.ktaThemeLuxury {
+  background: linear-gradient(155deg, #181715 0%, #0c0b0a 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  color: #f6e7bf;
+}
+
+.ktaThemeLuxury .ktaFrontHeaderSub {
+  color: #d4af37;
+}
+
+.ktaThemeLuxury .ktaMemberName {
+  color: #fff3d0;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+
+.ktaThemeLuxury .ktaBioLabel {
+  color: #a8997a;
+}
+
+.ktaThemeLuxury .ktaBioValue {
+  color: #fbf0d4;
+}
+
+.ktaThemeLuxury .ktaTermsItem {
+  color: #e5d7b5;
+}
+
+.ktaThemeLuxury .ktaTermsNumber {
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+.ktaThemeLuxury .ktaPhotoFrame {
+  border-color: #d4af37;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(212, 175, 55, 0.25);
+}
+
+.ktaThemeLuxury .ktaCardNoValue {
+  color: #f59e0b;
+}
+
+.ktaThemeLuxury .ktaCardDashedLine {
+  border-top-color: rgba(212, 175, 55, 0.25);
+}
+
+/* Watermark Emblem */
+.ktaWatermarkChess {
   position: absolute;
-  left: 45%;
-  top: 55%;
-  transform: translate(-50%, -50%);
-  font-size: 15rem;
-  color: rgba(180, 83, 9, 0.045);
+  right: -25px;
+  bottom: 25px;
+  font-size: 13rem;
+  color: #000000;
+  opacity: 0.05;
   pointer-events: none;
+  z-index: 0;
+  line-height: 1;
+}
+
+.ktaThemeLuxury .ktaWatermarkChess {
+  color: #d4af37;
+  opacity: 0.06;
+}
+
+/* Card Layers relative */
+.ktaCardContentLayer {
+  position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
 }
 
-.ktaCardLuxury .ktaWatermarkEmblem {
-  color: rgba(212, 175, 55, 0.045);
-}
-
-/* ── KTA HEADER ── */
-.ktaCardHeader {
+/* ── FRONT FACE ELEMENTS ── */
+.ktaFrontHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: relative;
-  z-index: 3;
-  padding-bottom: 10px;
-  border-bottom: 1.5px solid rgba(212, 175, 55, 0.35);
-  margin-bottom: 12px;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
-.ktaHeaderLogoLeft {
-  width: 50px;
-  height: 50px;
+.ktaHeaderBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ktaLogoImg {
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 2px solid #b45309;
   object-fit: cover;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
+  border: 1.5px solid #d4af37;
 }
 
-.ktaHeaderCenter {
-  text-align: center;
-  flex: 1;
-  padding: 0 10px;
+.ktaHeaderText {
+  display: flex;
+  flex-direction: column;
 }
 
-.ktaMainTitle {
-  font-size: 1.08rem;
-  font-weight: 900;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+.ktaFrontHeaderTitle {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   margin: 0;
   line-height: 1.2;
 }
 
-.ktaCardResmi .ktaMainTitle {
-  color: #0f172a;
-}
-
-.ktaCardLuxury .ktaMainTitle {
-  color: #f7d57f;
-}
-
-.ktaSubTitle1 {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: #b45309;
-  display: block;
-  margin-top: 2px;
-}
-
-.ktaCardLuxury .ktaSubTitle1 {
-  color: #e5c068;
-}
-
-.ktaSubTitle2 {
+.ktaFrontHeaderSub {
+  font-family: var(--font-jakarta), sans-serif;
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #64748b;
-  display: block;
   margin-top: 1px;
 }
 
-.ktaCardLuxury .ktaSubTitle2 {
-  color: #94a3b8;
-}
-
-.ktaHeaderCrestRight {
-  width: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .ktaGarudaBadge {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #b45309, #d97706);
-  color: #fff;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 8px rgba(180, 83, 9, 0.35);
-  border: 1.5px solid #fef08a;
-}
-
-.ktaGarudaBadge i {
-  font-size: 1.2rem;
-}
-
-.ktaGarudaBadge span {
-  font-size: 0.5rem;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-}
-
-/* ── KTA BODY ── */
-.ktaCardBody {
-  display: flex;
-  gap: 16px;
-  position: relative;
-  z-index: 3;
-}
-
-/* Kolom Kiri: Tabel Data Anggota */
-.ktaDataColumn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4.5px;
-  min-width: 0;
-}
-
-.ktaDataRow {
-  display: grid;
-  grid-template-columns: 110px 12px 1fr;
-  align-items: baseline;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-.ktaDataLabel {
-  font-weight: 800;
-  font-size: 0.74rem;
-  letter-spacing: 0.4px;
-}
-
-.ktaCardResmi .ktaDataLabel {
-  color: #334155;
-}
-
-.ktaCardLuxury .ktaDataLabel {
-  color: #a89476;
-}
-
-.ktaDataColon {
-  font-weight: 800;
-  text-align: center;
-}
-
-.ktaCardResmi .ktaDataColon {
-  color: #64748b;
-}
-
-.ktaCardLuxury .ktaDataColon {
-  color: #d4af37;
-}
-
-.ktaDataValue {
-  font-weight: 700;
-  text-transform: uppercase;
-  word-break: break-word;
-}
-
-.ktaCardResmi .ktaDataValue {
-  color: #0f172a;
-}
-
-.ktaCardLuxury .ktaDataValue {
-  color: #f1f5f9;
-}
-
-/* Baris Nomor Kartu (Spesial: Lebih Besar & Tebal Sesuai Gambar Referensi) */
-.ktaNoKartuRow .ktaDataLabel {
-  font-size: 0.88rem;
-  font-weight: 900;
-}
-
-.ktaNoKartuRow .ktaDataValue {
-  font-size: 1.08rem;
-  font-weight: 900;
-  letter-spacing: 1px;
-  font-family: 'Courier New', Courier, monospace;
-  color: #b45309 !important;
-}
-
-.ktaCardLuxury .ktaNoKartuRow .ktaDataValue {
-  color: #f7d57f !important;
-}
-
-.ktaStatusBadge {
-  display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-weight: 900;
-  color: #16a34a;
-}
-
-.ktaCardLuxury .ktaStatusBadge {
-  color: #4ade80;
-}
-
-/* Kolom Kanan: Foto, Golongan Darah & Barcode */
-.ktaPhotoBarcodeColumn {
-  width: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  justify-content: flex-start;
-  padding-top: 4px;
-}
-
-.ktaPassportPhotoFrame {
-  width: 108px;
-  height: 138px;
-  border: 2px solid #1e293b;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #f1f5f9;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ktaPassportEmpty {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 6px;
-  text-align: center;
-  gap: 6px;
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.ktaPassportEmpty i {
-  font-size: 2.2rem;
-  color: #94a3b8;
-}
-
-.ktaCardLuxury .ktaPassportEmpty {
-  background: #1a1713;
-  color: #a89476;
-}
-
-.ktaCardLuxury .ktaPassportEmpty i {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.7rem;
+  font-weight: 800;
   color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
 }
 
-.ktaCardLuxury .ktaPassportPhotoFrame {
-  border-color: #d4af37;
-  background: #111;
+/* Top Row: Photo + Card No & Status */
+.ktaTopRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.ktaPhotoFrame {
+  width: 82px;
+  height: 104px;
+  border-radius: 14px;
+  border: 2px solid #d4af37;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #111111;
+  position: relative;
+  cursor: pointer;
 }
 
 .ktaPassportImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.ktaPhotoCaption {
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  text-align: center;
-  margin: 5px 0 3px;
-  line-height: 1.1;
-}
-
-.ktaCardResmi .ktaPhotoCaption {
-  color: #0f172a;
-}
-
-.ktaCardLuxury .ktaPhotoCaption {
-  color: #f7d57f;
-}
-
-/* Barcode Box */
-.ktaBarcodeBox {
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  padding: 3px 4px;
+.ktaPhotoChangeOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-family: var(--font-jakarta), sans-serif;
+  font-weight: 700;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.ktaBarcodeBars {
-  width: 100%;
-  height: 22px;
-  background: repeating-linear-gradient(
-    90deg,
-    #000000 0,
-    #000000 1.5px,
-    transparent 1.5px,
-    transparent 3px,
-    #000000 3px,
-    #000000 5px,
-    transparent 5px,
-    transparent 6.5px,
-    #000000 6.5px,
-    #000000 7.5px,
-    transparent 7.5px,
-    transparent 9px,
-    #000000 9px,
-    #000000 11.5px,
-    transparent 11.5px,
-    transparent 13px
-  );
+.ktaPhotoFrame:hover .ktaPhotoChangeOverlay {
+  opacity: 1;
 }
 
-.ktaBarcodeNum {
-  font-size: 0.6rem;
-  font-family: monospace;
+.ktaCardMetaRight {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ktaCardNoBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.ktaCardNoLabel {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.ktaCardNoValue {
+  font-family: var(--font-cinzel), monospace;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #000000;
-  letter-spacing: 1px;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.ktaStatusBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ktaStatusBadgeActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #10b981;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 50px;
+}
+
+/* Name Block */
+.ktaNameBlock {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ktaMemberName {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ktaMemberHandle {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.75;
   margin-top: 1px;
 }
 
-/* Micro Security Chip / Seal */
-.ktaDigitalSecuritySeal {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(212, 175, 55, 0.35);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  z-index: 3;
+/* 2-Column Biodata Grid */
+.ktaBiodataGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-top: 12px;
 }
 
-.ktaSecurityTag {
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+.ktaBioItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.ktaBioLabel {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.64rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ktaBioValue {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1px;
+  word-break: break-word;
+}
+
+/* Front Footer */
+.ktaFrontFooter {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(212, 175, 55, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ktaFrontSecurityTag {
   display: flex;
   align-items: center;
   gap: 5px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.85;
 }
 
-.ktaCardResmi .ktaSecurityTag {
-  color: #64748b;
-}
-
-.ktaCardLuxury .ktaSecurityTag {
-  color: #a89476;
+.ktaFrontSecurityTag i {
+  color: #d4af37;
+  font-size: 0.85rem;
 }
 
 .ktaHoloChip {
-  width: 32px;
-  height: 22px;
+  width: 28px;
+  height: 20px;
   border-radius: 4px;
-  background: linear-gradient(135deg, #d4af37, #f7e099, #aa820a);
-  border: 1px solid #785a03;
-  position: relative;
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #d4af37 0%, #fff3d0 35%, #926a1b 70%, #f59e0b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.ktaCardNotice {
-  font-size: 0.73rem;
-  color: var(--fg-muted);
-  line-height: 1.5;
-  margin: 14px 0 0;
+/* ── BACK FACE ELEMENTS ── */
+.ktaBackHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.ktaBackHeaderTitle {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.ktaQrContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.ktaQrWhiteBox {
+  width: 128px;
+  height: 128px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.ktaQrImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.ktaQrCaption {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.8;
+  margin-top: 6px;
   text-align: center;
 }
 
-@media (max-width: 560px) {
-  .ktaCardContainer {
-    padding: 12px 10px 10px;
-  }
-  .ktaCardHeader {
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-  }
-  .ktaHeaderLogoLeft {
-    width: 38px;
-    height: 38px;
-  }
-  .ktaGarudaBadge {
-    width: 34px;
-    height: 34px;
-  }
-  .ktaMainTitle {
-    font-size: 0.8rem;
-  }
-  .ktaSubTitle1 {
-    font-size: 0.58rem;
-  }
-  .ktaSubTitle2 {
-    font-size: 0.5rem;
-  }
-  .ktaCardBody {
-    gap: 8px;
-  }
-  .ktaDataRow {
-    grid-template-columns: 84px 8px 1fr;
-    font-size: 0.66rem;
-  }
-  .ktaDataLabel {
-    font-size: 0.63rem;
-  }
-  .ktaNoKartuRow .ktaDataValue {
-    font-size: 0.85rem;
-  }
-  .ktaPhotoBarcodeColumn {
-    width: 86px;
-  }
-  .ktaPassportPhotoFrame {
-    width: 80px;
-    height: 104px;
-  }
-  .ktaBarcodeBars {
-    height: 16px;
-  }
-  .ktaPhotoCaption {
-    font-size: 0.5rem;
-  }
+.ktaTermsList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 8px 0;
+}
+
+.ktaTermsItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.67rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.ktaTermsNumber {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ktaBackSignatureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(212, 175, 55, 0.25);
+}
+
+.ktaDecorativeBarcode {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ktaBarcodeLines {
+  width: 110px;
+  height: 22px;
+  background: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 2px,
+    transparent 2px,
+    transparent 4px,
+    currentColor 4px,
+    currentColor 7px,
+    transparent 7px,
+    transparent 9px,
+    currentColor 9px,
+    currentColor 10px,
+    transparent 10px,
+    transparent 13px
+  );
+  opacity: 0.85;
+}
+
+.ktaBarcodeNum {
+  font-family: var(--font-cinzel), monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+
+.ktaSignatureBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ktaSignatureImg {
+  font-family: 'Brush Script MT', 'Dancing Script', cursive;
+  font-size: 1.15rem;
+  color: #d4af37;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ktaSignatureTitle {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  opacity: 0.75;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.ktaBackFooterNote {
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.58rem;
+  text-align: center;
+  opacity: 0.65;
+  margin-top: 6px;
+}
+
+.ktaCardNotice {
+  max-width: 360px;
+  margin: 12px auto 0;
+  font-family: var(--font-jakarta), sans-serif;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--fg-muted);
+  text-align: center;
 }
 
 /* ── MODAL UCAPAN ULANG TAHUN ERINE ── */
