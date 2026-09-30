@@ -17,8 +17,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "Cavallery",
+  title: {
+    default: "Cavallery | Home",
+    template: "Cavallery | %s",
+  },
   description:
     "Cavallery adalah fanbase resmi Erine JKT48. Temukan berita, jadwal show theater, live, games, dan proyek eksklusif.",
   keywords: ["Cavallery", "Erine JKT48", "Catherina Vallencia", "JKT48 fanbase"],

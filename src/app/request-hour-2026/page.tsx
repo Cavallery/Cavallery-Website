@@ -4,7 +4,7 @@ import styles from "./page.module.css";
 import SectionDivider from "@/components/SectionDivider";
 
 export const metadata = {
-  title: "Request Hour 2026 | Cavallery",
+  title: "Request Hour 2026",
   description: "Peringkat lagu-lagu Erine di JKT48 Request Hour 2026."
 };
 

@@ -3,7 +3,7 @@ import styles from "./page.module.css";
 import SectionDivider from "@/components/SectionDivider";
 
 export const metadata = {
-  title: "SSK JKT48 2024 | Cavallery",
+  title: "SSK JKT48 2024",
   description: "Hasil Pemilihan Member Single ke-26 JKT48."
 };
 

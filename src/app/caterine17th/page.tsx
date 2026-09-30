@@ -4,7 +4,7 @@ import styles from "./page.module.css";
 import SectionDivider from "@/components/SectionDivider";
 
 export const metadata = {
-  title: "#CatErine17th Project | Cavallery",
+  title: "#CatErine17th Project",
   description: "Perayaan STS Erine JKT48 yang ke-17. #CatErine17th Offline Project."
 };
 

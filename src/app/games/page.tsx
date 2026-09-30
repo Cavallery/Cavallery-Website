@@ -3,7 +3,7 @@ import styles from "./page.module.css";
 import GamesVideoTeaser from "@/components/games/GamesVideoTeaser";
 
 export const metadata: Metadata = {
-  title: "Games Cavallery",
+  title: "Mini Games & Interaktif",
   description: "Koleksi mini games eksklusif yang pernah dimainkan oleh Erine JKT48. Play now!",
 };
 

@@ -1,7 +1,7 @@
 import Erine100ShowContent from "./Erine100ShowContent";
 
 export const metadata = {
-  title: "Erine 100 Show | Cavallery",
+  title: "Erine 100 Show",
   description: "Halaman Erine 100 Show - The Path of Her Light",
 };
 

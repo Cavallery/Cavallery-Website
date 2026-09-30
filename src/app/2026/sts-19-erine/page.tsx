@@ -5,7 +5,7 @@ import Link from "next/link";
 import WayfinderMessages from "@/components/wayfinder/WayfinderMessages";
 
 export const metadata: Metadata = {
-  title: "#ErineTheWayfinder | Seitansai Erine 2026 — Cavallery",
+  title: "#ErineTheWayfinder (Seitansai 2026)",
   description: "Perayaan ulang tahun Catherina Vallencia Kurniawan — #ErineTheWayfinder.",
   openGraph: {
     title: "#ErineTheWayfinder — Seitansai Erine 2026",

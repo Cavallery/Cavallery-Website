@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Undangan Fanbase — Seitansai Project | CAVALLERY",
+  title: "Undangan Fanbase",
   description: "Undangan resmi Seitansai Project Erine JKT48 by CAVALLERY",
   openGraph: {
     title: "Undangan Fanbase | CAVALLERY",

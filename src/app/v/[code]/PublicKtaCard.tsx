@@ -168,7 +168,7 @@ export default function PublicKtaCard({
                 lineHeight: 1,
               }}
             >
-              <i className="fa-solid fa-horse-head" style={{ fontSize: "13rem", color: "#d4af37" }} />
+              <i className="fa-solid fa-chess-knight" style={{ fontSize: "13rem", color: "#d4af37" }} />
             </div>
 
             {/* Front Header */}
@@ -239,7 +239,7 @@ export default function PublicKtaCard({
                   gap: 4,
                 }}
               >
-                <i className="fa-solid fa-horse-head" />
+                <i className="fa-solid fa-chess-knight" />
                 <span>CAVA</span>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function PublicKtaCard({
                 lineHeight: 1,
               }}
             >
-              <i className="fa-solid fa-horse-head" style={{ fontSize: "13rem", color: "#d4af37" }} />
+              <i className="fa-solid fa-chess-knight" style={{ fontSize: "13rem", color: "#d4af37" }} />
             </div>
 
             {/* Back Header */}
