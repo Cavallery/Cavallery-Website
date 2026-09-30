@@ -30,9 +30,10 @@ export default async function Image({ params }: { params: Promise<{ code: string
 
   const member = rows && rows.length > 0 ? rows[0] : null;
 
-  const shortName = member && member.public_card_enabled ? formatShortName(member.nama_lengkap) : "Fanbase Member";
-  const cardNo = member && member.public_card_enabled ? member.no_anggota || "CAVA-0001" : "CAVA-MEMBER";
-  const badge = member && member.public_card_enabled ? (member.badge || "Squire").toUpperCase() : "VERIFIED";
+  const rawName = member && member.public_card_enabled ? formatShortName(member.nama_lengkap) : "Fanbase Member";
+  const shortName = rawName.replace(/[<>&"']/g, "");
+  const cardNo = (member && member.public_card_enabled ? member.no_anggota || "CAVA-0001" : "CAVA-MEMBER").replace(/[<>&"']/g, "");
+  const badge = (member && member.public_card_enabled ? (member.badge || "Squire").toUpperCase() : "VERIFIED").replace(/[<>&"']/g, "");
 
   return new ImageResponse(
     (
