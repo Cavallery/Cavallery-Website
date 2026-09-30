@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "News Cavallery",
+  title: "Berita & Pengumuman",
   description: "Berita terbaru seputar Erine dan JKT48.",
 };
 

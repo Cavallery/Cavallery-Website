@@ -120,6 +120,7 @@ export default function GatheringScanPage() {
   }, [eventName]);
 
   useEffect(() => {
+    document.title = "Cavallery | Scanner Presensi Gathering";
     fetchAttendance();
   }, [fetchAttendance]);
 

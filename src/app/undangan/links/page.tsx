@@ -3,7 +3,7 @@ import { getFanbases } from "@/data/wayfinder-fanbases";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Daftar Link Undangan Fanbase | CAVALLERY",
+  title: "Daftar Link Undangan",
   robots: "noindex, nofollow",
 };
 

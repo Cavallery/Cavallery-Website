@@ -3,7 +3,7 @@ import styles from "./page.module.css";
 import JournalSection from "@/components/journal/JournalSection";
 
 export const metadata: Metadata = {
-  title: "Journal Cavallery",
+  title: "Jurnal MemoRine",
   description: "Kirim pesan dan dukung Erine melalui #MemoRine. Jurnal digital interaktif dari Cavallery.",
 };
 

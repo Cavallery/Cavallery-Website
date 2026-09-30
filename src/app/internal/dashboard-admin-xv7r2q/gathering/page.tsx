@@ -44,6 +44,7 @@ export default function AdminGatheringPage() {
   }, [eventName]);
 
   useEffect(() => {
+    document.title = "Cavallery | Presensi Gathering";
     fetchData();
   }, [fetchData]);
 

@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const member = rows && rows.length > 0 ? rows[0] : null;
   if (!member || !member.public_card_enabled) {
     return {
-      title: "Kartu Tidak Tersedia • Fanbase Cavallery",
+      title: "Kartu Tidak Tersedia",
       description: "Kartu Tanda Anggota ini tidak ditemukan atau dinonaktifkan.",
     };
   }
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const cardNo = member.no_anggota || "CAVA";
 
   return {
-    title: `KTA Digital: ${shortName} (${cardNo}) • Fanbase Cavallery`,
+    title: `KTA Digital: ${shortName} (${cardNo})`,
     description: `Kartu Tanda Anggota Resmi pendukung Catherina Vallencia (Erine) JKT48.`,
     openGraph: {
       title: `KTA Digital: ${shortName} (${cardNo})`,

@@ -7,7 +7,7 @@ import SectionDivider from "@/components/SectionDivider";
 import CavalleryGallery from "@/components/about/CavalleryGallery";
 
 export const metadata: Metadata = {
-  title: "About Cavallery",
+  title: "Tentang Cavallery",
   description:
     "Mengenal lebih jauh tentang Cavallery, komunitas resmi penggemar Erine JKT48 yang berdiri sejak 2024.",
 };

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Photobooth Cheki — #ErineTheWayfinder | Cavallery",
+  title: "Photobooth Cheki",
   description: "Photobooth Cheki edisi Seitansai Erine ke-19 #ErineTheWayfinder oleh Cavallery.",
   openGraph: {
     title: "Photobooth Cheki — #ErineTheWayfinder",

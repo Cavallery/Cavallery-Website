@@ -4570,10 +4570,16 @@
     font-size: 0.72rem;
   }
 
-  /* Memastikan sisi kartu KTA (depan & belakang) tidak hilang saat di-flip di browser mobile (Safari/Chrome) */
+  /*
+   * FIX: Mobile WebKit (Safari iOS / Chrome Android) tidak mendukung CSS 3D
+   * backface-visibility secara konsisten. Solusi: matikan semua 3D transform,
+   * dan langsung swap tampilan depan/belakang pakai display none/flex.
+   * Tidak ada animasi flip — tapi DIJAMIN konten belakang (QR, ketentuan) tampil.
+   */
+
   .ktaCardScene {
-    perspective: 1000px;
-    -webkit-perspective: 1000px;
+    perspective: none !important;
+    -webkit-perspective: none !important;
   }
 
   .ktaCardTiltWrapper {
@@ -4583,36 +4589,52 @@
   }
 
   .ktaCard3DWrapper {
-    transform-style: preserve-3d !important;
-    -webkit-transform-style: preserve-3d !important;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    transform-style: flat !important;
+    -webkit-transform-style: flat !important;
+    transition: none !important;
   }
 
   .ktaCard3DWrapperFlipped {
-    transform: rotateY(180deg) !important;
-    -webkit-transform: rotateY(180deg) !important;
+    transform: none !important;
+    -webkit-transform: none !important;
   }
 
   .ktaCardFaceFront,
   .ktaCardFaceBack {
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-    -webkit-transform-style: preserve-3d !important;
-    transform-style: preserve-3d !important;
+    backface-visibility: visible !important;
+    -webkit-backface-visibility: visible !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    transform-style: flat !important;
+    -webkit-transform-style: flat !important;
+  }
+
+  /* Default: tampilkan depan, sembunyikan belakang */
+  .ktaCardFaceFront {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 2 !important;
+    pointer-events: auto !important;
+  }
+
+  .ktaCardFaceBack {
+    display: none !important;
+  }
+
+  /* Saat di-flip: sembunyikan depan, tampilkan belakang */
+  .ktaCard3DWrapperFlipped .ktaCardFaceFront {
+    display: none !important;
   }
 
   .ktaCard3DWrapperFlipped .ktaCardFaceBack {
+    display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     z-index: 10 !important;
     pointer-events: auto !important;
-  }
-
-  .ktaCard3DWrapperFlipped .ktaCardFaceFront {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    z-index: 1 !important;
   }
 }
 

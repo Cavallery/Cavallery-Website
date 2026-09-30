@@ -3013,8 +3013,8 @@ export default function CavalleryKasPage() {
           </button>
         </div>
 
-        {/* ── 1. WIDGET QUICK SUMMARY KAS KOMUNITAS (TRANSPARANSI KAS) ── */}
-        {(portalTab === "bayar" || portalTab === "riwayat") && (
+        {/* ── 1. WIDGET QUICK SUMMARY KAS KOMUNITAS (TRANSPARANSI KAS - HANYA UNTUK ANGGOTA BIASA) ── */}
+        {(portalTab === "bayar" || portalTab === "riwayat") && sessionUser?.jabatan !== "Admin Fanbase" && !sessionUser?.jabatan?.toLowerCase().includes("admin") && (
           <div className={styles.communityKasSummaryCard}>
             <div className={styles.communityKasHeader}>
               <div className={styles.communityKasTitle}>
@@ -3073,8 +3073,8 @@ export default function CavalleryKasPage() {
           </div>
         )}
 
-        {/* ── 2. KARTU STATUS KEANGGOTAAN & PROGRESS BAR 12 BULAN ── */}
-        {(portalTab === "bayar" || portalTab === "riwayat") && sessionUser?.type === "anggota" && (() => {
+        {/* ── 2. KARTU STATUS KEANGGOTAAN & PROGRESS BAR 12 BULAN (HANYA UNTUK ANGGOTA BIASA) ── */}
+        {(portalTab === "bayar" || portalTab === "riwayat") && sessionUser?.type === "anggota" && sessionUser?.jabatan !== "Admin Fanbase" && !sessionUser?.jabatan?.toLowerCase().includes("admin") && (() => {
           const currentYearNow = new Date().getFullYear();
           const currentMonthNow = new Date().getMonth() + 1;
           const paidThisYear = monthlyStatus.filter(
@@ -6526,8 +6526,8 @@ export default function CavalleryKasPage() {
                       <div className={styles.ktaHoloOverlayResmi} />
                     )}
 
-                    {/* Subtle Horse Watermark */}
-                    <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
+                    {/* Subtle Chess Knight Watermark */}
+                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
 
                     <div className={styles.ktaCardContentLayer}>
                       {/* Front Header */}
@@ -6547,7 +6547,7 @@ export default function CavalleryKasPage() {
                           </div>
                         </div>
                         <div className={styles.ktaGarudaBadge}>
-                          <i className="fa-solid fa-horse-head" />
+                          <i className="fa-solid fa-chess-knight" />
                           <span>CAVA</span>
                         </div>
                       </div>
@@ -6744,8 +6744,8 @@ export default function CavalleryKasPage() {
                       <div className={styles.ktaHoloOverlayResmi} />
                     )}
 
-                    {/* Subtle Horse Watermark */}
-                    <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
+                    {/* Subtle Chess Knight Watermark */}
+                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
 
                     <div className={styles.ktaCardContentLayer}>
                       {/* Back Header */}
@@ -6765,7 +6765,7 @@ export default function CavalleryKasPage() {
                           </div>
                         </div>
                         <div className={styles.ktaGarudaBadge}>
-                          <i className="fa-solid fa-horse-head" />
+                          <i className="fa-solid fa-chess-knight" />
                           <span>CAVA</span>
                         </div>
                       </div>
@@ -6952,7 +6952,7 @@ export default function CavalleryKasPage() {
                 ) : (
                   <div className={styles.ktaHoloOverlayResmi} />
                 )}
-                <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
+                <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
 
                 {/* Header */}
                 <div className={styles.ktaFrontHeader}>
@@ -6971,7 +6971,7 @@ export default function CavalleryKasPage() {
                     </div>
                   </div>
                   <div className={styles.ktaGarudaBadge}>
-                    <i className="fa-solid fa-horse-head" />
+                    <i className="fa-solid fa-chess-knight" />
                     <span>CAVA</span>
                   </div>
                 </div>

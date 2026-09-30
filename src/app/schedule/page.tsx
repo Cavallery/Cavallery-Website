@@ -3,7 +3,7 @@ import styles from "./page.module.css";
 import { TheaterSection, LiveSection, VideoCallSection } from "@/components/schedule/ScheduleSections";
 
 export const metadata: Metadata = {
-  title: "Schedule Cavallery",
+  title: "Jadwal Show & Event",
   description: "Jadwal lengkap Erine JKT48: Theater, Live, dan Video Call dalam satu halaman.",
 };
 
