@@ -36,6 +36,11 @@ export async function POST(req: NextRequest) {
           tanggalLahir: data.tanggal_lahir || "",
           domisili: data.domisili || "",
         },
+        fields: {
+          tempatLahir: data.tempat_lahir || "",
+          tanggalLahir: data.tanggal_lahir || "",
+          domisili: data.domisili || "",
+        },
       },
       {
         status: 200,
