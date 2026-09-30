@@ -6516,7 +6516,6 @@ export default function CavalleryKasPage() {
                       ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
                     }`}
                     style={{
-                      visibility: ktaCardSide === "front" ? "visible" : "hidden",
                       pointerEvents: ktaCardSide === "front" ? "auto" : "none",
                     }}
                   >
@@ -6735,7 +6734,6 @@ export default function CavalleryKasPage() {
                       ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
                     }`}
                     style={{
-                      visibility: ktaCardSide === "back" ? "visible" : "hidden",
                       pointerEvents: ktaCardSide === "back" ? "auto" : "none",
                     }}
                   >

@@ -3386,6 +3386,9 @@
   max-width: 360px;
   margin: 0 auto;
   perspective: 1200px;
+  -webkit-perspective: 1200px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   cursor: pointer;
   user-select: none;
 }
@@ -3396,7 +3399,9 @@
   max-width: 360px;
   margin: 0 auto;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transform: perspective(1200px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
+  -webkit-transform: perspective(1200px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
   transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1);
   will-change: transform;
 }
@@ -3407,17 +3412,21 @@
   aspect-ratio: 54 / 86;
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-transition: -webkit-transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 22px;
 }
 
 .ktaCard3DWrapperFlipped {
   transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ktaCardTiltWrapper {
     transform: none !important;
+    -webkit-transform: none !important;
     transition: none !important;
   }
   .ktaCard3DWrapper {
@@ -3443,32 +3452,33 @@
   box-sizing: border-box;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .ktaCardFaceFront {
   z-index: 2;
-  transform: rotateY(0deg);
+  transform: rotateY(0deg) translateZ(1px);
+  -webkit-transform: rotateY(0deg) translateZ(1px);
   visibility: visible;
-  transition: visibility 0s ease 0.3s, z-index 0s ease 0.3s;
+  transition: opacity 0.3s ease, z-index 0s ease 0.3s;
 }
 
 .ktaCardFaceBack {
   z-index: 1;
-  transform: rotateY(180deg);
-  visibility: hidden;
-  transition: visibility 0s ease 0.3s, z-index 0s ease 0.3s;
+  transform: rotateY(180deg) translateZ(1px);
+  -webkit-transform: rotateY(180deg) translateZ(1px);
+  visibility: visible;
+  transition: opacity 0.3s ease, z-index 0s ease 0.3s;
 }
 
 .ktaCard3DWrapperFlipped .ktaCardFaceFront {
-  visibility: hidden !important;
-  pointer-events: none !important;
   z-index: 1 !important;
+  pointer-events: none !important;
 }
 
 .ktaCard3DWrapperFlipped .ktaCardFaceBack {
-  visibility: visible !important;
+  z-index: 5 !important;
   pointer-events: auto !important;
-  z-index: 2 !important;
 }
 
 /* ── OVERLAY HOLOGRAFIK BERKILAU (FITUR 1) ── */
@@ -4558,6 +4568,51 @@
     min-height: 32px;
     padding: 4px 8px;
     font-size: 0.72rem;
+  }
+
+  /* Memastikan sisi kartu KTA (depan & belakang) tidak hilang saat di-flip di browser mobile (Safari/Chrome) */
+  .ktaCardScene {
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+  }
+
+  .ktaCardTiltWrapper {
+    transform: none !important;
+    -webkit-transform: none !important;
+    transition: none !important;
+  }
+
+  .ktaCard3DWrapper {
+    transform-style: preserve-3d !important;
+    -webkit-transform-style: preserve-3d !important;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    -webkit-transition: -webkit-transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .ktaCard3DWrapperFlipped {
+    transform: rotateY(180deg) !important;
+    -webkit-transform: rotateY(180deg) !important;
+  }
+
+  .ktaCardFaceFront,
+  .ktaCardFaceBack {
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    -webkit-transform-style: preserve-3d !important;
+    transform-style: preserve-3d !important;
+  }
+
+  .ktaCard3DWrapperFlipped .ktaCardFaceBack {
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+  }
+
+  .ktaCard3DWrapperFlipped .ktaCardFaceFront {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
   }
 }
 
