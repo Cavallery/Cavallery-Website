@@ -22,29 +22,44 @@ export async function POST(req: NextRequest) {
     const updates: string[] = [];
     const values: any[] = [];
 
-    if (fotoProfil !== undefined) {
+    if (fotoProfil !== undefined && typeof fotoProfil === "string" && fotoProfil.trim() !== "") {
       updates.push("foto_profil = ?");
-      values.push(fotoProfil);
+      values.push(fotoProfil.trim());
     }
-    if (tempatLahir !== undefined) {
-      updates.push("tempat_lahir = ?");
-      values.push(tempatLahir.trim());
+    if (tempatLahir !== undefined && typeof tempatLahir === "string" && !tempatLahir.includes("•")) {
+      const val = tempatLahir.trim();
+      if (val !== "") {
+        updates.push("tempat_lahir = ?");
+        values.push(val);
+      }
     }
-    if (tanggalLahir !== undefined) {
-      updates.push("tanggal_lahir = ?");
-      values.push(tanggalLahir.trim());
+    if (tanggalLahir !== undefined && typeof tanggalLahir === "string" && !tanggalLahir.includes("•")) {
+      const val = tanggalLahir.trim();
+      if (val !== "") {
+        updates.push("tanggal_lahir = ?");
+        values.push(val);
+      }
     }
-    if (golonganDarah !== undefined) {
-      updates.push("golongan_darah = ?");
-      values.push(golonganDarah.trim());
+    if (golonganDarah !== undefined && typeof golonganDarah === "string" && !golonganDarah.includes("•")) {
+      const val = golonganDarah.trim();
+      if (val !== "") {
+        updates.push("golongan_darah = ?");
+        values.push(val);
+      }
     }
-    if (gender !== undefined) {
-      updates.push("gender = ?");
-      values.push(gender.trim());
+    if (gender !== undefined && typeof gender === "string" && !gender.includes("•")) {
+      const val = gender.trim();
+      if (val !== "") {
+        updates.push("gender = ?");
+        values.push(val);
+      }
     }
-    if (domisili !== undefined) {
-      updates.push("domisili = ?");
-      values.push(domisili.trim());
+    if (domisili !== undefined && typeof domisili === "string" && !domisili.includes("•")) {
+      const val = domisili.trim();
+      if (val !== "") {
+        updates.push("domisili = ?");
+        values.push(val);
+      }
     }
 
     if (updates.length === 0) {

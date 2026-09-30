@@ -2999,14 +2999,19 @@
 .ktaModalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(10px);
-  z-index: 9999;
+  background: rgba(0, 0, 0, 0.84);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 99999;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px;
+  justify-content: flex-start;
+  padding: calc(var(--nav-h, 72px) + env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 32px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .ktaModalCard {
@@ -3018,7 +3023,9 @@
   padding: 24px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   position: relative;
+  margin: 0 auto;
   animation: modalScaleIn 0.25s ease-out;
+  box-sizing: border-box;
 }
 
 .ktaToolbar {
@@ -3435,10 +3442,33 @@
   padding: 20px 20px 16px;
   box-sizing: border-box;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  transform-style: preserve-3d;
+}
+
+.ktaCardFaceFront {
+  z-index: 2;
+  transform: rotateY(0deg);
+  visibility: visible;
+  transition: visibility 0s ease 0.3s, z-index 0s ease 0.3s;
 }
 
 .ktaCardFaceBack {
+  z-index: 1;
   transform: rotateY(180deg);
+  visibility: hidden;
+  transition: visibility 0s ease 0.3s, z-index 0s ease 0.3s;
+}
+
+.ktaCard3DWrapperFlipped .ktaCardFaceFront {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+}
+
+.ktaCard3DWrapperFlipped .ktaCardFaceBack {
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 2 !important;
 }
 
 /* ── OVERLAY HOLOGRAFIK BERKILAU (FITUR 1) ── */
@@ -3585,20 +3615,23 @@
   border-top-color: rgba(212, 175, 55, 0.25);
 }
 
-/* Watermark Emblem */
-.ktaWatermarkChess {
+/* Watermark Horse Emblem (~6% Opacity) */
+.ktaWatermarkChess,
+.ktaWatermarkHorse {
   position: absolute;
   right: -25px;
   bottom: 25px;
   font-size: 13rem;
   color: #000000;
-  opacity: 0.05;
+  opacity: 0.06;
   pointer-events: none;
   z-index: 0;
   line-height: 1;
+  user-select: none;
 }
 
-.ktaThemeLuxury .ktaWatermarkChess {
+.ktaThemeLuxury .ktaWatermarkChess,
+.ktaThemeLuxury .ktaWatermarkHorse {
   color: #d4af37;
   opacity: 0.06;
 }
@@ -4481,6 +4514,51 @@
 .birthdayCloseBtn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(236, 72, 153, 0.6);
+}
+
+/* ── RESPONSIVE MOBILE KTA MODAL ── */
+@media (max-width: 640px) {
+  .ktaModalOverlay {
+    padding-top: calc(var(--nav-h, 72px) + env(safe-area-inset-top, 0px) + 12px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .ktaModalCard {
+    padding: 16px 12px;
+    border-radius: 18px;
+  }
+
+  .ktaToolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .ktaControlsRow {
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ktaSegmentBtn {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .ktaToolbarBtn,
+  .ktaToolbarPrintBtn,
+  .ktaPrivacyToggleBtn,
+  .ktaShareToolbarBtn {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
 }
 
 /* ── CETAK PRINT KTA ── */

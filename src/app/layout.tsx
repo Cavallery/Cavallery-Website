@@ -74,7 +74,7 @@ export default function RootLayout({
         <SplashScreen />
         <ScrollRevealProvider />
         <Navbar />
-        <main className="relative z-[1]">{children}</main>
+        <main className="relative">{children}</main>
         <Footer />
         <Chatbot />
         <MobileInstallPrompt />

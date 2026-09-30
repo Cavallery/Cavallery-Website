@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import * as htmlToImage from "html-to-image";
 import styles from "./page.module.css";
 import { getMemberBadge } from "@/lib/badges";
@@ -277,6 +278,10 @@ export default function CavalleryKasPage() {
   });
 
   // KTA Digital & Birthday Greeting State
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [showKtaModal, setShowKtaModal] = useState(false);
   const [ktaCardTheme, setKtaCardTheme] = useState<"resmi" | "luxury">("resmi");
   const [ktaCardSide, setKtaCardSide] = useState<"front" | "back">("front");
@@ -458,6 +463,93 @@ export default function CavalleryKasPage() {
     }
   };
 
+  // Body scroll lock with iOS restoration and Escape key listener when modal is open
+  useEffect(() => {
+    if (showKtaModal || showShareModal) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setShowKtaModal(false);
+          setShowShareModal(false);
+          setEditingTtl(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        const top = document.body.style.top;
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", handleKeyDown);
+        if (top) {
+          window.scrollTo(0, parseInt(top || "0", 10) * -1);
+        }
+      };
+    }
+  }, [showKtaModal, showShareModal]);
+
+  // Auto-save draft of KTA biodata in sessionStorage
+  useEffect(() => {
+    if (editingTtl && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(
+          "kta_biodata_draft",
+          JSON.stringify({
+            tempatLahir: inputTempatLahir,
+            tanggalLahir: inputTanggalLahir,
+            gender: inputGender,
+            domisili: inputDomisili,
+          })
+        );
+      } catch {}
+    }
+  }, [editingTtl, inputTempatLahir, inputTanggalLahir, inputGender, inputDomisili]);
+
+  // Pre-fill / Restore Biodata when editing starts
+  const handleToggleEditTtl = async () => {
+    const nextState = !editingTtl;
+    setEditingTtl(nextState);
+    if (nextState) {
+      if (typeof window !== "undefined") {
+        try {
+          const draft = sessionStorage.getItem("kta_biodata_draft");
+          if (draft) {
+            const p = JSON.parse(draft);
+            if (p.tempatLahir && !inputTempatLahir) setInputTempatLahir(p.tempatLahir);
+            if (p.tanggalLahir && !inputTanggalLahir) setInputTanggalLahir(p.tanggalLahir);
+            if (p.gender && !inputGender) setInputGender(p.gender);
+            if (p.domisili && !inputDomisili) setInputDomisili(p.domisili);
+          }
+        } catch {}
+      }
+      if (!inputTempatLahir && sessionUser?.tempatLahir) setInputTempatLahir(sessionUser.tempatLahir);
+      if (!inputTanggalLahir && sessionUser?.tanggalLahir) setInputTanggalLahir(sessionUser.tanggalLahir);
+      if (sessionUser?.gender) setInputGender(sessionUser.gender);
+      if (!inputDomisili && sessionUser?.domisili) setInputDomisili(sessionUser.domisili);
+
+      // If still missing sensitive data, fetch from secure private-fields endpoint
+      if (!inputTempatLahir || !inputTanggalLahir) {
+        try {
+          const res = await fetch("/api/kta/private-fields", { method: "POST" });
+          const json = await res.json();
+          const d = json.data || json.fields;
+          if (d) {
+            if (d.tempatLahir && !inputTempatLahir) setInputTempatLahir(d.tempatLahir);
+            if (d.tanggalLahir && !inputTanggalLahir) setInputTanggalLahir(d.tanggalLahir);
+            if (d.domisili && !inputDomisili) setInputDomisili(d.domisili);
+          }
+        } catch {}
+      }
+    }
+  };
+
   // Simpan Biodata KTA (Tempat Lahir, Tanggal Lahir, Gender, Domisili)
   const handleSaveTtl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -484,6 +576,9 @@ export default function CavalleryKasPage() {
           gender: inputGender.trim(),
           domisili: inputDomisili.trim(),
         }));
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("kta_biodata_draft");
+        }
         setEditingTtl(false);
         setTtlSuccessMsg("Biodata KTA berhasil diperbarui!");
         setTimeout(() => setTtlSuccessMsg(""), 4000);
@@ -6176,7 +6271,7 @@ export default function CavalleryKasPage() {
       )}
 
       {/* ── 4. MODAL KARTU TANDA ANGGOTA (KTA) RESMI CAVALLERY ── */}
-      {showKtaModal && (
+      {showKtaModal && isMounted && createPortal(
         <div
           className={styles.ktaModalOverlay}
           onClick={() => {
@@ -6188,6 +6283,9 @@ export default function CavalleryKasPage() {
             className={styles.ktaModalCard}
             onClick={(e) => e.stopPropagation()}
             id="printable-kta"
+            role="dialog"
+            aria-modal="true"
+            aria-label="KTA Digital Cavallery"
           >
             {/* Top Toolbar (Non-printable) */}
             <div className={styles.ktaToolbar}>
@@ -6268,7 +6366,7 @@ export default function CavalleryKasPage() {
                 <button
                   type="button"
                   className={styles.ktaToolbarBtn}
-                  onClick={() => setEditingTtl((v) => !v)}
+                  onClick={handleToggleEditTtl}
                   title="Lengkapi Biodata KTA"
                 >
                   <i className="bx bx-edit" /> {editingTtl ? "Tutup Form" : "Edit Biodata"}
@@ -6417,6 +6515,10 @@ export default function CavalleryKasPage() {
                     className={`${styles.ktaCardFaceFront} ${
                       ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
                     }`}
+                    style={{
+                      visibility: ktaCardSide === "front" ? "visible" : "hidden",
+                      pointerEvents: ktaCardSide === "front" ? "auto" : "none",
+                    }}
                   >
                     {/* Efek Kilau Holografik (Fitur 1) */}
                     {ktaCardTheme === "luxury" ? (
@@ -6425,17 +6527,20 @@ export default function CavalleryKasPage() {
                       <div className={styles.ktaHoloOverlayResmi} />
                     )}
 
-                    {/* Subtle Chess Knight Watermark */}
-                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
+                    {/* Subtle Horse Watermark */}
+                    <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
 
                     <div className={styles.ktaCardContentLayer}>
                       {/* Front Header */}
                       <div className={styles.ktaFrontHeader}>
                         <div className={styles.ktaHeaderBrand}>
                           <img
-                            src="/images/cava-logo.jpg"
+                            src="/images/cava-logo-round.png"
                             alt="Cavallery"
                             className={styles.ktaLogoImg}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = "/images/cava-logo.jpg";
+                            }}
                           />
                           <div className={styles.ktaHeaderText}>
                             <h2 className={styles.ktaFrontHeaderTitle}>KARTU TANDA ANGGOTA</h2>
@@ -6443,7 +6548,7 @@ export default function CavalleryKasPage() {
                           </div>
                         </div>
                         <div className={styles.ktaGarudaBadge}>
-                          <i className="fa-solid fa-chess-knight" />
+                          <i className="fa-solid fa-horse-head" />
                           <span>CAVA</span>
                         </div>
                       </div>
@@ -6629,6 +6734,10 @@ export default function CavalleryKasPage() {
                     className={`${styles.ktaCardFaceBack} ${
                       ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi
                     }`}
+                    style={{
+                      visibility: ktaCardSide === "back" ? "visible" : "hidden",
+                      pointerEvents: ktaCardSide === "back" ? "auto" : "none",
+                    }}
                   >
                     {/* Efek Kilau Holografik Belakang (Fitur 1) */}
                     {ktaCardTheme === "luxury" ? (
@@ -6637,17 +6746,20 @@ export default function CavalleryKasPage() {
                       <div className={styles.ktaHoloOverlayResmi} />
                     )}
 
-                    {/* Subtle Chess Knight Watermark */}
-                    <i className={`fa-solid fa-chess-knight ${styles.ktaWatermarkChess}`} />
+                    {/* Subtle Horse Watermark */}
+                    <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
 
                     <div className={styles.ktaCardContentLayer}>
                       {/* Back Header */}
                       <div className={styles.ktaBackHeader}>
                         <div className={styles.ktaHeaderBrand}>
                           <img
-                            src="/images/cava-logo.jpg"
+                            src="/images/cava-logo-round.png"
                             alt="Cavallery"
                             className={styles.ktaLogoImg}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = "/images/cava-logo.jpg";
+                            }}
                           />
                           <div className={styles.ktaHeaderText}>
                             <h2 className={styles.ktaBackHeaderTitle}>KETENTUAN PENGGUNAAN</h2>
@@ -6655,7 +6767,7 @@ export default function CavalleryKasPage() {
                           </div>
                         </div>
                         <div className={styles.ktaGarudaBadge}>
-                          <i className="fa-solid fa-chess-knight" />
+                          <i className="fa-solid fa-horse-head" />
                           <span>CAVA</span>
                         </div>
                       </div>
@@ -6671,6 +6783,9 @@ export default function CavalleryKasPage() {
                             )}`}
                             alt="QR Code Anggota"
                             className={styles.ktaQrImg}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"><rect width="140" height="140" fill="%23ffffff"/><text x="50%" y="45%" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="%23111111">${sessionUser.noAnggota || "CAVA-0001"}</text><text x="50%" y="65%" text-anchor="middle" font-family="sans-serif" font-size="9" fill="%23666666">VERIFIKASI RESMI</text></svg>`;
+                            }}
                           />
                         </div>
                         <div className={styles.ktaQrCaption}>
@@ -6728,11 +6843,12 @@ export default function CavalleryKasPage() {
               * KTA Digital ini diterbitkan resmi oleh Fanbase Cavallery untuk identitas pendukung Erine JKT48. Tunjukkan KTA ini untuk verifikasi event, photobooth, &amp; pembagian merchandise.
             </p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── MODAL BAGIKAN KARTU PUBLIK (FITUR 3) ── */}
-      {showShareModal && (
+      {showShareModal && isMounted && createPortal(
         <div
           className={styles.ktaShareModalOverlay}
           onClick={() => setShowShareModal(false)}
@@ -6832,20 +6948,24 @@ export default function CavalleryKasPage() {
                   shareRatio === "4:5" ? styles.ktaExportCard45 : styles.ktaExportCard916
                 } ${ktaCardTheme === "luxury" ? styles.ktaThemeLuxury : styles.ktaThemeResmi}`}
               >
-                {/* Subtle background effects */}
+                {/* Subtle background effects & watermark */}
                 {ktaCardTheme === "luxury" ? (
                   <div className={styles.ktaHoloOverlayLuxury} />
                 ) : (
                   <div className={styles.ktaHoloOverlayResmi} />
                 )}
+                <i className={`fa-solid fa-horse-head ${styles.ktaWatermarkChess}`} />
 
                 {/* Header */}
                 <div className={styles.ktaFrontHeader}>
                   <div className={styles.ktaHeaderBrand}>
                     <img
-                      src="/images/cava-logo.jpg"
+                      src="/images/cava-logo-round.png"
                       alt="Cavallery"
                       className={styles.ktaLogoImg}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/images/cava-logo.jpg";
+                      }}
                     />
                     <div className={styles.ktaHeaderText}>
                       <h2 className={styles.ktaFrontHeaderTitle}>KARTU TANDA ANGGOTA</h2>
@@ -6853,7 +6973,7 @@ export default function CavalleryKasPage() {
                     </div>
                   </div>
                   <div className={styles.ktaGarudaBadge}>
-                    <i className="fa-solid fa-chess-knight" />
+                    <i className="fa-solid fa-horse-head" />
                     <span>CAVA</span>
                   </div>
                 </div>
@@ -6982,7 +7102,8 @@ export default function CavalleryKasPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── 5. MODAL VIDEO / UCAPAN ULANG TAHUN DARI ERINE ── */}

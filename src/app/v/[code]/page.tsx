@@ -297,15 +297,13 @@ export default async function PublicKtaPage({ params }: PageProps) {
               position: "absolute",
               right: -25,
               bottom: 25,
-              fontSize: "13rem",
-              color: "#d4af37",
               opacity: 0.06,
               pointerEvents: "none",
               userSelect: "none",
               lineHeight: 1,
             }}
           >
-            ♞
+            <i className="fa-solid fa-horse-head" style={{ fontSize: "13rem", color: "#d4af37" }} />
           </div>
 
           <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -366,9 +364,13 @@ export default async function PublicKtaPage({ params }: PageProps) {
                   padding: "4px 8px",
                   borderRadius: 6,
                   border: "1px solid rgba(212, 175, 55, 0.3)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                CAVA
+                <i className="fa-solid fa-horse-head" />
+                <span>CAVA</span>
               </div>
             </div>
 
