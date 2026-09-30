@@ -7,6 +7,7 @@ import Chatbot from "@/components/Chatbot/Chatbot";
 import ScrollRevealProvider from "@/components/ScrollRevealProvider";
 import PassionFireBackground from "@/components/PassionFireBackground";
 import MobileInstallPrompt from "@/components/MobileInstallPrompt";
+import SoftLocationPrompt from "@/components/SoftLocationPrompt";
 import { cn } from "@/lib/utils";
 
 export const viewport: Viewport = {
@@ -80,6 +81,7 @@ export default function RootLayout({
         <Footer />
         <Chatbot />
         <MobileInstallPrompt />
+        <SoftLocationPrompt />
       </body>
     </html>
   );
