@@ -4,7 +4,7 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface AdminSubNavProps {
-  activeKey: "dashboard" | "keanggotaan" | "kontributor" | "kas" | "donasi" | "master-data";
+  activeKey: "dashboard" | "keanggotaan" | "kontributor" | "kas" | "donasi" | "master-data" | "gathering";
   title?: string;
   subtitle?: string;
 }
@@ -12,6 +12,7 @@ interface AdminSubNavProps {
 const NAV_ITEMS = [
   { key: "dashboard", href: "/internal/dashboard-admin-xv7r2q", label: "Dashboard Utama", icon: "bx-grid-alt" },
   { key: "keanggotaan", href: "/internal/dashboard-admin-xv7r2q/keanggotaan", label: "Keanggotaan", icon: "bx-user-check" },
+  { key: "gathering", href: "/internal/dashboard-admin-xv7r2q/gathering", label: "Presensi Gathering", icon: "bx-qr-scan" },
   { key: "kas", href: "/internal/dashboard-admin-xv7r2q/kas", label: "Verifikasi Kas", icon: "bx-wallet" },
   { key: "donasi", href: "/internal/dashboard-admin-xv7r2q/donasi", label: "Donasi", icon: "bx-donate-heart" },
   { key: "kontributor", href: "/internal/dashboard-admin-xv7r2q/kontributor", label: "Kontributor", icon: "bx-heart-circle" },
