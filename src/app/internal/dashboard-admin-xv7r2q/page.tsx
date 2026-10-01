@@ -21,7 +21,7 @@ type Section =
   | "kabesha"   | "media"       | "discord"  | "journal"
   | "bot"       | "tickets"     | "calendar" | "updates" 
   | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine"
-  | "users"     | "activitylogs"| "loginlogs";
+  | "users"     | "activitylogs"| "loginlogs"   | "visitorlocations";
 
 
 // ─── ACTIVITY LOGGING HELPER ─────────────────────────────────
@@ -1204,13 +1204,19 @@ function MediaManager() {
                   </div>
                 ) : (
                   <img
-                    src={item.public_url}
+                    src={(item.public_url || "").replace(/\\/g, "/")}
                     alt={item.alt_text || item.original_name}
                     className={styles.mediaCardImg}
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (!target.dataset.fallback) {
+                      if (!target.dataset.triedLocal && item.file_name) {
+                        target.dataset.triedLocal = "true";
+                        target.src = `/uploads/cavallery/images/2026/08/${item.file_name}`;
+                      } else if (!target.dataset.triedUploads && item.file_name) {
+                        target.dataset.triedUploads = "true";
+                        target.src = `/uploads/${item.folder || "cavallery/images"}/${item.file_name}`;
+                      } else if (!target.dataset.fallback) {
                         target.dataset.fallback = "true";
                         target.src = "/images/gallery/erine-gallery-1.jpg";
                       }
@@ -9813,6 +9819,332 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
   );
 }
 
+// ─── VISITOR LOCATIONS MANAGER ────────────────────────────────
+function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
+  const isSuperadmin = currentRole === "superadmin";
+  const [locations, setLocations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const fetchLocations = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/visitor/location");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setLocations(json.data);
+      }
+    } catch {
+      setToast({ msg: "Gagal memuat data lokasi pengunjung", type: "error" });
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchLocations();
+  }, [fetchLocations]);
+
+  const filtered = locations.filter((l) => {
+    const q = search.toLowerCase();
+    return (
+      (l.ip_address && l.ip_address.toLowerCase().includes(q)) ||
+      (l.page_path && l.page_path.toLowerCase().includes(q)) ||
+      (l.user_agent && l.user_agent.toLowerCase().includes(q)) ||
+      String(l.latitude).includes(q) ||
+      String(l.longitude).includes(q)
+    );
+  });
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((l) => selectedIds.has(l.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((l) => l.id)));
+    }
+  };
+
+  const toggleSelectRow = (id: number) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!isSuperadmin) {
+      setToast({
+        msg: "Hanya Superadmin yang dapat menghapus data lokasi",
+        type: "error",
+      });
+      return;
+    }
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Hapus ${selectedIds.size} data lokasi terpilih?`)) return;
+
+    try {
+      const res = await fetch("/api/visitor/location", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", ids: Array.from(selectedIds) }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLocations();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal menghapus data lokasi", type: "error" });
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (!isSuperadmin) {
+      setToast({
+        msg: "Hanya Superadmin yang dapat membersihkan seluruh log lokasi",
+        type: "error",
+      });
+      return;
+    }
+    if (
+      !window.confirm(
+        "PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat lokasi pengunjung?"
+      )
+    )
+      return;
+    try {
+      const res = await fetch("/api/visitor/location", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "clear_all" }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setToast({ msg: json.message, type: "success" });
+        setSelectedIds(new Set());
+        fetchLocations();
+      } else {
+        setToast({ msg: json.message, type: "error" });
+      }
+    } catch {
+      setToast({ msg: "Gagal membersihkan data lokasi", type: "error" });
+    }
+  };
+
+  const uniqueIps = new Set(locations.map((l) => l.ip_address)).size;
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && (
+        <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />
+      )}
+      <div className={styles.sectionHeader}>
+        <h2 className={styles.sectionTitle}>
+          <i className="bx bx-map-pin" style={{ color: "#c9a84c" }} /> Lokasi Pengunjung (GPS)
+          <span className={styles.count}>{locations.length} Titik Tercatat</span>
+        </h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className={styles.btnGhost}
+            onClick={handleDeleteSelected}
+            disabled={!isSuperadmin || selectedIds.size === 0}
+            style={{
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={
+              !isSuperadmin
+                ? "Hanya Superadmin yang dapat menghapus data"
+                : "Hapus Data Terpilih"
+            }
+          >
+            <i className="bx bx-trash" /> Hapus Terpilih ({selectedIds.size})
+          </button>
+          <button
+            className={styles.btnGhost}
+            onClick={handleClearAll}
+            disabled={!isSuperadmin}
+            style={{
+              color: isSuperadmin ? "#f87171" : "#666",
+              opacity: !isSuperadmin ? 0.5 : 1,
+              cursor: isSuperadmin ? "pointer" : "not-allowed",
+            }}
+            title={
+              !isSuperadmin
+                ? "Hanya Superadmin yang dapat membersihkan data"
+                : "Bersihkan Semua Data"
+            }
+          >
+            <i className="bx bx-brush" /> Bersihkan Semua
+          </button>
+          <button
+            className={styles.btnGhost}
+            onClick={fetchLocations}
+            title="Refresh"
+          >
+            <i className="bx bx-refresh" />
+          </button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+        <div style={{ background: "rgba(201, 168, 76, 0.08)", border: "1px solid rgba(201, 168, 76, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
+          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Total Koordinat Diterima</span>
+          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#c9a84c" }}>{locations.length}</span>
+        </div>
+        <div style={{ background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
+          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Pengunjung / IP Unik</span>
+          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#60a5fa" }}>{uniqueIps}</span>
+        </div>
+        <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
+          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Status Izin Lokasi</span>
+          <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#34d399", marginTop: 4, display: "block" }}>Aktif (Sukarela)</span>
+        </div>
+      </div>
+
+      {/* Filter and Search */}
+      <div style={{ marginBottom: 16, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Cari IP, halaman, perangkat, atau koordinat..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+        />
+        {selectedIds.size > 0 && (
+          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+            {selectedIds.size} data terpilih
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className={styles.loadingState}>
+          <i className="bx bx-loader-alt bx-spin" /> Memuat data lokasi pengunjung...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>
+          <i className="bx bx-map-pin" style={{ fontSize: "2.5rem", opacity: 0.4, display: "block", marginBottom: 8 }} />
+          Belum ada data koordinat lokasi pengunjung yang masuk.
+        </div>
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th style={{ width: 45, textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleSelectAll}
+                    title="Pilih Semua"
+                    style={{ cursor: "pointer" }}
+                  />
+                </th>
+                <th>Waktu</th>
+                <th>IP Address</th>
+                <th>Koordinat GPS</th>
+                <th>Akurasi</th>
+                <th>Halaman</th>
+                <th>Perangkat / Browser</th>
+                <th style={{ textAlign: "center" }}>Peta Google Maps</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((l) => (
+                <tr
+                  key={l.id}
+                  style={{
+                    background: selectedIds.has(l.id)
+                      ? "rgba(201,168,76,0.08)"
+                      : undefined,
+                  }}
+                >
+                  <td style={{ textAlign: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(l.id)}
+                      onChange={() => toggleSelectRow(l.id)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  </td>
+                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                    {l.visit_time
+                      ? new Date(l.visit_time).toLocaleString("id-ID")
+                      : l.created_at
+                      ? new Date(l.created_at).toLocaleString("id-ID")
+                      : "—"}
+                  </td>
+                  <td style={{ fontSize: 12, color: "#9ca3af", fontFamily: "monospace" }}>
+                    {l.ip_address || "—"}
+                  </td>
+                  <td style={{ fontSize: 12, color: "#f3f4f6", fontFamily: "monospace" }}>
+                    {l.latitude}, {l.longitude}
+                  </td>
+                  <td>
+                    <span style={{ fontSize: 11, background: "rgba(16,185,129,0.12)", color: "#10b981", padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
+                      ±{Number(l.accuracy || 0).toFixed(0)}m
+                    </span>
+                  </td>
+                  <td style={{ fontSize: 12, color: "#c9a84c", fontWeight: 600 }}>
+                    {l.page_path || "/"}
+                  </td>
+                  <td
+                    style={{
+                      fontSize: 11,
+                      color: "#6b7280",
+                      maxWidth: 220,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                    title={l.user_agent}
+                  >
+                    {l.user_agent || "—"}
+                  </td>
+                  <td style={{ textAlign: "center" }}>
+                    <a
+                      href={`https://www.google.com/maps?q=${l.latitude},${l.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: "5px 10px",
+                        borderRadius: 6,
+                        background: "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.1))",
+                        border: "1px solid rgba(201,168,76,0.4)",
+                        color: "#c9a84c",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        cursor: "pointer",
+                      }}
+                      title="Buka titik koordinat langsung di Google Maps Satelit"
+                    >
+                      <i className="bx bx-map-pin" /> Buka Maps
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface NavGroup {
   id: string;
@@ -9899,6 +10231,7 @@ const navGroups: NavGroup[] = [
       { key: "users",        icon: "bx-user-pin",      label: "Manajemen Pengguna" },
       { key: "activitylogs", icon: "bx-history",       label: "Riwayat Aktivitas"  },
       { key: "loginlogs",    icon: "bx-log-in-circle", label: "Riwayat Login"     },
+      { key: "visitorlocations", icon: "bx-map-pin",   label: "Lokasi Pengunjung" },
     ],
   },
 ];
@@ -10109,6 +10442,7 @@ export default function AdminPage() {
             : active === "users"      ? <UsersManager currentRole={role} currentUsername={username} />
             : active === "activitylogs"? <ActivityLogsManager currentRole={role} />
             : active === "loginlogs"  ? <LoginLogsManager currentRole={role} />
+            : active === "visitorlocations"? <VisitorLocationsManager currentRole={role} />
             : <SectionManager section={active} />}
           </div>
         </div>
