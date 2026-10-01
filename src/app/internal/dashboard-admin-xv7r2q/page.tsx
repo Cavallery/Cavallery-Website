@@ -1199,9 +1199,23 @@ function MediaManager() {
                 </div>
 
                 {item.type === "video" ? (
-                  <div className={styles.videoThumb}>
-                    <i className="bx bx-video-recording" style={{ fontSize: "2.5rem" }} />
-                  </div>
+                  item.thumbnail_url ? (
+                    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden", background: "#111" }}>
+                      <img
+                        src={item.thumbnail_url}
+                        alt={item.original_name}
+                        className={styles.mediaCardImg}
+                        loading="lazy"
+                      />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.3)" }}>
+                        <i className="bx bx-play-circle" style={{ fontSize: "2.6rem", color: "#c9a84c", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.7))" }} />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.videoThumb}>
+                      <i className="bx bx-video-recording" style={{ fontSize: "2.5rem" }} />
+                    </div>
+                  )
                 ) : (
                   <img
                     src={(item.public_url || "").replace(/\\/g, "/")}
@@ -1210,12 +1224,9 @@ function MediaManager() {
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (!target.dataset.triedLocal && item.file_name) {
+                      if (!target.dataset.triedLocal && item.file_name && !item.public_url?.startsWith("http")) {
                         target.dataset.triedLocal = "true";
                         target.src = `/uploads/cavallery/images/2026/08/${item.file_name}`;
-                      } else if (!target.dataset.triedUploads && item.file_name) {
-                        target.dataset.triedUploads = "true";
-                        target.src = `/uploads/${item.folder || "cavallery/images"}/${item.file_name}`;
                       } else if (!target.dataset.fallback) {
                         target.dataset.fallback = "true";
                         target.src = "/images/gallery/erine-gallery-1.jpg";
