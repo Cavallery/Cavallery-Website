@@ -52,9 +52,9 @@ function readLocalFallback(): any[] {
     console.error("Failed to read local media fallback:", e);
   }
 
-  // Auto-scan public/uploads agar semua file foto/video lokal terdeteksi dan tidak rusak
+  // Hanya scan folder cavallery resmi (JANGAN scan bukti, fanart, atau twoshot!)
   try {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const uploadsDir = path.join(process.cwd(), "public", "uploads", "cavallery");
     if (fs.existsSync(uploadsDir)) {
       const seenFiles = new Set(
         items.map((i) => i.file_name || path.basename(i.public_url || ""))
@@ -100,19 +100,26 @@ function readLocalFallback(): any[] {
     console.warn("Scan local uploads error:", scanErr);
   }
 
-  // Normalisasi semua public_url agar menggunakan forward slash dan aman dari domain luar yang mati
-  return items.map((it) => {
-    let url = (it.public_url || "").replace(/\\/g, "/");
-    if (url.includes("jkt48connect.com")) {
-      const match = url.match(/\/uploads\/.+$/);
-      if (match) url = match[0];
-      else if (it.file_name) url = `/uploads/cavallery/images/2026/08/${it.file_name}`;
-    }
-    return {
-      ...it,
-      public_url: url,
-    };
-  });
+  // Normalisasi URL & pastikan tidak ada bukti/fanart/twoshot
+  return items
+    .filter((it) => {
+      const p = (it.public_url || "").toLowerCase();
+      const f = (it.folder || "").toLowerCase();
+      if (p.includes("bukti") || p.includes("fanart") || p.includes("twoshot")) return false;
+      if (f.startsWith("bukti") || f.startsWith("fanart") || f.startsWith("twoshot")) return false;
+      return true;
+    })
+    .map((it) => {
+      let url = (it.public_url || "").replace(/\\/g, "/");
+      // Jika URL mengarah ke v5 yang mati, ganti ke CDN images.jkt48connect.com atau lokal
+      if (url.includes("v5.jkt48connect.com")) {
+        url = url.replace("v5.jkt48connect.com", "images.jkt48connect.com");
+      }
+      return {
+        ...it,
+        public_url: url,
+      };
+    });
 }
 
 export async function GET(req: NextRequest) {
@@ -168,10 +175,8 @@ export async function GET(req: NextRequest) {
     // Normalize and attach publication status + custom order
     items = items.map((item: any, idx: number) => {
       let publicUrl = (item.public_url || "").replace(/\\/g, "/");
-      if (publicUrl.includes("jkt48connect.com")) {
-        const match = publicUrl.match(/\/uploads\/.+$/);
-        if (match) publicUrl = match[0];
-        else if (item.file_name) publicUrl = `/uploads/cavallery/images/2026/08/${item.file_name}`;
+      if (publicUrl.includes("v5.jkt48connect.com")) {
+        publicUrl = publicUrl.replace("v5.jkt48connect.com", "images.jkt48connect.com");
       }
 
       const isVideo =
