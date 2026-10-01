@@ -101,3 +101,33 @@ export async function GET() {
     return NextResponse.json({ success: false, message: e.message }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/visitor/location
+ * Hapus data log lokasi (bulk by IDs atau clear_all)
+ */
+export async function DELETE(req: NextRequest) {
+  if (!isMySqlConfigured()) {
+    return NextResponse.json({ success: false, message: "Database tidak terhubung" }, { status: 500 });
+  }
+
+  try {
+    const body = await req.json();
+    const { action, ids } = body;
+
+    if (action === "clear_all") {
+      await query("TRUNCATE TABLE visitor_locations");
+      return NextResponse.json({ success: true, message: "Semua riwayat lokasi pengunjung berhasil dibersihkan" });
+    }
+
+    if (action === "delete" && Array.isArray(ids) && ids.length > 0) {
+      const placeholders = ids.map(() => "?").join(",");
+      await query(`DELETE FROM visitor_locations WHERE id IN (${placeholders})`, ids);
+      return NextResponse.json({ success: true, message: `${ids.length} data lokasi berhasil dihapus` });
+    }
+
+    return NextResponse.json({ success: false, message: "Aksi tidak valid atau ID kosong" }, { status: 400 });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+  }
+}

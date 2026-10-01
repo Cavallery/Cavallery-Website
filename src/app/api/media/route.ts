@@ -40,17 +40,79 @@ function readCustomOrder(): string[] {
 }
 
 function readLocalFallback(): any[] {
+  let items: any[] = [];
   try {
     if (fs.existsSync(LOCAL_JSON_PATH)) {
       const raw = fs.readFileSync(LOCAL_JSON_PATH, "utf-8");
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-      if (parsed.items && Array.isArray(parsed.items)) return parsed.items;
+      if (Array.isArray(parsed)) items = parsed;
+      else if (parsed.items && Array.isArray(parsed.items)) items = parsed.items;
     }
   } catch (e) {
     console.error("Failed to read local media fallback:", e);
   }
-  return [];
+
+  // Auto-scan public/uploads agar semua file foto/video lokal terdeteksi dan tidak rusak
+  try {
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (fs.existsSync(uploadsDir)) {
+      const seenFiles = new Set(
+        items.map((i) => i.file_name || path.basename(i.public_url || ""))
+      );
+
+      function scanDir(dir: string) {
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+          const full = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            scanDir(full);
+          } else if (/\.(jpg|jpeg|png|webp|gif|mp4|webm|mov)$/i.test(entry.name)) {
+            if (!seenFiles.has(entry.name)) {
+              const rel = path
+                .relative(path.join(process.cwd(), "public"), full)
+                .replace(/\\/g, "/");
+              const isVideo = /\.(mp4|webm|mov)$/i.test(entry.name);
+              const stat = fs.statSync(full);
+              items.push({
+                id: String(Date.now() + Math.floor(Math.random() * 10000)),
+                original_name: entry.name,
+                file_name: entry.name,
+                folder: path.dirname(rel).replace(/^uploads\/?/, "") || "cavallery/images",
+                type: isVideo ? "video" : "image",
+                mime_type: isVideo ? "video/mp4" : "image/jpeg",
+                file_size: stat.size,
+                public_url: "/" + rel,
+                alt_text: entry.name,
+                is_published: 1,
+                sort_order: items.length + 1,
+                created_at: stat.birthtime.toISOString(),
+                updated_at: stat.mtime.toISOString(),
+              });
+              seenFiles.add(entry.name);
+            }
+          }
+        }
+      }
+
+      scanDir(uploadsDir);
+    }
+  } catch (scanErr) {
+    console.warn("Scan local uploads error:", scanErr);
+  }
+
+  // Normalisasi semua public_url agar menggunakan forward slash dan aman dari domain luar yang mati
+  return items.map((it) => {
+    let url = (it.public_url || "").replace(/\\/g, "/");
+    if (url.includes("jkt48connect.com")) {
+      const match = url.match(/\/uploads\/.+$/);
+      if (match) url = match[0];
+      else if (it.file_name) url = `/uploads/cavallery/images/2026/08/${it.file_name}`;
+    }
+    return {
+      ...it,
+      public_url: url,
+    };
+  });
 }
 
 export async function GET(req: NextRequest) {
@@ -74,7 +136,7 @@ export async function GET(req: NextRequest) {
             Accept: "application/json",
             "User-Agent": "Mozilla/5.0 CavalleryApp/1.0",
           },
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(2000),
         });
 
         if (res.ok) {
@@ -105,21 +167,29 @@ export async function GET(req: NextRequest) {
 
     // Normalize and attach publication status + custom order
     items = items.map((item: any, idx: number) => {
+      let publicUrl = (item.public_url || "").replace(/\\/g, "/");
+      if (publicUrl.includes("jkt48connect.com")) {
+        const match = publicUrl.match(/\/uploads\/.+$/);
+        if (match) publicUrl = match[0];
+        else if (item.file_name) publicUrl = `/uploads/cavallery/images/2026/08/${item.file_name}`;
+      }
+
       const isVideo =
         item.type === "video" ||
         item.mime_type?.startsWith("video/") ||
-        /\.(mp4|webm|ogg|mov)$/i.test(item.public_url || item.file_name || "");
+        /\.(mp4|webm|ogg|mov)$/i.test(publicUrl || item.file_name || "");
 
       // If publishedIds is not empty, check membership; otherwise default to item.is_published != 0
       const isPub =
         publishedSet.size > 0
-          ? publishedSet.has(String(item.id)) || publishedSet.has(String(item.public_url)) || publishedSet.has(String(item.file_name))
+          ? publishedSet.has(String(item.id)) || publishedSet.has(String(publicUrl)) || publishedSet.has(String(item.file_name))
           : item.is_published !== 0 && item.is_published !== false;
 
-      const customSort = orderMap.get(String(item.id)) ?? orderMap.get(String(item.public_url)) ?? (idx + 1000);
+      const customSort = orderMap.get(String(item.id)) ?? orderMap.get(String(publicUrl)) ?? (idx + 1000);
 
       return {
         ...item,
+        public_url: publicUrl,
         type: isVideo ? "video" : "image",
         is_published: isPub ? 1 : 0,
         sort_order: customSort,
