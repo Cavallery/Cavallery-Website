@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { updateMediaOrder } from "@/lib/mediaDb";
 
-const ORDER_FILE_PATH = path.join(process.cwd(), "src", "data", "media-order.json");
-const VALLZY_BASE = "https://v5.jkt48connect.com/api/cavallery/media";
-const API_KEY = "JKTCONNECT";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,29 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Save local custom order
-    try {
-      const dir = path.dirname(ORDER_FILE_PATH);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(ORDER_FILE_PATH, JSON.stringify({ orderedIds }, null, 2), "utf-8");
-    } catch {}
-
-    // 2. Forward to Vallzy server if supported
-    try {
-      await fetch(`${VALLZY_BASE}/reorder?apikey=${API_KEY}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderedIds }),
-        signal: AbortSignal.timeout(4000),
-      });
-    } catch (e: any) {
-      console.warn("Vallzy reorder forward warn:", e.message);
-    }
+    await updateMediaOrder(orderedIds);
 
     return NextResponse.json({
       status: true,
       success: true,
-      message: `Urutan ${orderedIds.length} foto & video berhasil disimpan`,
+      message: `Urutan ${orderedIds.length} foto & video berhasil disimpan ke database`,
     });
   } catch (error: any) {
     return NextResponse.json(

@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { insertMedia } from "@/lib/mediaDb";
+
+export const dynamic = "force-dynamic";
 
 const VALLZY_MULTI_UPLOAD_URL = "https://v5.jkt48connect.com/api/cavallery/media/upload-multiple?apikey=JKTCONNECT";
-const LOCAL_JSON_PATH = path.join(process.cwd(), "src", "data", "media.json");
-
-function saveToLocalFallback(mediaItems: any[]) {
-  try {
-    let items = [];
-    if (fs.existsSync(LOCAL_JSON_PATH)) {
-      items = JSON.parse(fs.readFileSync(LOCAL_JSON_PATH, "utf-8"));
-    }
-    mediaItems.forEach((m) => items.unshift(m));
-    fs.writeFileSync(LOCAL_JSON_PATH, JSON.stringify(items, null, 2), "utf-8");
-  } catch {}
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +20,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Try forwarding to Vallzy's server
+    // 1. Try forwarding to Vallzy's server if available
     try {
       const outFd = new FormData();
       files.forEach((f) => outFd.append("files[]", f));
@@ -38,18 +29,21 @@ export async function POST(request: NextRequest) {
       const res = await fetch(VALLZY_MULTI_UPLOAD_URL, {
         method: "POST",
         body: outFd,
-        signal: AbortSignal.timeout(25000),
+        signal: AbortSignal.timeout(8000),
       });
 
       if (res.ok) {
         const json = await res.json();
         if (json.status && json.data?.uploaded) {
-          saveToLocalFallback(json.data.uploaded);
+          const insertedList: any[] = [];
+          for (const m of json.data.uploaded) {
+            insertedList.push(await insertMedia(m));
+          }
           return NextResponse.json({
             status: true,
             success: true,
-            message: `${json.data.uploaded.length} berkas berhasil diunggah ke server Vallzy`,
-            data: json.data,
+            message: `${insertedList.length} berkas berhasil diunggah ke server Vallzy & database`,
+            data: { uploaded: insertedList, errors: json.data?.errors || [] },
           });
         }
       }
@@ -80,8 +74,7 @@ export async function POST(request: NextRequest) {
         const mimeType = file.type || "image/jpeg";
         const fileType = mimeType.startsWith("video/") ? "video" : "image";
 
-        const mediaItem = {
-          id: String(Date.now() + Math.random()),
+        const saved = await insertMedia({
           original_name: file.name,
           file_name: randomName,
           folder: folder,
@@ -91,24 +84,18 @@ export async function POST(request: NextRequest) {
           public_url: publicUrl,
           alt_text: file.name,
           is_published: 1,
-          created_at: now.toISOString(),
-          updated_at: now.toISOString(),
-        };
+        });
 
-        uploaded.push(mediaItem);
+        uploaded.push(saved);
       } catch (err: any) {
         errors.push({ name: file.name, reason: err.message });
       }
     }
 
-    if (uploaded.length > 0) {
-      saveToLocalFallback(uploaded);
-    }
-
     return NextResponse.json({
       status: true,
       success: true,
-      message: `${uploaded.length} berkas berhasil diunggah`,
+      message: `${uploaded.length} berkas berhasil diunggah ke database & server`,
       data: { uploaded, errors },
     });
   } catch (error: any) {
