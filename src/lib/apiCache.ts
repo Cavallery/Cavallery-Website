@@ -122,3 +122,10 @@ export function getApiCache<T>(key: string): T | null {
   const cached = memoryCache.get(key);
   return cached ? (cached.data as T) : null;
 }
+
+/**
+ * Invalidate cache entry immediately
+ */
+export function invalidateApiCache(key: string): void {
+  memoryCache.delete(key);
+}

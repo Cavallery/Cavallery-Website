@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { insertMedia } from "@/lib/mediaDb";
+
+export const dynamic = "force-dynamic";
 
 const VALLZY_UPLOAD_URL = "https://v5.jkt48connect.com/api/cavallery/media/upload?apikey=JKTCONNECT";
-const LOCAL_JSON_PATH = path.join(process.cwd(), "src", "data", "media.json");
-
-function saveToLocalFallback(mediaItem: any) {
-  try {
-    let items = [];
-    if (fs.existsSync(LOCAL_JSON_PATH)) {
-      items = JSON.parse(fs.readFileSync(LOCAL_JSON_PATH, "utf-8"));
-    }
-    items.unshift(mediaItem);
-    fs.writeFileSync(LOCAL_JSON_PATH, JSON.stringify(items, null, 2), "utf-8");
-  } catch {}
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: false, message: "File tidak ditemukan" }, { status: 400 });
     }
 
-    // 1. Try forwarding to Vallzy's server
+    // 1. Try forwarding to Vallzy's server if available
     try {
       const outFd = new FormData();
       outFd.append("file", file);
@@ -37,18 +28,18 @@ export async function POST(request: NextRequest) {
       const res = await fetch(VALLZY_UPLOAD_URL, {
         method: "POST",
         body: outFd,
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(6000),
       });
 
       if (res.ok) {
         const json = await res.json();
         if (json.status && json.data) {
-          saveToLocalFallback(json.data);
+          const savedItem = await insertMedia(json.data);
           return NextResponse.json({
             status: true,
             success: true,
-            message: "File berhasil diunggah ke server Vallzy",
-            data: json.data,
+            message: "File berhasil diunggah ke server Vallzy & database",
+            data: savedItem,
           });
         }
       }
@@ -56,7 +47,7 @@ export async function POST(request: NextRequest) {
       console.warn("Vallzy upload forward warn:", e.message);
     }
 
-    // 2. Local fallback if external upload fails
+    // 2. Local fallback: simpan fisik di folder public/uploads
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const now = new Date();
@@ -76,8 +67,7 @@ export async function POST(request: NextRequest) {
     const mimeType = file.type || "image/jpeg";
     const fileType = mimeType.startsWith("video/") ? "video" : "image";
 
-    const mediaItem = {
-      id: String(Date.now()),
+    const mediaItem = await insertMedia({
       original_name: file.name,
       file_name: randomName,
       folder: folder,
@@ -87,16 +77,12 @@ export async function POST(request: NextRequest) {
       public_url: publicUrl,
       alt_text: altText || file.name,
       is_published: 1,
-      created_at: now.toISOString(),
-      updated_at: now.toISOString(),
-    };
-
-    saveToLocalFallback(mediaItem);
+    });
 
     return NextResponse.json({
       status: true,
       success: true,
-      message: "File berhasil diunggah",
+      message: "File berhasil diunggah ke database & server",
       data: mediaItem,
     });
   } catch (error: any) {

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { togglePublishMedia } from "@/lib/mediaDb";
+import { query, isMySqlConfigured } from "@/lib/mysql";
 
 const PUB_FILE_PATH = path.join(process.cwd(), "src", "data", "published-media.json");
+
+export const dynamic = "force-dynamic";
 
 function readPublishedIds(): string[] {
   try {
@@ -18,6 +22,16 @@ function readPublishedIds(): string[] {
 }
 
 export async function GET() {
+  if (isMySqlConfigured()) {
+    try {
+      const rows = await query<any[]>("SELECT id, public_url FROM `media` WHERE is_published = 1");
+      if (rows && Array.isArray(rows)) {
+        const ids = rows.map((r) => String(r.id));
+        return NextResponse.json({ success: true, publishedIds: ids }, { status: 200 });
+      }
+    } catch {}
+  }
+
   const publishedIds = readPublishedIds();
   return NextResponse.json({ success: true, publishedIds }, { status: 200 });
 }
@@ -28,42 +42,37 @@ export async function POST(req: NextRequest) {
     const { action, id, ids, isPublished } = body;
     const targetId = String(id || "").trim();
 
-    let current = readPublishedIds();
-    let newStatus = isPublished !== undefined ? Boolean(isPublished) : true;
-
     if (action === "toggle" && targetId) {
-      if (current.includes(targetId)) {
-        current = current.filter((item) => String(item) !== targetId);
-        newStatus = false;
-      } else {
-        current.push(targetId);
-        newStatus = true;
-      }
-    } else if (action === "set" && targetId) {
-      if (isPublished) {
-        if (!current.includes(targetId)) current.push(targetId);
-        newStatus = true;
-      } else {
-        current = current.filter((item) => String(item) !== targetId);
-        newStatus = false;
-      }
-    } else if (action === "setAll" && Array.isArray(ids)) {
-      current = ids.map(String);
+      const { newStatus } = await togglePublishMedia(targetId);
+      return NextResponse.json({
+        success: true,
+        newStatus,
+        message: newStatus ? "Media berhasil ditampilkan di Web" : "Media berhasil disembunyikan dari Web",
+      });
     }
 
-    try {
-      const dir = path.dirname(PUB_FILE_PATH);
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(PUB_FILE_PATH, JSON.stringify({ publishedIds: current }, null, 2), "utf-8");
-    } catch {}
+    if (action === "set" && targetId) {
+      const target = isPublished !== undefined ? Boolean(isPublished) : true;
+      const { newStatus } = await togglePublishMedia(targetId, target);
+      return NextResponse.json({
+        success: true,
+        newStatus,
+        message: newStatus ? "Media berhasil ditampilkan di Web" : "Media berhasil disembunyikan dari Web",
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      newStatus,
-      publishedIds: current,
-      message: newStatus ? "Media berhasil ditampilkan di Web" : "Media berhasil disembunyikan dari Web",
-    }, { status: 200 });
+    if (action === "setAll" && Array.isArray(ids)) {
+      for (const singleId of ids) {
+        await togglePublishMedia(singleId, true);
+      }
+      return NextResponse.json({ success: true, message: "Status publikasi massal berhasil diperbarui" });
+    }
+
+    return NextResponse.json({ success: false, message: "Aksi tidak dikenali" }, { status: 400 });
   } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message || "Gagal menyimpan status publikasi" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: err.message || "Gagal mengubah status publikasi" },
+      { status: 500 }
+    );
   }
 }

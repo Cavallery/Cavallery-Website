@@ -864,38 +864,27 @@ function MediaManager() {
   };
 
   const togglePublish = async (item: any) => {
-    const isCurrentlyPub = Number(item.is_published) === 1 || publishedIds.has(item.id);
+    const isCurrentlyPub = Number(item.is_published) === 1;
     const targetStatus = !isCurrentlyPub;
     try {
       const res = await fetch("/api/published-media", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "toggle", id: item.id }),
+        body: JSON.stringify({ action: "toggle", id: String(item.id) }),
       });
       const json = await res.json();
       if (res.ok && json.success) {
         const finalStatus = json.newStatus !== undefined ? json.newStatus : targetStatus;
-        setPublishedIds(prev => {
-          const next = new Set(prev);
-          if (finalStatus) {
-            next.add(item.id);
-          } else {
-            next.delete(item.id);
-            if (item.public_url) next.delete(item.public_url);
-            if (item.file_name) next.delete(item.file_name);
-          }
-          return next;
-        });
         setItems(prev =>
           prev.map(i =>
-            i.id === item.id || i.public_url === item.public_url
+            String(i.id) === String(item.id)
               ? { ...i, is_published: finalStatus ? 1 : 0 }
               : i
           )
         );
         showToast(
           finalStatus
-            ? `"${item.original_name}" DITERBITKAN ke About Cavallery!`
+            ? `"${item.original_name}" DITERBITKAN ke Web!`
             : `"${item.original_name}" DISEMBUNYIKAN dari Web!`,
           "success"
         );
@@ -910,11 +899,11 @@ function MediaManager() {
   const deleteOne = async (item: any) => {
     setConfirm(null);
     try {
-      const res  = await fetch(mediaApi(`/media/${encodeURIComponent(item.id)}`), { method: "DELETE" });
+      const res = await fetch(`/api/media/${encodeURIComponent(item.id)}`, { method: "DELETE" });
       const json = await res.json();
       if (json.status || res.ok) {
-        showToast("Media berhasil dihapus", "success");
-        setItems(prev => prev.filter(i => i.id !== item.id));
+        showToast("Media berhasil dihapus dari database", "success");
+        setItems(prev => prev.filter(i => String(i.id) !== String(item.id)));
         setTotal(prev => Math.max(0, prev - 1));
       } else {
         showToast(json.message || "Gagal menghapus", "error");
@@ -928,15 +917,16 @@ function MediaManager() {
     const idsToDelete = Array.from(selected);
     setConfirm(null);
     try {
-      const res  = await fetch(mediaApi("/media/bulk"), {
+      const res = await fetch("/api/media/bulk", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: idsToDelete }),
       });
       const json = await res.json();
       if (json.status || res.ok) {
-        showToast(`${idsToDelete.length} media berhasil dihapus`, "success");
-        setItems(prev => prev.filter(i => !selected.has(i.id)));
+        showToast(`${idsToDelete.length} media berhasil dihapus dari database`, "success");
+        const idSet = new Set(idsToDelete.map(String));
+        setItems(prev => prev.filter(i => !idSet.has(String(i.id))));
         setTotal(prev => Math.max(0, prev - idsToDelete.length));
         setSelected(new Set());
       } else {
@@ -1174,7 +1164,7 @@ function MediaManager() {
         <div className={styles.mediaGrid}>
           {items.map((item, idx) => {
             const sel = selected.has(item.id);
-            const isPub = Number(item.is_published) === 1 || (item.is_published === undefined && (publishedIds.has(item.id) || publishedIds.has(item.public_url)));
+            const isPub = Number(item.is_published) === 1;
             const isDragging = draggedIdx === idx;
             const isDragOver = dragOverIdx === idx && draggedIdx !== idx;
 
