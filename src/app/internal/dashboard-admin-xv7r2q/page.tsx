@@ -317,7 +317,7 @@ function MediaUploadModal({
   onUploaded,
 }: {
   onClose: () => void;
-  onUploaded: (url: string) => void;
+  onUploaded: (uploadedData: any) => void;
 }) {
   const [files, setFiles]         = useState<File[]>([]);
   const [folder, setFolder]       = useState("cavallery/images");
@@ -348,8 +348,10 @@ function MediaUploadModal({
         const res  = await fetch(mediaApi("/media/upload"), { method: "POST", body: fd });
         const json = await res.json();
         if (json.status) {
-          setProgress([`✓ ${files[0].name} — berhasil`]);
-          onUploaded(json.data.public_url);
+          setProgress([`✓ ${files[0].name} — berhasil diunggah!`]);
+          setTimeout(() => {
+            onUploaded(json.data);
+          }, 300);
         } else {
           setProgress([`✗ ${files[0].name} — ${json.message}`]);
         }
@@ -367,7 +369,11 @@ function MediaUploadModal({
         (json.data?.uploaded ?? []).forEach((u: any) => logs.push(`✓ ${u.original_name}`));
         (json.data?.errors   ?? []).forEach((e: any) => logs.push(`✗ ${e.name} — ${e.reason}`));
         setProgress(logs);
-        if (json.data?.uploaded?.length > 0) onUploaded(json.data.uploaded[0].public_url);
+        if (json.data?.uploaded?.length > 0) {
+          setTimeout(() => {
+            onUploaded(json.data.uploaded);
+          }, 400);
+        }
       } catch {
         setProgress(["✗ Error jaringan"]);
       }
@@ -987,7 +993,16 @@ function MediaManager() {
       {showUpload && (
         <MediaUploadModal
           onClose={() => { setShowUpload(false); load(); }}
-          onUploaded={() => { setShowUpload(false); load(); }}
+          onUploaded={(data) => {
+            setShowUpload(false);
+            if (data) {
+              const newItems = Array.isArray(data) ? data : [data];
+              setItems(prev => [...newItems, ...prev]);
+              setTotal(prev => prev + newItems.length);
+              showToast(`${newItems.length} media berhasil diunggah ke database!`, "success");
+            }
+            load();
+          }}
         />
       )}
 
