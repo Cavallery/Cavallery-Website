@@ -15,7 +15,7 @@ function getLocalMilestones() {
         list.forEach((item: any) => {
           yearsSet.add(String(item.year || "2026"));
         });
-        const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+        const years = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
         return { years, events: list };
       }
     }
@@ -30,7 +30,7 @@ export async function GET() {
     if (isMySqlConfigured()) {
       try {
         const rows = await query<any[]>(
-          "SELECT * FROM `timeline` WHERE `is_active` = 1 ORDER BY `year` DESC, `sort_order` ASC, `id` DESC"
+          "SELECT * FROM `timeline` WHERE `is_active` = 1 ORDER BY `year` ASC, `sort_order` ASC, `id` ASC"
         );
         if (rows && rows.length > 0) {
           const yearsSet = new Set<string>();
@@ -50,7 +50,7 @@ export async function GET() {
               is_active: Boolean(r.is_active),
             };
           });
-          const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+          const years = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
           return NextResponse.json(
             {
               status: true,

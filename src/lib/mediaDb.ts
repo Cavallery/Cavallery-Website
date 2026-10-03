@@ -19,7 +19,7 @@ export async function ensureMediaTable(): Promise<boolean> {
   try {
     await query(`
       CREATE TABLE IF NOT EXISTS \`media\` (
-        \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+        \`id\` BIGINT AUTO_INCREMENT PRIMARY KEY,
         \`original_name\` VARCHAR(255) NOT NULL,
         \`file_name\` VARCHAR(255) NOT NULL,
         \`folder\` VARCHAR(100) DEFAULT 'cavallery/images',
@@ -40,8 +40,26 @@ export async function ensureMediaTable(): Promise<boolean> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    // Pastikan tipe id adalah BIGINT untuk menghindari overflow 32-bit INT
+    try {
+      await query("ALTER TABLE `media` MODIFY `id` BIGINT AUTO_INCREMENT");
+    } catch {}
+
+    // Migrasikan ID berbahaya yang bernilai 2147483647 jika ada
+    try {
+      await query("UPDATE `media` SET `id` = 93231 WHERE `id` = 2147483647");
+    } catch {}
+
+    // Pastikan kolom-kolom pendukung tersedia jika tabel sudah ada sebelumnya
+    try { await query("ALTER TABLE `media` ADD COLUMN `sort_order` INT DEFAULT 0"); } catch {}
+    try { await query("ALTER TABLE `media` ADD COLUMN `is_published` TINYINT(1) DEFAULT 1"); } catch {}
+    try { await query("ALTER TABLE `media` ADD COLUMN `thumbnail_url` TEXT DEFAULT NULL"); } catch {}
+    try { await query("ALTER TABLE `media` ADD COLUMN `alt_text` VARCHAR(255) DEFAULT ''"); } catch {}
+    try { await query("ALTER TABLE `media` ADD COLUMN `mime_type` VARCHAR(100) DEFAULT 'image/jpeg'"); } catch {}
+    try { await query("ALTER TABLE `media` ADD COLUMN `file_size` BIGINT DEFAULT 0"); } catch {}
+
     // Cek apakah tabel kosong. Jika kosong, lakukan seed dari media.json
-    const countRows = await query<any[]>("SELECT COUNT(*) as cnt FROM \`media\`");
+    const countRows = await query<any[]>("SELECT COUNT(*) as cnt FROM `media`");
     const count = countRows && countRows[0] ? Number(countRows[0].cnt) : 0;
 
     if (count === 0 && fs.existsSync(LOCAL_JSON_PATH)) {
@@ -407,7 +425,35 @@ export async function insertMedia(item: {
         insertedId = String(res.insertId);
       }
     } catch (err: any) {
-      console.warn("[MediaDB] Insert MySQL warn:", err.message);
+      console.warn("[MediaDB] Standard insert failed, attempting auto-fix:", err.message);
+      try {
+        // Coba perbaiki id auto-increment jika terjadi overflow
+        await query("ALTER TABLE `media` MODIFY `id` BIGINT AUTO_INCREMENT");
+        const maxRows = await query<any[]>("SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM `media`");
+        const nextId = maxRows && maxRows[0] ? Number(maxRows[0].next_id) : Date.now();
+        await query(
+          `INSERT INTO \`media\` 
+          (id, original_name, file_name, folder, type, mime_type, file_size, public_url, thumbnail_url, alt_text, is_published, sort_order)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            nextId,
+            item.original_name,
+            item.file_name,
+            item.folder || "cavallery/images",
+            item.type || "image",
+            item.mime_type || "image/jpeg",
+            item.file_size || 0,
+            item.public_url,
+            item.thumbnail_url || null,
+            item.alt_text || item.original_name,
+            isPub,
+            sort,
+          ]
+        );
+        insertedId = String(nextId);
+      } catch (retryErr: any) {
+        console.error("[MediaDB] Retry insert with explicit id failed:", retryErr.message);
+      }
     }
   }
 

@@ -29,7 +29,7 @@ function buildDefaultTimelineData(): TimelineData {
   events.forEach((ev) => {
     yearsSet.add(String(ev.year || "2026"));
   });
-  const years = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+  const years = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
   return { years, events };
 }
 
@@ -48,8 +48,8 @@ function groupByYear(events: TimelineEvent[]) {
     map.get(yr)!.push(cleanEv);
   }
 
-  // Sort years descending (2026, 2025, 2024, 2023)
-  const sortedYears = Array.from(map.keys()).sort((a, b) => Number(b) - Number(a));
+  // Urutkan tahun dari terkecil ke terbesar (2023, 2024, 2025, 2026)
+  const sortedYears = Array.from(map.keys()).sort((a, b) => Number(a) - Number(b));
 
   return sortedYears.map((year) => {
     const evList = map.get(year) || [];
@@ -57,9 +57,9 @@ function groupByYear(events: TimelineEvent[]) {
       const da = a.event_date ? new Date(a.event_date).getTime() : NaN;
       const db = b.event_date ? new Date(b.event_date).getTime() : NaN;
       if (!isNaN(da) && !isNaN(db)) {
-        return db - da; // newest first within each year
+        return da - db; // Urutkan per bulan / tanggal (Januari -> Desember)
       }
-      return (b.sort_order || 0) - (a.sort_order || 0);
+      return (a.sort_order || 0) - (b.sort_order || 0);
     });
     return {
       year,
@@ -96,7 +96,7 @@ export default function TimelineSection() {
             json.data.events.forEach((ev: TimelineEvent) => {
               yearsSet.add(String(ev.year || "2026"));
             });
-            const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+            const sortedYears = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
             setTimelineData({ years: sortedYears, events: json.data.events });
           }
         }
