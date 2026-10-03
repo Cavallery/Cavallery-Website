@@ -345,15 +345,15 @@ function MediaUploadModal({
       fd.append("folder", folder);
       fd.append("alt_text", files[0].name);
       try {
-        const res  = await fetch(mediaApi("/media/upload"), { method: "POST", body: fd });
+        const res  = await fetch("/api/media/upload", { method: "POST", body: fd });
         const json = await res.json();
-        if (json.status) {
-          setProgress([`✓ ${files[0].name} — berhasil diunggah!`]);
+        if (json.status || json.success) {
+          setProgress([`✓ ${files[0].name} — berhasil diunggah ke database!`]);
           setTimeout(() => {
             onUploaded(json.data);
           }, 300);
         } else {
-          setProgress([`✗ ${files[0].name} — ${json.message}`]);
+          setProgress([`✗ ${files[0].name} — ${json.message || "Gagal mengunggah"}`]);
         }
       } catch {
         setProgress([`✗ ${files[0].name} — error jaringan`]);
@@ -363,7 +363,7 @@ function MediaUploadModal({
       files.forEach(f => fd.append("files[]", f));
       fd.append("folder", folder);
       try {
-        const res  = await fetch(mediaApi("/media/upload-multiple"), { method: "POST", body: fd });
+        const res  = await fetch("/api/media/upload-multiple", { method: "POST", body: fd });
         const json = await res.json();
         const logs: string[] = [];
         (json.data?.uploaded ?? []).forEach((u: any) => logs.push(`✓ ${u.original_name}`));
@@ -564,10 +564,17 @@ function MediaPickerModal({
                       </div>
                     ) : (
                       <img
-                        src={item.public_url}
+                        src={(item.public_url || "").replace(/\\/g, "/")}
                         alt={item.alt_text || item.original_name}
                         className={styles.mediaThumbImg}
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          if (!target.dataset.fallback) {
+                            target.dataset.fallback = "true";
+                            target.src = "/images/cava-logo-round.png";
+                          }
+                        }}
                       />
                     )}
                     <div className={styles.mediaThumbLabel}>{item.original_name.slice(0, 22)}</div>
@@ -1229,12 +1236,12 @@ function MediaManager() {
                     loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (!target.dataset.triedLocal && item.file_name && !item.public_url?.startsWith("http")) {
-                        target.dataset.triedLocal = "true";
-                        target.src = `/uploads/cavallery/images/2026/08/${item.file_name}`;
+                      if (!target.dataset.retried && item.public_url) {
+                        target.dataset.retried = "true";
+                        target.src = `${item.public_url}${item.public_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
                       } else if (!target.dataset.fallback) {
                         target.dataset.fallback = "true";
-                        target.src = "/images/gallery/erine-gallery-1.jpg";
+                        target.src = "/images/cava-logo-round.png";
                       }
                     }}
                   />
