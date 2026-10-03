@@ -154,19 +154,9 @@ export default function AboutErineSection() {
       .then((json) => {
         if (json?.status && Array.isArray(json.data) && json.data.length > 0) {
           setSetlists(json.data);
-        } else {
-          fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
-            .then((r) => r.json())
-            .then((ext) => { if (ext?.status) setSetlists(ext.data); })
-            .catch(() => {});
         }
       })
-      .catch(() => {
-        fetch("https://v5.jkt48connect.com/api/cavallery/setlists?apikey=JKTCONNECT")
-          .then((r) => r.json())
-          .then((ext) => { if (ext?.status) setSetlists(ext.data); })
-          .catch(() => {});
-      });
+      .catch(() => {});
 
     fetch("/api/stats")
       .then((r) => r.json())
@@ -183,27 +173,9 @@ export default function AboutErineSection() {
           }
           uniqueList.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
           setStatsData(uniqueList.length > 0 ? uniqueList : json.data);
-        } else {
-          fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
-            .then((r) => r.json())
-            .then((ext) => {
-              if (ext?.status && Array.isArray(ext.data)) {
-                setStatsData(ext.data);
-              }
-            })
-            .catch(() => {});
         }
       })
-      .catch(() => {
-        fetch("https://v5.jkt48connect.com/api/cavallery/stats?apikey=JKTCONNECT")
-          .then((r) => r.json())
-          .then((ext) => {
-            if (ext?.status && Array.isArray(ext.data)) {
-              setStatsData(ext.data);
-            }
-          })
-          .catch(() => {});
-      });
+      .catch(() => {});
 
     // Fetch kabeshas from API
     fetch("/api/kabesha")

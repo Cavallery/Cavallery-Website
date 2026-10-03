@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import styles from "./TimelineSection.module.css";
 import initialMilestones from "@/data/milestone.json";
 
@@ -70,9 +71,13 @@ function groupByYear(events: TimelineEvent[]) {
 
 export default function TimelineSection() {
   const [timelineData, setTimelineData] = useState<TimelineData>(buildDefaultTimelineData);
-  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", title: "", desc: "" });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const openModal = (image: string, date: string, title: string, desc: string) => {
     setModalData({ image, date, title, desc });
@@ -86,9 +91,22 @@ export default function TimelineSection() {
   };
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isModalOpen) {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
+  useEffect(() => {
     const loadTimeline = async () => {
       try {
-        const res = await fetch("/api/timeline", { signal: AbortSignal.timeout(2500) });
+        const res = await fetch("/api/timeline", { signal: AbortSignal.timeout(2000) });
         if (res.ok) {
           const json = await res.json();
           if (json?.status && json.data?.events?.length > 0) {
@@ -107,28 +125,6 @@ export default function TimelineSection() {
 
     loadTimeline();
   }, []);
-
-  if (loading) {
-    return (
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <div className={styles.header}>
-            <div className="badge"><i className="bx bx-map-pin" /> Milestone</div>
-            <h2 className={`sectionTitle ${styles.title}`}>
-              Milestone <span className="textGold">Perjalanan Erine</span>
-            </h2>
-            <p className={styles.subtitle}>
-              Menyusuri setiap jejak langkah, panggung, dan momen berharga Erine bersama JKT48 dan Cavallery.
-            </p>
-          </div>
-          <div style={{ color: "var(--gold)", padding: "3rem", textAlign: "center" }}>
-            <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", marginBottom: "8px" }} />
-            <div>Memuat milestone...</div>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   if (!timelineData || timelineData.events.length === 0) {
     return (
@@ -252,11 +248,13 @@ export default function TimelineSection() {
         ))}
       </div>
 
-      {/* Lightbox Modal */}
-      {isModalOpen && (
+      {/* Lightbox Modal: di-portal langsung ke document.body agar position:fixed selalu berada di tengah layar tanpa harus scroll ke atas */}
+      {mounted && isModalOpen && typeof document !== "undefined" && createPortal(
         <div
           className={styles.modalOverlay}
           onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
         >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeBtn} onClick={closeModal} aria-label="Tutup">
@@ -273,7 +271,8 @@ export default function TimelineSection() {
               <p className={styles.modalDesc}>{modalData.desc}</p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
