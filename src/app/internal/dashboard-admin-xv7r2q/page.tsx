@@ -4524,6 +4524,8 @@ function InvitationsManager() {
   const [isCustomSlug, setIsCustomSlug] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [filterCheckin, setFilterCheckin] = useState<"all" | "hadir" | "belum">("all");
+  const [togglingSlug, setTogglingSlug] = useState<string | null>(null);
 
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
@@ -4742,13 +4744,67 @@ function InvitationsManager() {
     setCardConfig((prev: any) => ({ ...prev, [key]: val }));
   };
 
+  const handleToggleCheckin = async (item: any) => {
+    const isCheckedIn = Boolean(item.checked_in);
+    const action = isCheckedIn ? "resetCheckin" : "checkin";
+    setTogglingSlug(item.slug);
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, slug: item.slug }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        if (json.data && Array.isArray(json.data)) {
+          setInvitations(json.data);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cavallery_invitations", JSON.stringify(json.data));
+          }
+        } else {
+          setInvitations((prev) =>
+            prev.map((it) =>
+              it.slug === item.slug
+                ? { ...it, checked_in: !isCheckedIn, checked_in_at: !isCheckedIn ? new Date().toISOString() : undefined }
+                : it
+            )
+          );
+        }
+        showToast(
+          !isCheckedIn
+            ? `✓ ${item.name} berhasil ditandai HADIR!`
+            : `Kehadiran ${item.name} direset ke Belum Hadir`,
+          "success"
+        );
+        recordDashboardActivity(
+          !isCheckedIn ? "Manual Check-in" : "Reset Check-in",
+          "UNDANGAN",
+          `${item.name} (/undangan/${item.slug})`
+        );
+      } else {
+        showToast(json.message || "Gagal mengubah status kehadiran", "error");
+      }
+    } catch {
+      showToast("Error jaringan saat mengubah kehadiran", "error");
+    } finally {
+      setTogglingSlug(null);
+    }
+  };
+
+  const hadirCount = invitations.filter((i) => Boolean(i.checked_in)).length;
+  const belumHadirCount = Math.max(0, invitations.length - hadirCount);
+
   const filtered = invitations.filter((item) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      (item.name && item.name.toLowerCase().includes(q)) ||
-      (item.slug && item.slug.toLowerCase().includes(q))
-    );
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const matchSearch =
+        (item.name && item.name.toLowerCase().includes(q)) ||
+        (item.slug && item.slug.toLowerCase().includes(q));
+      if (!matchSearch) return false;
+    }
+    if (filterCheckin === "hadir") return Boolean(item.checked_in);
+    if (filterCheckin === "belum") return !Boolean(item.checked_in);
+    return true;
   });
 
   return (
@@ -4918,58 +4974,110 @@ function InvitationsManager() {
       {/* TAB 1: DAFTAR PENERIMA */}
       {activeTab === "list" && (
         <>
-          {/* Search Bar */}
-          <div style={{ marginBottom: 16, display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ position: "relative", flex: 1, maxWidth: 360 }}>
-              <i
-                className="bx bx-search"
-                style={{
-                  position: "absolute",
-                  left: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#777",
-                  fontSize: "1.1rem",
-                }}
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama atau slug..."
-                style={{
-                  width: "100%",
-                  padding: "9px 12px 9px 36px",
-                  background: "var(--adm-surface)",
-                  color: "var(--adm-text)",
-                  border: "1px solid var(--adm-border)",
-                  borderRadius: 8,
-                  fontSize: "0.88rem",
-                }}
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
+          {/* Search & Filter Bar */}
+          <div style={{ marginBottom: 20, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flex: 1, minWidth: 280, maxWidth: 420 }}>
+              <div style={{ position: "relative", width: "100%" }}>
+                <i
+                  className="bx bx-search"
                   style={{
                     position: "absolute",
-                    right: 10,
+                    left: 12,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    color: "#999",
-                    cursor: "pointer",
+                    color: "#777",
+                    fontSize: "1.1rem",
                   }}
-                >
-                  <i className="bx bx-x" />
-                </button>
-              )}
+                />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari nama fanbase atau slug..."
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px 9px 36px",
+                    background: "var(--adm-surface)",
+                    color: "var(--adm-text)",
+                    border: "1px solid var(--adm-border)",
+                    borderRadius: 8,
+                    fontSize: "0.88rem",
+                  }}
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    style={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      color: "#999",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <i className="bx bx-x" />
+                  </button>
+                )}
+              </div>
             </div>
-            {search && (
-              <span style={{ fontSize: 13, color: "#888" }}>
-                Ditemukan {filtered.length} dari {invitations.length}
-              </span>
-            )}
+
+            {/* Attendance Filter Pills */}
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => setFilterCheckin("all")}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: filterCheckin === "all" ? "1px solid #c9a84c" : "1px solid var(--adm-border)",
+                  background: filterCheckin === "all" ? "rgba(201,168,76,0.18)" : "var(--adm-surface)",
+                  color: filterCheckin === "all" ? "#c9a84c" : "var(--adm-text)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                Semua ({invitations.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterCheckin("hadir")}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: filterCheckin === "hadir" ? "1px solid #10b981" : "1px solid var(--adm-border)",
+                  background: filterCheckin === "hadir" ? "rgba(16,185,129,0.18)" : "var(--adm-surface)",
+                  color: filterCheckin === "hadir" ? "#10b981" : "var(--adm-text)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <i className="bx bxs-check-circle" style={{ marginRight: 4 }} /> Hadir ({hadirCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterCheckin("belum")}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 20,
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: filterCheckin === "belum" ? "1px solid #f59e0b" : "1px solid var(--adm-border)",
+                  background: filterCheckin === "belum" ? "rgba(245,158,11,0.18)" : "var(--adm-surface)",
+                  color: filterCheckin === "belum" ? "#f59e0b" : "var(--adm-text)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                Belum Hadir ({belumHadirCount})
+              </button>
+            </div>
           </div>
 
           {/* Content Table */}
@@ -5016,23 +5124,76 @@ function InvitationsManager() {
                           /undangan/{item.slug}
                         </code>
                       </td>
-                      {/* Check-in status */}
+                      {/* Check-in status (Manual Clickable Badge) */}
                       <td style={{ textAlign: "center" }}>
-                        {item.checked_in ? (
-                          <span style={{ color: "#10b981", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                            <i className="bx bxs-check-circle" /> Hadir
-                          </span>
-                        ) : (
-                          <span style={{ color: "#6b7280", fontSize: 13 }}>—</span>
-                        )}
-                        {item.checked_in_at && (
-                          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
-                            {new Date(item.checked_in_at).toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCheckin(item)}
+                          disabled={togglingSlug === item.slug}
+                          title={item.checked_in ? "Klik untuk ubah kembali ke Belum Hadir" : "Klik untuk tandai Hadir manual"}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "4px 11px",
+                            borderRadius: 16,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: togglingSlug === item.slug ? "wait" : "pointer",
+                            transition: "all 0.2s ease",
+                            border: item.checked_in
+                              ? "1px solid rgba(16,185,129,0.5)"
+                              : "1px dashed rgba(255,255,255,0.22)",
+                            background: item.checked_in
+                              ? "rgba(16,185,129,0.16)"
+                              : "rgba(255,255,255,0.04)",
+                            color: item.checked_in ? "#10b981" : "#9ca3af",
+                          }}
+                        >
+                          {togglingSlug === item.slug ? (
+                            <>
+                              <i className="bx bx-loader-alt bx-spin" /> Proses...
+                            </>
+                          ) : item.checked_in ? (
+                            <>
+                              <i className="bx bxs-check-circle" /> Hadir
+                            </>
+                          ) : (
+                            <>
+                              <i className="bx bx-plus" /> Tandai Hadir
+                            </>
+                          )}
+                        </button>
+                        {item.checked_in && item.checked_in_at && (
+                          <div style={{ fontSize: 10, color: "#6b7280", marginTop: 4 }}>
+                            {new Date(item.checked_in_at).toLocaleString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </div>
                         )}
                       </td>
                       <td style={{ textAlign: "center" }}>
                         <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center", flexWrap: "wrap" }}>
+                          {/* Manual Attendance Toggle Button */}
+                          <button
+                            className={styles.btnGhost}
+                            disabled={togglingSlug === item.slug}
+                            style={{
+                              padding: "5px 9px",
+                              color: item.checked_in ? "#f59e0b" : "#10b981",
+                              fontSize: 13,
+                              borderColor: item.checked_in ? "rgba(245,158,11,0.3)" : "rgba(16,185,129,0.3)",
+                              background: item.checked_in ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.08)",
+                            }}
+                            onClick={() => handleToggleCheckin(item)}
+                            title={item.checked_in ? "Reset Kehadiran (Ubah ke Belum Hadir)" : "Tandai Hadir Manual"}
+                          >
+                            <i className={`bx ${item.checked_in ? "bx-user-x" : "bx-user-check"}`} />
+                          </button>
+
                           {/* Copy Link Button */}
                           <button
                             className={styles.btnGhost}
@@ -5058,31 +5219,6 @@ function InvitationsManager() {
                           >
                             <i className="bx bx-link-external" />
                           </a>
-
-                          {/* Reset Check-in button (only if checked in) */}
-                          {item.checked_in && (
-                            <button
-                              className={styles.btnGhost}
-                              style={{ padding: "5px 9px", color: "#f59e0b", fontSize: 13 }}
-                              title="Reset Status Check-in"
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch("/api/invitations", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ action: "resetCheckin", slug: item.slug }),
-                                  });
-                                  const json = await res.json();
-                                  if (json.success) {
-                                    setInvitations(json.data);
-                                    showToast(`Check-in ${item.name} berhasil direset`, "success");
-                                  }
-                                } catch { showToast("Gagal reset check-in", "error"); }
-                              }}
-                            >
-                              <i className="bx bx-reset" />
-                            </button>
-                          )}
 
                           {/* Edit Button */}
                           <button
