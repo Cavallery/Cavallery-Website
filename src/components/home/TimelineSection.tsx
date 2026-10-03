@@ -88,47 +88,20 @@ export default function TimelineSection() {
   useEffect(() => {
     const loadTimeline = async () => {
       try {
-        let loadedData: TimelineData | null = null;
-
-        try {
-          const res = await fetch("/api/timeline");
-          if (res.ok) {
-            const json = await res.json();
-            if (json?.status && json.data?.events?.length > 0) {
-              loadedData = json.data;
-            }
-          }
-        } catch {}
-
-        if (!loadedData) {
-          try {
-            const extRes = await fetch("https://v5.jkt48connect.com/api/cavallery/timeline?apikey=JKTCONNECT");
-            if (extRes.ok) {
-              const extJson = await extRes.json();
-              if (extJson?.status && extJson.data?.events?.length > 0) {
-                loadedData = extJson.data;
-              }
-            }
-          } catch (e) {
-            console.error("External timeline fetch failed:", e);
+        const res = await fetch("/api/timeline", { signal: AbortSignal.timeout(2500) });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.status && json.data?.events?.length > 0) {
+            const yearsSet = new Set<string>();
+            json.data.events.forEach((ev: TimelineEvent) => {
+              yearsSet.add(String(ev.year || "2026"));
+            });
+            const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
+            setTimelineData({ years: sortedYears, events: json.data.events });
           }
         }
-
-        if (loadedData && loadedData.events?.length > 0) {
-          // Rebuild years from events to ensure proper descending order
-          const yearsSet = new Set<string>();
-          loadedData.events.forEach((ev: TimelineEvent) => {
-            yearsSet.add(String(ev.year || "2026"));
-          });
-          const sortedYears = Array.from(yearsSet).sort((a, b) => Number(b) - Number(a));
-          setTimelineData({ years: sortedYears, events: loadedData.events });
-        } else {
-          // Fallback to local default bundled data
-          setTimelineData(buildDefaultTimelineData());
-        }
-      } catch (err) {
-        console.error("Timeline loading error:", err);
-        setTimelineData(buildDefaultTimelineData());
+      } catch {
+        // Tetap menggunakan data bawaan awal (langsung tampil 0ms tanpa loading)
       }
     };
 
@@ -219,11 +192,16 @@ export default function TimelineSection() {
                           <div
                             className={styles.polaroidFrame}
                             style={{ transform: `rotate(${rotation}deg)` }}
-                            onClick={() =>
-                              event.image_url &&
-                              openModal(event.image_url, event.date_label, event.title, event.description)
-                            }
-                            title="Klik untuk memperbesar foto"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (event.image_url) {
+                                openModal(event.image_url, event.date_label, event.title, event.description);
+                              }
+                            }}
+                            title="Klik untuk memperbesar foto Polaroid"
+                            role="button"
+                            tabIndex={0}
                           >
                             <div className={styles.polaroidTape} />
                             <div className={styles.polaroidPhoto}>
@@ -249,14 +227,19 @@ export default function TimelineSection() {
                           <h3 className={styles.title}>{event.title}</h3>
                           <p className={styles.desc}>{event.description}</p>
                           {event.image_url && (
-                            <span
+                            <button
+                              type="button"
                               className={styles.expandHint}
-                              onClick={() =>
-                                openModal(event.image_url!, event.date_label, event.title, event.description)
-                              }
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                openModal(event.image_url!, event.date_label, event.title, event.description);
+                              }}
+                              title="Buka Polaroid Erine"
+                              style={{ background: "none", border: "none", padding: 0, font: "inherit", textAlign: "left" }}
                             >
                               <i className="bx bx-zoom-in" /> Lihat Foto Polaroid
-                            </span>
+                            </button>
                           )}
                         </div>
                       </div>
@@ -272,7 +255,7 @@ export default function TimelineSection() {
       {/* Lightbox Modal */}
       {isModalOpen && (
         <div
-          className={`${styles.modalOverlay} ${styles.active}`}
+          className={styles.modalOverlay}
           onClick={closeModal}
         >
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
