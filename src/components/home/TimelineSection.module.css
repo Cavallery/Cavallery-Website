@@ -3,11 +3,13 @@
   background: transparent;
   position: relative;
   z-index: 2;
+  opacity: 1 !important;
 }
 
 .container {
   max-width: 960px;
   margin: 0 auto;
+  opacity: 1 !important;
 }
 
 .header {
@@ -109,6 +111,7 @@
   position: relative;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.35s;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  opacity: 1 !important;
 }
 
 .content:hover {
@@ -280,13 +283,17 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999999;
+  z-index: 9999999;
   padding: 24px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
