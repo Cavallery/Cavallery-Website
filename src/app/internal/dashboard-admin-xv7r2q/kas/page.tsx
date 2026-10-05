@@ -1260,10 +1260,10 @@ export default function AdminKasPage() {
   const pengeluaranTahun = totalPengeluaran;
   const allTimePengeluaran = matrixData?.allTimePengeluaran ?? (totalPengeluaran || 86531909);
 
-  // Nilai aktif berdasarkan toggle (Semua Tahun vs Tahun Tertentu):
-  const activeIuran = statsViewMode === "all" ? allTimeIuranKas : grandTotalPemasukan;
-  const activeEksternal = statsViewMode === "all" ? allTimePemasukanEksternal : pemasukanEksternalTahun;
-  const activePengeluaran = statsViewMode === "all" ? allTimePengeluaran : pengeluaranTahun;
+  // Nilai keuangan — selalu keseluruhan (all-time):
+  const activeIuran       = allTimeIuranKas;
+  const activeEksternal   = allTimePemasukanEksternal;
+  const activePengeluaran = allTimePengeluaran;
 
   const activeTotalPemasukanSemua = activeIuran + activeEksternal;
   // Rumus: (Total Iuran Kas + Total Pemasukan Eksternal) - Total Pengeluaran
@@ -1391,66 +1391,16 @@ export default function AdminKasPage() {
           </div>
         )}
 
-        {/* ── STATS RINGKASAN KEUANGAN KAS (SEMUA TAHUN & TAHUNAN) ── */}
+        {/* ── STATS RINGKASAN KEUANGAN KAS (KESELURUHAN SEMUA TAHUN) ── */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--primary)" }}>
-                <i className="bx bx-pie-chart-alt-2" style={{ color: "var(--gold)", marginRight: 4 }} />
-                Ringkasan Keuangan Kas:
-              </span>
-              <div style={{ display: "inline-flex", background: "rgba(0,0,0,0.25)", borderRadius: 10, padding: 3, border: "1px solid var(--border)" }}>
-                <button
-                  type="button"
-                  onClick={() => setStatsViewMode("all")}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: statsViewMode === "all" ? "var(--gold)" : "transparent",
-                    color: statsViewMode === "all" ? "#1a1612" : "var(--fg-muted)",
-                    fontWeight: statsViewMode === "all" ? 900 : 600,
-                    fontSize: "0.78rem",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <i className="bx bx-infinite" />
-                  Total Keseluruhan (Semua Tahun)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatsViewMode("yearly")}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: statsViewMode === "yearly" ? "var(--gold)" : "transparent",
-                    color: statsViewMode === "yearly" ? "#1a1612" : "var(--fg-muted)",
-                    fontWeight: statsViewMode === "yearly" ? 900 : 600,
-                    fontSize: "0.78rem",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <i className="bx bx-calendar" />
-                  Tahun {matrixYear} Saja
-                </button>
-              </div>
-            </div>
-
-            {statsViewMode === "all" && (
-              <span style={{ fontSize: "0.75rem", color: "var(--gold)", background: "rgba(201,168,76,0.1)", padding: "3px 10px", borderRadius: 20, border: "1px solid rgba(201,168,76,0.25)" }}>
-                <i className="bx bx-check-double" style={{ marginRight: 4 }} />
-                Rumus Saldo: (Iuran Kas + Pemasukan Eksternal) - Total Pengeluaran
-              </span>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--primary)" }}>
+              <i className="bx bx-pie-chart-alt-2" style={{ color: "var(--gold)", marginRight: 4 }} />
+              Ringkasan Keuangan Kas:
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "var(--gold)", background: "rgba(201,168,76,0.1)", padding: "3px 10px", borderRadius: 20, border: "1px solid rgba(201,168,76,0.25)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <i className="bx bx-infinite" /> Akumulasi Semua Tahun
+            </span>
           </div>
 
           <div style={{
@@ -1466,15 +1416,13 @@ export default function AdminKasPage() {
               padding: "16px 18px",
             }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#10b981", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <i className="bx bx-group" /> {statsViewMode === "all" ? "Total Pemasukan Kas (Semua Tahun)" : `Total Iuran Kas ${matrixYear}`}
+                <i className="bx bx-group" /> Total Iuran Kas
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#10b981", marginTop: 4 }}>
                 {formatRupiah(activeIuran)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                {statsViewMode === "all"
-                  ? "Akumulasi seluruh iuran kas terverifikasi lintas semua tahun"
-                  : `Akumulasi iuran kas tercentang lunas pada tahun ${matrixYear}`}
+                Akumulasi seluruh iuran kas terverifikasi lintas semua tahun
               </div>
             </div>
 
@@ -1486,15 +1434,13 @@ export default function AdminKasPage() {
               padding: "16px 18px",
             }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#06b6d4", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <i className="bx bx-log-in-circle" /> {statsViewMode === "all" ? "Pemasukan Kas (Eksternal Income)" : `Pemasukan Eksternal ${matrixYear}`}
+                <i className="bx bx-log-in-circle" /> Pemasukan Eksternal
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#06b6d4", marginTop: 4 }}>
                 {formatRupiah(activeEksternal)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                {statsViewMode === "all"
-                  ? "Akumulasi donasi, sponsor, penjualan merch & proyek fanbase"
-                  : `Pemasukan eksternal fanbase periode tahun ${matrixYear}`}
+                Akumulasi donasi, sponsor, penjualan merch &amp; proyek fanbase
               </div>
             </div>
 
@@ -1506,15 +1452,13 @@ export default function AdminKasPage() {
               padding: "16px 18px",
             }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#e11d48", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <i className="bx bx-trending-down" /> {statsViewMode === "all" ? "Total Pengeluaran Kas (Semua Tahun)" : `Total Pengeluaran Kas ${matrixYear}`}
+                <i className="bx bx-trending-down" /> Total Pengeluaran Kas
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#e11d48", marginTop: 4 }}>
                 {formatRupiah(activePengeluaran)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                {statsViewMode === "all"
-                  ? "Total seluruh transaksi belanja operasional fanbase"
-                  : `${pengeluaranList.length} transaksi belanja operasional fanbase tahun ${matrixYear}`}
+                Total seluruh transaksi belanja operasional fanbase
               </div>
             </div>
 
@@ -1526,15 +1470,13 @@ export default function AdminKasPage() {
               padding: "16px 18px",
             }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--gold)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <i className="bx bx-wallet-alt" /> {statsViewMode === "all" ? "Saldo Kas Saat Ini (Semua Tahun)" : `Saldo Kas Saat Ini ${matrixYear}`}
+                <i className="bx bx-wallet-alt" /> Saldo Kas Saat Ini
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: activeSaldoKas >= 0 ? "var(--primary)" : "#ef4444", marginTop: 4 }}>
                 {formatRupiah(activeSaldoKas)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                {statsViewMode === "all"
-                  ? `Hasil otomatis: (${formatRupiah(activeIuran)} + ${formatRupiah(activeEksternal)}) - ${formatRupiah(activePengeluaran)}`
-                  : `Sisa saldo kas bersih operasional periode tahun ${matrixYear}`}
+                Saldo kas bersih siap pakai untuk operasional fanbase
               </div>
             </div>
           </div>
