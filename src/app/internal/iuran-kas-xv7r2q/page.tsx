@@ -75,6 +75,9 @@ export default function PublicKasMatrixPage() {
   const allTimePengeluaran        = Number(matrixData?.allTimePengeluaran ?? matrixData?.totalPengeluaran ?? 0);
   const saldoKasSaatIni           = allTimeIuranKas + allTimePemasukanEksternal - allTimePengeluaran;
 
+  // Total pengeluaran per-tahun yang dipilih (untuk label di tab pengeluaran)
+  const totalPengeluaranTercatat  = Number(matrixData?.totalPengeluaran ?? 0);
+
   // Daftar Kategori Unik untuk Filter
   const uniqueCategories = Array.from(new Set(pengeluaranList.map((p) => p.kategori).filter(Boolean)));
 

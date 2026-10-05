@@ -194,7 +194,6 @@ export default function AdminKasPage() {
   const [manualNominal, setManualNominal] = useState("15.000");
   const [submittingManual, setSubmittingManual] = useState(false);
   // ── STATE: War Tiket STS Erine ──
-  const [statsViewMode, setStatsViewMode] = useState<"all" | "yearly">("all");
   const [adminWarEvent, setAdminWarEvent] = useState<any | null>(null);
   const [adminWarPeserta, setAdminWarPeserta] = useState<any[]>([]);
   const [loadingAdminWar, setLoadingAdminWar] = useState(false);
@@ -1250,23 +1249,18 @@ export default function AdminKasPage() {
 
   const pendingKas = kasList.filter((k) => k.status === "pending");
   const processedKas = kasList.filter((k) => k.status !== "pending");
-  
-  const grandTotalPemasukan = matrixData?.grandTotalPemasukan || 0;
-  const allTimeIuranKas = matrixData?.allTimeIuranKas ?? (matrixData?.allTimePemasukan ?? grandTotalPemasukan);
-  
-  const pemasukanEksternalTahun = matrixData?.totalPemasukanEksternal ?? totalPemasukanEksternal;
-  const allTimePemasukanEksternal = matrixData?.allTimePemasukanEksternal ?? (totalPemasukanEksternal || 127463910);
 
-  const pengeluaranTahun = totalPengeluaran;
-  const allTimePengeluaran = matrixData?.allTimePengeluaran ?? (totalPengeluaran || 86531909);
+  // ── Kalkulasi Keuangan — selalu keseluruhan (all-time)
+  const allTimeIuranKas           = Number(matrixData?.allTimeIuranKas ?? matrixData?.allTimePemasukan ?? matrixData?.grandTotalPemasukan ?? 0);
+  const allTimePemasukanEksternal = Number(matrixData?.allTimePemasukanEksternal ?? totalPemasukanEksternal ?? 127463910);
+  const allTimePengeluaran        = Number(matrixData?.allTimePengeluaran ?? totalPengeluaran ?? 86531909);
 
-  // Nilai keuangan — selalu keseluruhan (all-time):
   const activeIuran       = allTimeIuranKas;
   const activeEksternal   = allTimePemasukanEksternal;
   const activePengeluaran = allTimePengeluaran;
 
   const activeTotalPemasukanSemua = activeIuran + activeEksternal;
-  // Rumus: (Total Iuran Kas + Total Pemasukan Eksternal) - Total Pengeluaran
+  // Rumus: (Total Iuran Kas + Pemasukan Eksternal) - Total Pengeluaran
   const activeSaldoKas = activeTotalPemasukanSemua - activePengeluaran;
 
   // Filter matrix rows by search query
