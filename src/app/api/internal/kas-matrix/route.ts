@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       0
     );
 
-    const saldoKasBersih = data.grandTotalPemasukan - totalPengeluaran;
+    const saldoKasBersih = data.saldoKasTahun ?? (data.allTimeSaldo ?? (data.grandTotalPemasukan - totalPengeluaran));
 
     return NextResponse.json({
       status: true,
@@ -48,8 +48,10 @@ export async function GET(req: Request) {
       monthlyTotals: data.monthlyTotals,
       monthlyPaidCounts: data.monthlyPaidCounts,
       grandTotalPemasukan: data.grandTotalPemasukan,
-      totalPengeluaran,
+      totalPengeluaran: data.totalPengeluaranKas ?? totalPengeluaran,
       saldoKasBersih,
+      allTimeIuranKas: data.allTimeIuranKas ?? data.allTimePemasukan,
+      allTimePemasukanEksternal: data.allTimePemasukanEksternal ?? 0,
       allTimePemasukan: data.allTimePemasukan ?? data.grandTotalPemasukan,
       allTimePengeluaran: data.allTimePengeluaran ?? totalPengeluaran,
       allTimeSaldo: data.allTimeSaldo ?? saldoKasBersih,

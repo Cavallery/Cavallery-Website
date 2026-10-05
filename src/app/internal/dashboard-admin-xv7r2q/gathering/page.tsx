@@ -566,10 +566,14 @@ export default function AdminGatheringPage() {
                             >
                               <img
                                 src={
-                                  a.foto_profil ||
-                                  "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+                                  a.foto_profil && typeof a.foto_profil === "string" && !a.foto_profil.includes("jkt48connect.com")
+                                    ? (a.foto_profil.startsWith("uploads/") ? `/${a.foto_profil}` : a.foto_profil)
+                                    : "/images/cava-logo-round.png"
                                 }
-                                alt="Avatar"
+                                alt={a.nama_lengkap || "Avatar"}
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).src = "/images/cava-logo-round.png";
+                                }}
                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                               />
                             </div>
@@ -748,10 +752,36 @@ export default function AdminGatheringPage() {
                     onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(201, 168, 76, 0.15)")}
                     onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                   >
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: "#fff3d0" }}>{m.nama_lengkap}</div>
-                      <div style={{ fontSize: 11, color: "var(--gold, #c9a84c)", fontFamily: "monospace" }}>
-                        {m.no_anggota} {m.domisili ? `• ${m.domisili}` : ""}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: "50%",
+                          background: "#1a1e24",
+                          border: "1px solid #c9a84c",
+                          overflow: "hidden",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={
+                            m.foto_profil && typeof m.foto_profil === "string" && !m.foto_profil.includes("jkt48connect.com")
+                              ? (m.foto_profil.startsWith("uploads/") ? `/${m.foto_profil}` : m.foto_profil)
+                              : "/images/cava-logo-round.png"
+                          }
+                          alt={m.nama_lengkap || "Avatar"}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = "/images/cava-logo-round.png";
+                          }}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#fff3d0" }}>{m.nama_lengkap}</div>
+                        <div style={{ fontSize: 11, color: "var(--gold, #c9a84c)", fontFamily: "monospace" }}>
+                          {m.no_anggota} {m.domisili ? `• ${m.domisili}` : ""}
+                        </div>
                       </div>
                     </div>
                     <button

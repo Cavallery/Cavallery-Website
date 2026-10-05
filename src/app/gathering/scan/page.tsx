@@ -940,10 +940,14 @@ export default function GatheringScanPage() {
                     >
                       <img
                         src={
-                          result.foto_profil ||
-                          "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+                          result.foto_profil && typeof result.foto_profil === "string" && !result.foto_profil.includes("jkt48connect.com")
+                            ? (result.foto_profil.startsWith("uploads/") ? `/${result.foto_profil}` : result.foto_profil)
+                            : "/images/cava-logo-round.png"
                         }
                         alt="Foto"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/images/cava-logo-round.png";
+                        }}
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     </div>
@@ -1175,10 +1179,14 @@ export default function GatheringScanPage() {
                       >
                         <img
                           src={
-                            a.foto_profil ||
-                            "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg"
+                            a.foto_profil && typeof a.foto_profil === "string" && !a.foto_profil.includes("jkt48connect.com")
+                              ? (a.foto_profil.startsWith("uploads/") ? `/${a.foto_profil}` : a.foto_profil)
+                              : "/images/cava-logo-round.png"
                           }
                           alt="Avatar"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = "/images/cava-logo-round.png";
+                          }}
                           style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                       </div>

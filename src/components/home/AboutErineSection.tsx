@@ -476,7 +476,7 @@ export default function AboutErineSection() {
                 { icon: "bx-meteor", label: "Shio", value: "🐷 Babi" },
                 { icon: "bx-music", label: "Hobi", value: "Bermain Piano, Menari" },
                 { icon: "bx-hash", label: "Angka Favorit", value: "7" },
-                { icon: "bx-palette", label: "Warna Favorit", value: <span className={styles.ewColors}><span className={styles.colorDotPink} />Pink<span className={styles.colorDotBlue} />Blue<span className={styles.colorDotTosca} />Tosca</span> },
+                { icon: "bx-palette", label: "Warna Favorit", value: <span className={styles.ewColors}><span className={styles.colorDotPink} />Pink<span className={styles.colorDotBlue} />Blue<span className={styles.colorDotGreen} />Hijau</span> },
               ].map((row, i) => (
                 <div key={i} className={styles.ewBioRow}>
                   <div className={styles.ewBioIcon}>
