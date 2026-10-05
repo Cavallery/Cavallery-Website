@@ -25,7 +25,9 @@ type Section =
 
 
 // ─── ACTIVITY LOGGING HELPER ─────────────────────────────────
-async function recordDashboardActivity(actionName: string, module: string, details?: string) {
+let currentAdminUsername = "Admin";
+
+async function recordDashboardActivity(actionName: string, module: string, details?: string, username?: string) {
   try {
     await fetch("/api/admin/logs", {
       method: "POST",
@@ -35,6 +37,7 @@ async function recordDashboardActivity(actionName: string, module: string, detai
         actionName,
         module,
         details,
+        username: username || currentAdminUsername || "Admin",
       }),
     });
   } catch {}
@@ -109,8 +112,10 @@ function useAdminAuth() {
         const isValid = data.status === true && data.valid === true;
         setAuthed(isValid);
         if (isValid) {
+          const uName = data.username || "Admin";
+          currentAdminUsername = uName;
           setRole(data.role || (["admin", "vallencia", "aditya"].includes((data.username || "").toLowerCase()) ? "superadmin" : "admin"));
-          setUsername(data.username || "Admin");
+          setUsername(uName);
         }
       })
       .catch(() => {
@@ -9520,6 +9525,8 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
   const filtered = logs.filter(l => {
     const q = search.toLowerCase();
     const matchSearch = (l.username && l.username.toLowerCase().includes(q)) ||
+      (l.name && l.name.toLowerCase().includes(q)) ||
+      (l.real_name && l.real_name.toLowerCase().includes(q)) ||
       (l.action && l.action.toLowerCase().includes(q)) ||
       (l.details && l.details.toLowerCase().includes(q));
     const matchMod = moduleFilter === "all" || l.module === moduleFilter;
@@ -9695,7 +9702,7 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
                   />
                 </th>
                 <th>Waktu</th>
-                <th>User</th>
+                <th>Pengguna / Admin</th>
                 <th>Modul</th>
                 <th>Aksi</th>
                 <th>Detail</th>
@@ -9716,7 +9723,16 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
                   <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
                     {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
                   </td>
-                  <td style={{ fontWeight: 600, color: "#c9a84c" }}>{l.username}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                        {l.name || l.real_name || l.nama || l.username || "Admin"}
+                      </span>
+                      {l.username && (l.name || l.real_name || l.nama) && (l.name || l.real_name || l.nama).toLowerCase() !== l.username.toLowerCase() && (
+                        <span style={{ fontSize: 11, color: "#c9a84c", fontFamily: "monospace" }}>@{l.username}</span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <span style={{ background: "rgba(255,255,255,0.08)", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>
                       {l.module}
@@ -9764,6 +9780,8 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
   const filtered = logs.filter(l => {
     const q = search.toLowerCase();
     const matchSearch = (l.username && l.username.toLowerCase().includes(q)) ||
+      (l.name && l.name.toLowerCase().includes(q)) ||
+      (l.real_name && l.real_name.toLowerCase().includes(q)) ||
       (l.ip_address && l.ip_address.toLowerCase().includes(q));
     const matchStatus = statusFilter === "all" || l.status === statusFilter;
     return matchSearch && matchStatus;
@@ -9932,7 +9950,7 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
                   />
                 </th>
                 <th>Waktu</th>
-                <th>Username</th>
+                <th>Pengguna / Akun</th>
                 <th>Status</th>
                 <th>IP Address</th>
                 <th>Perangkat / Browser</th>
@@ -9952,7 +9970,16 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
                   <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
                     {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
                   </td>
-                  <td style={{ fontWeight: 600, color: "#fff" }}>{l.username}</td>
+                  <td style={{ fontWeight: 600 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                        {l.name || l.real_name || l.nama || l.username || "Admin"}
+                      </span>
+                      {l.username && (l.name || l.real_name || l.nama) && (l.name || l.real_name || l.nama).toLowerCase() !== l.username.toLowerCase() && (
+                        <span style={{ fontSize: 11, color: "#aaa", fontFamily: "monospace" }}>@{l.username}</span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     {l.status === "success" ? (
                       <span style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", padding: "3px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
@@ -10403,6 +10430,14 @@ export default function AdminPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
+  const isSuperadmin = role === "superadmin";
+
+  // Sembunyikan "Manajemen Sistem" jika bukan Super Admin
+  const visibleNavGroups = navGroups.filter(g => {
+    if (g.id === "sistem" && !isSuperadmin) return false;
+    return true;
+  });
+
   const toggleGroup = (groupId: string) => {
     setCollapsedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
   };
@@ -10421,6 +10456,13 @@ export default function AdminPage() {
   if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
 
   const navigate = (section: Section) => {
+    const SYSTEM_SECTIONS = ["users", "activitylogs", "loginlogs", "visitorlocations"];
+    if (SYSTEM_SECTIONS.includes(section as string) && !isSuperadmin) {
+      setActive("dashboard");
+      setDrawerOpen(false);
+      return;
+    }
+
     if ((section as string) === "keanggotaan") {
       window.location.href = "/internal/dashboard-admin-xv7r2q/keanggotaan";
       return;
@@ -10464,7 +10506,7 @@ export default function AdminPage() {
   // Helper to render accordion navigation
   const renderNav = () => (
     <nav className={styles.nav}>
-      {navGroups.map(group => {
+      {visibleNavGroups.map(group => {
         const isCollapsed = Boolean(collapsedGroups[group.id]);
         const hasActiveChild = group.items.some(item => item.key === active);
 
@@ -10503,7 +10545,7 @@ export default function AdminPage() {
     </nav>
   );
 
-  const allItems = navGroups.flatMap(g => g.items);
+  const allItems = visibleNavGroups.flatMap(g => g.items);
   const currentTitle = allItems.find(n => n.key === active)?.label ?? "Dashboard";
 
   return (
@@ -10598,10 +10640,10 @@ export default function AdminPage() {
             : active === "fanart"     ? <FanartManager />
             : active === "twoshot"    ? <TwoShotManager />
             : active === "dengerine"  ? <DengerineManager />
-            : active === "users"      ? <UsersManager currentRole={role} currentUsername={username} />
-            : active === "activitylogs"? <ActivityLogsManager currentRole={role} />
-            : active === "loginlogs"  ? <LoginLogsManager currentRole={role} />
-            : active === "visitorlocations"? <VisitorLocationsManager currentRole={role} />
+            : active === "users"      ? (isSuperadmin ? <UsersManager currentRole={role} currentUsername={username} /> : <div style={{ padding: 48, textAlign: "center", color: "#f87171" }}><i className="bx bx-shield-x" style={{ fontSize: "3rem", marginBottom: 12, display: "block" }} />Akses Ditolak: Fitur Manajemen Sistem hanya dapat diakses oleh Super Admin.</div>)
+            : active === "activitylogs"? (isSuperadmin ? <ActivityLogsManager currentRole={role} /> : <div style={{ padding: 48, textAlign: "center", color: "#f87171" }}><i className="bx bx-shield-x" style={{ fontSize: "3rem", marginBottom: 12, display: "block" }} />Akses Ditolak: Fitur Manajemen Sistem hanya dapat diakses oleh Super Admin.</div>)
+            : active === "loginlogs"  ? (isSuperadmin ? <LoginLogsManager currentRole={role} /> : <div style={{ padding: 48, textAlign: "center", color: "#f87171" }}><i className="bx bx-shield-x" style={{ fontSize: "3rem", marginBottom: 12, display: "block" }} />Akses Ditolak: Fitur Manajemen Sistem hanya dapat diakses oleh Super Admin.</div>)
+            : active === "visitorlocations"? (isSuperadmin ? <VisitorLocationsManager currentRole={role} /> : <div style={{ padding: 48, textAlign: "center", color: "#f87171" }}><i className="bx bx-shield-x" style={{ fontSize: "3rem", marginBottom: 12, display: "block" }} />Akses Ditolak: Fitur Manajemen Sistem hanya dapat diakses oleh Super Admin.</div>)
             : <SectionManager section={active} />}
           </div>
         </div>

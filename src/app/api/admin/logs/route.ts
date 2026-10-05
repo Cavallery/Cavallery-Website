@@ -10,12 +10,20 @@ export async function GET(req: NextRequest) {
     try {
       if (type === "login") {
         const rows = await query<any[]>(
-          "SELECT id, username, status, ip_address, user_agent, created_at FROM login_logs ORDER BY id DESC LIMIT 500"
+          `SELECT l.id, l.username, COALESCE(u.name, a.nama, l.username) AS name, l.status, l.ip_address, l.user_agent, l.created_at 
+           FROM login_logs l
+           LEFT JOIN admin_users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(l.username))
+           LEFT JOIN admin a ON LOWER(TRIM(a.username)) = LOWER(TRIM(l.username))
+           ORDER BY l.id DESC LIMIT 500`
         );
         return NextResponse.json({ success: true, data: rows || [] });
       } else {
         const rows = await query<any[]>(
-          "SELECT id, username, action, module, details, ip_address, created_at FROM activity_logs ORDER BY id DESC LIMIT 500"
+          `SELECT l.id, l.username, COALESCE(u.name, a.nama, l.username) AS name, l.action, l.module, l.details, l.ip_address, l.created_at 
+           FROM activity_logs l
+           LEFT JOIN admin_users u ON LOWER(TRIM(u.username)) = LOWER(TRIM(l.username))
+           LEFT JOIN admin a ON LOWER(TRIM(a.username)) = LOWER(TRIM(l.username))
+           ORDER BY l.id DESC LIMIT 500`
         );
         return NextResponse.json({ success: true, data: rows || [] });
       }

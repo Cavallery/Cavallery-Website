@@ -119,7 +119,8 @@ export async function GET(request: Request) {
       const rows = await query<any[]>(
         `SELECT gp.*, a.foto_profil 
          FROM gathering_presensi gp
-         LEFT JOIN anggota a ON gp.anggota_id = a.id OR gp.no_anggota = a.no_anggota
+         LEFT JOIN anggota a ON (gp.anggota_id IS NOT NULL AND gp.anggota_id = a.id)
+                             OR LOWER(TRIM(gp.no_anggota)) = LOWER(TRIM(a.no_anggota))
          WHERE gp.nama_event = ?
          ORDER BY gp.waktu_hadir DESC`,
         [eventName]

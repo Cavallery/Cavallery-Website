@@ -74,7 +74,7 @@ export default function AdminKasPage() {
   const [editKas, setEditKas] = useState<any | null>(null);
 
   // ── STATE: Tab Utama ──
-  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pengeluaran" | "kupon" | "konfirmasi" | "war">("matriks");
+  const [activeTab, setActiveTab] = useState<"matriks" | "tagihan" | "pemasukan" | "pengeluaran" | "kupon" | "konfirmasi" | "war">("matriks");
   const [matrixYear, setMatrixYear] = useState(new Date().getFullYear());
   const [matrixData, setMatrixData] = useState<any | null>(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
@@ -123,6 +123,44 @@ export default function AdminKasPage() {
     buktiNotaUrls: [],
     catatan: "",
   });
+
+  // ── STATE: Pemasukan Kas (Eksternal Income) ──
+  const [pemasukanList, setPemasukanList] = useState<any[]>([]);
+  const [totalPemasukanEksternal, setTotalPemasukanEksternal] = useState(0);
+  const [loadingPemasukan, setLoadingPemasukan] = useState(false);
+  const [showPemasukanModal, setShowPemasukanModal] = useState(false);
+  const [submittingPemasukan, setSubmittingPemasukan] = useState(false);
+  const [uploadingPemasukanNota, setUploadingPemasukanNota] = useState(false);
+  const [newPemasukan, setNewPemasukan] = useState({
+    tanggal: new Date().toISOString().split("T")[0],
+    kategori: "Pemasukan Eksternal",
+    sumber: "",
+    nominal: "",
+    buktiNotaUrls: [] as string[],
+    catatan: "",
+  });
+  const [showEditPemasukanModal, setShowEditPemasukanModal] = useState(false);
+  const [submittingEditPemasukan, setSubmittingEditPemasukan] = useState(false);
+  const [uploadingEditPemasukanNota, setUploadingEditPemasukanNota] = useState(false);
+  const [editPemasukan, setEditPemasukan] = useState<{
+    id: number | null;
+    tanggal: string;
+    kategori: string;
+    sumber: string;
+    nominal: string;
+    buktiNotaUrls: string[];
+    catatan: string;
+  }>({
+    id: null,
+    tanggal: "",
+    kategori: "Pemasukan Eksternal",
+    sumber: "",
+    nominal: "",
+    buktiNotaUrls: [],
+    catatan: "",
+  });
+  const [pemasukanSearch, setPemasukanSearch] = useState("");
+  const [pemasukanKategoriFilter, setPemasukanKategoriFilter] = useState("semua");
 
   // ── STATE: Kupon Kas Reward ──
   const [kuponList, setKuponList] = useState<any[]>([]);
@@ -356,6 +394,20 @@ export default function AdminKasPage() {
     finally { setLoadingPengeluaran(false); }
   }, []);
 
+  // ── Fetch Pemasukan Kas (Eksternal Income) ──
+  const fetchPemasukan = useCallback(async (year: number) => {
+    setLoadingPemasukan(true);
+    try {
+      const res = await fetch(`/api/admin/kas/pemasukan?tahun=${year}`);
+      const json = await res.json();
+      if (json.status) {
+        setPemasukanList(json.data || []);
+        setTotalPemasukanEksternal(json.totalPemasukan || 0);
+      }
+    } catch (e) { console.error(e); }
+    finally { setLoadingPemasukan(false); }
+  }, []);
+
   // ── Fetch Kupon Kas ──
   const fetchKupon = useCallback(async (year: number) => {
     setLoadingKupon(true);
@@ -411,6 +463,7 @@ export default function AdminKasPage() {
     fetchMatrix(matrixYear);
     fetchTagihan(matrixYear);
     fetchPengeluaran(matrixYear);
+    fetchPemasukan(matrixYear);
     fetchKupon(matrixYear);
     fetchAnggota();
     fetchMasterData();
@@ -418,11 +471,11 @@ export default function AdminKasPage() {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const tab = p.get("tab");
-      if (tab && ["matriks", "tagihan", "pengeluaran", "kupon", "konfirmasi", "war"].includes(tab)) {
+      if (tab && ["matriks", "tagihan", "pemasukan", "pengeluaran", "kupon", "konfirmasi", "war"].includes(tab)) {
         setActiveTab(tab as any);
       }
     }
-  }, [fetchMatrix, fetchTagihan, fetchPengeluaran, fetchKupon, matrixYear]);
+  }, [fetchMatrix, fetchTagihan, fetchPengeluaran, fetchPemasukan, fetchKupon, matrixYear]);
 
   // ── Handlers: Konfirmasi ──
   const handleAction = async (id: number, action: string, extra: any = {}) => {
@@ -796,6 +849,234 @@ export default function AdminKasPage() {
     }
   };
 
+  // ── Handler: Upload Foto Bukti Pemasukan (Bisa Lebih Dari 1 Foto) ──
+  const handleUploadPemasukanNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingPemasukanNota(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        let json: any = {};
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          json = await res.json();
+        } else {
+          throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+        }
+        if (json.status && json.url) {
+          uploadedUrls.push(json.url);
+        } else {
+          alert(json.message || `Gagal mengunggah foto ke-${i + 1}`);
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        setNewPemasukan((prev) => ({
+          ...prev,
+          buktiNotaUrls: [...(prev.buktiNotaUrls || []), ...uploadedUrls],
+        }));
+      }
+    } catch (err: any) {
+      alert(err?.message || "Gagal mengunggah foto");
+    } finally {
+      setUploadingPemasukanNota(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  // ── Handler: Submit Pemasukan Kas Baru ──
+  const handlePemasukanSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNominal = Number(newPemasukan.nominal.replace(/\D/g, ""));
+    if (!cleanNominal || !newPemasukan.sumber) {
+      alert("Sumber dan nominal pemasukan wajib diisi");
+      return;
+    }
+
+    setSubmittingPemasukan(true);
+    try {
+      const res = await fetch("/api/admin/kas/pemasukan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tanggal: newPemasukan.tanggal,
+          kategori: newPemasukan.kategori,
+          sumber: newPemasukan.sumber,
+          nominal: cleanNominal,
+          buktiNotaUrl: newPemasukan.buktiNotaUrls.join(","),
+          catatan: newPemasukan.catatan,
+        }),
+      });
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server sedang memproses. Silakan refresh halaman untuk mengecek.");
+      }
+      if (json.status) {
+        setMsg("Pemasukan kas berhasil dicatat!");
+        setShowPemasukanModal(false);
+        setNewPemasukan({
+          tanggal: new Date().toISOString().split("T")[0],
+          kategori: "Pemasukan Eksternal",
+          sumber: "",
+          nominal: "",
+          buktiNotaUrls: [],
+          catatan: "",
+        });
+        fetchPemasukan(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal mencatat pemasukan");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSubmittingPemasukan(false);
+    }
+  };
+
+  // ── Handler: Hapus Pemasukan Kas ──
+  const handleDeletePemasukan = async (id: number) => {
+    if (!confirm(`Hapus catatan pemasukan kas #${id}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/kas/pemasukan?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        fetchPemasukan(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal menghapus pemasukan");
+      }
+    } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
+  };
+
+  // ── Handler: Buka Modal Edit Pemasukan ──
+  const handleOpenEditPemasukan = (item: any) => {
+    let tglStr = "";
+    try {
+      if (item.tanggal) {
+        const d = new Date(item.tanggal);
+        if (!isNaN(d.getTime())) {
+          tglStr = d.toISOString().split("T")[0];
+        }
+      }
+    } catch {
+      tglStr = item.tanggal || "";
+    }
+
+    const notaUrls = parseNotaList(item.bukti_nota_url || item.buktiNotaUrl);
+
+    setEditPemasukan({
+      id: item.id,
+      tanggal: tglStr || new Date().toISOString().split("T")[0],
+      kategori: item.kategori || "Pemasukan Eksternal",
+      sumber: item.sumber || "",
+      nominal: item.nominal ? Number(item.nominal).toLocaleString("id-ID") : "",
+      buktiNotaUrls: notaUrls,
+      catatan: item.catatan || "",
+    });
+    setShowEditPemasukanModal(true);
+  };
+
+  // ── Handler: Upload Foto Bukti Nota untuk Edit Pemasukan ──
+  const handleUploadEditPemasukanNota = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingEditPemasukanNota(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        let json: any = {};
+        const cType = res.headers.get("content-type") || "";
+        if (cType.includes("application/json")) {
+          json = await res.json();
+        } else {
+          throw new Error("Server penyimpanan sedang sibuk. Silakan coba beberapa saat lagi.");
+        }
+        if (json.status && json.url) {
+          uploadedUrls.push(json.url);
+        } else {
+          alert(json.message || `Gagal mengunggah foto ke-${i + 1}`);
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        setEditPemasukan((prev) => ({
+          ...prev,
+          buktiNotaUrls: [...(prev.buktiNotaUrls || []), ...uploadedUrls],
+        }));
+      }
+    } catch (err: any) {
+      alert(err?.message || "Gagal mengunggah foto bukti");
+    } finally {
+      setUploadingEditPemasukanNota(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  // ── Handler: Submit Edit Pemasukan Kas ──
+  const handleEditPemasukanSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editPemasukan.id) return;
+    const cleanNominal = Number(String(editPemasukan.nominal).replace(/\D/g, ""));
+    if (!cleanNominal || !editPemasukan.sumber) {
+      alert("Sumber dan nominal pemasukan wajib diisi");
+      return;
+    }
+
+    setSubmittingEditPemasukan(true);
+    try {
+      const res = await fetch("/api/admin/kas/pemasukan", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editPemasukan.id,
+          tanggal: editPemasukan.tanggal,
+          kategori: editPemasukan.kategori,
+          sumber: editPemasukan.sumber,
+          nominal: cleanNominal,
+          buktiNotaUrl: editPemasukan.buktiNotaUrls.join(","),
+          catatan: editPemasukan.catatan,
+        }),
+      });
+      let json: any = {};
+      const cType = res.headers.get("content-type") || "";
+      if (cType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        throw new Error("Server sedang memproses. Silakan refresh halaman untuk mengecek.");
+      }
+      if (json.status) {
+        setMsg("Catatan pemasukan kas berhasil diperbarui!");
+        setShowEditPemasukanModal(false);
+        fetchPemasukan(matrixYear);
+        fetchMatrix(matrixYear);
+      } else {
+        alert(json.message || "Gagal memperbarui pemasukan");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSubmittingEditPemasukan(false);
+    }
+  };
+
   // ── Handler: Submit Kupon Baru & Bagikan ──
   const handleKuponSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -969,11 +1250,24 @@ export default function AdminKasPage() {
 
   const pendingKas = kasList.filter((k) => k.status === "pending");
   const processedKas = kasList.filter((k) => k.status !== "pending");
+  
   const grandTotalPemasukan = matrixData?.grandTotalPemasukan || 0;
-  const saldoKasBersih = grandTotalPemasukan - totalPengeluaran;
-  const allTimePemasukan = matrixData?.allTimePemasukan ?? grandTotalPemasukan;
-  const allTimePengeluaran = matrixData?.allTimePengeluaran ?? totalPengeluaran;
-  const allTimeSaldo = matrixData?.allTimeSaldo ?? saldoKasBersih;
+  const allTimeIuranKas = matrixData?.allTimeIuranKas ?? (matrixData?.allTimePemasukan ?? grandTotalPemasukan);
+  
+  const pemasukanEksternalTahun = matrixData?.totalPemasukanEksternal ?? totalPemasukanEksternal;
+  const allTimePemasukanEksternal = matrixData?.allTimePemasukanEksternal ?? (totalPemasukanEksternal || 127463910);
+
+  const pengeluaranTahun = totalPengeluaran;
+  const allTimePengeluaran = matrixData?.allTimePengeluaran ?? (totalPengeluaran || 86531909);
+
+  // Nilai aktif berdasarkan toggle (Semua Tahun vs Tahun Tertentu):
+  const activeIuran = statsViewMode === "all" ? allTimeIuranKas : grandTotalPemasukan;
+  const activeEksternal = statsViewMode === "all" ? allTimePemasukanEksternal : pemasukanEksternalTahun;
+  const activePengeluaran = statsViewMode === "all" ? allTimePengeluaran : pengeluaranTahun;
+
+  const activeTotalPemasukanSemua = activeIuran + activeEksternal;
+  // Rumus: (Total Iuran Kas + Total Pemasukan Eksternal) - Total Pengeluaran
+  const activeSaldoKas = activeTotalPemasukanSemua - activePengeluaran;
 
   // Filter matrix rows by search query
   const filteredMatrixRows = (matrixData?.matrixRows || []).filter((r: any) => {
@@ -1005,7 +1299,7 @@ export default function AdminKasPage() {
           subtitle="Verifikasi bukti transfer pembayaran kas anggota, rekap matriks tahunan, laporan pengeluaran, dan reward kupon."
         />
 
-        {/* ── TOMBOL AKSI CEPAT SINKRONISASI & INPUT KAS / PENGELUARAN ── */}
+        {/* ── TOMBOL AKSI CEPAT SINKRONISASI & INPUT KAS / PENGELUARAN / PEMASUKAN ── */}
         <div style={{
           background: "linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(17, 85, 204, 0.1) 100%)",
           border: "1.5px solid var(--border-gold, #c9a84c)",
@@ -1024,7 +1318,7 @@ export default function AdminKasPage() {
               Pusat Manajemen Kas, Kupon Reward &amp; Sinkronisasi Spreadsheet
             </div>
             <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
-              Ekspor seluruh data centang bulanan (2024-2029), Anggota Aktif, Status Anggota, Leaderboard, dan Laporan Pengeluaran.
+              Ekspor seluruh data centang bulanan (2024-2029), Anggota Aktif, Laporan Pemasukan, dan Laporan Pengeluaran.
             </div>
           </div>
 
@@ -1036,6 +1330,15 @@ export default function AdminKasPage() {
               style={{ background: "#10b981", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className="bx bx-plus-circle" /> + Input Kas Anggota
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowPemasukanModal(true)}
+              className={styles.btnCreate}
+              style={{ background: "#059669", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <i className="bx bx-log-in-circle" /> + Catat Pemasukan Kas
             </button>
 
             <button
@@ -1069,14 +1372,14 @@ export default function AdminKasPage() {
 
             {/* TOMBOL DOWNLOAD EXCEL */}
             <a
-              href={`/api/admin/export-excel?type=${activeTab === "pengeluaran" ? "pengeluaran" : activeTab === "tagihan" ? "tagihan" : activeTab === "kupon" ? "kupon" : "matriks"}&tahun=${matrixYear}`}
+              href={`/api/admin/export-excel?type=${activeTab === "pengeluaran" ? "pengeluaran" : activeTab === "pemasukan" ? "pengeluaran" : activeTab === "tagihan" ? "tagihan" : activeTab === "kupon" ? "kupon" : "matriks"}&tahun=${matrixYear}`}
               target="_blank"
               rel="noopener noreferrer"
               className={styles.btnCreate}
               style={{ background: "#059669", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
               title={`Unduh file Microsoft Excel (.xls) untuk data ${activeTab} tahun ${matrixYear}`}
             >
-              <i className="bx bxs-file-export" /> Download Excel ({activeTab === "pengeluaran" ? "Pengeluaran" : activeTab === "tagihan" ? "Tagihan" : activeTab === "kupon" ? "Kupon" : `Matriks ${matrixYear}`})
+              <i className="bx bxs-file-export" /> Download Excel ({activeTab === "pengeluaran" ? "Pengeluaran" : activeTab === "pemasukan" ? "Pemasukan" : activeTab === "tagihan" ? "Tagihan" : activeTab === "kupon" ? "Kupon" : `Matriks ${matrixYear}`})
             </a>
           </div>
         </div>
@@ -1145,7 +1448,7 @@ export default function AdminKasPage() {
             {statsViewMode === "all" && (
               <span style={{ fontSize: "0.75rem", color: "var(--gold)", background: "rgba(201,168,76,0.1)", padding: "3px 10px", borderRadius: 20, border: "1px solid rgba(201,168,76,0.25)" }}>
                 <i className="bx bx-check-double" style={{ marginRight: 4 }} />
-                Menghitung seluruh pembayaran kas lintas tahun (misal: bayar 180k langsung terakumulasi penuh)
+                Rumus Saldo: (Iuran Kas + Pemasukan Eksternal) - Total Pengeluaran
               </span>
             )}
           </div>
@@ -1155,7 +1458,7 @@ export default function AdminKasPage() {
             gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
             gap: 16,
           }}>
-            {/* 1. Total Pemasukan */}
+            {/* 1. Total Iuran Kas */}
             <div style={{
               background: "rgba(16, 185, 129, 0.08)",
               border: "1.5px solid rgba(16, 185, 129, 0.3)",
@@ -1163,10 +1466,10 @@ export default function AdminKasPage() {
               padding: "16px 18px",
             }}>
               <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#10b981", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <i className="bx bx-trending-up" /> {statsViewMode === "all" ? "Total Pemasukan Kas (Semua Tahun)" : `Total Pemasukan Kas ${matrixYear}`}
+                <i className="bx bx-group" /> {statsViewMode === "all" ? "Total Pemasukan Kas (Semua Tahun)" : `Total Iuran Kas ${matrixYear}`}
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#10b981", marginTop: 4 }}>
-                {formatRupiah(statsViewMode === "all" ? allTimePemasukan : grandTotalPemasukan)}
+                {formatRupiah(activeIuran)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
                 {statsViewMode === "all"
@@ -1175,7 +1478,27 @@ export default function AdminKasPage() {
               </div>
             </div>
 
-            {/* 2. Total Pengeluaran */}
+            {/* 2. Pemasukan Eksternal (External Income) */}
+            <div style={{
+              background: "rgba(6, 182, 212, 0.08)",
+              border: "1.5px solid rgba(6, 182, 212, 0.3)",
+              borderRadius: 14,
+              padding: "16px 18px",
+            }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#06b6d4", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bx bx-log-in-circle" /> {statsViewMode === "all" ? "Pemasukan Kas (Eksternal Income)" : `Pemasukan Eksternal ${matrixYear}`}
+              </div>
+              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#06b6d4", marginTop: 4 }}>
+                {formatRupiah(activeEksternal)}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                {statsViewMode === "all"
+                  ? "Akumulasi donasi, sponsor, penjualan merch & proyek fanbase"
+                  : `Pemasukan eksternal fanbase periode tahun ${matrixYear}`}
+              </div>
+            </div>
+
+            {/* 3. Total Pengeluaran */}
             <div style={{
               background: "rgba(225, 29, 72, 0.08)",
               border: "1.5px solid rgba(225, 29, 72, 0.3)",
@@ -1186,7 +1509,7 @@ export default function AdminKasPage() {
                 <i className="bx bx-trending-down" /> {statsViewMode === "all" ? "Total Pengeluaran Kas (Semua Tahun)" : `Total Pengeluaran Kas ${matrixYear}`}
               </div>
               <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#e11d48", marginTop: 4 }}>
-                {formatRupiah(statsViewMode === "all" ? allTimePengeluaran : totalPengeluaran)}
+                {formatRupiah(activePengeluaran)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
                 {statsViewMode === "all"
@@ -1195,30 +1518,25 @@ export default function AdminKasPage() {
               </div>
             </div>
 
-            {/* 3. Saldo Bersih */}
-            {(() => {
-              const activeSaldo = statsViewMode === "all" ? allTimeSaldo : saldoKasBersih;
-              return (
-                <div style={{
-                  background: activeSaldo >= 0 ? "rgba(201, 168, 76, 0.1)" : "rgba(239, 68, 68, 0.1)",
-                  border: activeSaldo >= 0 ? "1.5px solid var(--border-gold, #c9a84c)" : "1.5px solid #ef4444",
-                  borderRadius: 14,
-                  padding: "16px 18px",
-                }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--gold)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                    <i className="bx bx-wallet-alt" /> {statsViewMode === "all" ? "Saldo Bersih Kas (Semua Tahun)" : `Saldo Bersih Kas ${matrixYear}`}
-                  </div>
-                  <div style={{ fontSize: "1.6rem", fontWeight: 900, color: activeSaldo >= 0 ? "var(--primary)" : "#ef4444", marginTop: 4 }}>
-                    {formatRupiah(activeSaldo)}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                    {statsViewMode === "all"
-                      ? "Sisa kas bersih nyata siap pakai untuk operasional fanbase"
-                      : `Sisa saldo kas khusus pembukuan periode tahun ${matrixYear}`}
-                  </div>
-                </div>
-              );
-            })()}
+            {/* 4. Saldo Kas Saat Ini (Otomatis) */}
+            <div style={{
+              background: activeSaldoKas >= 0 ? "rgba(201, 168, 76, 0.1)" : "rgba(239, 68, 68, 0.1)",
+              border: activeSaldoKas >= 0 ? "1.5px solid var(--border-gold, #c9a84c)" : "1.5px solid #ef4444",
+              borderRadius: 14,
+              padding: "16px 18px",
+            }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--gold)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bx bx-wallet-alt" /> {statsViewMode === "all" ? "Saldo Kas Saat Ini (Semua Tahun)" : `Saldo Kas Saat Ini ${matrixYear}`}
+              </div>
+              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: activeSaldoKas >= 0 ? "var(--primary)" : "#ef4444", marginTop: 4 }}>
+                {formatRupiah(activeSaldoKas)}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                {statsViewMode === "all"
+                  ? `Hasil otomatis: (${formatRupiah(activeIuran)} + ${formatRupiah(activeEksternal)}) - ${formatRupiah(activePengeluaran)}`
+                  : `Sisa saldo kas bersih operasional periode tahun ${matrixYear}`}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1227,6 +1545,7 @@ export default function AdminKasPage() {
           {[
             { key: "matriks", label: "Matriks Iuran Kas Bulanan", icon: "bx-grid-alt" },
             { key: "tagihan", label: `Pelacak Tagihan Kas (${tagihanList.length})`, icon: "bx-user-x" },
+            { key: "pemasukan", label: `Laporan Pemasukan (${pemasukanList.length})`, icon: "bx-log-in-circle" },
             { key: "pengeluaran", label: `Laporan Pengeluaran (${pengeluaranList.length})`, icon: "bx-receipt" },
             { key: "kupon", label: `Kupon Reward Kas (${kuponList.length})`, icon: "bx-gift" },
             { key: "konfirmasi", label: `Antrean Verifikasi (${pendingKas.length})`, icon: "bx-check-shield" },
@@ -1714,6 +2033,151 @@ export default function AdminKasPage() {
                         </tr>
                       );
                     })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB LAPORAN PEMASUKAN KAS (EKSTERNAL INCOME) */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "pemasukan" && (
+          <div className={styles.sectionCard} style={{ padding: 20 }}>
+            <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
+              <div>
+                <h2 className={styles.sectionTitle}>
+                  <i className="bx bx-log-in-circle" style={{ color: "#06b6d4" }} />
+                  Laporan Pemasukan Kas Eksternal Fanbase
+                  <span className={styles.countBadge} style={{ background: "rgba(6, 182, 212, 0.15)", color: "#06b6d4" }}>
+                    {pemasukanList.length} Transaksi
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
+                  Total pemasukan eksternal tercatat: <strong style={{ color: "#06b6d4" }}>{formatRupiah(totalPemasukanEksternal)}</strong>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowPemasukanModal(true)}
+                className={styles.btnCreate}
+                style={{ background: "#06b6d4", color: "#fff" }}
+              >
+                <i className="bx bx-plus" /> + Catat Pemasukan Baru
+              </button>
+            </div>
+
+            {/* Filter search */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+              <input
+                type="text"
+                placeholder="Cari sumber / deskripsi pemasukan..."
+                className={styles.searchInput}
+                value={pemasukanSearch}
+                onChange={(e) => setPemasukanSearch(e.target.value)}
+                style={{ flex: 1, minWidth: 200 }}
+              />
+              <select
+                className={styles.modalSelect}
+                value={pemasukanKategoriFilter}
+                onChange={(e) => setPemasukanKategoriFilter(e.target.value)}
+                style={{ maxWidth: 220 }}
+              >
+                <option value="semua">Semua Kategori</option>
+                <option value="Pemasukan Eksternal">Pemasukan Eksternal</option>
+                <option value="Donasi">Donasi</option>
+                <option value="Sponsorship">Sponsorship</option>
+                <option value="Penjualan Merchandise">Penjualan Merchandise</option>
+                <option value="Lain-lain">Lain-lain</option>
+              </select>
+            </div>
+
+            {loadingPemasukan ? (
+              <div className={styles.emptyBox}><i className="bx bx-loader-alt bx-spin" /><p>Memuat laporan pemasukan...</p></div>
+            ) : pemasukanList.length === 0 ? (
+              <div className={styles.emptyBox}>
+                <i className="bx bx-log-in-circle" />
+                <p>Belum ada catatan pemasukan kas eksternal.</p>
+              </div>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tanggal</th>
+                      <th>Kategori</th>
+                      <th>Sumber / Deskripsi</th>
+                      <th>Nominal</th>
+                      <th>Dicatat Oleh</th>
+                      <th>Bukti</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pemasukanList
+                      .filter((p: any) => {
+                        const q = pemasukanSearch.toLowerCase();
+                        const matchSearch = !q || (p.sumber || "").toLowerCase().includes(q) || (p.catatan || "").toLowerCase().includes(q);
+                        const matchKat = pemasukanKategoriFilter === "semua" || p.kategori === pemasukanKategoriFilter;
+                        return matchSearch && matchKat;
+                      })
+                      .map((p: any) => (
+                        <tr key={p.id}>
+                          <td>#{p.id}</td>
+                          <td>{new Date(p.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                          <td>
+                            <span style={{ padding: "3px 8px", borderRadius: 4, background: "rgba(6, 182, 212, 0.15)", color: "#06b6d4", fontSize: "0.75rem", fontWeight: 700 }}>
+                              {p.kategori}
+                            </span>
+                          </td>
+                          <td className={styles.nameCol}>
+                            <div style={{ fontWeight: 700 }}>{p.sumber}</div>
+                            {p.catatan && <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{p.catatan}</div>}
+                          </td>
+                          <td style={{ fontWeight: 800, color: "#06b6d4" }}>{formatRupiah(p.nominal)}</td>
+                          <td>{p.pj_nama}</td>
+                          <td>
+                            {(() => {
+                              const notaUrls = parseNotaList(p.bukti_nota_url);
+                              if (notaUrls.length === 0) return "-";
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => { setSelectedProof(notaUrls[0]); setSelectedProofList(notaUrls); }}
+                                  className={styles.backBtn}
+                                  style={{ fontSize: "0.72rem", padding: "3px 8px" }}
+                                >
+                                  <i className="bx bx-images" /> {notaUrls.length > 1 ? `${notaUrls.length} Foto` : "Lihat"}
+                                </button>
+                              );
+                            })()}
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditPemasukan(p)}
+                                className={styles.backBtn}
+                                style={{ padding: "5px 9px", fontSize: "0.85rem", color: "#38bdf8", borderColor: "rgba(56, 189, 248, 0.4)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                                title="Edit Pemasukan"
+                              >
+                                <i className="bx bx-edit-alt" /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePemasukan(p.id)}
+                                className={styles.btnDelete}
+                                title="Hapus Pemasukan"
+                              >
+                                <i className="bx bx-trash" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -2632,6 +3096,356 @@ export default function AdminKasPage() {
                 <button type="submit" className={styles.btnCreate} disabled={submittingManual}>
                   <i className={`bx ${submittingManual ? "bx-loader-alt bx-spin" : "bx-check"}`} />
                   {submittingManual ? "Menyimpan..." : "Simpan & Centang Matriks"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL CATAT PEMASUKAN KAS (EKSTERNAL INCOME) ── */}
+      {showPemasukanModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowPemasukanModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-log-in-circle" /> Catat Pemasukan Kas Eksternal
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowPemasukanModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePemasukanSubmit} className={styles.modalForm}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tanggal Pemasukan</label>
+                  <input
+                    type="date"
+                    className={styles.modalInput}
+                    value={newPemasukan.tanggal}
+                    onChange={(e) => setNewPemasukan({ ...newPemasukan, tanggal: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Kategori</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={newPemasukan.kategori}
+                    onChange={(e) => setNewPemasukan({ ...newPemasukan, kategori: e.target.value })}
+                  >
+                    <option value="Pemasukan Eksternal">Pemasukan Eksternal</option>
+                    <option value="Donasi">Donasi</option>
+                    <option value="Sponsorship">Sponsorship</option>
+                    <option value="Penjualan Merchandise">Penjualan Merchandise</option>
+                    <option value="Event / Project Show">Event / Project Show</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Sumber / Deskripsi Pemasukan</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: Donasi LIVE Stream, Penjualan Photobook, Sponsorship Event, dll."
+                  value={newPemasukan.sumber}
+                  onChange={(e) => setNewPemasukan({ ...newPemasukan, sumber: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Nominal Pemasukan (Rp)</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: 500.000"
+                  value={newPemasukan.nominal}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setNewPemasukan({
+                      ...newPemasukan,
+                      nominal: digits ? Number(digits).toLocaleString("id-ID") : "",
+                    });
+                  }}
+                  required
+                />
+              </div>
+
+              {/* INPUT BUKTI / KWITANSI */}
+              <div className={styles.modalField}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <label className={styles.modalLabel} style={{ margin: 0 }}>
+                    Bukti Foto / Kwitansi (Opsional)
+                  </label>
+                  {newPemasukan.buktiNotaUrls && newPemasukan.buktiNotaUrls.length > 0 && (
+                    <span style={{ fontSize: "0.74rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> {newPemasukan.buktiNotaUrls.length} Foto Dipilih
+                    </span>
+                  )}
+                </div>
+
+                {newPemasukan.buktiNotaUrls && newPemasukan.buktiNotaUrls.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))", gap: 8, marginBottom: 10, padding: 8, background: "rgba(0,0,0,0.25)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    {newPemasukan.buktiNotaUrls.map((url, idx) => (
+                      <div key={idx} style={{ position: "relative", width: "100%", aspectRatio: "1/1", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                        <img
+                          src={normalizeProofUrl(url)}
+                          alt={`Bukti ${idx + 1}`}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                          onClick={() => { setSelectedProof(url); setSelectedProofList(newPemasukan.buktiNotaUrls); }}
+                          title="Klik untuk memperbesar"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewPemasukan({
+                              ...newPemasukan,
+                              buktiNotaUrls: newPemasukan.buktiNotaUrls.filter((_, i) => i !== idx),
+                            });
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: 2,
+                            right: 2,
+                            background: "rgba(239, 68, 68, 0.85)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: 20,
+                            height: 20,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            fontSize: "0.7rem",
+                          }}
+                          title="Hapus foto ini"
+                        >✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    id="uploadPemasukanNotaInput"
+                    style={{ display: "none" }}
+                    onChange={handleUploadPemasukanNota}
+                    disabled={uploadingPemasukanNota}
+                  />
+                  <label
+                    htmlFor="uploadPemasukanNotaInput"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "12px 16px",
+                      borderRadius: 10,
+                      border: "1.5px dashed var(--border)",
+                      background: "rgba(255, 255, 255, 0.02)",
+                      color: "var(--fg-muted)",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: uploadingPemasukanNota ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <i className={`bx ${uploadingPemasukanNota ? "bx-loader-alt bx-spin" : "bx-camera"}`} style={{ fontSize: "1.3rem", color: "#06b6d4" }} />
+                    {uploadingPemasukanNota
+                      ? "Mengunggah foto..."
+                      : (newPemasukan.buktiNotaUrls && newPemasukan.buktiNotaUrls.length > 0)
+                      ? "+ Tambah Foto Lainnya"
+                      : "Pilih File Foto Bukti (Opsional)"}
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Catatan Tambahan (Opsional)</label>
+                <textarea
+                  className={styles.modalInput}
+                  rows={2}
+                  value={newPemasukan.catatan}
+                  onChange={(e) => setNewPemasukan({ ...newPemasukan, catatan: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.backBtn} onClick={() => setShowPemasukanModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnCreate} style={{ background: "#06b6d4", color: "#fff" }} disabled={submittingPemasukan || uploadingPemasukanNota}>
+                  <i className={`bx ${submittingPemasukan ? "bx-loader-alt bx-spin" : "bx-save"}`} />
+                  {submittingPemasukan ? "Menyimpan..." : "Simpan Pemasukan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL EDIT PEMASUKAN KAS ── */}
+      {showEditPemasukanModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowEditPemasukanModal(false)}>
+          <div className={styles.modalCard} style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-edit-alt" /> Edit Pemasukan Kas #{editPemasukan.id}
+              </h3>
+              <button type="button" className={styles.modalClose} onClick={() => setShowEditPemasukanModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditPemasukanSubmit} className={styles.modalForm}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tanggal Pemasukan</label>
+                  <input
+                    type="date"
+                    className={styles.modalInput}
+                    value={editPemasukan.tanggal}
+                    onChange={(e) => setEditPemasukan({ ...editPemasukan, tanggal: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Kategori</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={editPemasukan.kategori}
+                    onChange={(e) => setEditPemasukan({ ...editPemasukan, kategori: e.target.value })}
+                  >
+                    <option value="Pemasukan Eksternal">Pemasukan Eksternal</option>
+                    <option value="Donasi">Donasi</option>
+                    <option value="Sponsorship">Sponsorship</option>
+                    <option value="Penjualan Merchandise">Penjualan Merchandise</option>
+                    <option value="Event / Project Show">Event / Project Show</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Sumber / Deskripsi Pemasukan</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: Donasi LIVE Stream, Penjualan Photobook, dll."
+                  value={editPemasukan.sumber}
+                  onChange={(e) => setEditPemasukan({ ...editPemasukan, sumber: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Nominal Pemasukan (Rp)</label>
+                <input
+                  type="text"
+                  className={styles.modalInput}
+                  placeholder="Contoh: 500.000"
+                  value={editPemasukan.nominal}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setEditPemasukan({
+                      ...editPemasukan,
+                      nominal: digits ? Number(digits).toLocaleString("id-ID") : "",
+                    });
+                  }}
+                  required
+                />
+              </div>
+
+              {/* Bukti Foto Edit */}
+              <div className={styles.modalField}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <label className={styles.modalLabel} style={{ margin: 0 }}>Bukti Foto / Kwitansi</label>
+                  {editPemasukan.buktiNotaUrls.length > 0 && (
+                    <span style={{ fontSize: "0.74rem", color: "#10b981", fontWeight: 700 }}>
+                      <i className="bx bx-check-circle" /> {editPemasukan.buktiNotaUrls.length} Foto
+                    </span>
+                  )}
+                </div>
+
+                {editPemasukan.buktiNotaUrls.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(70px, 1fr))", gap: 8, marginBottom: 10, padding: 8, background: "rgba(0,0,0,0.25)", borderRadius: 10, border: "1px solid var(--border)" }}>
+                    {editPemasukan.buktiNotaUrls.map((url, idx) => (
+                      <div key={idx} style={{ position: "relative", width: "100%", aspectRatio: "1/1", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border)" }}>
+                        <img
+                          src={normalizeProofUrl(url)}
+                          alt={`Bukti ${idx + 1}`}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                          onClick={() => { setSelectedProof(url); setSelectedProofList(editPemasukan.buktiNotaUrls); }}
+                          title="Klik untuk memperbesar"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setEditPemasukan({ ...editPemasukan, buktiNotaUrls: editPemasukan.buktiNotaUrls.filter((_, i) => i !== idx) })}
+                          style={{ position: "absolute", top: 2, right: 2, background: "rgba(239,68,68,0.85)", color: "#fff", border: "none", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.7rem" }}
+                          title="Hapus foto ini"
+                        >✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    id="uploadEditPemasukanNotaInput"
+                    style={{ display: "none" }}
+                    onChange={handleUploadEditPemasukanNota}
+                    disabled={uploadingEditPemasukanNota}
+                  />
+                  <label
+                    htmlFor="uploadEditPemasukanNotaInput"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "12px 16px",
+                      borderRadius: 10,
+                      border: "1.5px dashed var(--border)",
+                      background: "rgba(255,255,255,0.02)",
+                      color: "var(--fg-muted)",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: uploadingEditPemasukanNota ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <i className={`bx ${uploadingEditPemasukanNota ? "bx-loader-alt bx-spin" : "bx-camera"}`} style={{ fontSize: "1.3rem", color: "#06b6d4" }} />
+                    {uploadingEditPemasukanNota ? "Mengunggah..." : "+ Tambah / Ganti Foto Bukti"}
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Catatan Tambahan (Opsional)</label>
+                <textarea
+                  className={styles.modalInput}
+                  rows={2}
+                  value={editPemasukan.catatan}
+                  onChange={(e) => setEditPemasukan({ ...editPemasukan, catatan: e.target.value })}
+                />
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.backBtn} onClick={() => setShowEditPemasukanModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className={styles.btnCreate} style={{ background: "#06b6d4", color: "#fff" }} disabled={submittingEditPemasukan || uploadingEditPemasukanNota}>
+                  <i className={`bx ${submittingEditPemasukan ? "bx-loader-alt bx-spin" : "bx-save"}`} />
+                  {submittingEditPemasukan ? "Memperbarui..." : "Perbarui Pemasukan"}
                 </button>
               </div>
             </form>

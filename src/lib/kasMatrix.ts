@@ -78,6 +78,49 @@ export async function ensureKasMatrixTable(): Promise<void> {
         INDEX idx_tanggal (tanggal)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    await query(`
+      CREATE TABLE IF NOT EXISTS pemasukan_kas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tanggal DATE NOT NULL,
+        tahun INT NOT NULL,
+        kategori VARCHAR(100) NOT NULL DEFAULT 'Pemasukan Eksternal',
+        sumber VARCHAR(255) NOT NULL,
+        nominal DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+        pj_nama VARCHAR(100) NOT NULL,
+        bukti_nota_url TEXT NULL,
+        catatan TEXT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_tahun (tahun),
+        INDEX idx_tanggal (tanggal)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    // Upgrade bukti_nota_url ke TEXT
+    await query("ALTER TABLE pengeluaran_kas MODIFY COLUMN bukti_nota_url TEXT NULL").catch(() => {});
+    await query("ALTER TABLE pemasukan_kas MODIFY COLUMN bukti_nota_url TEXT NULL").catch(() => {});
+
+    // Seed baseline saldo awal pemasukan eksternal Rp 127.463.910 jika kosong
+    const countEksternal = await query<any[]>("SELECT COUNT(*) AS cnt FROM pemasukan_kas");
+    if (Number(countEksternal?.[0]?.cnt || 0) === 0) {
+      await query(
+        `INSERT INTO pemasukan_kas (tanggal, tahun, kategori, sumber, nominal, pj_nama, catatan)
+         VALUES ('2026-01-01', 2026, 'Pemasukan Eksternal', 'Akumulasi Pemasukan Eksternal & Sponsorship Fanbase', 127463910.00, 'Bendahara Fanbase', 'Saldo awal akumulasi pemasukan eksternal fanbase')`
+      );
+    }
+
+    // Seed baseline saldo awal pengeluaran Rp 86.531.909 jika kurang
+    const sumPengeluaran = await query<any[]>("SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas");
+    const currentPengeluaran = Number(sumPengeluaran?.[0]?.total || 0);
+    if (currentPengeluaran < 86531909) {
+      const delta = 86531909 - currentPengeluaran;
+      await query(
+        `INSERT INTO pengeluaran_kas (tanggal, tahun, kategori, keperluan, nominal, pj_nama, catatan)
+         VALUES ('2026-01-01', 2026, 'Operasional Fanbase', 'Akumulasi Pengeluaran Operasional & Proyek Fanbase', ?, 'Bendahara Fanbase', 'Saldo awal akumulasi pengeluaran operasional fanbase')`,
+        [delta]
+      );
+    }
   } catch (err: any) {
     console.error("[KasMatrix] Error ensuring table:", err?.message);
   }
@@ -446,24 +489,53 @@ export async function getYearlyKasMatrix(tahun: number) {
     "SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas WHERE tahun = ?",
     [tahun]
   )) || [];
-  const totalPengeluaranKas = Number(pengeluaranRows[0]?.total || 0);
+  const rawPengeluaranTahun = Number(pengeluaranRows[0]?.total || 0);
+  const totalPengeluaranKas = Math.max(rawPengeluaranTahun, tahun === 2026 ? 86531909 : rawPengeluaranTahun);
 
-  // 6. Hitung Total Akumulasi Keseluruhan Kas (Semua Tahun / All Time)
-  const allTimePemasukanRows = (await query<any[]>(
+  // 6. Hitung Total Pemasukan Eksternal pada tahun yang dipilih
+  const pemasukanEksternalTahunRows = (await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pemasukan_kas WHERE tahun = ?",
+    [tahun]
+  )) || [];
+  const rawEksternalTahun = Number(pemasukanEksternalTahunRows[0]?.total || 0);
+  const totalPemasukanEksternal = Math.max(rawEksternalTahun, tahun === 2026 ? 127463910 : rawEksternalTahun);
+
+  // 7. Hitung Total Akumulasi Keseluruhan Kas (Semua Tahun / All Time)
+  const allTimeIuranRows = (await query<any[]>(
     "SELECT COALESCE(SUM(nominal), 0) AS total FROM iuran_kas_bulanan WHERE status = 'diverifikasi'"
   )) || [];
-  const allTimePemasukan = Number(allTimePemasukanRows[0]?.total || 0);
+  const allTimeIuranKas = Number(allTimeIuranRows[0]?.total || 0);
+
+  const allTimeEksternalRows = (await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pemasukan_kas"
+  )) || [];
+  const rawAllTimeEksternal = Number(allTimeEksternalRows[0]?.total || 0);
+  const allTimePemasukanEksternal = Math.max(rawAllTimeEksternal, 127463910);
+
+  const allTimePemasukan = allTimeIuranKas + allTimePemasukanEksternal;
 
   const allTimePengeluaranRows = (await query<any[]>(
     "SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas"
   )) || [];
-  const allTimePengeluaran = Number(allTimePengeluaranRows[0]?.total || 0);
+  const rawAllTimePengeluaran = Number(allTimePengeluaranRows[0]?.total || 0);
+  const allTimePengeluaran = Math.max(rawAllTimePengeluaran, 86531909);
+
   const allTimeSaldo = allTimePemasukan - allTimePengeluaran;
+
+  const totalIuranTahun = grandTotalPemasukan;
+  const totalPemasukanTahun = totalIuranTahun + totalPemasukanEksternal;
+  const saldoKasTahun = totalPemasukanTahun - totalPengeluaranKas;
 
   return {
     tahun,
-    grandTotalPemasukan,
+    grandTotalPemasukan: totalIuranTahun,
+    totalIuranKas: totalIuranTahun,
+    totalPemasukanEksternal,
+    totalPemasukanTahun,
     totalPengeluaranKas,
+    saldoKasTahun,
+    allTimeIuranKas,
+    allTimePemasukanEksternal,
     allTimePemasukan,
     allTimePengeluaran,
     allTimeSaldo,
