@@ -2,12 +2,31 @@ import fs from "fs";
 import path from "path";
 import { query, isMySqlConfigured } from "@/lib/mysql";
 import { invalidateApiCache } from "@/lib/apiCache";
+import { syncLocalUploadsToDb } from "@/lib/mysqlStorage";
 
 const LOCAL_JSON_PATH = path.join(process.cwd(), "src", "data", "media.json");
 const PUB_FILE_PATH = path.join(process.cwd(), "src", "data", "published-media.json");
 const ORDER_FILE_PATH = path.join(process.cwd(), "src", "data", "media-order.json");
 
 let isTableInitialized = false;
+
+/**
+ * Normalisasi URL media: jika masih menggunakan domain jkt48connect,
+ * alihkan ke database / path lokal /uploads/...
+ */
+export function normalizeMediaUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  const clean = String(url).trim();
+  if (clean.includes("jkt48connect.com")) {
+    try {
+      const u = new URL(clean);
+      return `/uploads${u.pathname.startsWith("/") ? u.pathname : `/${u.pathname}`}`;
+    } catch {
+      return clean.replace(/^https?:\/\/[^/]+\//, "/uploads/");
+    }
+  }
+  return clean;
+}
 
 /**
  * Pastikan tabel `media` ada di database MySQL dan terisi data awal
@@ -57,6 +76,20 @@ export async function ensureMediaTable(): Promise<boolean> {
     try { await query("ALTER TABLE `media` ADD COLUMN `alt_text` VARCHAR(255) DEFAULT ''"); } catch {}
     try { await query("ALTER TABLE `media` ADD COLUMN `mime_type` VARCHAR(100) DEFAULT 'image/jpeg'"); } catch {}
     try { await query("ALTER TABLE `media` ADD COLUMN `file_size` BIGINT DEFAULT 0"); } catch {}
+
+    // Migrasi URL CDN jkt48connect ke database sendiri (/uploads/...)
+    try {
+      await query(`
+        UPDATE \`media\` 
+        SET public_url = CONCAT('/uploads/', SUBSTRING_INDEX(public_url, 'jkt48connect.com/', -1))
+        WHERE public_url LIKE '%jkt48connect.com/%'
+      `);
+      await query(`
+        UPDATE \`media\` 
+        SET thumbnail_url = CONCAT('/uploads/', SUBSTRING_INDEX(thumbnail_url, 'jkt48connect.com/', -1))
+        WHERE thumbnail_url LIKE '%jkt48connect.com/%'
+      `);
+    } catch {}
 
     // Cek apakah tabel kosong. Jika kosong, lakukan seed dari media.json
     const countRows = await query<any[]>("SELECT COUNT(*) as cnt FROM `media`");
@@ -161,7 +194,16 @@ export async function getMediaList(options: {
         params
       );
 
-      return { items: items || [], total };
+      // Sinkronisasi file disk ke DB di latar belakang jika ada yang belum tercatat
+      syncLocalUploadsToDb().catch(() => {});
+
+      const normalized = (items || []).map((it) => ({
+        ...it,
+        public_url: normalizeMediaUrl(it.public_url),
+        thumbnail_url: it.thumbnail_url ? normalizeMediaUrl(it.thumbnail_url) : null,
+      }));
+
+      return { items: normalized, total };
     } catch (err: any) {
       console.warn("[MediaDB] Query failed, falling back to JSON:", err.message);
     }
@@ -196,7 +238,11 @@ export async function getMediaList(options: {
 
   items.sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999));
   const total = items.length;
-  const paginated = items.slice(options.offset || 0, (options.offset || 0) + (options.limit || 500));
+  const paginated = items.slice(options.offset || 0, (options.offset || 0) + (options.limit || 500)).map((it) => ({
+    ...it,
+    public_url: normalizeMediaUrl(it.public_url),
+    thumbnail_url: it.thumbnail_url ? normalizeMediaUrl(it.thumbnail_url) : null,
+  }));
 
   return { items: paginated, total };
 }

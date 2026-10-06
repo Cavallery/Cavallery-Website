@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
       yearlyMatrixTabs.push(yearData);
     }
 
-    // 6. Bangun Data Sheet Tambahan (Anggota Aktif, Status Anggota, Leaderboard, Laporan Pengeluaran)
+    // 6. Bangun Data Sheet Tambahan (Anggota Aktif, Status Anggota, Leaderboard, Laporan Pengeluaran, Laporan Pemasukan, Ringkasan Kas)
     const extraSheets = await buildExtraSheetsData();
 
     // Kirim sinkronisasi batch ke Google Apps Script (Replace data lama agar tidak duplikat)
@@ -214,11 +214,13 @@ export async function POST(req: NextRequest) {
       statusAnggotaRows: extraSheets.statusAnggotaRows,
       leaderboardRows: extraSheets.leaderboardRows,
       pengeluaranRows: extraSheets.pengeluaranRows,
+      pemasukanRows: extraSheets.pemasukanRows,
+      ringkasanKasRows: extraSheets.ringkasanKasRows,
     });
 
     return NextResponse.json({
       status: true,
-      message: `Full Backup Berhasil (Anti-Duplikat)! Seluruh data telah disinkronkan: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Donasi, 6 Tab Matriks Kas (2024-2029), Tab Anggota Aktif, Status Anggota, Leaderboard Kontributor, dan Laporan Pengeluaran ke Google Spreadsheet.`,
+      message: `Full Backup Berhasil (Anti-Duplikat)! Seluruh data telah disinkronkan: ${anggotaRows.length} Anggota, ${kontributorRows.length} Kontributor, ${kasRows.length} Data Kas, ${donasiRows.length} Donasi, 6 Tab Matriks Kas (2024-2029), Tab Anggota Aktif, Status Anggota, Leaderboard Kontributor, Laporan Pengeluaran, Laporan Pemasukan, dan Ringkasan Saldo Kas ke Google Spreadsheet.`,
       synced: {
         anggota: anggotaRows.length,
         kontributor: kontributorRows.length,
@@ -229,6 +231,8 @@ export async function POST(req: NextRequest) {
         statusAnggota: extraSheets.statusAnggotaRows.length,
         leaderboard: extraSheets.leaderboardRows.length,
         pengeluaran: extraSheets.pengeluaranRows.length,
+        pemasukan: (extraSheets.pemasukanRows || []).length,
+        ringkasan: (extraSheets.ringkasanKasRows || []).length,
       },
     });
   } catch (error: any) {

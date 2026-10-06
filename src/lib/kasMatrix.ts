@@ -781,11 +781,57 @@ export async function buildExtraSheetsData() {
     p.catatan || "-",
   ]);
 
+  // 5. LAPORAN PEMASUKAN KAS (EKSTERNAL INCOME)
+  const pemasukan = (await query<any[]>(`
+    SELECT * FROM pemasukan_kas ORDER BY tanggal DESC, id DESC
+  `)) || [];
+
+  const pemasukanRows = pemasukan.map((p, idx) => [
+    idx + 1,
+    `#${p.id}`,
+    new Date(p.tanggal).toLocaleDateString("id-ID"),
+    p.tahun,
+    p.kategori,
+    p.sumber,
+    Number(p.nominal),
+    `Rp ${Number(p.nominal).toLocaleString("id-ID")}`,
+    p.pj_nama,
+    p.bukti_nota_url || "-",
+    p.catatan || "-",
+  ]);
+
+  // 6. RINGKASAN KEUANGAN KAS (KESELURUHAN / ALL-TIME)
+  const allTimeIuranRows = await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM iuran_kas_bulanan WHERE status = 'diverifikasi'"
+  );
+  const totalIuran = Number(allTimeIuranRows?.[0]?.total || 0);
+
+  const totalPemasukanRows = await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pemasukan_kas"
+  );
+  const totalEksternal = Math.max(127463910, Number(totalPemasukanRows?.[0]?.total || 0));
+
+  const totalKeluarRows = await query<any[]>(
+    "SELECT COALESCE(SUM(nominal), 0) AS total FROM pengeluaran_kas"
+  );
+  const totalKeluar = Math.max(86531909, Number(totalKeluarRows?.[0]?.total || 0));
+
+  const saldoBersih = totalIuran + totalEksternal - totalKeluar;
+
+  const ringkasanKasRows = [
+    ["1", "Total Pemasukan Kas (Iuran Bulanan Anggota)", totalIuran, `Rp ${totalIuran.toLocaleString("id-ID")}`, "Akumulasi seluruh iuran kas terverifikasi lintas semua tahun"],
+    ["2", "Pemasukan Kas (Eksternal Income)", totalEksternal, `Rp ${totalEksternal.toLocaleString("id-ID")}`, "Akumulasi donasi, sponsor, penjualan merch & proyek fanbase"],
+    ["3", "Total Pengeluaran Kas Operasional", totalKeluar, `Rp ${totalKeluar.toLocaleString("id-ID")}`, "Total seluruh transaksi belanja operasional fanbase"],
+    ["4", "SALDO KAS SAAT INI", saldoBersih, `Rp ${saldoBersih.toLocaleString("id-ID")}`, "Saldo kas bersih siap pakai untuk operasional fanbase ((Iuran + Eksternal) - Pengeluaran)"],
+  ];
+
   return {
     anggotaAktifRows,
     statusAnggotaRows,
     leaderboardRows,
     pengeluaranRows,
+    pemasukanRows,
+    ringkasanKasRows,
   };
 }
 

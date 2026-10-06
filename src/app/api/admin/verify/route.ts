@@ -47,9 +47,12 @@ async function verifySession(req: NextRequest) {
     // 1. Check local token
     const local = verifyLocalToken(token);
     if (local.valid) {
-      let role = local.role || "admin";
-      // Ambil role terbaru dari MySQL secara real-time
-      if (isMySqlConfigured() && local.username) {
+      const u = (local.username || "").toLowerCase();
+      const isSuper = ["admin", "vallencia", "aditya"].includes(u);
+      let role = isSuper ? "superadmin" : (local.role || "admin");
+
+      // Ambil role terbaru dari MySQL secara real-time jika bukan superadmin default
+      if (!isSuper && isMySqlConfigured() && local.username) {
         try {
           const userRows = await query<any[]>(
             "SELECT role FROM `admin_users` WHERE LOWER(`username`) = LOWER(?) LIMIT 1",
@@ -69,9 +72,10 @@ async function verifySession(req: NextRequest) {
         } catch {}
       }
 
-      if (!role) {
-        const u = (local.username || "").toLowerCase();
-        role = ["admin", "vallencia", "aditya"].includes(u) ? "superadmin" : "admin";
+      if (isSuper) {
+        role = "superadmin";
+      } else if (!role) {
+        role = "admin";
       }
 
       return NextResponse.json(
