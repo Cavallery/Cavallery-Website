@@ -86,17 +86,41 @@ export async function getFileFromDb(lookupPath: string): Promise<{
     if (clean.startsWith("uploads/")) clean = clean.substring("uploads/".length);
     if (clean.startsWith("api/uploads/")) clean = clean.substring("api/uploads/".length);
 
-    const parts = clean.split("/");
+    const parts = clean.split("/").filter(Boolean);
+    if (parts.length === 0) return null;
     const filename = parts[parts.length - 1];
     const fileKey = clean;
 
-    const rows = await query<any[]>(
+    // 1. Prioritaskan kecocokan tepat pada file_key (misal: cavallery/images/2026/09/foto.jpg)
+    let rows = await query<any[]>(
       `SELECT filename, mime_type, data_base64 
        FROM uploaded_files 
-       WHERE file_key = ? OR filename = ? OR file_key LIKE ? 
-       ORDER BY id DESC LIMIT 1`,
-      [fileKey, filename, `%${filename}`]
+       WHERE file_key = ? 
+       LIMIT 1`,
+      [fileKey]
     );
+
+    // 2. Jika tidak ditemukan, cari berdasarkan suffix file_key
+    if (!rows || rows.length === 0) {
+      rows = await query<any[]>(
+        `SELECT filename, mime_type, data_base64 
+         FROM uploaded_files 
+         WHERE file_key LIKE ? 
+         ORDER BY id DESC LIMIT 1`,
+        [`%/${filename}`]
+      );
+    }
+
+    // 3. Terakhir coba exact filename
+    if (!rows || rows.length === 0) {
+      rows = await query<any[]>(
+        `SELECT filename, mime_type, data_base64 
+         FROM uploaded_files 
+         WHERE filename = ? 
+         ORDER BY id DESC LIMIT 1`,
+        [filename]
+      );
+    }
 
     if (!rows || rows.length === 0 || !rows[0].data_base64) {
       return null;
@@ -116,8 +140,33 @@ export async function getFileFromDb(lookupPath: string): Promise<{
 }
 
 /**
+ * Helper rekursif untuk membaca seluruh file dalam subdirektori
+ */
+function getFilesRecursive(dir: string, baseDir: string): { filePath: string; relKey: string; folder: string; filename: string }[] {
+  let list: { filePath: string; relKey: string; folder: string; filename: string }[] = [];
+  if (!fs.existsSync(dir)) return list;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const ent of entries) {
+      const fullPath = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        list = list.concat(getFilesRecursive(fullPath, baseDir));
+      } else if (ent.isFile()) {
+        const ext = path.extname(ent.name).toLowerCase();
+        if ([".jpg", ".jpeg", ".png", ".webp", ".gif", ".mp4", ".svg"].includes(ext)) {
+          const relKey = path.relative(baseDir, fullPath).replace(/\\/g, "/");
+          const folder = path.dirname(relKey).replace(/\\/g, "/");
+          list.push({ filePath: fullPath, relKey, folder, filename: ent.name });
+        }
+      }
+    }
+  } catch {}
+  return list;
+}
+
+/**
  * Sinkronisasi otomatis file yang saat ini sudah ada di disk ke MySQL
- * agar semua gambar nota lama tidak hilang saat ganti kode/push GitHub
+ * agar semua gambar nota & media tidak hilang saat ganti kode/push GitHub
  */
 export async function syncLocalUploadsToDb(): Promise<number> {
   if (isSyncing) return 0;
@@ -132,44 +181,37 @@ export async function syncLocalUploadsToDb(): Promise<number> {
       return 0;
     }
 
-    const folders = ["bukti", "cavallery", "fanart", "twoshot"];
+    const allFiles = getFilesRecursive(uploadsRoot, uploadsRoot);
 
-    for (const folder of folders) {
-      const folderPath = path.join(uploadsRoot, folder);
-      if (!fs.existsSync(folderPath)) continue;
+    for (const item of allFiles) {
+      const { filePath, relKey, folder, filename } = item;
+      const stat = fs.statSync(filePath);
+      // Batasi ukuran per file maksimal 15MB agar tidak membebani query
+      if (stat.size > 15 * 1024 * 1024) continue;
 
-      const files = fs.readdirSync(folderPath);
-      for (const file of files) {
-        // Abaikan file non-gambar atau direktori
-        const ext = path.extname(file).toLowerCase();
-        if (![".jpg", ".jpeg", ".png", ".webp", ".gif"].includes(ext)) continue;
+      // Cek apakah sudah tersimpan di MySQL
+      const existing = await query<any[]>(
+        "SELECT id FROM uploaded_files WHERE file_key = ? LIMIT 1",
+        [relKey]
+      );
 
-        const filePath = path.join(folderPath, file);
-        const stat = fs.statSync(filePath);
-        if (!stat.isFile()) continue;
+      if (!existing || existing.length === 0) {
+        const ext = path.extname(filename).toLowerCase();
+        let mime = "image/jpeg";
+        if (ext === ".png") mime = "image/png";
+        else if (ext === ".webp") mime = "image/webp";
+        else if (ext === ".gif") mime = "image/gif";
+        else if (ext === ".svg") mime = "image/svg+xml";
+        else if (ext === ".mp4") mime = "video/mp4";
 
-        // Cek apakah sudah tersimpan di MySQL
-        const fileKey = `${folder}/${file}`;
-        const existing = await query<any[]>(
-          "SELECT id FROM uploaded_files WHERE file_key = ? OR filename = ? LIMIT 1",
-          [fileKey, file]
-        );
-
-        if (!existing || existing.length === 0) {
-          const buffer = fs.readFileSync(filePath);
-          let mime = "image/jpeg";
-          if (ext === ".png") mime = "image/png";
-          else if (ext === ".webp") mime = "image/webp";
-          else if (ext === ".gif") mime = "image/gif";
-
-          await saveFileToDb({
-            buffer,
-            filename: file,
-            folder,
-            mimeType: mime,
-          });
-          syncedCount++;
-        }
+        const buffer = fs.readFileSync(filePath);
+        await saveFileToDb({
+          buffer,
+          filename,
+          folder,
+          mimeType: mime,
+        });
+        syncedCount++;
       }
     }
   } catch (err: any) {

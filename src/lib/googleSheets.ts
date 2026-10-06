@@ -283,6 +283,8 @@ export async function syncAllToSheets(payload: {
   statusAnggotaRows?: any[][];
   leaderboardRows?: any[][];
   pengeluaranRows?: any[][];
+  pemasukanRows?: any[][];
+  ringkasanKasRows?: any[][];
 }): Promise<boolean> {
   return await sendToAppsScript("sync_all", payload);
 }
@@ -316,6 +318,39 @@ export async function appendPengeluaranRow(data: {
 
   await sendToAppsScript("append_pengeluaran", {
     tab: "Laporan Pengeluaran",
+    row,
+  });
+}
+
+/**
+ * Push data Pemasukan Kas (Eksternal) ke Google Sheets
+ */
+export async function appendPemasukanRow(data: {
+  id: number | string;
+  tanggal: string;
+  tahun: number;
+  kategori: string;
+  sumber: string;
+  nominal: number;
+  pjNama: string;
+  buktiNotaUrl?: string;
+  catatan?: string;
+}) {
+  const row = [
+    String(data.id),
+    data.tanggal,
+    data.tahun,
+    data.kategori,
+    data.sumber,
+    Number(data.nominal),
+    `Rp ${Number(data.nominal).toLocaleString("id-ID")}`,
+    data.pjNama,
+    data.buktiNotaUrl || "-",
+    data.catatan || "-",
+  ];
+
+  await sendToAppsScript("append_pemasukan", {
+    tab: "Laporan Pemasukan",
     row,
   });
 }

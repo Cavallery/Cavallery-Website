@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { insertMedia } from "@/lib/mediaDb";
+import { saveFileToDb } from "@/lib/mysqlStorage";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest) {
     const year = String(now.getFullYear());
     const month = String(now.getMonth() + 1).padStart(2, "0");
 
-    const relFolder = path.join("uploads", folder, year, month).replace(/\\/g, "/");
+    const subFolder = `${folder}/${year}/${month}`.replace(/\\/g, "/");
+    const relFolder = path.join("uploads", subFolder).replace(/\\/g, "/");
     const absFolder = path.join(process.cwd(), "public", relFolder);
     if (!fs.existsSync(absFolder)) fs.mkdirSync(absFolder, { recursive: true });
 
@@ -35,6 +37,18 @@ export async function POST(request: NextRequest) {
     const publicUrl = `/${relFolder}/${randomName}`.replace(/\\/g, "/");
     const mimeType = file.type || (/\.(mp4|webm|mov)$/i.test(file.name) ? "video/mp4" : "image/jpeg");
     const fileType = mimeType.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name) ? "video" : "image";
+
+    // Simpan permanen ke MySQL uploaded_files (agar tidak hilang saat Hostinger rebuild)
+    try {
+      await saveFileToDb({
+        buffer,
+        filename: randomName,
+        folder: subFolder,
+        mimeType,
+      });
+    } catch (saveErr) {
+      console.warn("[Media Upload] Error saving to MySQL storage:", saveErr);
+    }
 
     // 2. Simpan langsung ke database MySQL (dan sync ke media.json)
     const mediaItem = await insertMedia({

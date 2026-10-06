@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { query } from "@/lib/mysql";
 import { syncLocalUploadsToDb } from "@/lib/mysqlStorage";
+import { appendPemasukanRow, deleteFromSheets } from "@/lib/googleSheets";
 
 // Helper memastikan tabel pemasukan_kas ada dan memiliki data baseline jika kosong
 export async function ensurePemasukanTable() {
@@ -153,6 +154,19 @@ export async function POST(req: NextRequest) {
     );
     const insertedId: number = insertRes?.insertId ?? Date.now();
 
+    // Push baris baru ke Google Sheets di latar belakang
+    appendPemasukanRow({
+      id: insertedId,
+      tanggal,
+      tahun,
+      kategori: kategori || "Pemasukan Eksternal",
+      sumber: sumber.trim(),
+      nominal: cleanNominal,
+      pjNama: admin.nama || "Bendahara Fanbase",
+      buktiNotaUrl: finalBuktiNota,
+      catatan: catatan || "",
+    }).catch((err) => console.warn("[Pemasukan] Sync to Google Sheets warn:", err));
+
     return NextResponse.json({
       status: true,
       message: "Pemasukan kas berhasil dicatat",
@@ -248,6 +262,8 @@ export async function DELETE(req: NextRequest) {
     }
 
     await query("DELETE FROM pemasukan_kas WHERE id = ?", [id]);
+
+    deleteFromSheets("Laporan Pemasukan", 2, `#${id}`).catch(() => {});
 
     return NextResponse.json({
       status: true,
