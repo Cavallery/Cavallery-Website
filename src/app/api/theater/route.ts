@@ -65,20 +65,69 @@ async function fetchMonthTheater(monthStr: string, yearStr: string): Promise<any
     key: cacheKey,
     ttlSeconds: 600,
     fetcher: async () => {
-      const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
-      const res = await fetch(apiUrl, {
-        headers: {
-          "x-priority-token": API_KEY,
-          Accept: "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
-        },
-        next: { revalidate: 600 },
-        signal: AbortSignal.timeout(5000),
-      });
-      if (!res.ok) return [];
-      const json = await res.json();
-      const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-      return list.map(normalizeShow);
+      // 1. Coba JKT48Connect
+      try {
+        const apiUrl = `${BASE}/theater?month=${monthStr}&year=${yearStr}&priority_token=${API_KEY}`;
+        const res = await fetch(apiUrl, {
+          headers: {
+            "x-priority-token": API_KEY,
+            Accept: "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CavalleryApp/1.0",
+          },
+          next: { revalidate: 600 },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const list = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+          if (list.length > 0) return list.map(normalizeShow);
+        }
+      } catch {}
+
+      // 2. Mirror Fallback Live Real-Time (crstlnz API)
+      try {
+        const resMirror = await fetch("https://api.crstlnz.my.id/api/theater", {
+          headers: { Accept: "application/json" },
+          next: { revalidate: 300 },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (resMirror.ok) {
+          const jsonMirror = await resMirror.json();
+          const shows = Array.isArray(jsonMirror) ? jsonMirror : (Array.isArray(jsonMirror.shows) ? jsonMirror.shows : []);
+          const mNum = parseInt(monthStr, 10);
+          const yNum = parseInt(yearStr, 10);
+          const filtered = shows.filter((s: any) => {
+            const d = new Date(s.date || s.start_date || "");
+            return !isNaN(d.getTime()) && d.getMonth() + 1 === mNum && d.getFullYear() === yNum;
+          });
+          if (filtered.length > 0) {
+            return filtered.map((s: any) => {
+              const members = s.members || [];
+              const rawDate = s.date || s.start_date || "";
+              const dObj = new Date(rawDate);
+              const hrs = !isNaN(dObj.getTime()) ? String(dObj.getHours()).padStart(2, "0") : "19";
+              const mins = !isNaN(dObj.getTime()) ? String(dObj.getMinutes()).padStart(2, "0") : "00";
+              const timeFormatted = `${hrs}:${mins}`;
+
+              return normalizeShow({
+                id: s.id || `crstlnz-${s.url || rawDate}`,
+                schedule_id: s.url || s.id,
+                title: s.title || "JKT48 Theater Show",
+                date: rawDate,
+                showDate: rawDate,
+                startTime: timeFormatted,
+                start_time: `${timeFormatted}:00`,
+                members,
+                poster: s.poster || "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
+                banner: s.banner || "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
+                url: s.url ? `https://jkt48.com/theater/schedule/id/${s.url}?lang=id` : "https://jkt48.com/theater/schedule?lang=id",
+              });
+            });
+          }
+        }
+      } catch {}
+
+      return [];
     },
     fallbackData: [],
   });
