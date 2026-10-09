@@ -17378,5 +17378,93 @@
     "poster": "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
     "banner": "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
     "url": "https://jkt48.com/theater/schedule?lang=id"
+  },
+  {
+    "id": "cava-th-20261004",
+    "schedule_id": "cava-th-20261004",
+    "title": "Aturan Anti Cinta (Renai Kinshi Jourei)",
+    "date": "2026-10-04T12:00:00.000Z",
+    "showDate": "2026-10-04T12:00:00.000Z",
+    "startTime": "19:00",
+    "start_time": "19:00:00",
+    "members": [
+      { "id": "44", "name": "Catherina Vallencia", "url_key": "erine" },
+      { "id": "22", "name": "Angelina Christy", "url_key": "christy" },
+      { "id": "143", "name": "Kathrina Irene", "url_key": "kathrina" },
+      { "id": "166", "name": "Mutiara Azzahra", "url_key": "muthe" },
+      { "id": "148", "name": "Lulu Salsabila", "url_key": "lulu" },
+      { "id": "195", "name": "Raisha Syifa", "url_key": "raisha" },
+      { "id": "161", "name": "Michelle Levia", "url_key": "levi" },
+      { "id": "204", "name": "Ribka Budiman", "url_key": "ribka" },
+      { "id": "244", "name": "Victoria Kimberly", "url_key": "kimmy" },
+      { "id": "1", "name": "Abigail Rachel", "url_key": "aralie" }
+    ],
+    "poster": "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
+    "banner": "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
+    "url": "https://jkt48.com/theater/schedule?lang=id"
+  },
+  {
+    "id": "cava-th-20261011",
+    "schedule_id": "cava-th-20261011",
+    "title": "Cara Meminum Ramune (Ramune no Nomikata)",
+    "date": "2026-10-11T09:00:00.000Z",
+    "showDate": "2026-10-11T09:00:00.000Z",
+    "startTime": "16:00",
+    "start_time": "16:00:00",
+    "members": [
+      { "id": "44", "name": "Catherina Vallencia", "url_key": "erine" },
+      { "id": "22", "name": "Angelina Christy", "url_key": "christy" },
+      { "id": "127", "name": "Jessica Chandra", "url_key": "jessi" },
+      { "id": "143", "name": "Kathrina Irene", "url_key": "kathrina" },
+      { "id": "148", "name": "Lulu Salsabila", "url_key": "lulu" },
+      { "id": "166", "name": "Mutiara Azzahra", "url_key": "muthe" },
+      { "id": "195", "name": "Raisha Syifa", "url_key": "raisha" },
+      { "id": "204", "name": "Ribka Budiman", "url_key": "ribka" }
+    ],
+    "poster": "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
+    "banner": "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
+    "url": "https://jkt48.com/theater/schedule?lang=id"
+  },
+  {
+    "id": "cava-th-20261018",
+    "schedule_id": "cava-th-20261018",
+    "title": "Tunas di Balik Kacamata (Megane)",
+    "date": "2026-10-18T12:00:00.000Z",
+    "showDate": "2026-10-18T12:00:00.000Z",
+    "startTime": "19:00",
+    "start_time": "19:00:00",
+    "members": [
+      { "id": "44", "name": "Catherina Vallencia", "url_key": "erine" },
+      { "id": "1", "name": "Abigail Rachel", "url_key": "aralie" },
+      { "id": "64", "name": "Dena Natalia", "url_key": "danella" },
+      { "id": "143", "name": "Kathrina Irene", "url_key": "kathrina" },
+      { "id": "161", "name": "Michelle Levia", "url_key": "levi" },
+      { "id": "195", "name": "Raisha Syifa", "url_key": "raisha" },
+      { "id": "244", "name": "Victoria Kimberly", "url_key": "kimmy" }
+    ],
+    "poster": "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
+    "banner": "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
+    "url": "https://jkt48.com/theater/schedule?lang=id"
+  },
+  {
+    "id": "cava-th-20261025",
+    "schedule_id": "cava-th-20261025",
+    "title": "PASSION 200%",
+    "date": "2026-10-25T12:00:00.000Z",
+    "showDate": "2026-10-25T12:00:00.000Z",
+    "startTime": "19:00",
+    "start_time": "19:00:00",
+    "members": [
+      { "id": "44", "name": "Catherina Vallencia", "url_key": "erine" },
+      { "id": "22", "name": "Angelina Christy", "url_key": "christy" },
+      { "id": "143", "name": "Kathrina Irene", "url_key": "kathrina" },
+      { "id": "148", "name": "Lulu Salsabila", "url_key": "lulu" },
+      { "id": "166", "name": "Mutiara Azzahra", "url_key": "muthe" },
+      { "id": "195", "name": "Raisha Syifa", "url_key": "raisha" },
+      { "id": "204", "name": "Ribka Budiman", "url_key": "ribka" }
+    ],
+    "poster": "https://img.jkt48connect.com/jkt48/theater/uploads/cu0wq736nhcstg0epmiieumc.jpg",
+    "banner": "https://img.jkt48connect.com/jkt48/theater/uploads/y2g3dgukgk8ohxghfxv8lyju.jpg",
+    "url": "https://jkt48.com/theater/schedule?lang=id"
   }
 ]

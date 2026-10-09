@@ -4,6 +4,34 @@ import { useEffect, useState } from "react";
 import styles from "@/app/internal/dashboard-admin-xv7r2q/keanggotaan/page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
 
+function normalizeProofUrl(url?: string | null): string {
+  if (!url) return "";
+  let u = url.trim();
+  // Google Drive → direct image
+  const driveMatch = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([\w-]+)/);
+  if (driveMatch) return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+  // Strip origin
+  try {
+    const parsed = new URL(u);
+    if (parsed.hostname === "localhost" || parsed.hostname === "cavallery.id") {
+      u = parsed.pathname + parsed.search;
+    }
+  } catch {}
+  if (!u.startsWith("http") && !u.startsWith("data:") && !u.startsWith("/")) u = "/" + u;
+  return u;
+}
+
+function parseNotaList(urlOrUrls: any): string[] {
+  if (!urlOrUrls) return [];
+  if (Array.isArray(urlOrUrls)) return urlOrUrls.map(String).filter(Boolean);
+  const s = String(urlOrUrls).trim();
+  if (s.startsWith("[")) {
+    try { return JSON.parse(s).map(String).filter(Boolean); } catch {}
+  }
+  if (s.includes(",")) return s.split(",").map((x: string) => x.trim()).filter(Boolean);
+  return s ? [s] : [];
+}
+
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
   "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
@@ -26,6 +54,7 @@ export default function PublicKasMatrixPage() {
   const [activeTab, setActiveTab] = useState<"matriks" | "pengeluaran">("matriks");
   const [pengeluaranKategori, setPengeluaranKategori] = useState<string>("semua");
   const [selectedNotaUrl, setSelectedNotaUrl] = useState<string | null>(null);
+  const [selectedNotaList, setSelectedNotaList] = useState<string[]>([]);
 
   const fetchMatrix = async (yr: number) => {
     setLoading(true);
@@ -425,13 +454,13 @@ export default function PublicKasMatrixPage() {
                 <p>Tidak ada anggota yang cocok dengan pencarian.</p>
               </div>
             ) : (
-              <div className={styles.tableWrap} style={{ maxHeight: "68vh", overflowY: "auto" }}>
+              <div className={styles.tableWrap} style={{ maxHeight: "68vh", overflowY: "auto", overflowX: "auto" }}>
                 <table className={styles.table}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <tr>
-                      <th style={{ width: 44, textAlign: "center" }}>No</th>
-                      <th style={{ width: 100 }}>No. Anggota</th>
-                      <th style={{ minWidth: 160 }}>Nama Anggota</th>
+                      <th style={{ width: 44, textAlign: "center", position: "sticky", left: 0, zIndex: 3, background: "var(--surface, #1e1e24)" }}>No</th>
+                      <th style={{ width: 100, position: "sticky", left: 44, zIndex: 3, background: "var(--surface, #1e1e24)" }}>No. Anggota</th>
+                      <th style={{ minWidth: 160, position: "sticky", left: 144, zIndex: 3, background: "var(--surface, #1e1e24)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>Nama Anggota</th>
                       {MONTH_NAMES.map((m, idx) => {
                         const mNum = idx + 1;
                         const isCurrentMonth = mNum === new Date().getMonth() + 1 && tahun === new Date().getFullYear();
@@ -457,15 +486,15 @@ export default function PublicKasMatrixPage() {
                     {filteredRows.map((r: any, idx: number) => {
                       return (
                         <tr key={r.noAnggota || idx}>
-                          <td style={{ textAlign: "center", color: "var(--fg-muted)", fontSize: "0.8rem" }}>
+                          <td style={{ textAlign: "center", color: "var(--fg-muted)", fontSize: "0.8rem", position: "sticky", left: 0, zIndex: 2, background: "var(--surface, #1e1e24)" }}>
                             {idx + 1}
                           </td>
-                          <td>
+                          <td style={{ position: "sticky", left: 44, zIndex: 2, background: "var(--surface, #1e1e24)" }}>
                             <span className={styles.noAnggota} style={{ fontSize: "0.78rem" }}>
                               {r.noAnggota}
                             </span>
                           </td>
-                          <td className={styles.nameCol}>
+                          <td className={styles.nameCol} style={{ position: "sticky", left: 144, zIndex: 2, background: "var(--surface, #1e1e24)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>
                             <div style={{ fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 6 }}>
                               <span>{r.nama}</span>
                               {r.isAdminRole && (
@@ -824,29 +853,31 @@ export default function PublicKasMatrixPage() {
                             {p.pj_nama || "-"}
                           </td>
                           <td style={{ textAlign: "center" }}>
-                            {p.bukti_nota_url ? (
-                              <button
-                                type="button"
-                                onClick={() => setSelectedNotaUrl(p.bukti_nota_url)}
-                                className={styles.backBtn}
-                                style={{
-                                  fontSize: "0.72rem",
-                                  padding: "4px 10px",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  color: "var(--gold)",
-                                  borderColor: "var(--border-gold, #c9a84c)",
-                                  borderRadius: 8,
-                                }}
-                                title="Lihat foto bukti nota / kuitansi"
-                              >
-                                <i className="bx bx-image" style={{ fontSize: "0.9rem" }} />
-                                Lihat Nota
-                              </button>
-                            ) : (
-                              <span style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>-</span>
-                            )}
+                            {(() => {
+                              const notaUrls = parseNotaList(p.bukti_nota_url);
+                              if (notaUrls.length === 0) return <span style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>-</span>;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => { setSelectedNotaUrl(normalizeProofUrl(notaUrls[0])); setSelectedNotaList(notaUrls); }}
+                                  className={styles.backBtn}
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    padding: "4px 10px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    color: "var(--gold)",
+                                    borderColor: "var(--border-gold, #c9a84c)",
+                                    borderRadius: 8,
+                                  }}
+                                  title="Lihat foto bukti nota / kuitansi"
+                                >
+                                  <i className={`bx ${notaUrls.length > 1 ? "bx-images" : "bx-image"}`} style={{ fontSize: "0.9rem" }} />
+                                  {notaUrls.length > 1 ? `${notaUrls.length} Foto Nota` : "Lihat Nota"}
+                                </button>
+                              );
+                            })()}
                           </td>
                         </tr>
                       );
@@ -953,8 +984,14 @@ export default function PublicKasMatrixPage() {
               }}
             >
               <img
-                src={selectedNotaUrl}
+                src={normalizeProofUrl(selectedNotaUrl)}
                 alt="Bukti Nota Transaksi"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes("bukti-1788285192192-ypyr5p.jpg")) {
+                    target.src = "/uploads/bukti/bukti-1788285192192-ypyr5p.jpg";
+                  }
+                }}
                 style={{
                   maxWidth: "100%",
                   maxHeight: "65vh",
@@ -964,9 +1001,59 @@ export default function PublicKasMatrixPage() {
               />
             </div>
 
+            {/* Navigasi & Thumbnail jika ada lebih dari 1 nota */}
+            {selectedNotaList.length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = selectedNotaList.findIndex(u => normalizeProofUrl(u) === selectedNotaUrl);
+                      const prev = idx > 0 ? idx - 1 : selectedNotaList.length - 1;
+                      setSelectedNotaUrl(normalizeProofUrl(selectedNotaList[prev]));
+                    }}
+                    style={{ background: "rgba(255,255,255,0.1)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
+                  >
+                    <i className="bx bx-chevron-left" /> Sebelumnya
+                  </button>
+                  <span style={{ color: "var(--fg-muted)", fontSize: "0.8rem", display: "flex", alignItems: "center" }}>
+                    {selectedNotaList.findIndex(u => normalizeProofUrl(u) === selectedNotaUrl) + 1} / {selectedNotaList.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idx = selectedNotaList.findIndex(u => normalizeProofUrl(u) === selectedNotaUrl);
+                      const next = idx < selectedNotaList.length - 1 ? idx + 1 : 0;
+                      setSelectedNotaUrl(normalizeProofUrl(selectedNotaList[next]));
+                    }}
+                    style={{ background: "rgba(255,255,255,0.1)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
+                  >
+                    Selanjutnya <i className="bx bx-chevron-right" />
+                  </button>
+                </div>
+                <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
+                  {selectedNotaList.map((url, ti) => (
+                    <button
+                      key={ti}
+                      type="button"
+                      onClick={() => setSelectedNotaUrl(normalizeProofUrl(url))}
+                      style={{
+                        width: 48, height: 48, borderRadius: 6, overflow: "hidden", cursor: "pointer",
+                        border: normalizeProofUrl(url) === selectedNotaUrl ? "2px solid var(--gold)" : "1px solid var(--border)",
+                        opacity: normalizeProofUrl(url) === selectedNotaUrl ? 1 : 0.6,
+                        background: "rgba(0,0,0,0.3)", padding: 0,
+                      }}
+                    >
+                      <img src={normalizeProofUrl(url)} alt={`Nota ${ti + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <a
-                href={selectedNotaUrl}
+                href={normalizeProofUrl(selectedNotaUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
