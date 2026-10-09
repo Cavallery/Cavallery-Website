@@ -112,8 +112,8 @@ function useAdminAuth() {
         const isValid = data.status === true && data.valid === true;
         setAuthed(isValid);
         if (isValid) {
-          const uName = data.username || "Admin";
-          currentAdminUsername = uName;
+          const uName = data.name || data.username || "Admin";
+          currentAdminUsername = data.username || "admin";
           const uLower = (data.username || "").toLowerCase();
           const isSuper = ["admin", "vallencia", "aditya"].includes(uLower);
           setRole(isSuper ? "superadmin" : (data.role || "admin"));

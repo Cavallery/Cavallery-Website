@@ -51,22 +51,25 @@ async function verifySession(req: NextRequest) {
       const isSuper = ["admin", "vallencia", "aditya"].includes(u);
       let role = isSuper ? "superadmin" : (local.role || "admin");
 
-      // Ambil role terbaru dari MySQL secara real-time jika bukan superadmin default
-      if (!isSuper && isMySqlConfigured() && local.username) {
+      // Ambil role dan nama asli dari MySQL
+      let realName = "";
+      if (isMySqlConfigured() && local.username) {
         try {
           const userRows = await query<any[]>(
-            "SELECT role FROM `admin_users` WHERE LOWER(`username`) = LOWER(?) LIMIT 1",
+            "SELECT name, role FROM `admin_users` WHERE LOWER(`username`) = LOWER(?) LIMIT 1",
             [local.username]
           );
-          if (userRows && userRows.length > 0 && userRows[0].role) {
-            role = userRows[0].role;
+          if (userRows && userRows.length > 0) {
+            if (userRows[0].name) realName = userRows[0].name;
+            if (!isSuper && userRows[0].role) role = userRows[0].role;
           } else {
             const adminRows = await query<any[]>(
-              "SELECT role FROM `admin` WHERE LOWER(`username`) = LOWER(?) LIMIT 1",
+              "SELECT nama, role FROM `admin` WHERE LOWER(`username`) = LOWER(?) LIMIT 1",
               [local.username]
             );
-            if (adminRows && adminRows.length > 0 && adminRows[0].role) {
-              role = adminRows[0].role;
+            if (adminRows && adminRows.length > 0) {
+              if (adminRows[0].nama) realName = adminRows[0].nama;
+              if (!isSuper && adminRows[0].role) role = adminRows[0].role;
             }
           }
         } catch {}
@@ -83,6 +86,7 @@ async function verifySession(req: NextRequest) {
           status: true,
           valid: true,
           username: local.username || "Admin",
+          name: realName || local.username || "Admin",
           role,
           expiresAt: local.expiresAt,
         },

@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, type = "activity", ids, module = "Dashboard", details, actionName = "Edit Data", username = "admin" } = body;
+    const { action, type = "activity", ids, module = "Dashboard", details, actionName = "Edit Data", username = "unknown" } = body;
 
     // 0. LOG ACTIVITY FROM DASHBOARD
     if (action === "log_activity") {
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
           await query(`DELETE FROM ${tableName} WHERE id IN (${placeholders})`, ids);
 
           await logActivity({
-            username: "admin",
+            username: username || "admin",
             action: "Hapus Log",
             module: type === "login" ? "Riwayat Login" : "Riwayat Aktivitas",
             details: `Menghapus ${ids.length} entri log`,
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
           await query(`TRUNCATE TABLE ${tableName}`);
 
           await logActivity({
-            username: "admin",
+            username: username || "admin",
             action: "Bersihkan Semua Log",
             module: type === "login" ? "Riwayat Login" : "Riwayat Aktivitas",
             details: `Membersihkan seluruh tabel log ${tableName}`,
