@@ -322,5 +322,17 @@
     "handwriting_caption": "19th Birthday! 🎂✨",
     "sort_order": 27,
     "is_active": 1
+  },
+  {
+    "id": "28",
+    "year": "2026",
+    "date_label": "9 Oktober 2026",
+    "event_date": "2026-10-09",
+    "title": "Erine First Time on Pertaruhan Cinta Setlist",
+    "description": "Penampilan perdana Erine membawakan setlist Pertaruhan Cinta di Theater JKT48 — momen bersejarah dengan performa memukau bersama para member.",
+    "image_url": "/images/about/timeline-2024-1.jpeg",
+    "handwriting_caption": "Pertaruhan Cinta Debut! 🌹✨",
+    "sort_order": 28,
+    "is_active": 1
   }
 ]
