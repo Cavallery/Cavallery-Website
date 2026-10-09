@@ -102,6 +102,30 @@ export async function POST(request: Request) {
         body.is_active !== undefined ? (body.is_active ? 1 : 0) : 1,
       ]
     );
+    // Sinkronisasi realtime ke src/data/milestone.json agar frontend langsung terupdate
+    try {
+      const filePath = path.join(process.cwd(), "src", "data", "milestone.json");
+      let list: any[] = [];
+      if (fs.existsSync(filePath)) {
+        list = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+      }
+      list.push({
+        id: String(result.insertId || Date.now()),
+        year: String(body.year || "2026"),
+        date_label: body.date_label || body.event_date || "",
+        event_date: body.event_date || body.date_label || "",
+        title: body.title || "",
+        description: body.description || "",
+        image_url: body.image_url || "/images/about/timeline-2024-1.jpeg",
+        handwriting_caption: body.handwriting_caption || body.title || "",
+        sort_order: Number(body.sort_order) || list.length + 1,
+        is_active: body.is_active !== undefined ? (body.is_active ? 1 : 0) : 1,
+      });
+      fs.writeFileSync(filePath, JSON.stringify(list, null, 2), "utf-8");
+    } catch (e) {
+      console.warn("Gagal sinkronisasi file milestone.json:", e);
+    }
+
     return NextResponse.json({ status: true, success: true, id: result.insertId, message: "Timeline berhasil ditambahkan" });
   } catch (error: any) {
     return NextResponse.json({ status: false, success: false, message: error.message }, { status: 500 });
