@@ -454,13 +454,13 @@ export default function PublicKasMatrixPage() {
                 <p>Tidak ada anggota yang cocok dengan pencarian.</p>
               </div>
             ) : (
-              <div className={styles.tableWrap} style={{ maxHeight: "68vh", overflowY: "auto", overflowX: "auto" }}>
-                <table className={styles.table}>
+              <div className={styles.tableWrap} style={{ maxHeight: "68vh", overflow: "auto" }}>
+                <table className={styles.matrixTable}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <tr>
-                      <th style={{ width: 44, textAlign: "center", position: "sticky", left: 0, zIndex: 3, background: "var(--surface, #1e1e24)" }}>No</th>
-                      <th style={{ width: 100, position: "sticky", left: 44, zIndex: 3, background: "var(--surface, #1e1e24)" }}>No. Anggota</th>
-                      <th style={{ minWidth: 160, position: "sticky", left: 144, zIndex: 3, background: "var(--surface, #1e1e24)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>Nama Anggota</th>
+                      <th className={styles.colStickyNo} style={{ width: 44, textAlign: "center", background: "var(--surface, #1e1e24)", color: "var(--primary)" }}>No</th>
+                      <th className={styles.colStickyNoAnggota} style={{ width: 100, background: "var(--surface, #1e1e24)", color: "var(--primary)" }}>No. Anggota</th>
+                      <th className={styles.colStickyNama} style={{ minWidth: 160, background: "var(--surface, #1e1e24)", color: "var(--primary)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>Nama Anggota</th>
                       {MONTH_NAMES.map((m, idx) => {
                         const mNum = idx + 1;
                         const isCurrentMonth = mNum === new Date().getMonth() + 1 && tahun === new Date().getFullYear();
@@ -470,6 +470,7 @@ export default function PublicKasMatrixPage() {
                             style={{
                               textAlign: "center",
                               width: 48,
+                              minWidth: 46,
                               background: isCurrentMonth ? "rgba(201, 168, 76, 0.15)" : undefined,
                               color: isCurrentMonth ? "var(--gold)" : undefined,
                               fontWeight: 800,
@@ -486,15 +487,15 @@ export default function PublicKasMatrixPage() {
                     {filteredRows.map((r: any, idx: number) => {
                       return (
                         <tr key={r.noAnggota || idx}>
-                          <td style={{ textAlign: "center", color: "var(--fg-muted)", fontSize: "0.8rem", position: "sticky", left: 0, zIndex: 2, background: "var(--surface, #1e1e24)" }}>
+                          <td className={styles.colStickyNo} style={{ textAlign: "center", color: "var(--fg-muted)", fontSize: "0.8rem" }}>
                             {idx + 1}
                           </td>
-                          <td style={{ position: "sticky", left: 44, zIndex: 2, background: "var(--surface, #1e1e24)" }}>
+                          <td className={styles.colStickyNoAnggota}>
                             <span className={styles.noAnggota} style={{ fontSize: "0.78rem" }}>
                               {r.noAnggota}
                             </span>
                           </td>
-                          <td className={styles.nameCol} style={{ position: "sticky", left: 144, zIndex: 2, background: "var(--surface, #1e1e24)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>
+                          <td className={`${styles.nameCol} ${styles.colStickyNama}`} style={{ borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>
                             <div style={{ fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 6 }}>
                               <span>{r.nama}</span>
                               {r.isAdminRole && (
