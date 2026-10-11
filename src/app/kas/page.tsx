@@ -413,20 +413,74 @@ export default function KasPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className={styles.form}>
-              {/* Periode */}
+              {/* Periode Kas & Selector Bulan */}
               <div className={styles.field}>
                 <div className={styles.labelRow}>
-                  <label className={styles.label}>Periode Kas</label>
+                  <label className={styles.label}>Periode Pembayaran Kas</label>
                   <span className={styles.badgeWajib}>WAJIB</span>
                 </div>
+
                 <input
                   type="text"
                   className={styles.input}
-                  placeholder="Contoh: Agustus 2026"
+                  placeholder="Contoh: Agustus 2026 atau Agustus - Oktober 2026"
                   value={periode}
                   onChange={(e) => setPeriode(e.target.value)}
                   required
                 />
+
+                {/* Petunjuk & Panduan Bayar Menunggak / Rapel Bulan */}
+                <div style={{
+                  marginTop: 8,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: "rgba(201, 168, 76, 0.08)",
+                  border: "1px solid rgba(201, 168, 76, 0.25)",
+                  fontSize: "0.82rem",
+                  color: "var(--fg-dim, #ccc)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--gold)", fontWeight: 700 }}>
+                    <i className="bx bx-help-circle" />
+                    <span>Panduan Pembayaran Kas Menunggak / Rapel:</span>
+                  </div>
+                  <p style={{ margin: 0, lineHeight: 1.45, fontSize: "0.8rem" }}>
+                    Jika Anda belum bayar kas beberapa bulan (misalnya menunggak dari <strong>Agustus</strong> dan ingin melunasi hingga <strong>Oktober</strong>), tulis rentang bulan di kolom periode: <span style={{ color: "var(--gold)", fontWeight: 700 }}>&quot;Agustus - Oktober {new Date().getFullYear()}&quot;</span> dan sesuaikan nominal pembayaran (misal 3 bulan = Rp 45.000).
+                  </p>
+
+                  {/* Pilihan Cepat Bulan Terakhir / Bulan Berjalan */}
+                  <div style={{ marginTop: 4, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>Pilihan cepat:</span>
+                    {[-2, -1, 0, 1].map((offset) => {
+                      const d = new Date();
+                      d.setMonth(d.getMonth() + offset);
+                      const mName = MONTH_NAMES[d.getMonth()];
+                      const yName = d.getFullYear();
+                      const fullLabel = `${mName} ${yName}`;
+                      return (
+                        <button
+                          key={offset}
+                          type="button"
+                          onClick={() => setPeriode(fullLabel)}
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            background: periode === fullLabel ? "var(--gold)" : "rgba(255, 255, 255, 0.08)",
+                            color: periode === fullLabel ? "#111" : "var(--fg)",
+                            border: "1px solid var(--border)",
+                            fontSize: "0.74rem",
+                            cursor: "pointer",
+                            fontWeight: periode === fullLabel ? 800 : 500,
+                          }}
+                        >
+                          {fullLabel}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               {/* Nominal */}

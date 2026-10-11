@@ -524,15 +524,29 @@ export default function AdminKasPage() {
     } catch (err: any) { alert(err.message || "Terjadi kesalahan"); }
   };
 
-  // ── Handler: Toggle Bulan di Matriks ──
-  const handleToggleMonth = async (noAnggota: string, bulan: number, isPaid: boolean) => {
+  // ── Handler: Toggle Bulan di Matriks (3 Status: Kosong -> Ceklis -> Strip -> Kosong) ──
+  const handleToggleMonth = async (noAnggota: string, bulan: number, currentStatus: boolean | "not_joined") => {
     const key = `${noAnggota}:${bulan}`;
     setMatrixToggling(key);
+
+    // Siklus 3 Status:
+    // 1. Kosong (false / belum bayar) -> Jadi Ceklis ("diverifikasi" / lunas)
+    // 2. Ceklis (true / lunas) -> Jadi Strip ("not_joined" / belum bergabung / bebas kas)
+    // 3. Strip ("not_joined") -> Jadi Kosong ("unpaid" / belum bayar kas)
+    let nextStatusMode: "diverifikasi" | "not_joined" | "unpaid" = "diverifikasi";
+    if (currentStatus === true) {
+      nextStatusMode = "not_joined";
+    } else if (currentStatus === "not_joined") {
+      nextStatusMode = "unpaid";
+    } else {
+      nextStatusMode = "diverifikasi";
+    }
+
     try {
       const res = await fetch("/api/admin/kas/matrix", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ noAnggota, tahun: matrixYear, bulan, isPaid: !isPaid, nominal: 15000 }),
+        body: JSON.stringify({ noAnggota, tahun: matrixYear, bulan, statusMode: nextStatusMode, nominal: 15000 }),
       });
       const json = await res.json();
       if (json.status) {
@@ -1698,11 +1712,13 @@ export default function AdminKasPage() {
                               key={m}
                               className={isPaid ? styles.matrixCellPaid : isNotJoined ? "" : styles.matrixCellUnpaid}
                               title={
-                                isNotJoined
-                                  ? `${row.nama}: Belum Bergabung pada ${MONTH_NAMES_FULL[m - 1]} ${matrixYear} (Bebas Kewajiban Kas)`
-                                  : `${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): ${isPaid ? "LUNAS" : "Belum Bayar"}. Klik untuk ubah.`
+                                isPaid
+                                  ? `${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): LUNAS [✓]. Klik untuk ubah jadi Strip [-].`
+                                  : isNotJoined
+                                  ? `${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): Belum Bergabung [-]. Klik untuk ubah jadi Belum Bayar [☐].`
+                                  : `${row.nama} (${MONTH_NAMES_FULL[m - 1]} ${matrixYear}): Belum Bayar [☐]. Klik untuk ubah jadi Lunas [✓].`
                               }
-                              onClick={() => !isToggling && handleToggleMonth(row.noAnggota, m, isPaid)}
+                              onClick={() => !isToggling && handleToggleMonth(row.noAnggota, m, status)}
                               style={{
                                 cursor: "pointer",
                                 textAlign: "center",
@@ -1758,7 +1774,7 @@ export default function AdminKasPage() {
             <div style={{ marginTop: 14, fontSize: "0.8rem", color: "var(--fg-muted)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <i className="bx bx-info-circle" style={{ color: "var(--gold)" }} />
-                <span>Anggota hanya wajib membayar kas sejak bulan resmi bergabung (kolom Bulan Mulai). Bulan sebelum bergabung otomatis bebas kewajiban kas.</span>
+                <span><strong>Tips Interaktif:</strong> Klik kotak untuk mengubah status bergantian: <strong>Kosong [Belum Bayar]</strong> → <strong>Ceklis [Lunas]</strong> → <strong>Strip [- Bebas / Belum Bergabung]</strong> → kembali ke Kosong.</span>
               </div>
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -1768,7 +1784,7 @@ export default function AdminKasPage() {
                   <span style={{ width: 16, height: 16, border: "1.5px solid rgba(156,163,175,0.4)", borderRadius: 3, display: "inline-block" }} /> Belum Bayar
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <strong style={{ color: "var(--fg-muted)", fontSize: "1rem" }}>-</strong> Belum Bergabung
+                  <strong style={{ color: "var(--fg-muted)", fontSize: "1rem" }}>-</strong> Bebas Kas / Belum Bergabung
                 </span>
               </div>
             </div>

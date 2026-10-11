@@ -83,6 +83,7 @@ export interface HomeBannerItem {
   actionText?: string; // contoh: "Daftar Sekarang", "Lihat Jadwal", "Selengkapnya"
   actionUrl?: string; // contoh: "/join", "/schedule", "https://..."
   imageUrl?: string; // poster / banner opsional
+  videoUrl?: string; // URL video (MP4 / YouTube embed / Short / local upload)
   sessions?: HomeBannerSessionItem[]; // tabel sesi dan jam
   isActive: boolean;
   priority?: number;

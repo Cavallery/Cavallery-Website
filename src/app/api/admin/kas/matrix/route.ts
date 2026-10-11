@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { noAnggota, tahun, bulan, isPaid, nominal } = body;
+    const { noAnggota, tahun, bulan, isPaid, statusMode, nominal } = body;
 
     if (!noAnggota || !tahun || !bulan) {
       return NextResponse.json({ status: false, message: "Parameter tidak lengkap" }, { status: 400 });
@@ -45,14 +45,17 @@ export async function POST(req: NextRequest) {
       noAnggota,
       tahun: Number(tahun),
       bulan: Number(bulan),
-      isPaid: Boolean(isPaid),
+      isPaid: typeof isPaid === "boolean" ? isPaid : undefined,
+      statusMode: statusMode || (typeof isPaid === "boolean" ? (isPaid ? "diverifikasi" : "unpaid") : "unpaid"),
       nominal: Number(nominal) || 15000,
       adminName: admin.nama || "Admin",
     });
 
+    const statusLabel = statusMode === "diverifikasi" ? "Lunas" : statusMode === "not_joined" ? "Belum Bergabung (-)" : "Belum Bayar (Kosong)";
+
     return NextResponse.json({
       status: true,
-      message: `Status kas ${noAnggota} bulan ke-${bulan} (${tahun}) berhasil diubah jadi ${isPaid ? "Lunas" : "Belum Bayar"}.`,
+      message: `Status kas ${noAnggota} bulan ke-${bulan} (${tahun}) berhasil diubah jadi ${statusLabel}.`,
     });
   } catch (error: any) {
     console.error("Toggle kas matrix month error:", error);
