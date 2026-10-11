@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import styles from "../keanggotaan/page.module.css";
+import styles from "./page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import type { HomeBannerItem, HomeBannerSessionItem } from "@/lib/settings";
 import AdminSubNav from "@/components/admin/AdminSubNav";
@@ -780,7 +780,7 @@ export default function AdminMasterDataPage() {
                   <p style={{ margin: 0, fontSize: "0.88rem" }}>Belum ada banner info home. Klik tombol di atas untuk menambahkan.</p>
                 </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
                   {data.homeBanners.map((b) => (
                     <div
                       key={b.id}
@@ -1267,7 +1267,7 @@ export default function AdminMasterDataPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                 gap: 20,
               }}
             >
@@ -2171,363 +2171,363 @@ export default function AdminMasterDataPage() {
             <div
               className={styles.formModal}
               onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: 560, width: "95%" }}
             >
+              {/* STICKY HEADER */}
               <div className={styles.formModalHeader}>
                 <h3>
                   <i className="bx bx-broadcast" style={{ color: "var(--gold)" }} />{" "}
                   {editingBannerId ? "Edit Banner & Info Home" : "Tambah Banner & Info Home Baru"}
                 </h3>
-                <button className={styles.closeX} onClick={() => setShowBannerModal(false)}>
+                <button
+                  type="button"
+                  className={styles.closeX}
+                  onClick={() => setShowBannerModal(false)}
+                  title="Tutup Modal"
+                >
                   <i className="bx bx-x" />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveBanner} className={styles.formBody}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* FORM & SCROLLABLE BODY */}
+              <form onSubmit={handleSaveBanner} className={styles.modalFormWrapper}>
+                <div className={styles.formBody}>
+                  <div className={styles.formGrid2}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Kategori / Badge:
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.badge}
+                        onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value.toUpperCase() })}
+                        placeholder="Contoh: OPEN MEMBER, MEET & GREET"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Warna Badge:
+                      </label>
+                      <select
+                        className={styles.modalInput}
+                        value={bannerForm.badgeColor || "gold"}
+                        onChange={(e) => setBannerForm({ ...bannerForm, badgeColor: e.target.value })}
+                      >
+                        <option value="gold">Emas (Gold) - Standar / Open Member</option>
+                        <option value="blue">Biru (Blue) - Meet & Greet / Jadwal</option>
+                        <option value="green">Hijau (Green) - Info Resmi / Buka</option>
+                        <option value="pink">Pink - Project / Seitansai</option>
+                        <option value="red">Merah (Red) - Penting / Urgent</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div>
                     <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Kategori / Badge:
+                      Judul Pengumuman / Banner: <span style={{ color: "#ef4444" }}>*</span>
                     </label>
                     <input
                       type="text"
                       className={styles.modalInput}
-                      value={bannerForm.badge}
-                      onChange={(e) => setBannerForm({ ...bannerForm, badge: e.target.value.toUpperCase() })}
-                      placeholder="Contoh: OPEN MEMBER, MEET & GREET"
+                      value={bannerForm.title}
+                      onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                      placeholder="Contoh: Pendaftaran Anggota Cavallery 2026 Resmi Dibuka!"
                       required
                     />
                   </div>
+
                   <div>
                     <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Warna Badge:
+                      Deskripsi / Isi Pengumuman:
                     </label>
-                    <select
+                    <textarea
                       className={styles.modalInput}
-                      value={bannerForm.badgeColor || "gold"}
-                      onChange={(e) => setBannerForm({ ...bannerForm, badgeColor: e.target.value })}
-                    >
-                      <option value="gold">Emas (Gold) - Standar / Open Member</option>
-                      <option value="blue">Biru (Blue) - Meet & Greet / Jadwal</option>
-                      <option value="green">Hijau (Green) - Info Resmi / Buka</option>
-                      <option value="pink">Pink - Project / Seitansai</option>
-                      <option value="red">Merah (Red) - Penting / Urgent</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                    Judul Pengumuman / Banner: <span style={{ color: "#ef4444" }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.modalInput}
-                    value={bannerForm.title}
-                    onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                    placeholder="Contoh: Pendaftaran Anggota Cavallery 2026 Resmi Dibuka!"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                    Deskripsi / Isi Pengumuman:
-                  </label>
-                  <textarea
-                    className={styles.modalInput}
-                    rows={3}
-                    value={bannerForm.description}
-                    onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })}
-                    placeholder="Tuliskan keterangan lengkap pengumuman di sini..."
-                  />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Tanggal / Waktu (Opsional):
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.modalInput}
-                      value={bannerForm.dateInfo || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, dateInfo: e.target.value })}
-                      placeholder="Contoh: 25 - 30 September 2026"
+                      rows={3}
+                      value={bannerForm.description}
+                      onChange={(e) => setBannerForm({ ...bannerForm, description: e.target.value })}
+                      placeholder="Tuliskan keterangan lengkap pengumuman di sini..."
                     />
                   </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Lokasi / Tempat (Opsional):
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.modalInput}
-                      value={bannerForm.locationInfo || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, locationInfo: e.target.value })}
-                      placeholder="Contoh: Theater JKT48 / Online"
-                    />
-                  </div>
-                </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Teks Tombol Aksi:
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.modalInput}
-                      value={bannerForm.actionText || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, actionText: e.target.value })}
-                      placeholder="Contoh: Daftar Sekarang, Lihat Jadwal"
-                    />
+                  <div className={styles.formGrid2}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Tanggal / Waktu (Opsional):
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.dateInfo || ""}
+                        onChange={(e) => setBannerForm({ ...bannerForm, dateInfo: e.target.value })}
+                        placeholder="Contoh: 25 - 30 September 2026"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Lokasi / Tempat (Opsional):
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.locationInfo || ""}
+                        onChange={(e) => setBannerForm({ ...bannerForm, locationInfo: e.target.value })}
+                        placeholder="Contoh: Theater JKT48 / Online"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                      Tautan / Link URL:
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.modalInput}
-                      value={bannerForm.actionUrl || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, actionUrl: e.target.value })}
-                      placeholder="Contoh: /join, /schedule, atau URL https://..."
-                    />
+
+                  <div className={styles.formGrid2}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Teks Tombol Aksi:
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.actionText || ""}
+                        onChange={(e) => setBannerForm({ ...bannerForm, actionText: e.target.value })}
+                        placeholder="Contoh: Daftar Sekarang, Lihat Jadwal"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                        Tautan / Link URL:
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.actionUrl || ""}
+                        onChange={(e) => setBannerForm({ ...bannerForm, actionUrl: e.target.value })}
+                        placeholder="Contoh: /join, /schedule, atau URL https://..."
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: "rgba(59, 130, 246, 0.12)", borderRadius: 8, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
-                  <span style={{ fontSize: "0.78rem", color: "#93c5fd", display: "flex", alignItems: "center", gap: 6 }}>
-                    <i className="bx bx-bulb" style={{ fontSize: "1rem" }} /> Impor data otomatis dari Jadwal VC / M&amp;G Erine?
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleImportVcSchedule}
-                    disabled={importingVc}
-                    style={{
-                      padding: "5px 12px",
-                      fontSize: "0.75rem",
-                      borderRadius: 6,
-                      background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                      color: "#fff",
-                      border: "none",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                      boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
-                    }}
-                  >
-                    <i className={`bx ${importingVc ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
-                    {importingVc ? "Mengimpor..." : "⚡ Impor API M&G"}
-                  </button>
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                    Foto / Poster Banner (Bisa Upload atau Masukkan URL):
-                  </label>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <input
-                      type="text"
-                      className={styles.modalInput}
-                      value={bannerForm.imageUrl || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
-                      placeholder="https://... atau klik Upload Foto"
-                      style={{ flex: 1 }}
-                    />
-                    <label
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 14px", background: "rgba(59, 130, 246, 0.12)", borderRadius: 10, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                    <span style={{ fontSize: "0.78rem", color: "#93c5fd", display: "flex", alignItems: "center", gap: 6 }}>
+                      <i className="bx bx-bulb" style={{ fontSize: "1rem" }} /> Impor data otomatis dari Jadwal VC / M&amp;G Erine?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleImportVcSchedule}
+                      disabled={importingVc}
                       style={{
-                        padding: "8px 14px",
+                        padding: "6px 14px",
+                        fontSize: "0.75rem",
                         borderRadius: 8,
-                        background: "rgba(201, 168, 76, 0.18)",
-                        border: "1px solid var(--gold)",
-                        color: "var(--gold)",
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
+                        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                        color: "#fff",
+                        border: "none",
                         cursor: "pointer",
-                        whiteSpace: "nowrap",
+                        fontWeight: 700,
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 6,
+                        boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
                       }}
                     >
-                      <i className={`bx ${uploadingBannerImg ? "bx-loader-alt bx-spin" : "bx-upload"}`} />
-                      {uploadingBannerImg ? "Mengunggah..." : "Upload Foto"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleUploadBannerImage}
-                        disabled={uploadingBannerImg}
-                      />
-                    </label>
-                  </div>
-                  {bannerForm.imageUrl && (
-                    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: 6, background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
-                      <img
-                        src={bannerForm.imageUrl}
-                        alt="Preview"
-                        style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)" }}
-                      />
-                      <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", flex: 1, wordBreak: "break-all" }}>
-                        {bannerForm.imageUrl.length > 50 ? `${bannerForm.imageUrl.slice(0, 50)}...` : bannerForm.imageUrl}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setBannerForm({ ...bannerForm, imageUrl: "" })}
-                        style={{ padding: "4px 8px", fontSize: "0.72rem", color: "#f87171", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 6, cursor: "pointer" }}
-                      >
-                        Hapus Foto
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* ── Field Video URL Khusus Home ── */}
-                <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
-                    <i className="bx bxl-youtube" style={{ color: "#ef4444", marginRight: 4 }} />
-                    Video Khusus Home (Opsional - YouTube / Video URL):
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.modalInput}
-                    value={bannerForm.videoUrl || ""}
-                    onChange={(e) => setBannerForm({ ...bannerForm, videoUrl: e.target.value })}
-                    placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://domain/video.mp4"
-                    style={{ width: "100%" }}
-                  />
-                  <span style={{ fontSize: "0.73rem", color: "var(--fg-muted)", marginTop: 4, display: "block" }}>
-                    *Jika diisi, kartu informasi di halaman utama (Home) akan langsung menampilkan player video interaktif.
-                  </span>
-                  {bannerForm.videoUrl && (
-                    <div style={{ marginTop: 8, padding: 8, background: "rgba(239, 68, 68, 0.08)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: "0.75rem", color: "#fca5a5" }}>
-                        <i className="bx bx-video" style={{ marginRight: 4 }} />
-                        Video aktif terpasang untuk Home
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setBannerForm({ ...bannerForm, videoUrl: "" })}
-                        style={{ padding: "3px 8px", fontSize: "0.7rem", color: "#f87171", background: "rgba(239, 68, 68, 0.2)", border: "none", borderRadius: 4, cursor: "pointer" }}
-                      >
-                        Hapus Video
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* TABEL SESI & JAM ERINE */}
-                <div style={{ padding: "12px", background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, border: "1px solid rgba(201, 168, 76, 0.25)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div>
-                      <strong style={{ fontSize: "0.85rem", color: "var(--gold)", display: "flex", alignItems: "center", gap: 6 }}>
-                        <i className="bx bx-time-five" /> Tabel Sesi &amp; Jam Erine (Opsional)
-                      </strong>
-                      <span style={{ fontSize: "0.74rem", color: "var(--fg-dim)", display: "block", marginTop: 2 }}>
-                        Rincian jam dan sesi untuk tampil dalam bentuk tabel di halaman Home
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addSessionRow}
-                      style={{
-                        padding: "5px 12px",
-                        borderRadius: 6,
-                        background: "rgba(201, 168, 76, 0.2)",
-                        border: "1px solid var(--gold)",
-                        color: "var(--gold)",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <i className="bx bx-plus" /> Tambah Sesi
+                      <i className={`bx ${importingVc ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
+                      {importingVc ? "Mengimpor..." : "⚡ Impor API M&G"}
                     </button>
                   </div>
 
-                  {(!bannerForm.sessions || bannerForm.sessions.length === 0) ? (
-                    <p style={{ fontSize: "0.75rem", color: "var(--fg-dim)", margin: 0, fontStyle: "italic", padding: "6px 0" }}>
-                      Belum ada rincian sesi. Klik tombol &quot;+ Tambah Sesi&quot; di atas untuk menambahkan jadwal sesi &amp; jam.
-                    </p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.3fr 32px", gap: 6, fontSize: "0.72rem", color: "var(--gold)", fontWeight: 700, paddingLeft: 2 }}>
-                        <span>Sesi</span>
-                        <span>Waktu / Jam</span>
-                        <span>Jalur / Keterangan</span>
-                        <span></span>
-                      </div>
-                      {bannerForm.sessions.map((ses, sIdx) => (
-                        <div key={sIdx} style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr 1.3fr 32px", gap: 6, alignItems: "center" }}>
-                          <input
-                            type="text"
-                            className={styles.modalInput}
-                            value={ses.sessionName}
-                            onChange={(e) => updateSessionRow(sIdx, "sessionName", e.target.value)}
-                            placeholder="Sesi 1"
-                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
-                          />
-                          <input
-                            type="text"
-                            className={styles.modalInput}
-                            value={ses.time}
-                            onChange={(e) => updateSessionRow(sIdx, "time", e.target.value)}
-                            placeholder="11.00 – 12.00 WIB"
-                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
-                          />
-                          <input
-                            type="text"
-                            className={styles.modalInput}
-                            value={ses.info || ""}
-                            onChange={(e) => updateSessionRow(sIdx, "info", e.target.value)}
-                            placeholder="Jalur 3 (Meet &amp; Greet)"
-                            style={{ padding: "6px 8px", fontSize: "0.78rem" }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeSessionRow(sIdx)}
-                            style={{
-                              background: "rgba(239, 68, 68, 0.2)",
-                              border: "1px solid #ef4444",
-                              color: "#f87171",
-                              borderRadius: 6,
-                              height: 32,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                            title="Hapus baris sesi"
-                          >
-                            <i className="bx bx-trash" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div>
-                    <strong style={{ fontSize: "0.88rem", display: "block" }}>Status Tampil di Home</strong>
-                    <span style={{ fontSize: "0.78rem", color: "var(--fg-dim)" }}>Jika dicentang, banner akan langsung muncul di halaman utama</span>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      Foto / Poster Banner (Bisa Upload atau Masukkan URL):
+                    </label>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <input
+                        type="text"
+                        className={styles.modalInput}
+                        value={bannerForm.imageUrl || ""}
+                        onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                        placeholder="https://... atau klik Upload Foto"
+                        style={{ flex: "1 1 200px" }}
+                      />
+                      <label
+                        style={{
+                          padding: "9px 14px",
+                          borderRadius: 10,
+                          background: "rgba(201, 168, 76, 0.18)",
+                          border: "1px solid var(--gold)",
+                          color: "var(--gold)",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          justifyContent: "center",
+                        }}
+                      >
+                        <i className={`bx ${uploadingBannerImg ? "bx-loader-alt bx-spin" : "bx-upload"}`} />
+                        {uploadingBannerImg ? "Mengunggah..." : "Upload Foto"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={handleUploadBannerImage}
+                          disabled={uploadingBannerImg}
+                        />
+                      </label>
+                    </div>
+                    {bannerForm.imageUrl && (
+                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: 8, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                        <img
+                          src={bannerForm.imageUrl}
+                          alt="Preview"
+                          style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)" }}
+                        />
+                        <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", flex: 1, wordBreak: "break-all" }}>
+                          {bannerForm.imageUrl.length > 50 ? `${bannerForm.imageUrl.slice(0, 50)}...` : bannerForm.imageUrl}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, imageUrl: "" })}
+                          style={{ padding: "4px 8px", fontSize: "0.72rem", color: "#f87171", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 6, cursor: "pointer" }}
+                        >
+                          Hapus Foto
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={bannerForm.isActive}
-                    onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
-                    style={{ width: 20, height: 20, cursor: "pointer" }}
-                  />
+
+                  {/* ── Field Video URL Khusus Home ── */}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                      <i className="bx bxl-youtube" style={{ color: "#ef4444", marginRight: 4 }} />
+                      Video Khusus Home (Opsional - YouTube / Video URL):
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.modalInput}
+                      value={bannerForm.videoUrl || ""}
+                      onChange={(e) => setBannerForm({ ...bannerForm, videoUrl: e.target.value })}
+                      placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://domain/video.mp4"
+                      style={{ width: "100%" }}
+                    />
+                    <span style={{ fontSize: "0.73rem", color: "var(--fg-muted)", marginTop: 4, display: "block" }}>
+                      *Jika diisi, kartu informasi di halaman utama (Home) akan langsung menampilkan player video interaktif.
+                    </span>
+                    {bannerForm.videoUrl && (
+                      <div style={{ marginTop: 8, padding: 8, background: "rgba(239, 68, 68, 0.08)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#fca5a5" }}>
+                          <i className="bx bx-video" style={{ marginRight: 4 }} />
+                          Video aktif terpasang untuk Home
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, videoUrl: "" })}
+                          style={{ padding: "3px 8px", fontSize: "0.7rem", color: "#f87171", background: "rgba(239, 68, 68, 0.2)", border: "none", borderRadius: 4, cursor: "pointer" }}
+                        >
+                          Hapus Video
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* TABEL SESI & JAM ERINE */}
+                  <div style={{ padding: "14px", background: "rgba(0, 0, 0, 0.35)", borderRadius: 12, border: "1px solid rgba(201, 168, 76, 0.25)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                      <div>
+                        <strong style={{ fontSize: "0.85rem", color: "var(--gold)", display: "flex", alignItems: "center", gap: 6 }}>
+                          <i className="bx bx-time-five" /> Tabel Sesi &amp; Jam Erine (Opsional)
+                        </strong>
+                        <span style={{ fontSize: "0.74rem", color: "var(--fg-dim)", display: "block", marginTop: 2 }}>
+                          Rincian jam dan sesi untuk tampil dalam bentuk tabel di halaman Home
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addSessionRow}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          background: "rgba(201, 168, 76, 0.2)",
+                          border: "1px solid var(--gold)",
+                          color: "var(--gold)",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <i className="bx bx-plus" /> Tambah Sesi
+                      </button>
+                    </div>
+
+                    {(!bannerForm.sessions || bannerForm.sessions.length === 0) ? (
+                      <p style={{ fontSize: "0.75rem", color: "var(--fg-dim)", margin: 0, fontStyle: "italic", padding: "6px 0" }}>
+                        Belum ada rincian sesi. Klik tombol &quot;+ Tambah Sesi&quot; di atas untuk menambahkan jadwal sesi &amp; jam.
+                      </p>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <div className={styles.sessionGridHeader}>
+                          <span>Sesi</span>
+                          <span>Waktu / Jam</span>
+                          <span>Jalur / Keterangan</span>
+                          <span></span>
+                        </div>
+                        {bannerForm.sessions.map((ses, sIdx) => (
+                          <div key={sIdx} className={styles.sessionGridRow}>
+                            <input
+                              type="text"
+                              className={styles.modalInput}
+                              value={ses.sessionName}
+                              onChange={(e) => updateSessionRow(sIdx, "sessionName", e.target.value)}
+                              placeholder="Sesi (cth: Sesi 1)"
+                              style={{ padding: "8px 10px", fontSize: "0.8rem" }}
+                            />
+                            <input
+                              type="text"
+                              className={styles.modalInput}
+                              value={ses.time}
+                              onChange={(e) => updateSessionRow(sIdx, "time", e.target.value)}
+                              placeholder="Waktu (cth: 11.00 – 12.00 WIB)"
+                              style={{ padding: "8px 10px", fontSize: "0.8rem" }}
+                            />
+                            <input
+                              type="text"
+                              className={styles.modalInput}
+                              value={ses.info || ""}
+                              onChange={(e) => updateSessionRow(sIdx, "info", e.target.value)}
+                              placeholder="Jalur (cth: Jalur 3 M&G)"
+                              style={{ padding: "8px 10px", fontSize: "0.8rem" }}
+                            />
+                            <button
+                              type="button"
+                              className={styles.sessionDeleteBtn}
+                              onClick={() => removeSessionRow(sIdx)}
+                              title="Hapus baris sesi"
+                            >
+                              <i className="bx bx-trash" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div>
+                      <strong style={{ fontSize: "0.88rem", display: "block" }}>Status Tampil di Home</strong>
+                      <span style={{ fontSize: "0.78rem", color: "var(--fg-dim)" }}>Jika dicentang, banner akan langsung muncul di halaman utama</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={bannerForm.isActive}
+                      onChange={(e) => setBannerForm({ ...bannerForm, isActive: e.target.checked })}
+                      style={{ width: 22, height: 22, cursor: "pointer", accentColor: "var(--gold)" }}
+                    />
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+                {/* STICKY MODAL FOOTER */}
+                <div className={styles.formModalFooter}>
                   <button type="button" className={styles.btnGhost} onClick={() => setShowBannerModal(false)}>
                     Batal
                   </button>
