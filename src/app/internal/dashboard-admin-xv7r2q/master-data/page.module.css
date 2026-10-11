@@ -1,0 +1,441 @@
+.page {
+  min-height: 100vh;
+  padding: calc(var(--nav-h, 72px) + 24px) 24px 60px;
+  background: var(--bg, #0b0e14);
+}
+
+.container {
+  max-width: 1380px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Section Cards ── */
+.sectionCard {
+  background: var(--surface, #151921);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--fg, #f3f4f6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* ── Inputs & Controls ── */
+.modalInput {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  background: var(--bg, #0d1117);
+  color: var(--fg, #ffffff);
+  font-family: inherit;
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modalInput:focus {
+  border-color: var(--gold, #c9a84c);
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.2);
+}
+
+.modalInput option {
+  background: #181c24;
+  color: #f3f4f6;
+}
+
+/* ── Buttons ── */
+.btnCreate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, var(--primary, #b45309) 100%);
+  border: none;
+  padding: 9px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnCreate:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #c9a84c 0%, #a07d2c 100%);
+  color: #0d1117;
+  font-weight: 800;
+  font-size: 0.88rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.45);
+}
+
+.btnGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--fg-dim, #9ca3af);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnGhost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.actionBtnEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid var(--border-gold, #c9a84c);
+  color: var(--gold, #f7d57f);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtnEdit:hover {
+  background: var(--gold, #c9a84c);
+  color: #0d1117;
+}
+
+.actionBtnDel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtnDel:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.emptyBox {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--fg-dim, #9ca3af);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.emptyBox i {
+  font-size: 2.8rem;
+  opacity: 0.4;
+}
+
+/* ── MODAL STYLES (MODERN, RESPONSIVE, FULLY SCROLLABLE) ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.formModal {
+  background: var(--surface, #151921);
+  border: 1.5px solid var(--border-gold, #c9a84c);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: modalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.formModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  flex-shrink: 0;
+}
+
+.formModalHeader h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.closeX {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-dim, #9ca3af);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.closeX:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.modalFormWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.formBody {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.35) transparent;
+}
+
+.formBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.formBody::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.35);
+  border-radius: 4px;
+}
+
+.formModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 22, 30, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  flex-shrink: 0;
+}
+
+/* ── Responsive Form Grid Rows ── */
+.formGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Session Rows (Desktop Table vs Mobile Stacked) ── */
+.sessionGridHeader {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.3fr 36px;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--gold, #c9a84c);
+  font-weight: 700;
+  padding-left: 2px;
+}
+
+.sessionGridRow {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.3fr 36px;
+  gap: 8px;
+  align-items: center;
+}
+
+.sessionDeleteBtn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  border-radius: 8px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+}
+
+.sessionDeleteBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* ── Responsive Media Queries ── */
+@media (max-width: 768px) {
+  .page {
+    padding: calc(var(--nav-h, 72px) + 14px) 12px 48px;
+  }
+
+  .container {
+    gap: 16px;
+  }
+
+  .sectionCard {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .sectionHeader button,
+  .sectionHeader a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .formModal {
+    max-height: 94vh;
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .formModalHeader {
+    padding: 14px 16px;
+  }
+
+  .formModalHeader h3 {
+    font-size: 1rem;
+  }
+
+  .formBody {
+    padding: 16px 14px;
+    gap: 14px;
+  }
+
+  .formModalFooter {
+    padding: 12px 14px;
+  }
+
+  .formModalFooter button {
+    flex: 1;
+  }
+
+  .formGrid2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* Session row on mobile: mini-card format */
+  .sessionGridHeader {
+    display: none !important;
+  }
+
+  .sessionGridRow {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .sessionGridRow input {
+    width: 100% !important;
+  }
+
+  .sessionDeleteBtn {
+    width: 100% !important;
+    height: 34px !important;
+    font-size: 0.85rem !important;
+    gap: 6px !important;
+  }
+}
