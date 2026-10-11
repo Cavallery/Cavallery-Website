@@ -286,6 +286,8 @@ export default function AdminMasterDataPage() {
       actionText: "Lihat Jadwal",
       actionUrl: "/schedule",
       imageUrl: "",
+      videoUrl: "",
+      videoOrientation: "portrait",
       sessions: [
         { sessionName: "Sesi 1", time: "11.00 – 12.00 WIB", info: "Jalur 3 (Meet & Greet)" },
         { sessionName: "Sesi 2", time: "13.30 – 14.30 WIB", info: "Jalur 3 (Meet & Greet)" },
@@ -300,6 +302,7 @@ export default function AdminMasterDataPage() {
     setEditingBannerId(banner.id);
     setBannerForm({
       ...banner,
+      videoOrientation: banner.videoOrientation || (banner.videoUrl?.includes("/shorts/") ? "portrait" : "landscape"),
       sessions: Array.isArray(banner.sessions) ? [...banner.sessions] : [],
     });
     setShowBannerModal(true);
@@ -834,6 +837,13 @@ export default function AdminMasterDataPage() {
                         {b.imageUrl && (
                           <div style={{ width: "100%", height: 110, borderRadius: 8, overflow: "hidden", marginBottom: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
                             <img src={b.imageUrl} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          </div>
+                        )}
+
+                        {b.videoUrl && (
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 8px", borderRadius: 6, background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "#fca5a5", fontSize: "0.72rem", fontWeight: 700, marginBottom: 8 }}>
+                            <i className="bx bxl-youtube" />
+                            {b.videoOrientation === "portrait" ? "Video Portrait (9:16)" : "Video Landscape (16:9)"}
                           </div>
                         )}
 
@@ -2395,7 +2405,7 @@ export default function AdminMasterDataPage() {
                   </div>
 
                   {/* ── Field Video URL Khusus Home ── */}
-                  <div>
+                  <div style={{ padding: "12px", background: "rgba(239, 68, 68, 0.05)", borderRadius: 12, border: "1px solid rgba(239, 68, 68, 0.2)" }}>
                     <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
                       <i className="bx bxl-youtube" style={{ color: "#ef4444", marginRight: 4 }} />
                       Video Khusus Home (Opsional - YouTube / Video URL):
@@ -2404,18 +2414,84 @@ export default function AdminMasterDataPage() {
                       type="text"
                       className={styles.modalInput}
                       value={bannerForm.videoUrl || ""}
-                      onChange={(e) => setBannerForm({ ...bannerForm, videoUrl: e.target.value })}
-                      placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://domain/video.mp4"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const isShorts = val.includes("/shorts/");
+                        setBannerForm({
+                          ...bannerForm,
+                          videoUrl: val,
+                          videoOrientation: isShorts ? "portrait" : bannerForm.videoOrientation || "portrait",
+                        });
+                      }}
+                      placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://www.youtube.com/shorts/... atau video.mp4"
                       style={{ width: "100%" }}
                     />
                     <span style={{ fontSize: "0.73rem", color: "var(--fg-muted)", marginTop: 4, display: "block" }}>
-                      *Jika diisi, kartu informasi di halaman utama (Home) akan langsung menampilkan player video interaktif.
+                      *Mendukung link YouTube standar, YouTube Shorts, Reels, maupun file video .mp4.
                     </span>
+
+                    {/* PILIHAN ORIENTASI VIDEO (LANDSCAPE / PORTRAIT) */}
+                    <div style={{ marginTop: 10 }}>
+                      <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--fg)", marginBottom: 6 }}>
+                        Format / Orientasi Tampilan Video:
+                      </label>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, videoOrientation: "landscape" })}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: (bannerForm.videoOrientation || "landscape") === "landscape" ? "2px solid var(--gold)" : "1px solid rgba(255,255,255,0.12)",
+                            background: (bannerForm.videoOrientation || "landscape") === "landscape" ? "rgba(201, 168, 76, 0.18)" : "rgba(255,255,255,0.03)",
+                            color: (bannerForm.videoOrientation || "landscape") === "landscape" ? "var(--gold)" : "var(--fg-dim)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: "0.8rem",
+                            textAlign: "left",
+                          }}
+                        >
+                          <i className="bx bx-movie" style={{ fontSize: "1.2rem" }} />
+                          <div>
+                            <div>Landscape (16:9)</div>
+                            <div style={{ fontSize: "0.68rem", opacity: 0.7, fontWeight: 500 }}>Horizontal / Standar</div>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBannerForm({ ...bannerForm, videoOrientation: "portrait" })}
+                          style={{
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            border: bannerForm.videoOrientation === "portrait" ? "2px solid #ef4444" : "1px solid rgba(255,255,255,0.12)",
+                            background: bannerForm.videoOrientation === "portrait" ? "rgba(239, 68, 68, 0.2)" : "rgba(255,255,255,0.03)",
+                            color: bannerForm.videoOrientation === "portrait" ? "#fca5a5" : "var(--fg-dim)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: "0.8rem",
+                            textAlign: "left",
+                          }}
+                        >
+                          <i className="bx bx-mobile-alt" style={{ fontSize: "1.2rem" }} />
+                          <div>
+                            <div>Portrait (9:16)</div>
+                            <div style={{ fontSize: "0.68rem", opacity: 0.7, fontWeight: 500 }}>Vertikal / Shorts / Reels</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
                     {bannerForm.videoUrl && (
-                      <div style={{ marginTop: 8, padding: 8, background: "rgba(239, 68, 68, 0.08)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: "0.75rem", color: "#fca5a5" }}>
-                          <i className="bx bx-video" style={{ marginRight: 4 }} />
-                          Video aktif terpasang untuk Home
+                      <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(239, 68, 68, 0.1)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                        <span style={{ fontSize: "0.75rem", color: "#fca5a5", display: "flex", alignItems: "center", gap: 6 }}>
+                          <i className="bx bx-video" />
+                          Video aktif ({bannerForm.videoOrientation === "portrait" ? "Format Portrait 9:16" : "Format Landscape 16:9"})
                         </span>
                         <button
                           type="button"
