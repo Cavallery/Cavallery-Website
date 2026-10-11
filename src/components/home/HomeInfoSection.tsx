@@ -90,11 +90,25 @@ export default function HomeInfoSection() {
 
                 {/* Media Video / Gambar Utama */}
                 {item.videoUrl ? (
-                  <div className={styles.imageWrap} style={{ background: "#000", overflow: "hidden", borderRadius: 12 }}>
+                  <div
+                    className={styles.imageWrap}
+                    style={{
+                      height: "auto",
+                      background: "#000",
+                      overflow: "hidden",
+                      borderRadius: 12,
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      padding: item.videoOrientation === "portrait" ? "4px 0" : 0,
+                    }}
+                  >
                     {item.videoUrl.includes("youtube.com") || item.videoUrl.includes("youtu.be") ? (
                       <iframe
                         src={
-                          item.videoUrl.includes("watch?v=")
+                          item.videoUrl.includes("youtube.com/shorts/")
+                            ? item.videoUrl.replace("youtube.com/shorts/", "www.youtube.com/embed/")
+                            : item.videoUrl.includes("watch?v=")
                             ? item.videoUrl.replace("watch?v=", "embed/")
                             : item.videoUrl.includes("youtu.be/")
                             ? item.videoUrl.replace("youtu.be/", "www.youtube.com/embed/")
@@ -103,7 +117,16 @@ export default function HomeInfoSection() {
                         title={item.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        style={{ width: "100%", height: 210, border: "none" }}
+                        style={{
+                          width: "100%",
+                          maxWidth: item.videoOrientation === "portrait" ? 280 : "100%",
+                          aspectRatio: item.videoOrientation === "portrait" ? "9 / 16" : "16 / 9",
+                          minHeight: item.videoOrientation === "portrait" ? 420 : 210,
+                          maxHeight: item.videoOrientation === "portrait" ? 520 : 360,
+                          border: "none",
+                          borderRadius: 8,
+                          display: "block",
+                        }}
                       />
                     ) : (
                       <video
@@ -111,7 +134,16 @@ export default function HomeInfoSection() {
                         controls
                         playsInline
                         preload="metadata"
-                        style={{ width: "100%", maxHeight: 240, objectFit: "cover", display: "block" }}
+                        style={{
+                          width: "100%",
+                          maxWidth: item.videoOrientation === "portrait" ? 280 : "100%",
+                          aspectRatio: item.videoOrientation === "portrait" ? "9 / 16" : "16 / 9",
+                          maxHeight: item.videoOrientation === "portrait" ? 480 : 260,
+                          objectFit: "contain",
+                          display: "block",
+                          borderRadius: 8,
+                          background: "#000",
+                        }}
                       />
                     )}
                   </div>

@@ -84,6 +84,7 @@ export interface HomeBannerItem {
   actionUrl?: string; // contoh: "/join", "/schedule", "https://..."
   imageUrl?: string; // poster / banner opsional
   videoUrl?: string; // URL video (MP4 / YouTube embed / Short / local upload)
+  videoOrientation?: "landscape" | "portrait"; // orientasi video: landscape (16:9) atau portrait (9:16)
   sessions?: HomeBannerSessionItem[]; // tabel sesi dan jam
   isActive: boolean;
   priority?: number;
