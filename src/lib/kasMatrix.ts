@@ -248,12 +248,21 @@ export async function toggleMonthPayment(params: {
   noAnggota: string;
   tahun: number;
   bulan: number;
-  isPaid: boolean;
+  isPaid?: boolean;
+  statusMode?: "diverifikasi" | "not_joined" | "unpaid";
   nominal?: number;
   adminName: string;
 }) {
   await ensureKasMatrixTable();
-  const { noAnggota, tahun, bulan, isPaid, nominal = 15000, adminName } = params;
+  const { noAnggota, tahun, bulan, isPaid, statusMode, nominal = 15000, adminName } = params;
+
+  // Tentukan target status
+  let targetStatus: "diverifikasi" | "not_joined" | "unpaid" = "unpaid";
+  if (statusMode) {
+    targetStatus = statusMode;
+  } else if (typeof isPaid === "boolean") {
+    targetStatus = isPaid ? "diverifikasi" : "unpaid";
+  }
 
   const angRows = await query<any[]>(
     "SELECT id, nama_lengkap FROM anggota WHERE no_anggota = ? LIMIT 1",
@@ -261,7 +270,7 @@ export async function toggleMonthPayment(params: {
   );
   const anggotaId = angRows && angRows.length > 0 ? angRows[0].id : 0;
 
-  if (isPaid) {
+  if (targetStatus === "diverifikasi") {
     await query(
       `INSERT INTO iuran_kas_bulanan 
         (anggota_id, no_anggota, tahun, bulan, status, nominal, verified_at, verified_by)
@@ -272,6 +281,18 @@ export async function toggleMonthPayment(params: {
         verified_at = NOW(),
         verified_by = VALUES(verified_by)`,
       [anggotaId, noAnggota, tahun, bulan, nominal, adminName]
+    );
+  } else if (targetStatus === "not_joined") {
+    await query(
+      `INSERT INTO iuran_kas_bulanan 
+        (anggota_id, no_anggota, tahun, bulan, status, nominal, verified_at, verified_by)
+       VALUES (?, ?, ?, ?, 'not_joined', 0, NOW(), ?)
+       ON DUPLICATE KEY UPDATE
+        status = 'not_joined',
+        nominal = 0,
+        verified_at = NOW(),
+        verified_by = VALUES(verified_by)`,
+      [anggotaId, noAnggota, tahun, bulan, adminName]
     );
   } else {
     // 1. Ambil data iuran_kas_bulanan yang terhubung sebelum dihapus
@@ -378,14 +399,15 @@ export async function getYearlyKasMatrix(tahun: number) {
   const payments = (await query<any[]>(`
     SELECT no_anggota, bulan, nominal, status, verified_at, verified_by 
     FROM iuran_kas_bulanan 
-    WHERE tahun = ? AND status = 'diverifikasi'
+    WHERE tahun = ?
   `, [tahun])) || [];
 
-  const paymentMap: Record<string, { nominal: number; verifiedAt: any; verifiedBy: any }> = {};
+  const paymentMap: Record<string, { status: string; nominal: number; verifiedAt: any; verifiedBy: any }> = {};
   payments.forEach((p) => {
     const key = `${p.no_anggota}:${p.bulan}`;
     const parsedNominal = p.nominal !== null && p.nominal !== undefined ? Number(p.nominal) : 15000;
     paymentMap[key] = {
+      status: p.status || "diverifikasi",
       nominal: isNaN(parsedNominal) ? 15000 : parsedNominal,
       verifiedAt: p.verified_at,
       verifiedBy: p.verified_by,
@@ -430,17 +452,20 @@ export async function getYearlyKasMatrix(tahun: number) {
 
     for (let m = 1; m <= 12; m++) {
       const key = `${noAnggota}:${m}`;
-      const isPaid = Boolean(paymentMap[key]);
-
-      if (!isAlreadyJoined || m < bulanMulai) {
-        // Sebelum resmi bergabung, tidak wajib bayar kas (kecuali sudah bayar duluan)
-        months[m] = isPaid ? true : "not_joined";
-      } else {
-        months[m] = isPaid;
-      }
+      const record = paymentMap[key];
+      const isPaid = record?.status === "diverifikasi";
+      const isCustomNotJoined = record?.status === "not_joined";
 
       if (isPaid) {
-        totalKasAnggota += paymentMap[key].nominal;
+        months[m] = true;
+        totalKasAnggota += record.nominal;
+      } else if (isCustomNotJoined) {
+        months[m] = "not_joined";
+      } else if (!isAlreadyJoined || m < bulanMulai) {
+        // Sebelum resmi bergabung, default not_joined
+        months[m] = "not_joined";
+      } else {
+        months[m] = false;
       }
     }
 

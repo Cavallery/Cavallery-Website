@@ -88,11 +88,38 @@ export default function HomeInfoSection() {
                   )}
                 </div>
 
-                {item.imageUrl && (
+                {/* Media Video / Gambar Utama */}
+                {item.videoUrl ? (
+                  <div className={styles.imageWrap} style={{ background: "#000", overflow: "hidden", borderRadius: 12 }}>
+                    {item.videoUrl.includes("youtube.com") || item.videoUrl.includes("youtu.be") ? (
+                      <iframe
+                        src={
+                          item.videoUrl.includes("watch?v=")
+                            ? item.videoUrl.replace("watch?v=", "embed/")
+                            : item.videoUrl.includes("youtu.be/")
+                            ? item.videoUrl.replace("youtu.be/", "www.youtube.com/embed/")
+                            : item.videoUrl
+                        }
+                        title={item.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ width: "100%", height: 210, border: "none" }}
+                      />
+                    ) : (
+                      <video
+                        src={item.videoUrl}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        style={{ width: "100%", maxHeight: 240, objectFit: "cover", display: "block" }}
+                      />
+                    )}
+                  </div>
+                ) : item.imageUrl ? (
                   <div className={styles.imageWrap}>
                     <img src={item.imageUrl} alt={item.title} />
                   </div>
-                )}
+                ) : null}
 
                 <h3 className={styles.cardTitle}>{item.title}</h3>
                 <p className={styles.cardDesc}>{item.description}</p>

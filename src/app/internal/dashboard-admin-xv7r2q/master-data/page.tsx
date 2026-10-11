@@ -2386,6 +2386,40 @@ export default function AdminMasterDataPage() {
                   )}
                 </div>
 
+                {/* ── Field Video URL Khusus Home ── */}
+                <div>
+                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, marginBottom: 4 }}>
+                    <i className="bx bxl-youtube" style={{ color: "#ef4444", marginRight: 4 }} />
+                    Video Khusus Home (Opsional - YouTube / Video URL):
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    value={bannerForm.videoUrl || ""}
+                    onChange={(e) => setBannerForm({ ...bannerForm, videoUrl: e.target.value })}
+                    placeholder="Contoh: https://www.youtube.com/watch?v=... atau https://domain/video.mp4"
+                    style={{ width: "100%" }}
+                  />
+                  <span style={{ fontSize: "0.73rem", color: "var(--fg-muted)", marginTop: 4, display: "block" }}>
+                    *Jika diisi, kartu informasi di halaman utama (Home) akan langsung menampilkan player video interaktif.
+                  </span>
+                  {bannerForm.videoUrl && (
+                    <div style={{ marginTop: 8, padding: 8, background: "rgba(239, 68, 68, 0.08)", borderRadius: 8, border: "1px solid rgba(239, 68, 68, 0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "0.75rem", color: "#fca5a5" }}>
+                        <i className="bx bx-video" style={{ marginRight: 4 }} />
+                        Video aktif terpasang untuk Home
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setBannerForm({ ...bannerForm, videoUrl: "" })}
+                        style={{ padding: "3px 8px", fontSize: "0.7rem", color: "#f87171", background: "rgba(239, 68, 68, 0.2)", border: "none", borderRadius: 4, cursor: "pointer" }}
+                      >
+                        Hapus Video
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* TABEL SESI & JAM ERINE */}
                 <div style={{ padding: "12px", background: "rgba(0, 0, 0, 0.3)", borderRadius: 10, border: "1px solid rgba(201, 168, 76, 0.25)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
