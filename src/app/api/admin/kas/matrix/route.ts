@@ -3,6 +3,9 @@ import { getAdminSessionFromReq } from "@/lib/auth";
 import { getYearlyKasMatrix, toggleMonthPayment, syncKasToMatrix, SUPPORTED_YEARS } from "@/lib/kasMatrix";
 import { query } from "@/lib/mysql";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -16,11 +19,18 @@ export async function GET(req: NextRequest) {
 
     const data = await getYearlyKasMatrix(tahun);
 
-    return NextResponse.json({
-      status: true,
-      data,
-      supportedYears: SUPPORTED_YEARS,
-    });
+    return NextResponse.json(
+      {
+        status: true,
+        data,
+        supportedYears: SUPPORTED_YEARS,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Get kas matrix error:", error);
     return NextResponse.json({ status: false, message: error?.message || "Gagal memuat matriks kas" }, { status: 500 });

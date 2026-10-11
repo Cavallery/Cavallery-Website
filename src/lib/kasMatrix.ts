@@ -97,9 +97,10 @@ export async function ensureKasMatrixTable(): Promise<void> {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
-    // Upgrade bukti_nota_url ke TEXT
+    // Upgrade bukti_nota_url ke TEXT dan pastikan status iuran mendukung 'not_joined'
     await query("ALTER TABLE pengeluaran_kas MODIFY COLUMN bukti_nota_url TEXT NULL").catch(() => {});
     await query("ALTER TABLE pemasukan_kas MODIFY COLUMN bukti_nota_url TEXT NULL").catch(() => {});
+    await query("ALTER TABLE iuran_kas_bulanan MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'diverifikasi'").catch(() => {});
 
     // Seed baseline saldo awal pemasukan eksternal Rp 127.463.910 jika kosong
     const countEksternal = await query<any[]>("SELECT COUNT(*) AS cnt FROM pemasukan_kas");

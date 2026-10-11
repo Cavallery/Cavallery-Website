@@ -360,7 +360,9 @@ export default function AdminKasPage() {
   const fetchMatrix = useCallback(async (year: number) => {
     setMatrixLoading(true);
     try {
-      const res = await fetch(`/api/admin/kas/matrix?tahun=${year}`);
+      const res = await fetch(`/api/admin/kas/matrix?tahun=${year}&_t=${Date.now()}`, {
+        cache: "no-store",
+      });
       if (res.status === 401) { window.location.replace("/internal/dashboard-admin-xv7r2q"); return; }
       const json = await res.json();
       if (json.status && json.data) setMatrixData(json.data);
@@ -541,6 +543,20 @@ export default function AdminKasPage() {
     } else {
       nextStatusMode = "diverifikasi";
     }
+
+    // Optimistic UI: langsung update tampilan tanpa menunggu response server
+    const nextVal: boolean | "not_joined" = nextStatusMode === "diverifikasi" ? true : nextStatusMode === "not_joined" ? "not_joined" : false;
+    setMatrixData((prev: any) => {
+      if (!prev?.matrixRows) return prev;
+      return {
+        ...prev,
+        matrixRows: prev.matrixRows.map((r: any) =>
+          r.noAnggota === noAnggota
+            ? { ...r, months: { ...r.months, [bulan]: nextVal } }
+            : r
+        ),
+      };
+    });
 
     try {
       const res = await fetch("/api/admin/kas/matrix", {
@@ -1742,10 +1758,6 @@ export default function AdminKasPage() {
                                   fontSize: "0.85rem",
                                 }}>
                                   <i className="bx bx-check" />
-                                </span>
-                              ) : row.isAdminRole ? (
-                                <span style={{ color: "var(--fg-muted)", fontSize: "0.9rem", fontWeight: 700 }} title={`${row.nama} (Pengurus Fanbase)`}>
-                                  -
                                 </span>
                               ) : isNotJoined ? (
                                 <span style={{ color: "var(--fg-muted)", fontSize: "0.9rem", fontWeight: 700 }} title="Belum Bergabung">
