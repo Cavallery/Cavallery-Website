@@ -20,11 +20,20 @@ export async function GET(req: NextRequest) {
     );
 
     let monthlyStatus: any[] = [];
+    let anggotaSejak: string | null = null;
     try {
       monthlyStatus = (await query<any[]>(
-        "SELECT tahun, bulan, status, nominal FROM iuran_kas_bulanan WHERE anggota_id = ? AND status = 'diverifikasi'",
+        "SELECT tahun, bulan, status, nominal FROM iuran_kas_bulanan WHERE anggota_id = ?",
         [session.id]
       )) || [];
+
+      const angRows = await query<any[]>(
+        "SELECT anggota_sejak, created_at FROM anggota WHERE id = ? LIMIT 1",
+        [session.id]
+      );
+      if (angRows && angRows.length > 0) {
+        anggotaSejak = angRows[0].anggota_sejak || angRows[0].created_at;
+      }
     } catch {
       // ignore if table not yet populated
     }
@@ -33,6 +42,7 @@ export async function GET(req: NextRequest) {
       status: true,
       data: rows || [],
       monthlyStatus,
+      anggotaSejak,
     });
   } catch (error: any) {
     console.error("Get kas history error:", error);

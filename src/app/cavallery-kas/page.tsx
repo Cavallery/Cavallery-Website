@@ -256,6 +256,7 @@ export default function CavalleryKasPage() {
   // Kas History & Monthly Matrix Status
   const [kasHistory, setKasHistory] = useState<any[]>([]);
   const [monthlyStatus, setMonthlyStatus] = useState<any[]>([]);
+  const [memberJoinDate, setMemberJoinDate] = useState<string | null>(null);
   const [trackerYear, setTrackerYear] = useState<number>(
     new Date().getFullYear(),
   );
@@ -1003,17 +1004,18 @@ export default function CavalleryKasPage() {
       const json = await res.json();
       if (json.status) {
         if (json.data) setKasHistory(json.data);
+        if (json.anggotaSejak) setMemberJoinDate(json.anggotaSejak);
         if (json.monthlyStatus) {
           setMonthlyStatus(json.monthlyStatus);
-          // Auto-set periode ke bulan pertama yang belum lunas agar tidak terlongkap
+          // Auto-set periode ke bulan pertama yang belum lunas (dan bukan not_joined) agar tidak terlongkap
           const currentYear = new Date().getFullYear();
-          const paidMonths = new Set(
+          const settledMonths = new Set(
             (json.monthlyStatus as any[])
-              .filter((s: any) => Number(s.tahun) === currentYear && s.status === "diverifikasi")
+              .filter((s: any) => Number(s.tahun) === currentYear && (s.status === "diverifikasi" || s.status === "not_joined"))
               .map((s: any) => Number(s.bulan))
           );
           for (let m = 1; m <= 12; m++) {
-            if (!paidMonths.has(m)) {
+            if (!settledMonths.has(m)) {
               setPeriodeBulan(m);
               setPeriodeTahun(currentYear);
               break;
@@ -3093,20 +3095,65 @@ export default function CavalleryKasPage() {
         {(portalTab === "bayar" || portalTab === "riwayat") && sessionUser?.type === "anggota" && sessionUser?.jabatan !== "Admin Fanbase" && !sessionUser?.jabatan?.toLowerCase().includes("admin") && (() => {
           const currentYearNow = new Date().getFullYear();
           const currentMonthNow = new Date().getMonth() + 1;
+
+          // Hitung tahun & bulan mulai bergabung
+          let joinYear = 2024;
+          let joinMonth = 1;
+          const rawJoin = memberJoinDate || sessionUser?.anggotaSejak || sessionUser?.createdAt;
+          if (rawJoin) {
+            const jd = new Date(rawJoin);
+            if (!isNaN(jd.getTime())) {
+              joinYear = jd.getFullYear();
+              joinMonth = jd.getMonth() + 1;
+            }
+          }
+
+          // Bulan mulai wajib kas di tahun yang dipilih
+          let startReqMonth = 1;
+          if (trackerYear < joinYear) {
+            startReqMonth = 13; // Belum bergabung di tahun ini
+          } else if (trackerYear === joinYear) {
+            startReqMonth = joinMonth;
+          } else {
+            startReqMonth = 1;
+          }
+
           const paidThisYear = monthlyStatus.filter(
             (s) => Number(s.tahun) === trackerYear && s.status === "diverifikasi"
           );
           const totalPaidCount = paidThisYear.length;
           const percent = Math.min(100, Math.round((totalPaidCount / 12) * 100));
 
-          let statusBadgeText = `Tunggakan ${Math.max(0, currentMonthNow - totalPaidCount)} Bulan`;
+          // Hitung daftar bulan yang menunggak (sejak startReqMonth s/d bulan saat ini)
+          const targetUpToMonth = trackerYear === currentYearNow ? currentMonthNow : trackerYear < currentYearNow ? 12 : 0;
+          const unpaidMonthsList: number[] = [];
+          for (let m = startReqMonth; m <= targetUpToMonth; m++) {
+            const rowStatus = monthlyStatus.find(
+              (s) => Number(s.tahun) === trackerYear && Number(s.bulan) === m
+            );
+            const isLunas = rowStatus?.status === "diverifikasi";
+            const isBebasKas = rowStatus?.status === "not_joined";
+            if (!isLunas && !isBebasKas) {
+              unpaidMonthsList.push(m);
+            }
+          }
+
+          const tunggakanCount = unpaidMonthsList.length;
+
+          let statusBadgeText = `Tunggakan ${tunggakanCount} Bulan`;
           let statusBadgeClass = styles.trackerStatusWarning;
 
           if (totalPaidCount >= 12) {
             statusBadgeText = "Lunas 1 Tahun Penuh! 👑";
             statusBadgeClass = styles.trackerStatusSuccess;
-          } else if (trackerYear === currentYearNow && totalPaidCount >= currentMonthNow) {
-            statusBadgeText = "Lunas s/d Bulan Ini 🛡️";
+          } else if (tunggakanCount === 0) {
+            if (trackerYear === currentYearNow) {
+              statusBadgeText = totalPaidCount > currentMonthNow ? "Lunas s/d Akhir Tahun 👑" : "Lunas s/d Bulan Ini 🛡️";
+            } else if (trackerYear > currentYearNow) {
+              statusBadgeText = `${totalPaidCount} Bulan Terbayar di Muka`;
+            } else {
+              statusBadgeText = "Lunas 🛡️";
+            }
             statusBadgeClass = styles.trackerStatusSuccess;
           } else if (trackerYear > currentYearNow) {
             statusBadgeText = `${totalPaidCount} Bulan Terbayar di Muka`;
@@ -3161,27 +3208,21 @@ export default function CavalleryKasPage() {
               {/* 12 Bulan Grid */}
               <div className={styles.trackerMonthGrid}>
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
-                  const isPaid = monthlyStatus.some(
-                    (s) =>
-                      Number(s.tahun) === trackerYear &&
-                      Number(s.bulan) === m &&
-                      s.status === "diverifikasi"
+                  const mRecord = monthlyStatus.find(
+                    (s) => Number(s.tahun) === trackerYear && Number(s.bulan) === m
                   );
-                  const isPending = monthlyStatus.some(
-                    (s) =>
-                      Number(s.tahun) === trackerYear &&
-                      Number(s.bulan) === m &&
-                      s.status === "pending"
-                  );
+                  const isPaid = mRecord?.status === "diverifikasi";
+                  const isNotJoined = mRecord?.status === "not_joined" || (trackerYear < joinYear || (trackerYear === joinYear && m < joinMonth && !isPaid));
+                  const isPending = mRecord?.status === "pending";
                   const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
                   const mName = monthNamesShort[m - 1];
 
                   return (
                     <div
                       key={m}
-                      className={`${styles.trackerMonthItem} ${isPaid ? styles.trackerMonthItemPaid : isPending ? styles.trackerMonthItemPending : styles.trackerMonthItemUnpaid}`}
+                      className={`${styles.trackerMonthItem} ${isPaid ? styles.trackerMonthItemPaid : isPending ? styles.trackerMonthItemPending : isNotJoined ? "" : styles.trackerMonthItemUnpaid}`}
                       onClick={() => {
-                        if (!isPaid) {
+                        if (!isPaid && !isNotJoined) {
                           setPeriodeBulan(m);
                           setPeriodeTahun(trackerYear);
                           setPortalTab("bayar");
@@ -3189,13 +3230,18 @@ export default function CavalleryKasPage() {
                           if (el) el.scrollIntoView({ behavior: "smooth" });
                         }
                       }}
-                      title={isPaid ? `${mName} ${trackerYear}: LUNAS` : isPending ? `${mName} ${trackerYear}: Menunggu Verifikasi` : `Klik untuk membayar kas ${mName} ${trackerYear}`}
-                      style={{ cursor: isPaid ? "default" : "pointer" }}
+                      title={isPaid ? `${mName} ${trackerYear}: LUNAS` : isNotJoined ? `${mName} ${trackerYear}: Belum Bergabung / Bebas Kas (-)` : isPending ? `${mName} ${trackerYear}: Menunggu Verifikasi` : `Klik untuk membayar kas ${mName} ${trackerYear}`}
+                      style={{
+                        cursor: isPaid || isNotJoined ? "default" : "pointer",
+                        opacity: isNotJoined ? 0.6 : 1,
+                      }}
                     >
                       <span className={styles.trackerMonthName}>{mName}</span>
                       <div className={styles.trackerMonthIcon}>
                         {isPaid ? (
                           <i className="bx bxs-check-circle" />
+                        ) : isNotJoined ? (
+                          <span style={{ fontWeight: 800, fontSize: "0.95rem", color: "var(--fg-muted)" }}>-</span>
                         ) : isPending ? (
                           <i className="bx bx-time" />
                         ) : (
@@ -3203,7 +3249,7 @@ export default function CavalleryKasPage() {
                         )}
                       </div>
                       <span className={styles.trackerMonthStatus}>
-                        {isPaid ? "Lunas" : isPending ? "Pending" : "Bayar"}
+                        {isPaid ? "Lunas" : isNotJoined ? "-" : isPending ? "Pending" : "Bayar"}
                       </span>
                     </div>
                   );
