@@ -1003,7 +1003,23 @@ export default function CavalleryKasPage() {
       const json = await res.json();
       if (json.status) {
         if (json.data) setKasHistory(json.data);
-        if (json.monthlyStatus) setMonthlyStatus(json.monthlyStatus);
+        if (json.monthlyStatus) {
+          setMonthlyStatus(json.monthlyStatus);
+          // Auto-set periode ke bulan pertama yang belum lunas agar tidak terlongkap
+          const currentYear = new Date().getFullYear();
+          const paidMonths = new Set(
+            (json.monthlyStatus as any[])
+              .filter((s: any) => Number(s.tahun) === currentYear && s.status === "diverifikasi")
+              .map((s: any) => Number(s.bulan))
+          );
+          for (let m = 1; m <= 12; m++) {
+            if (!paidMonths.has(m)) {
+              setPeriodeBulan(m);
+              setPeriodeTahun(currentYear);
+              break;
+            }
+          }
+        }
       }
     } catch {
       console.error("Failed to load kas history");
@@ -3510,6 +3526,21 @@ export default function CavalleryKasPage() {
                     <strong>
                       {MONTH_NAMES[periodeBulan - 1]} {periodeTahun}
                     </strong>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--fg-muted)",
+                      marginTop: 4,
+                      lineHeight: 1.5,
+                      background: "rgba(201,168,76,0.06)",
+                      border: "1px solid rgba(201,168,76,0.15)",
+                      borderRadius: 8,
+                      padding: "8px 10px",
+                    }}
+                  >
+                    <i className="bx bx-info-circle" style={{ marginRight: 4, color: "var(--gold)" }} />
+                    <strong>Tips:</strong> Pilih periode mulai dari bulan <strong>terakhir yang belum dibayar</strong> agar tidak terlongkap. Contoh: jika Agustus, September, dan Oktober belum lunas, pilih mulai <strong>Agustus</strong> lalu bayar 3 bulan sekaligus (Rp 45.000).
                   </div>
                 </div>
 
