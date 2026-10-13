@@ -597,7 +597,7 @@ export async function getKasDebtsTracker(tahun: number, upToMonth?: number) {
     const unpaidMonths: number[] = [];
 
     for (let m = startDebtMonth; m <= targetMonth; m++) {
-      if (row.months[m] !== true) {
+      if (row.months[m] !== true && row.months[m] !== "not_joined") {
         unpaidMonths.push(m);
       }
     }
