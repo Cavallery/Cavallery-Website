@@ -134,6 +134,21 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "bayar iuran" ||
     text === "iuran kas";
 
+  // Deteksi perintah pengumuman discord
+  const isPengumumanCommand =
+    text === "pengumuman" ||
+    text === "!pengumuman" ||
+    text === "/pengumuman" ||
+    text === "#pengumuman" ||
+    text === "discord" ||
+    text === "!discord" ||
+    text === "/discord" ||
+    text === "#discord" ||
+    text === "cek pengumuman" ||
+    text === "pengumuman discord" ||
+    text === "info discord" ||
+    text === "discord pengumuman";
+
   // Deteksi perintah media khusus
   const isWaduhCommand = text.includes("waduh");
   const isNiterineCommand =
@@ -161,6 +176,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
   const isSpecialCommand =
     isKasCommand ||
     isBayarKasCommand ||
+    isPengumumanCommand ||
     isHelpCommand ||
     isWaduhCommand ||
     isNiterineCommand ||
@@ -308,15 +324,82 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
       },
     };
   }
-  // 3. Perintah bantuan / menu
+  // 3. Perintah: pengumuman / discord
+  else if (isPengumumanCommand) {
+    messagePayload = {
+      type: "flex",
+      altText:
+        "Pengumuman Resmi Discord Cavallery\n\nLihat pengumuman:\nhttps://cavallery.id/internal/pengumuman-discord-xv7r2q",
+      contents: {
+        type: "bubble",
+        size: "kilo",
+        header: {
+          type: "box",
+          layout: "vertical",
+          backgroundColor: "#1E1F22",
+          paddingAll: "lg",
+          contents: [
+            {
+              type: "text",
+              text: "Discord Cavallery Fanbase",
+              weight: "bold",
+              color: "#5865F2",
+              size: "sm",
+            },
+            {
+              type: "text",
+              text: "Pengumuman Resmi",
+              weight: "bold",
+              color: "#FFFFFF",
+              size: "lg",
+              margin: "xs",
+            },
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          spacing: "md",
+          contents: [
+            {
+              type: "text",
+              text: "Arsip resmi pengumuman server Discord Cavallery (Project STS Erine, Rapat Koordinasi, Transparansi Dana, dll) kini dapat kamu pantau langsung melalui web:",
+              wrap: true,
+              size: "sm",
+              color: "#94A3B8",
+            },
+          ],
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          spacing: "sm",
+          contents: [
+            {
+              type: "button",
+              style: "primary",
+              color: "#5865F2",
+              action: {
+                type: "uri",
+                label: "Lihat Pengumuman Discord",
+                uri: "https://cavallery.id/internal/pengumuman-discord-xv7r2q",
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+  // 4. Perintah bantuan / menu
   else if (isHelpCommand) {
     messagePayload = {
       type: "text",
       text:
-        "Halo! Aku bot resmi Cavallery Kas. 🕊️\n\n" +
+        "Halo! Aku bot resmi Cavallery Fanbase. 🕊️\n\n" +
         "Berikut perintah yang bisa kamu gunakan:\n" +
-        "• kas : Menampilkan rincian halaman kas\n" +
-        "• bayar kas : Menampilkan link pembayaran kas\n\n" +
+        "• kas : Menampilkan transparansi laporan kas internal\n" +
+        "• bayar kas : Menampilkan link pembayaran kas\n" +
+        "• pengumuman / discord : Menampilkan arsip pengumuman resmi Discord\n\n" +
         "Kamu juga bisa bebas ngobrol santai seputar Erine atau kirim kata kunci spesial seperti 'waduh', 'niterine', 'ngasal', atau 'happy diesvenerine'!",
     };
   }

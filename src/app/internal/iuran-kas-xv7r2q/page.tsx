@@ -51,8 +51,9 @@ export default function PublicKasMatrixPage() {
   const [matrixData, setMatrixData] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"matriks" | "pengeluaran">("matriks");
+  const [activeTab, setActiveTab] = useState<"matriks" | "pengeluaran" | "pemasukan">("matriks");
   const [pengeluaranKategori, setPengeluaranKategori] = useState<string>("semua");
+  const [pemasukanKategori, setPemasukanKategori] = useState<string>("semua");
   const [selectedNotaUrl, setSelectedNotaUrl] = useState<string | null>(null);
   const [selectedNotaList, setSelectedNotaList] = useState<string[]>([]);
 
@@ -98,6 +99,21 @@ export default function PublicKasMatrixPage() {
     );
   });
 
+  // Filter Pemasukan Eksternal Kas
+  const pemasukanList: any[] = matrixData?.pemasukanList || [];
+  const filteredPemasukan = pemasukanList.filter((p: any) => {
+    const matchCat = pemasukanKategori === "semua" || p.kategori === pemasukanKategori;
+    if (!matchCat) return false;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      (p.sumber || "").toLowerCase().includes(q) ||
+      (p.pj_nama || "").toLowerCase().includes(q) ||
+      (p.catatan || "").toLowerCase().includes(q) ||
+      (p.kategori || "").toLowerCase().includes(q)
+    );
+  });
+
   // ── Kalkulasi Keuangan (selalu keseluruhan tahun — All Time)
   const allTimeIuranKas           = Number(matrixData?.allTimeIuranKas ?? matrixData?.grandTotalPemasukan ?? 0);
   const allTimePemasukanEksternal = Number(matrixData?.allTimePemasukanEksternal ?? 0);
@@ -106,9 +122,12 @@ export default function PublicKasMatrixPage() {
 
   // Total pengeluaran per-tahun yang dipilih (untuk label di tab pengeluaran)
   const totalPengeluaranTercatat  = Number(matrixData?.totalPengeluaran ?? 0);
+  // Total pemasukan eksternal per-tahun yang dipilih
+  const totalPemasukanEksternalTercatat = Number(matrixData?.totalPemasukanEksternal ?? 0);
 
   // Daftar Kategori Unik untuk Filter
   const uniqueCategories = Array.from(new Set(pengeluaranList.map((p) => p.kategori).filter(Boolean)));
+  const uniquePemasukanCategories = Array.from(new Set(pemasukanList.map((p) => p.kategori).filter(Boolean)));
 
   return (
     <div className={styles.page} style={{ paddingTop: "calc(var(--nav-h, 72px) + 24px)" }}>
@@ -179,33 +198,45 @@ export default function PublicKasMatrixPage() {
               </div>
 
               {/* 2. Total Iuran Kas */}
-              <div style={{ background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.3)", borderRadius: 16, padding: "18px 20px" }}>
+              <div
+                onClick={() => { setActiveTab("matriks"); setSearch(""); }}
+                style={{ background: "rgba(16,185,129,0.08)", border: "1.5px solid rgba(16,185,129,0.3)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
+                title="Klik untuk melihat matriks iuran kas"
+              >
                 <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#10b981", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-trending-up" style={{ fontSize: "1.1rem" }} />
                   Total Iuran Kas
                 </div>
                 <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#10b981" }}>{formatRupiah(allTimeIuranKas)}</div>
-                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Akumulasi seluruh iuran kas terverifikasi</div>
+                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Akumulasi seluruh iuran kas terverifikasi ↗</div>
               </div>
 
               {/* 3. Pemasukan Eksternal */}
-              <div style={{ background: "rgba(6,182,212,0.08)", border: "1.5px solid rgba(6,182,212,0.3)", borderRadius: 16, padding: "18px 20px" }}>
+              <div
+                onClick={() => { setActiveTab("pemasukan"); setSearch(""); }}
+                style={{ background: "rgba(6,182,212,0.08)", border: "1.5px solid rgba(6,182,212,0.3)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
+                title="Klik untuk melihat rincian pemasukan eksternal"
+              >
                 <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#06b6d4", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-log-in-circle" style={{ fontSize: "1.1rem" }} />
                   Pemasukan Eksternal
                 </div>
                 <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#06b6d4" }}>{formatRupiah(allTimePemasukanEksternal)}</div>
-                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Donasi, sponsorship, penjualan, dan sumber lain</div>
+                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Donasi, sponsorship, penjualan merchandise ↗</div>
               </div>
 
               {/* 4. Total Pengeluaran */}
-              <div style={{ background: "rgba(225,29,72,0.08)", border: "1.5px solid rgba(225,29,72,0.3)", borderRadius: 16, padding: "18px 20px" }}>
+              <div
+                onClick={() => { setActiveTab("pengeluaran"); setSearch(""); }}
+                style={{ background: "rgba(225,29,72,0.08)", border: "1.5px solid rgba(225,29,72,0.3)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
+                title="Klik untuk melihat rincian pengeluaran kas"
+              >
                 <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#e11d48", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-receipt" style={{ fontSize: "1.1rem" }} />
                   Total Pengeluaran Kas
                 </div>
                 <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#e11d48" }}>{formatRupiah(allTimePengeluaran)}</div>
-                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Total seluruh transaksi belanja operasional fanbase</div>
+                <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Total belanja operasional &amp; proyek fanbase ↗</div>
               </div>
 
               {/* 5. Saldo Kas Saat Ini */}
@@ -230,7 +261,7 @@ export default function PublicKasMatrixPage() {
         )}
 
 
-        {/* ── TAB SWITCHER UTAMA (MATRIKS vs PENGELUARAN) ── */}
+        {/* ── TAB SWITCHER UTAMA (MATRIKS vs PEMASUKAN vs PENGELUARAN) ── */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16, borderBottom: "2px solid var(--border)", paddingBottom: 0, overflowX: "auto" }}>
           <button
             type="button"
@@ -254,6 +285,30 @@ export default function PublicKasMatrixPage() {
           >
             <i className="bx bx-grid-alt" style={{ fontSize: "1.1rem" }} />
             Matriks Iuran Kas Bulanan
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setActiveTab("pemasukan"); setSearch(""); }}
+            style={{
+              padding: "10px 18px",
+              border: "none",
+              borderBottom: activeTab === "pemasukan" ? "3px solid #06b6d4" : "3px solid transparent",
+              background: "transparent",
+              color: activeTab === "pemasukan" ? "#06b6d4" : "var(--fg-muted)",
+              fontWeight: activeTab === "pemasukan" ? 800 : 600,
+              fontSize: "0.9rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.2s",
+              marginBottom: -2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <i className="bx bx-log-in-circle" style={{ fontSize: "1.1rem" }} />
+            Pemasukan Eksternal ({pemasukanList.length})
           </button>
 
           <button
@@ -637,7 +692,267 @@ export default function PublicKasMatrixPage() {
         )}
 
         {/* ════════════════════════════════════════════ */}
-        {/* TAB 2: LAPORAN PENGELUARAN KAS (TRANSPARANSI BELANJA) */}
+        {/* TAB 2: LAPORAN PEMASUKAN EKSTERNAL & SPONSORSHIP */}
+        {/* ════════════════════════════════════════════ */}
+        {activeTab === "pemasukan" && (
+          <div className={styles.sectionCard} style={{ padding: 22 }}>
+            {/* Header Laporan Pemasukan Eksternal */}
+            <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+              <div>
+                <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="bx bx-log-in-circle" style={{ color: "#06b6d4", fontSize: "1.4rem" }} />
+                  Laporan Pemasukan Eksternal &amp; Sponsorship Fanbase
+                  <span className={styles.countBadge} style={{ background: "rgba(6, 182, 212, 0.15)", color: "#06b6d4" }}>
+                    {filteredPemasukan.length} Transaksi
+                  </span>
+                </h2>
+                <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 4 }}>
+                  Menampilkan seluruh rincian dana masuk eksternal, donasi, sponsorship proyek, hasil merchandise, dan dana pendukung tahun {tahun}.
+                </div>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>Total Pemasukan Eksternal {tahun}:</div>
+                <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#06b6d4" }}>
+                  {formatRupiah(totalPemasukanEksternalTercatat)}
+                </div>
+              </div>
+            </div>
+
+            {/* Toolbar Filter Kategori, Search Sumber, & Tahun */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                {/* Pemilih Tahun */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--fg-muted)" }}>Tahun:</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 4,
+                      background: "var(--surface)",
+                      borderRadius: 10,
+                      padding: 4,
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    {SUPPORTED_YEARS.map((y) => (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => setTahun(y)}
+                        style={{
+                          padding: "5px 12px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: tahun === y ? "#06b6d4" : "transparent",
+                          color: tahun === y ? "#fff" : "var(--fg-muted)",
+                          fontWeight: tahun === y ? 900 : 600,
+                          fontSize: "0.82rem",
+                          cursor: "pointer",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {y}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filter Kategori */}
+                {uniquePemasukanCategories.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--fg-muted)" }}>Kategori:</span>
+                    <select
+                      value={pemasukanKategori}
+                      onChange={(e) => setPemasukanKategori(e.target.value)}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: 8,
+                        border: "1px solid var(--border)",
+                        background: "var(--surface)",
+                        color: "var(--fg)",
+                        fontSize: "0.82rem",
+                        outline: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="semua">Semua Kategori</option>
+                      {uniquePemasukanCategories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Pencarian */}
+              <div style={{ position: "relative", flex: 1, minWidth: 200, maxWidth: 320 }}>
+                <i
+                  className="bx bx-search"
+                  style={{
+                    position: "absolute",
+                    left: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--fg-muted)",
+                    fontSize: "1rem",
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Cari sumber pemasukan, PJ, catatan..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px 8px 36px",
+                    borderRadius: 10,
+                    border: "1px solid var(--border)",
+                    background: "var(--surface)",
+                    color: "var(--fg)",
+                    fontSize: "0.85rem",
+                    outline: "none",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* TABEL PEMASUKAN EKSTERNAL */}
+            {filteredPemasukan.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "48px 20px",
+                  color: "var(--fg-muted)",
+                  background: "var(--surface)",
+                  borderRadius: 12,
+                  border: "1px dashed var(--border)",
+                }}
+              >
+                <i className="bx bx-folder-open" style={{ fontSize: "2.4rem", opacity: 0.5, marginBottom: 8, display: "block" }} />
+                <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>Belum Ada Data Pemasukan Eksternal</div>
+                <div style={{ fontSize: "0.8rem", marginTop: 4 }}>
+                  Tidak ada catatan pemasukan eksternal pada tahun {tahun} atau tidak cocok dengan filter pencarian.
+                </div>
+              </div>
+            ) : (
+              <div className={styles.tableWrapper} style={{ maxHeight: 600, overflowY: "auto" }}>
+                <table className={styles.matrixTable}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 44, textAlign: "center" }}>No</th>
+                      <th style={{ width: 110 }}>Tanggal</th>
+                      <th style={{ width: 150 }}>Kategori</th>
+                      <th>Sumber / Keterangan Pemasukan</th>
+                      <th style={{ width: 140, textAlign: "right" }}>Nominal</th>
+                      <th style={{ width: 140 }}>Penanggung Jawab</th>
+                      <th style={{ width: 110, textAlign: "center" }}>Bukti Transaksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPemasukan.map((p: any, idx: number) => {
+                      const tglStr = p.tanggal
+                        ? new Date(p.tanggal).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "-";
+
+                      return (
+                        <tr key={p.id || idx}>
+                          <td style={{ textAlign: "center", color: "var(--fg-muted)", fontSize: "0.8rem" }}>
+                            {idx + 1}
+                          </td>
+                          <td style={{ fontSize: "0.82rem", color: "var(--fg)", whiteSpace: "nowrap" }}>
+                            <i className="bx bx-calendar" style={{ marginRight: 4, opacity: 0.6 }} />
+                            {tglStr}
+                          </td>
+                          <td>
+                            <span
+                              style={{
+                                padding: "3px 8px",
+                                borderRadius: 6,
+                                background: "rgba(6, 182, 212, 0.12)",
+                                color: "#06b6d4",
+                                border: "1px solid rgba(6, 182, 212, 0.25)",
+                                fontSize: "0.74rem",
+                                fontWeight: 700,
+                                display: "inline-block",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {p.kategori || "Pemasukan Eksternal"}
+                            </span>
+                          </td>
+                          <td className={styles.nameCol}>
+                            <div style={{ fontWeight: 800, fontSize: "0.88rem", color: "var(--fg)" }}>
+                              {p.sumber}
+                            </div>
+                            {p.catatan && (
+                              <div style={{ fontSize: "0.74rem", color: "var(--fg-muted)", marginTop: 3, lineHeight: 1.4 }}>
+                                <i className="bx bx-note" style={{ marginRight: 3, verticalAlign: "middle" }} />
+                                {p.catatan}
+                              </div>
+                            )}
+                          </td>
+                          <td style={{ textAlign: "right", fontWeight: 900, color: "#10b981", fontSize: "0.92rem", whiteSpace: "nowrap" }}>
+                            +{formatRupiah(p.nominal)}
+                          </td>
+                          <td style={{ fontSize: "0.82rem", color: "var(--fg-muted)", whiteSpace: "nowrap" }}>
+                            <i className="bx bx-user" style={{ marginRight: 4 }} />
+                            {p.pj_nama || "-"}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {(() => {
+                              const notaUrls = parseNotaList(p.bukti_nota_url);
+                              if (notaUrls.length === 0) return <span style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>-</span>;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={() => { setSelectedNotaUrl(normalizeProofUrl(notaUrls[0])); setSelectedNotaList(notaUrls); }}
+                                  className={styles.backBtn}
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    padding: "4px 10px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    color: "#06b6d4",
+                                    borderColor: "rgba(6, 182, 212, 0.4)",
+                                    borderRadius: 8,
+                                  }}
+                                  title="Lihat foto bukti nota / mutasi / kuitansi"
+                                >
+                                  <i className={`bx ${notaUrls.length > 1 ? "bx-images" : "bx-image"}`} style={{ fontSize: "0.9rem" }} />
+                                  {notaUrls.length > 1 ? `${notaUrls.length} Bukti` : "Lihat Bukti"}
+                                </button>
+                              );
+                            })()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════ */}
+        {/* TAB 3: LAPORAN PENGELUARAN KAS (TRANSPARANSI BELANJA) */}
         {/* ════════════════════════════════════════════ */}
         {activeTab === "pengeluaran" && (
           <div className={styles.sectionCard} style={{ padding: 22 }}>

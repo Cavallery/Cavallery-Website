@@ -1,0 +1,81 @@
+[
+  {
+    "id": "sts-terima-kasih-2026",
+    "title": "Pengumuman Mengenai Ucapan Terima Kasih Project STS Erine 2026",
+    "date": "23 Agu 2026, 19.40",
+    "timestamp": "2026-08-23T19:40:00+07:00",
+    "mention": "@everyone",
+    "channel": "📢┃pengumuman-fanbase",
+    "author": {
+      "name": "Cavallery Official",
+      "role": "Admin Fanbase",
+      "avatar": "/images/cava-logo-round.png",
+      "bot": false
+    },
+    "image": "/images/caterine17th-encore.png",
+    "additionalImages": [
+      "/images/caterine17th-freebies.jpg",
+      "/images/caterine17th-poster.jpg"
+    ],
+    "content": "Terima kasih sebesar-besarnya kami sampaikan kepada seluruh teman-teman Cavallery, para donatur, volunteer, serta semua pihak yang telah berpartisipasi dan menyukseskan rangkaian Project Seitansai (STS) Caterine Vallencia (Erine) ke-17 tahun 2026!\n\nBerkat dukungan, kekompakan, dan ketulusan kalian semua, seluruh rangkaian project mulai dari dekorasi flower stand, photobooth, encore chant, pembagian freebies, hingga buku pesan dan video ucapan dapat terlaksana dengan sangat indah dan berkesan untuk Erine.\n\nSemoga semangat kebersamaan ini terus menyala di setiap langkah kita menemani dan mendukung perjalanan Erine di JKT48! 🐴✨",
+    "tags": ["STS Erine 2026", "Terima Kasih", "Seitansai"]
+  },
+  {
+    "id": "sts-project-launch-2026",
+    "title": "Pengumuman Mengenai Project Seitansai Erine Tahun 2026",
+    "date": "20 Agu 2026, 22.59",
+    "timestamp": "2026-08-20T22:59:00+07:00",
+    "mention": "@everyone",
+    "channel": "📢┃pengumuman-fanbase",
+    "author": {
+      "name": "Project STS Cavallery",
+      "role": "Panitia STS",
+      "avatar": "/images/cava-logo-round.png",
+      "bot": false
+    },
+    "image": "/images/caterine17th-poster.jpg",
+    "additionalImages": [
+      "/images/caterine17th-freebies.jpg"
+    ],
+    "content": "Halo semuanya! Mendekati hari perayaan Seitansai Caterine Vallencia (Erine) yang ke-17 di Teater JKT48, berikut kami rilis panduan resmi rangkaian Project STS Erine 2026.\n\nRangkaian Project mencakup:\n1. Project Flower Stand & Photobooth Area di Foyer Teater JKT48\n2. Pembagian Freebies & Merchandise Eksklusif untuk penonton show\n3. Panduan Chant & Encore Spesial Seitansai Erine\n4. Dresscode & Handbanner Official Fanbase\n\nMari kita ramaikan dan buat hari ulang tahun Erine menjadi kenangan yang tak terlupakan! Sampai bertemu di teater! ✨",
+    "tags": ["STS Erine 2026", "Project Fanbase", "Teater JKT48"]
+  },
+  {
+    "id": "sts-rapat-koordinasi-2026",
+    "title": "Pengumuman Mengenai Rapat STS Erine 2026",
+    "date": "14 Agu 2026, 17.49",
+    "timestamp": "2026-08-14T17:49:00+07:00",
+    "mention": "@everyone",
+    "channel": "📢┃pengumuman-fanbase",
+    "author": {
+      "name": "Koordinator STS",
+      "role": "Koordinator Lapangan",
+      "avatar": "/images/cava-logo-round.png",
+      "bot": false
+    },
+    "image": "/images/caterine17th-freebies.jpg",
+    "additionalImages": [],
+    "content": "Selamat sore semuanya! Sehubungan dengan persiapan akhir menjelang pelaksanaan Project STS Erine 2026, kami mengundang seluruh panitia, volunteer, dan anggota fanbase untuk menghadiri Rapat Koordinasi Akbar STS Erine 2026.\n\nAgenda Rapat:\n- Finalisasi produksi merchandise, handbanner, & freebies\n- Plotting tugas tim dekorasi, dokumentasi, dan logistik lapangan\n- Teknis koordinasi saat hari H show di Teater JKT48\n- Q&A dan evaluasi kesiapan masing-masing divisi\n\nRapat akan dilaksanakan via Discord Voice Channel #meeting-room pada pukul 20.00 WIB. Kehadiran dan masukan dari rekan-rekan sangat kami harapkan demi kelancaran bersama!",
+    "tags": ["Rapat STS", "Koordinasi", "Internal"]
+  },
+  {
+    "id": "transparansi-dana-rh-2026",
+    "title": "Pengumuman Mengenai Transparansi Dana Request Hour Cavallery",
+    "date": "22 Jul 2026, 20.09",
+    "timestamp": "2026-07-22T20:09:00+07:00",
+    "mention": "@here",
+    "channel": "📢┃pengumuman-fanbase",
+    "author": {
+      "name": "Bendahara Cavallery",
+      "role": "Bendahara Kas",
+      "avatar": "/images/cava-logo-round.png",
+      "bot": false
+    },
+    "image": "/images/bukti-1.jpg",
+    "additionalImages": [
+      "/images/bukti-2.jpg"
+    ],
+    "content": "Halo semuanya! Sebagai bentuk komitmen transparansi pengurus Cavallery Fanbase terhadap penggunaan dana dukungan, bersama pengumuman ini kami sampaikan Laporan Rekapitulasi Donasi & Penggunaan Dana untuk Project Request Hour (RH) JKT48.\n\nSeluruh dana donasi yang masuk telah dialokasikan 100% untuk voting lagu dukungan bagi Erine sesuai dengan kesepakatan bersama. Bukti mutasi rekening, nota transaksi voting token, serta rincian pemasukan dan pengeluaran terlampir secara lengkap.\n\nTerima kasih atas kepercayaan dan kontribusi luar biasa dari kalian semua! Transparansi kas dan mutasi lengkap dapat diakses kapan saja melalui dashboard internal kas Cavallery.",
+    "tags": ["Transparansi Dana", "Request Hour", "Keuangan"]
+  }
+]

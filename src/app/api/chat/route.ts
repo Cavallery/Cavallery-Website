@@ -220,6 +220,8 @@ export async function POST(request: Request) {
     }
 
     const trimmedMsg = message.trim();
+    const isBirthdayTrigger = /(hbd|selamat\s+ulang\s+tahun|happy\s+birthday|met\s+ultah|met\s+ulang\s+tahun|selamat\s+ultah)/i.test(trimmedMsg);
+    const BIRTHDAY_VIDEO = "/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4";
 
     // Fast status check ping
     if (trimmedMsg.toLowerCase() === "ping" || trimmedMsg.toLowerCase() === "__status__") {
@@ -266,6 +268,7 @@ export async function POST(request: Request) {
               text = text.replace(/[*#]/g, "").trim();
               return NextResponse.json({
                 reply: text,
+                videoUrl: isBirthdayTrigger ? BIRTHDAY_VIDEO : undefined,
                 source: "gemini",
                 model: modelName,
                 api_active: true
@@ -286,6 +289,15 @@ export async function POST(request: Request) {
       console.warn("No Gemini API key found. Checked config.apiKey and process.env.GEMINI_API_KEY.");
     }
 
+    if (isBirthdayTrigger) {
+      return NextResponse.json({
+        reply: "Selamat Ulang Tahun Erine! 🎉🎂💙 Terima kasih banyak atas ucapan manis dan doa tulusnya untuk Erine ya. Ini ada kado video ucapan spesial ulang tahun untuk kamu! ✨",
+        videoUrl: BIRTHDAY_VIDEO,
+        source: "birthday_special",
+        api_active: true
+      });
+    }
+
     // FALLBACK: Gunakan aturan statis admin, atau mesin percakapan 2 arah SimiSimi
     let reply = getDynamicFallbackResponse(trimmedMsg, rules, "");
     if (!reply) {
@@ -293,6 +305,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({
       reply,
+      videoUrl: isBirthdayTrigger ? BIRTHDAY_VIDEO : undefined,
       source: "simisimi_rules",
       api_active: true
     });

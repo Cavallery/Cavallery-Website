@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { signAdminToken, setAdminSessionCookie } from "@/lib/auth";
 import { query } from "@/lib/mysql";
@@ -120,6 +121,11 @@ export async function POST(req: NextRequest) {
     // Login berhasil, reset rate limit
     rateLimitMap.delete(ip);
 
+    const isSuper = ["admin", "vallencia", "aditya"].includes(admin.username.toLowerCase()) || 
+                    admin.username.toLowerCase().includes("aditya") ||
+                    (admin.nama && admin.nama.toLowerCase().includes("aditya"));
+    const userRole = isSuper ? "superadmin" : (admin.role || "admin");
+
     // Sign admin session token
     const token = signAdminToken({
       id: admin.id,
@@ -127,17 +133,35 @@ export async function POST(req: NextRequest) {
       nama: admin.nama,
     });
 
+    const cavaPayload = JSON.stringify({
+      username: admin.nama || admin.username,
+      role: userRole,
+      exp: Date.now() + 8 * 60 * 60 * 1000,
+    });
+    const cavaSig = crypto.createHmac("sha256", process.env.SESSION_SECRET || "cava-secret-key-2026").update(cavaPayload).digest("hex");
+    const cavaToken = Buffer.from(cavaPayload).toString("base64") + "." + cavaSig;
+
     const res = NextResponse.json({
       status: true,
       message: `Selamat datang, ${admin.nama}!`,
+      username: admin.nama || admin.username,
+      role: userRole,
       admin: {
         id: admin.id,
         username: admin.username,
         nama: admin.nama,
+        role: userRole,
       },
     });
 
     setAdminSessionCookie(res, token);
+    res.cookies.set("cava_session", cavaToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 8 * 60 * 60,
+      path: "/",
+    });
     return res;
   } catch (error: any) {
     console.error("Admin login error:", error);
