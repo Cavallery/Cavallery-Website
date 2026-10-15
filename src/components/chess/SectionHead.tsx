@@ -24,7 +24,7 @@ export default function SectionHead({
   eyebrow,
   title,
   accent,
-  tone = "pink",
+  tone = "fire",
   subtitle,
   layout = "stack",
   as: Tag = "h2",
@@ -47,6 +47,12 @@ export default function SectionHead({
             </>
           ) : null}
         </Tag>
+        {/* burning fuse: ignites from the left when the heading enters */}
+        <span className={styles.fuse} aria-hidden="true">
+          <span className={styles.fuseFill} data-reveal="fuse">
+            <span className={styles.fuseSpark} />
+          </span>
+        </span>
       </div>
       {(subtitle || aside) && (
         <div className={styles.side}>

@@ -78,6 +78,7 @@
 }
 
 .followBtn {
+  border-radius: var(--cv-radius-pill);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -166,6 +167,8 @@
 }
 
 .mapIcon {
+  border-radius: var(--cv-radius-sm);
+  overflow: hidden;
   flex-shrink: 0;
   width: 44px;
   height: 44px;
@@ -182,6 +185,8 @@
 
 /* Jikoshoukai bar */
 .jikoBar {
+  border-radius: var(--cv-radius-lg);
+  overflow: hidden;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0;
@@ -207,6 +212,7 @@
 }
 
 .audioBtn {
+  border-radius: 50%;
   display: grid;
   place-items: center;
   width: 52px;
@@ -254,15 +260,15 @@
 .socialIcons {
   display: flex;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 8px;
 }
 
 .socIcon {
+  border-radius: var(--cv-radius);
   display: grid;
   place-items: center;
   width: 48px;
   height: 48px;
-  margin-right: -1px;
   overflow: hidden;
   border: 1px solid var(--cv-line-strong);
   color: var(--cv-text);
@@ -271,7 +277,7 @@
 }
 
 .socIcon img {
-  border-radius: 0 !important;
+  border-radius: 50% !important;
   padding: 9px;
   object-fit: contain !important;
 }
@@ -290,6 +296,7 @@
 }
 
 .mainPhotoFrame {
+  border-radius: var(--cv-radius-xl);
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -307,6 +314,7 @@
 }
 
 .photoSq {
+  border-radius: 0 0 var(--cv-radius) 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -345,6 +353,7 @@
 }
 
 .thumbItem {
+  border-radius: var(--cv-radius);
   aspect-ratio: 1;
   overflow: hidden;
   background: var(--cv-ink-2);
@@ -409,6 +418,8 @@
 
 .ewBio,
 .ewHt {
+  border-radius: var(--cv-radius-xl);
+  overflow: hidden;
   border: 1px solid var(--cv-line);
   background: var(--cv-ink-1);
   min-width: 0;
@@ -449,6 +460,7 @@
 }
 
 .ewBioIcon {
+  border-radius: var(--cv-radius-sm);
   display: grid;
   place-items: center;
   width: 40px;
@@ -542,6 +554,7 @@
 }
 
 .ewPm img {
+  border-radius: 50%;
   width: 44px;
   height: 44px;
   object-fit: cover;
@@ -554,6 +567,7 @@
 
 /* ── Trivia mini game ─────────────────────────────────────────── */
 .ewFf {
+  border-radius: var(--cv-radius-xl);
   display: grid;
   gap: 24px;
   padding: 22px 18px;
@@ -595,16 +609,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  gap: 0;
+  gap: 8px;
   align-self: end;
 }
 
 .ffStatItem {
+  border-radius: var(--cv-radius);
   display: grid;
   gap: 2px;
   padding: 10px 16px;
   border: 1px solid var(--cv-line-strong);
-  margin-right: -1px;
 }
 
 .ffStatLabel {
@@ -628,6 +642,7 @@
 
 .ffResetGameBtn,
 .playAgainBtn {
+  border-radius: var(--cv-radius-pill);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -648,6 +663,7 @@
 }
 
 .gameCompletionBanner {
+  border-radius: var(--cv-radius-lg);
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 16px;
@@ -658,6 +674,7 @@
 }
 
 .gameCompletionEmoji {
+  border-radius: var(--cv-radius);
   display: grid;
   place-items: center;
   width: 64px;
@@ -692,6 +709,7 @@
 }
 
 .ffCard {
+  border-radius: var(--cv-radius-lg);
   display: grid;
   gap: 14px;
   padding: 16px;
@@ -722,6 +740,7 @@
 }
 
 .ffNumberBadge {
+  border-radius: var(--cv-radius-sm);
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -741,6 +760,7 @@
 }
 
 .ffTagBadge {
+  border-radius: var(--cv-radius-pill);
   flex-shrink: 0;
   padding: 4px 8px;
   border: 1px solid var(--cv-line-strong);
@@ -757,6 +777,7 @@
 }
 
 .triviaOptionBtn {
+  border-radius: var(--cv-radius);
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;
   align-items: center;
@@ -781,6 +802,7 @@
 }
 
 .triviaLetter {
+  border-radius: var(--cv-radius-sm);
   display: grid;
   place-items: center;
   width: 32px;
@@ -836,6 +858,7 @@
 }
 
 .ffAnswerBox {
+  border-radius: var(--cv-radius);
   display: grid;
   gap: 8px;
   padding: 12px 14px;
@@ -883,12 +906,15 @@
 }
 
 .videoFrameWrapper {
+  border-radius: var(--cv-radius-xl);
   border: 1px solid var(--cv-line-strong);
   padding: 8px;
   background: var(--cv-ink-1);
 }
 
 .responsiveVideo {
+  border-radius: var(--cv-radius-lg);
+  overflow: hidden;
   position: relative;
   aspect-ratio: 16 / 9;
   background: #000;
@@ -928,6 +954,7 @@
 
 /* connecting line (mobile: vertical on the left) */
 .kabeshaAlurSpine {
+  border-radius: 99px;
   position: absolute;
   left: 20px;
   top: 20px;
@@ -938,6 +965,7 @@
 }
 
 .kabeshaSpineFill {
+  border-radius: 99px;
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, var(--cv-blue) 0%, var(--cv-pink) 45%, var(--cv-ember) 70%, var(--cv-flame) 85%, var(--cv-heat) 100%);
@@ -959,6 +987,7 @@
 }
 
 .titikNode {
+  border-radius: var(--cv-radius-sm);
   position: relative;
   display: grid;
   place-items: center;
@@ -977,6 +1006,7 @@
 }
 
 .titikPulse {
+  border-radius: var(--cv-radius);
   position: absolute;
   inset: -8px;
   border: 1px solid currentColor;
@@ -985,6 +1015,7 @@
 }
 
 .titikYearPill {
+  border-radius: var(--cv-radius-pill);
   padding: 3px 8px;
   background: var(--cv-ink);
   font-size: 0.72rem;
@@ -1023,6 +1054,7 @@
 }
 
 .kabeshaPinnedCard {
+  border-radius: var(--cv-radius-xl);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -1038,6 +1070,7 @@
 }
 
 .kabeshaStickerBadge {
+  border-radius: 0 0 0 var(--cv-radius);
   position: absolute;
   top: 0;
   right: 0;
@@ -1079,6 +1112,14 @@
 
 .kabeshaPinnedCard:hover .kabeshaImg {
   transform: scale(1.04);
+}
+
+.kabeshaFlames {
+  left: -4%;
+  right: -4%;
+  bottom: -2%;
+  height: 38%;
+  z-index: 1;
 }
 
 .photoZoomOverlay {
@@ -1203,6 +1244,8 @@
 }
 
 .electionItem {
+  border-radius: var(--cv-radius-lg);
+  overflow: hidden;
   display: grid;
   gap: 0;
   border: 1px solid var(--cv-line);
@@ -1252,6 +1295,9 @@
 }
 
 .statsBoard {
+  border-radius: var(--cv-radius-xl);
+  border: 1px solid var(--cv-line-strong);
+  overflow: hidden;
   border-top: 1px solid var(--cv-line-strong);
   border-bottom: 1px solid var(--cv-line-strong);
 }
@@ -1305,6 +1351,7 @@
 
 /* Flip card (CSS 3D, transform only) */
 .stickyCard {
+  border-radius: var(--cv-radius-lg);
   position: relative;
   aspect-ratio: 3 / 4.3;
   min-height: 340px;
@@ -1326,6 +1373,7 @@
 
 .flipFront,
 .flipBack {
+  border-radius: var(--cv-radius-lg);
   position: absolute;
   inset: 0;
   display: flex;
@@ -1336,6 +1384,7 @@
 }
 
 .flipFront {
+  border-radius: var(--cv-radius-lg);
   gap: 6px;
   padding: 10px 10px 14px;
   background: var(--cv-bone);
@@ -1355,6 +1404,7 @@
 }
 
 .polaroidFrame {
+  border-radius: var(--cv-radius-sm);
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -1382,6 +1432,7 @@
 }
 
 .showBadge {
+  border-radius: var(--cv-radius-pill);
   align-self: flex-start;
   padding: 3px 8px;
   background: var(--cv-ink);
@@ -1420,6 +1471,8 @@
 }
 
 .pmStatsCard {
+  border-radius: var(--cv-radius-xl);
+  overflow: hidden;
   display: grid;
   gap: 0;
   border: 1px solid var(--cv-line);
@@ -1435,6 +1488,7 @@
 }
 
 .pmAvatar {
+  border-radius: 50%;
   width: 64px;
   height: 64px;
   object-fit: cover;
@@ -1464,6 +1518,7 @@
 
 .badgeActive,
 .badgePopular {
+  border-radius: var(--cv-radius-pill);
   padding: 2px 8px;
   font-size: 0.62rem;
   font-weight: 800;
@@ -1472,6 +1527,7 @@
 }
 
 .badgeActive {
+  border-radius: var(--cv-radius-pill);
   background: rgba(92, 214, 162, 0.14);
   color: var(--cv-green);
 }
@@ -1533,6 +1589,7 @@
 }
 
 .pmBarTrack {
+  border-radius: 99px;
   height: 8px;
   background: var(--cv-ink-3);
   overflow: hidden;
@@ -1559,6 +1616,7 @@
 }
 
 .embedCard {
+  border-radius: var(--cv-radius-lg);
   overflow: hidden;
   padding: 8px;
   background: var(--cv-ink-1);
@@ -1588,6 +1646,7 @@
 }
 
 .modalContent {
+  border-radius: var(--cv-radius-xl);
   position: relative;
   display: grid;
   width: min(100%, 920px);
@@ -1598,6 +1657,7 @@
 }
 
 .closeBtn {
+  border-radius: 0 0 0 var(--cv-radius);
   position: absolute;
   top: 0;
   right: 0;

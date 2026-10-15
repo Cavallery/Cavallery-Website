@@ -40,6 +40,14 @@
   animation: breathe 5.5s ease-in-out infinite alternate;
 }
 
+.flames {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7vh;
+  min-height: 44px;
+}
+
 .line {
   position: absolute;
   left: 0;
