@@ -485,6 +485,39 @@ async function captureVideos(browser) {
       await wait(1000);
     }],
   ]) {
+    const file = path.join(OUT, `${name}.webm`);
+    if (process.env.FFMPEG) {
+      // Screencast → JPEG frames → VP8 (works when Playwright's own recorder
+      // and the installed ffmpeg build don't match).
+      const ctx = await newContext(browser, kind);
+      const page = await ctx.newPage();
+      await page.goto(BASE + url, { waitUntil: "networkidle", timeout: 120000 }).catch(() => {});
+      await tidy(page);
+      await wait(800);
+      const cdp = await ctx.newCDPSession(page);
+      const frames = [];
+      cdp.on("Page.screencastFrame", async (f) => {
+        frames.push(Buffer.from(f.data, "base64"));
+        await cdp.send("Page.screencastFrameAck", { sessionId: f.sessionId }).catch(() => {});
+      });
+      const t0 = Date.now();
+      await cdp.send("Page.startScreencast", { format: "jpeg", quality: 72, everyNthFrame: 1 });
+      await script(page);
+      await cdp.send("Page.stopScreencast");
+      const secs = (Date.now() - t0) / 1000;
+      await ctx.close();
+      const fps = Math.max(4, Math.min(30, Math.round(frames.length / secs)));
+      const { spawnSync } = await import("node:child_process");
+      const res = spawnSync(
+        process.env.FFMPEG,
+        ["-y", "-loglevel", "error", "-f", "image2pipe", "-c:v", "mjpeg", "-framerate", String(fps), "-i", "pipe:0", "-c:v", "libvpx", "-b:v", "2M", "-pix_fmt", "yuv420p", file],
+        { input: Buffer.concat(frames), maxBuffer: 1 << 30 }
+      );
+      if (res.status !== 0) throw new Error(`ffmpeg failed: ${res.stderr?.toString().slice(0, 200)}`);
+      shots.push({ file: `${name}.webm`, note: `Rekaman motion (${frames.length} frame, ~${fps} fps)` });
+      console.log("  ✓", `${name}.webm`, `${frames.length} frames @${fps}fps`);
+      continue;
+    }
     const dir = path.join(OUT, "_video_tmp");
     const ctx = await newContext(browser, kind, { recordVideo: { dir, size: VIEWPORTS[kind].viewport } });
     const page = await ctx.newPage();
@@ -495,8 +528,7 @@ async function captureVideos(browser) {
     const video = page.video();
     await ctx.close();
     if (video) {
-      const src = await video.path();
-      fs.renameSync(src, path.join(OUT, `${name}.webm`));
+      await video.saveAs(path.join(OUT, `${name}.webm`)); // waits until the file is finalised
       shots.push({ file: `${name}.webm`, note: "Rekaman motion" });
       console.log("  ✓", `${name}.webm`);
     }
