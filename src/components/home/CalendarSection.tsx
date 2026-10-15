@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import styles from "./CalendarSection.module.css";
+import SectionHead from "@/components/chess/SectionHead";
+import { useReveal } from "@/hooks/useReveal";
 
 interface ShowMember {
   name: string;
@@ -47,6 +49,8 @@ export default function CalendarSection() {
   const [apiBirthdays, setApiBirthdays] = useState<Show[]>([]);
   const [apiManualEvents, setApiManualEvents] = useState<Show[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const rootRef = useRef<HTMLElement | null>(null);
+  useReveal(rootRef);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -351,19 +355,18 @@ export default function CalendarSection() {
   const selectedDayShows = selectedDay ? getShowsForDay(selectedDay) : [];
 
   return (
-    <section className={styles.section}>
+    <section ref={rootRef} className={styles.section} id="kalender" data-motion>
       <div className={styles.inner}>
-        <div className={styles.header}>
-          <div className="badge">
-            <i className="bx bx-calendar-event" /> Event Calendar
-          </div>
-          <h2 className={`sectionTitle textGold ${styles.title}`}>Kalender Kegiatan</h2>
-          <p className={styles.subtitle}>
-            Pantau jadwal konser, pertunjukan theater, live streaming, dan kegiatan Erine JKT48.
-          </p>
-        </div>
+        <SectionHead
+          square="e2"
+          eyebrow="Event Calendar"
+          title="Kalender"
+          accent="Kegiatan"
+          layout="split"
+          subtitle="Pantau jadwal konser, pertunjukan theater, live streaming, dan kegiatan Erine JKT48."
+        />
 
-        <div className={`${styles.calendarCard} glassCard`}>
+        <div className={styles.calendarCard} data-reveal="up">
           <div className={styles.calendarHeader}>
             <span className={styles.monthTitle}>
               {monthNames[month]} {year}
@@ -418,9 +421,9 @@ export default function CalendarSection() {
                           {show.isLiveHistory && (
                             <span style={{
                               fontSize: "0.7rem",
-                              background: "var(--gold)",
-                              color: "#fff",
-                              borderRadius: 4,
+                              background: "var(--cv-pink)",
+                              color: "var(--cv-ink)",
+                              borderRadius: 0,
                               padding: "2px 8px",
                               marginRight: 6,
                               fontWeight: 700,
@@ -432,9 +435,9 @@ export default function CalendarSection() {
                           {show.isManual && (
                             <span style={{
                               fontSize: "0.7rem",
-                              background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-                              color: "#fff",
-                              borderRadius: 4,
+                              background: "var(--cv-flame)",
+                              color: "var(--cv-ink)",
+                              borderRadius: 0,
                               padding: "2px 8px",
                               marginRight: 6,
                               fontWeight: 700,

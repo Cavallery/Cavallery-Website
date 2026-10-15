@@ -1,331 +1,557 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Navbar.module.css";
-import ThemeToggle from "./ThemeToggle";
+import KnightSvg from "./chess/KnightSvg";
+import { SOCIAL_LINKS } from "./chess/SocialIcons";
+import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { useHeaderScroll } from "@/hooks/useHeaderScroll";
 
 interface NavChild {
   href: string;
   label: string;
-  icon?: string;
   desc?: string;
 }
 
 interface NavNestedGroup {
   label: string;
   children: NavChild[];
-  isHeader?: boolean;
 }
 
 interface NavSingle {
   href: string;
   label: string;
-  icon?: string;
 }
 
-type NavLink = NavSingle | { label: string; children: (NavChild | NavNestedGroup)[] };
+interface NavParent {
+  label: string;
+  blurb: string;
+  children: (NavChild | NavNestedGroup)[];
+}
+
+type NavLink = NavSingle | NavParent;
+
+const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 const navLinks: NavLink[] = [
   { href: "/", label: "Home" },
   {
     label: "News",
+    blurb: "Kabar terkini JKT48 & pernyataan resmi fanbase Cavallery.",
     children: [
-      { href: "/news",                    label: "News JKT48",      icon: "bx-news",               desc: "Berita terkini dari JKT48 & Erine" },
-      { href: "/news/cavallery-statement", label: "News Cavallery",  icon: "fa-solid fa-chess-knight", desc: "Pernyataan & info resmi fanbase Cavallery" },
+      { href: "/news", label: "News JKT48", desc: "Berita terkini dari JKT48 & Erine" },
+      { href: "/news/cavallery-statement", label: "News Cavallery", desc: "Pernyataan & info resmi fanbase Cavallery" },
     ],
   },
   {
     label: "About",
+    blurb: "Kenali Erine lebih dekat dan cerita di balik Cavallery.",
     children: [
-      { href: "/about/erine",    label: "About Erine",     icon: "bx-user-pin",          desc: "Profil & perjalanan Catherina Vallencia" },
-      { href: "/about/cavallery",label: "About Cavallery", icon: "fa-solid fa-chess-knight", desc: "Sejarah & identitas fanbase Cavallery" },
-      { href: "/gallery",        label: "Gallery Erine",   icon: "bx-image-alt",         desc: "Koleksi foto & momen spesial Erine" },
+      { href: "/about/erine", label: "About Erine", desc: "Profil & perjalanan Catherina Vallencia" },
+      { href: "/about/cavallery", label: "About Cavallery", desc: "Sejarah & identitas fanbase Cavallery" },
+      { href: "/gallery", label: "Gallery Erine", desc: "Koleksi foto & momen spesial Erine" },
     ],
   },
-  { href: "/schedule", label: "Schedule", icon: "bx-calendar" },
+  { href: "/schedule", label: "Schedule" },
   {
     label: "Community",
+    blurb: "Ruang bersama para Cavallery — kas, esport, mading & jurnal.",
     children: [
-      { href: "/cavallery-kas", label: "Kas Cavallery",    icon: "bx-wallet",            desc: "Portal kas, donasi & keanggotaan" },
-      { href: "/join",         label: "Join Cavallery",   icon: "bx-group",             desc: "Daftarkan dirimu sebagai member resmi" },
-      { href: "/esport",       label: "Cavallery Esport", icon: "bx-trophy",            desc: "Divisi gaming kompetitif Cavallery" },
-      { href: "/2s-with-erine",label: "2S with Erine",    icon: "bx-camera",            desc: "Koleksi foto 2-Shot & pesan manis untuk Erine" },
-      { href: "/#tickets",     label: "Ticketing",        icon: "bx-message-square-edit", desc: "Kotak kritik, saran & aspirasi fanbase" },
-      { href: "/journal",      label: "Journal MemoRine", icon: "bx-book-heart",        desc: "Tulis pesan & dukungan untuk Erine" },
+      { href: "/cavallery-kas", label: "Kas Cavallery", desc: "Portal kas, donasi & keanggotaan" },
+      { href: "/join", label: "Join Cavallery", desc: "Daftarkan dirimu sebagai member resmi" },
+      { href: "/esport", label: "Cavallery Esport", desc: "Divisi gaming kompetitif Cavallery" },
+      { href: "/2s-with-erine", label: "2S with Erine", desc: "Koleksi foto 2-Shot & pesan manis untuk Erine" },
+      { href: "/#tickets", label: "Ticketing", desc: "Kotak kritik, saran & aspirasi fanbase" },
+      { href: "/journal", label: "Journal MemoRine", desc: "Tulis pesan & dukungan untuk Erine" },
     ],
   },
-  { href: "/merchandise", label: "Merchandise", icon: "bx-store-alt" },
+  { href: "/merchandise", label: "Merchandise" },
   {
     label: "Project",
+    blurb: "Proyek fanbase dari tahun ke tahun — setiap langkah, satu kejutan.",
     children: [
       {
         label: "2026",
         children: [
-          { href: "/2026/sts-19-erine", label: "#ErineTheWayfinder", icon: "bx-compass",  desc: "Seitansai Project 2026" },
-          { href: "/request-hour-2026", label: "Request Hour 2026",  icon: "bx-music",    desc: "Vote lagu favorit Erine" },
-          { href: "/erine100show",      label: "Erine 100 Show",     icon: "bx-star",     desc: "Perayaan 100 show theater Erine" },
+          { href: "/2026/sts-19-erine", label: "#ErineTheWayfinder", desc: "Seitansai Project 2026" },
+          { href: "/request-hour-2026", label: "Request Hour 2026", desc: "Vote lagu favorit Erine" },
+          { href: "/erine100show", label: "Erine 100 Show", desc: "Perayaan 100 show theater Erine" },
         ],
       },
       {
         label: "2025",
         children: [
-          { href: "/erine-in-etherland", label: "Erine in Etherland",    icon: "bx-planet", desc: "Proyek eksklusif 2025" },
-          { href: "/kaleidoskop",         label: "Kaleidoskop Cavallery", icon: "bx-film",   desc: "Perjalanan setahun Cavallery" },
+          { href: "/erine-in-etherland", label: "Erine in Etherland", desc: "Proyek eksklusif 2025" },
+          { href: "/kaleidoskop", label: "Kaleidoskop Cavallery", desc: "Perjalanan setahun Cavallery" },
         ],
       },
       {
         label: "2024",
         children: [
-          { href: "/ssk",          label: "SSK JKT48 2024", icon: "bx-crown", desc: "Campaign SSK bersama Cavallery" },
-          { href: "/caterine17th", label: "#CatErine17th",  icon: "bx-cake",  desc: "Proyek ulang tahun Erine ke-17" },
+          { href: "/ssk", label: "SSK JKT48 2024", desc: "Campaign SSK bersama Cavallery" },
+          { href: "/caterine17th", label: "#CatErine17th", desc: "Proyek ulang tahun Erine ke-17" },
         ],
       },
     ],
   },
   {
     label: "Corner",
+    blurb: "Sudut bermain & berkarya untuk Erine.",
     children: [
-      { href: "/games",     label: "GameRine",     icon: "bx-joystick", desc: "Mini games seru bertema Erine" },
-      { href: "/fanart",    label: "Fanart Erine", icon: "bx-palette",  desc: "Sudut pameran ilustrasi & karya kreatif komunitas" },
-      { href: "/dengerine", label: "Dengerine",    icon: "bx-headphone", desc: "Arsip lagu cover & orisinal karya komunitas untuk Erine" },
+      { href: "/games", label: "GameRine", desc: "Mini games seru bertema Erine" },
+      { href: "/fanart", label: "Fanart Erine", desc: "Sudut pameran ilustrasi & karya kreatif komunitas" },
+      { href: "/dengerine", label: "Dengerine", desc: "Arsip lagu cover & orisinal karya komunitas untuk Erine" },
     ],
   },
 ];
 
-function renderNavIcon(icon?: string) {
-  if (!icon) return null;
-  if (icon.startsWith("fa-") || icon.includes("fa-")) {
-    return <i className={icon} />;
-  }
-  if (icon.startsWith("bx-") || icon.startsWith("bxs-") || icon.startsWith("bxl-")) {
-    return <i className={`bx ${icon}`} />;
-  }
-  return <i className={icon} />;
+/** Mega-menu thumbnails — existing assets in /public/images only. */
+const THUMBS: Record<string, string> = {
+  "/news": "/images/about/timeline-2024-3.jpeg",
+  "/news/cavallery-statement": "/images/about/filosofi-emblem.jpg",
+  "/about/erine": "/images/erine2.jpg",
+  "/about/cavallery": "/images/about/cava-group-1.jpeg",
+  "/gallery": "/images/gallery/erine-gallery-1.jpg",
+  "/cavallery-kas": "/images/about/cava-group-4.jpeg",
+  "/join": "/images/about/cava-group-2.jpeg",
+  "/esport": "/images/about/cava-group-6.jpeg",
+  "/2s-with-erine": "/images/about/timeline-2024-5.jpeg",
+  "/#tickets": "/images/about/cava-group-8.jpeg",
+  "/journal": "/images/about/timeline-other-3.jpeg",
+  "/2026/sts-19-erine": "/images/about/timeline-other-7.jpeg",
+  "/request-hour-2026": "/images/rkj.jpg",
+  "/erine100show": "/images/passion.jpg",
+  "/erine-in-etherland": "/images/about/timeline-other-6.jpeg",
+  "/kaleidoskop": "/images/about/timeline-other-8.jpeg",
+  "/ssk": "/images/chapter.jpg",
+  "/caterine17th": "/images/caterine17th-poster.jpg",
+  "/games": "/images/about/timeline-other-4.jpeg",
+  "/fanart": "/images/cerine%202.jpg",
+  "/dengerine": "/images/hesitate-bundle.jpg",
+};
+
+const isParent = (l: NavLink): l is NavParent => "children" in l;
+const isGroup = (c: NavChild | NavNestedGroup): c is NavNestedGroup => "children" in c;
+
+function matches(href: string, pathname: string) {
+  if (href === "/") return pathname === "/";
+  if (href.startsWith("/#")) return false;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function isParentActive(link: any, pathname: string): boolean {
-  if (link.href) {
-    return pathname === link.href;
-  }
-  if (link.children) {
-    return link.children.some((child: any) => {
-      if (child.children) {
-        return child.children.some((sub: any) => pathname === sub.href || (sub.href !== "/" && pathname.startsWith(sub.href)));
-      }
-      return pathname === child.href || (child.href && child.href !== "/" && pathname.startsWith(child.href));
-    });
-  }
-  return false;
+function isParentActive(link: NavLink, pathname: string): boolean {
+  if (!isParent(link)) return matches(link.href, pathname);
+  return link.children.some((c) =>
+    isGroup(c) ? c.children.some((s) => matches(s.href, pathname)) : matches(c.href, pathname)
+  );
+}
+
+function flatChildren(link: NavParent): NavChild[] {
+  return link.children.flatMap((c) => (isGroup(c) ? c.children : [c]));
 }
 
 export default function Navbar() {
-  const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname() || "/";
+  const isAdmin = pathname.startsWith("/admin") || pathname.startsWith("/internal/dashboard-admin-xv7r2q");
+
+  const headerRef = useRef<HTMLElement | null>(null);
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const knightRef = useRef<HTMLSpanElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const lockRef = useRef(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const knightIndex = useRef(-1);
+
+  const [mega, setMega] = useState<string | null>(null);
+  const [lastMega, setLastMega] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  const activeIndex = navLinks.findIndex((l) => isParentActive(l, pathname));
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    lockRef.current = Boolean(mega) || menuOpen;
+    if (lockRef.current && headerRef.current) headerRef.current.dataset.hidden = "false";
+  }, [mega, menuOpen]);
 
+  useHeaderScroll(headerRef, { lockRef, dependencies: [pathname] });
+
+  // Public site is always on the dark board (admin keeps its own toggle).
   useEffect(() => {
+    if (isAdmin) return;
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.classList.add("dark");
+  }, [isAdmin, pathname]);
+
+  // Close every menu on navigation (adjust state during render, no effect).
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
     setMenuOpen(false);
-    setOpenDropdown(null);
-  }, [pathname]);
-
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/internal/dashboard-admin-xv7r2q")) {
-    return null;
+    setMega(null);
+    setOpenGroup(null);
   }
 
-  const isDarkBgPage = ["/kaleidoskop"].includes(pathname);
-  const isForceLightText = isDarkBgPage && !scrolled;
+  // Lock page scroll behind the mobile overlay
+  useEffect(() => {
+    const el = document.documentElement;
+    if (menuOpen) el.style.overflow = "hidden";
+    else el.style.overflow = "";
+    return () => {
+      el.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMega(null);
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // ── ♞ hover indicator: L-shaped jump (up → across → down) ──────────
+  const { contextSafe } = useGSAP({ scope: navRef });
+
+  const jumpTo = useCallback(
+    (index: number, instant = false) => {
+      const knight = knightRef.current;
+      const nav = navRef.current;
+      if (!knight || !nav) return;
+      if (index < 0) {
+        gsap.to(knight, { autoAlpha: 0, duration: 0.2 });
+        knightIndex.current = -1;
+        return;
+      }
+      const item = nav.querySelector<HTMLElement>(`[data-nav-index="${index}"]`);
+      if (!item) return;
+      const navRect = nav.getBoundingClientRect();
+      const r = item.getBoundingClientRect();
+      const x = r.left + r.width / 2 - navRect.left - knight.offsetWidth / 2;
+      const wasHidden = knightIndex.current < 0;
+      knightIndex.current = index;
+      gsap.killTweensOf(knight);
+      if (instant || wasHidden || prefersReducedMotion()) {
+        gsap.set(knight, { x, y: 0 });
+        gsap.to(knight, { autoAlpha: 1, duration: 0.2 });
+        return;
+      }
+      gsap
+        .timeline()
+        .to(knight, { autoAlpha: 1, y: -12, duration: 0.12, ease: "power2.out" })
+        .to(knight, { x, duration: 0.26, ease: "power3.inOut" })
+        .to(knight, { y: 0, duration: 0.16, ease: "power2.in" });
+    },
+    []
+  );
+
+  // Wrap in contextSafe at call time (event handlers), never during render.
+  const safeJump = (index: number) => (contextSafe ? contextSafe(jumpTo)(index) : jumpTo(index));
+
+  useEffect(() => {
+    if (isAdmin) return;
+    const id = requestAnimationFrame(() => jumpTo(activeIndex, true));
+    const onResize = () => jumpTo(knightIndex.current >= 0 ? knightIndex.current : activeIndex, true);
+    window.addEventListener("resize", onResize);
+    // Re-measure once fonts are ready (label widths change)
+    if (typeof document !== "undefined" && "fonts" in document) {
+      document.fonts.ready.then(() => jumpTo(activeIndex, true)).catch(() => {});
+    }
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [activeIndex, isAdmin, jumpTo]);
+
+  // ── Mega-menu hover intent ─────────────────────────────────────────
+  const openMega = (label: string | null) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setMega(label);
+    if (label) setLastMega(label);
+  };
+  const scheduleClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setMega(null), 180);
+  };
+
+  // ── Mobile overlay stagger ─────────────────────────────────────────
+  useGSAP(
+    () => {
+      const overlay = overlayRef.current;
+      if (!overlay || !menuOpen) return;
+      const rows = overlay.querySelectorAll("[data-ov-row]");
+      const foot = overlay.querySelectorAll("[data-ov-foot]");
+      if (prefersReducedMotion()) return;
+      gsap.fromTo(rows, { yPercent: 110 }, { yPercent: 0, duration: 0.7, ease: "power4.out", stagger: 0.045, delay: 0.12 });
+      gsap.fromTo(foot, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.6, delay: 0.45 });
+    },
+    { scope: overlayRef, dependencies: [menuOpen], revertOnUpdate: true }
+  );
+
+  if (isAdmin) return null;
+
+  const megaLink = navLinks.find((l) => isParent(l) && l.label === (mega || lastMega)) as NavParent | undefined;
+  const megaIndex = megaLink ? navLinks.indexOf(megaLink) : -1;
+
+  const triggerSplash = () => window.dispatchEvent(new Event("trigger-splash"));
 
   return (
-    <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ""} ${isForceLightText ? styles.forceLightText : ""}`}>
-      <div className={styles.inner}>
-        {/* Brand Emblem Pill Badge */}
-        <Link
-          href="/"
-          className={styles.brandBadge}
-          onClick={() => window.dispatchEvent(new Event("trigger-splash"))}
-        >
-          <div className={styles.logoImgWrap}>
-            <img src="/images/cava-logo.jpg" alt="Cavallery Logo" className={styles.logoImg} />
-          </div>
-          <div className={styles.logoInfo}>
-            <span className={styles.logoText}>CAVALLERY</span>
-            <span className={styles.logoSub}>Fanbase Catherina Vallencia</span>
-          </div>
-        </Link>
-
-        {/* Desktop Links */}
-        <ul className={styles.links}>
-          {navLinks.map((link: any) => {
-            const active = isParentActive(link, pathname);
-            return link.children ? (
-              <li
-                key={link.label}
-                className={styles.dropdownItem}
-                onMouseEnter={() => setOpenDropdown(link.label)}
-                onMouseLeave={() => setOpenDropdown(null)}
-              >
-                <button className={`${styles.dropdownToggle} ${active ? styles.active : ""}`}>
-                  <span>{link.label}</span>
-                  <i className={`bx bx-chevron-down ${styles.chevronIcon}`} />
-                  {active && <span className={styles.activeIndicator} />}
-                </button>
-
-                {openDropdown === link.label && (
-                  <ul className={styles.dropdown}>
-                    {link.children.map((child: any) => (
-                      <li key={child.label || child.href} className={child.children ? styles.nestedDropdownItem : ""}>
-                        {child.children ? (
-                          <>
-                            <div className={styles.nestedToggle}>
-                              <span>{child.label}</span>
-                              <i className="bx bx-chevron-right" />
-                            </div>
-                            <ul className={styles.nestedDropdown}>
-                              {child.children.map((sub: any) => (
-                                <li key={sub.href}>
-                                  {sub.icon ? (
-                                    <Link
-                                      href={sub.href}
-                                      className={`${styles.dropdownLinkRich} ${pathname === sub.href ? styles.activeRich : ""}`}
-                                    >
-                                      <span className={styles.richIcon}>
-                                        {renderNavIcon(sub.icon)}
-                                      </span>
-                                      <span className={styles.richText}>
-                                        <span className={styles.richLabel}>{sub.label}</span>
-                                        {sub.desc && <span className={styles.richDesc}>{sub.desc}</span>}
-                                      </span>
-                                    </Link>
-                                  ) : (
-                                    <Link
-                                      href={sub.href}
-                                      className={`${styles.dropdownLink} ${pathname === sub.href ? styles.active : ""}`}
-                                    >
-                                      {sub.label}
-                                    </Link>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </>
-                        ) : child.isHeader ? (
-                          <div className={styles.dropdownHeader}>{child.label}</div>
-                        ) : child.icon ? (
-                          <Link
-                            href={child.href}
-                            className={`${styles.dropdownLinkRich} ${pathname === child.href ? styles.activeRich : ""}`}
-                          >
-                            <span className={styles.richIcon}>
-                              {renderNavIcon(child.icon)}
-                            </span>
-                            <span className={styles.richText}>
-                              <span className={styles.richLabel}>{child.label}</span>
-                              {child.desc && <span className={styles.richDesc}>{child.desc}</span>}
-                            </span>
-                          </Link>
-                        ) : (
-                          <Link
-                            href={child.href}
-                            className={`${styles.dropdownLink} ${pathname === child.href ? styles.active : ""}`}
-                          >
-                            {child.label}
-                          </Link>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ) : (
-              <li key={link.href}>
-                <Link
-                  href={link.href!}
-                  className={`${styles.link} ${active ? styles.active : ""}`}
-                  onClick={link.href === "/" ? () => window.dispatchEvent(new Event("trigger-splash")) : undefined}
-                >
-                  <span>{link.label}</span>
-                  {active && <span className={styles.activeIndicator} />}
-                </Link>
-              </li>
-            );
-          })}
-
-          <li className={styles.themeToggleItem}>
-            <ThemeToggle />
-          </li>
-        </ul>
-
-        {/* Mobile Toggle */}
-        <button
-          className={styles.burger}
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          <i className={`bx ${menuOpen ? "bx-x" : "bx-menu"}`} />
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className={styles.mobileMenu}>
-          {navLinks.map((link: any) =>
-            link.children ? (
-              <div key={link.label} className={styles.mobileGroup}>
-                <div className={styles.mobileGroupLabel}>{link.label}</div>
-                {link.children.map((child: any) => (
-                  child.children ? (
-                    <div key={child.label}>
-                      <div className={styles.mobileSubHeader}>{child.label}</div>
-                      {child.children.map((sub: any) => (
-                        <Link
-                          key={sub.href}
-                          href={sub.href}
-                          className={`${styles.mobileLink} ${styles.mobileNestedLink} ${pathname === sub.href ? styles.mobileActive : ""}`}
-                        >
-                          {sub.icon && <span className={styles.mobileIcon}>{renderNavIcon(sub.icon)}</span>}
-                          <span>{sub.label}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : child.isHeader ? (
-                    <div key={child.href || child.label} className={styles.mobileSubHeader}>{child.label}</div>
-                  ) : (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={`${styles.mobileLink} ${pathname === child.href ? styles.mobileActive : ""}`}
-                    >
-                      {child.icon && <span className={styles.mobileIcon}>{renderNavIcon(child.icon)}</span>}
-                      <span>{child.label}</span>
-                    </Link>
-                  )
-                ))}
-              </div>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href!}
-                className={`${styles.mobileLink} ${pathname === link.href ? styles.mobileActive : ""}`}
-                onClick={link.href === "/" ? () => window.dispatchEvent(new Event("trigger-splash")) : undefined}
-              >
-                {link.icon && <span className={styles.mobileIcon}>{renderNavIcon(link.icon)}</span>}
-                <span>{link.label}</span>
-              </Link>
-            )
-          )}
-          <div style={{ padding: "16px 0", display: "flex", justifyContent: "center", borderTop: "1px dashed var(--border)" }}>
-            <ThemeToggle />
-          </div>
+    <>
+      <header
+        ref={headerRef}
+        className={styles.header}
+        data-motion
+        data-compact="false"
+        data-hidden="false"
+        data-mega={mega ? "true" : "false"}
+        data-menu={menuOpen ? "true" : "false"}
+        onMouseLeave={scheduleClose}
+      >
+        {/* 8-square rank bar = page scroll progress (fills with embers) */}
+        <div className={styles.rank} aria-hidden="true">
+          {FILES.map((f, i) => (
+            <span key={f} className={styles.sq} data-dark={i % 2 === 0 ? "true" : "false"}>
+              <span className={styles.sqFill} data-rank-fill />
+            </span>
+          ))}
         </div>
-      )}
-    </nav>
+
+        <div className={styles.bar}>
+          <Link href="/" className={styles.brand} onClick={triggerSplash} aria-label="Cavallery — Beranda">
+            <img src="/images/cava-logo-round.png" alt="" width={40} height={40} className={styles.logo} />
+            <span className={styles.brandRule} aria-hidden="true" />
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>Cavallery</span>
+              <span className={styles.brandSub}>Fanbase Catherina Vallencia</span>
+            </span>
+          </Link>
+
+          <nav className={styles.nav} ref={navRef} aria-label="Navigasi utama">
+            <ul className={styles.list} onMouseLeave={() => safeJump(activeIndex)}>
+              {navLinks.map((link, i) => {
+                const active = i === activeIndex;
+                return (
+                  <li key={link.label} className={styles.item} data-nav-index={i}>
+                    {isParent(link) ? (
+                      <button
+                        type="button"
+                        className={`${styles.link} ${active ? styles.active : ""}`}
+                        aria-expanded={mega === link.label}
+                        aria-controls="cv-mega"
+                        onMouseEnter={() => {
+                          safeJump(i);
+                          openMega(link.label);
+                        }}
+                        onFocus={() => safeJump(i)}
+                        onClick={() => openMega(mega === link.label ? null : link.label)}
+                      >
+                        <span className={styles.file}>{FILES[i]}</span>
+                        <span>{link.label}</span>
+                        <svg className={styles.chev} viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                          <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className={`${styles.link} ${active ? styles.active : ""}`}
+                        aria-current={active ? "page" : undefined}
+                        onMouseEnter={() => {
+                          safeJump(i);
+                          openMega(null);
+                        }}
+                        onFocus={() => safeJump(i)}
+                        onClick={link.href === "/" ? triggerSplash : undefined}
+                      >
+                        <span className={styles.file}>{FILES[i]}</span>
+                        <span>{link.label}</span>
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <span ref={knightRef} className={styles.knight} aria-hidden="true">
+              <KnightSvg size={16} />
+            </span>
+          </nav>
+
+          {/* Custom mobile toggle: a 2×2 board that turns into a cross */}
+          <button
+            type="button"
+            className={styles.toggle}
+            aria-expanded={menuOpen}
+            aria-controls="cv-mobile-menu"
+            aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span className={styles.toggleLabel}>{menuOpen ? "Tutup" : "Menu"}</span>
+            <span className={styles.toggleBoard} aria-hidden="true">
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+          </button>
+        </div>
+
+        {/* Mega menu panel */}
+        <div
+          id="cv-mega"
+          className={styles.mega}
+          data-open={mega ? "true" : "false"}
+          onMouseEnter={() => openMega(mega || lastMega)}
+          onMouseLeave={scheduleClose}
+          aria-hidden={mega ? undefined : true}
+        >
+          {megaLink && (
+            <div className={styles.megaInner} key={megaLink.label}>
+              <div className={styles.megaIntro}>
+                <span className="cv-eyebrow">
+                  <span className="cv-eyebrow__sq">{FILES[megaIndex]}-file</span>
+                  <span className="cv-eyebrow__dash" />
+                  <span>{flatChildren(megaLink).length} tautan</span>
+                </span>
+                <p className={`cv-display ${styles.megaTitle}`}>{megaLink.label}</p>
+                <p className={styles.megaBlurb}>{megaLink.blurb}</p>
+              </div>
+
+              {megaLink.children.some(isGroup) ? (
+                <div className={styles.megaRanks}>
+                  {megaLink.children.filter(isGroup).map((group) => (
+                    <div key={group.label} className={styles.megaRank}>
+                      <span className={styles.megaRankLabel}>{group.label}</span>
+                      <ul className={styles.megaRankList}>
+                        {group.children.map((child, ci) => (
+                          <li key={child.href} style={{ "--i": ci } as React.CSSProperties}>
+                            <Link href={child.href} className={styles.megaRow} tabIndex={mega ? 0 : -1}>
+                              <span className={styles.megaRowThumb}>
+                                {THUMBS[child.href] && <img src={THUMBS[child.href]} alt="" loading="lazy" decoding="async" />}
+                              </span>
+                              <span className={styles.megaRowText}>
+                                <span className={styles.megaTileLabel}>{child.label}</span>
+                                <span className={styles.megaTileDesc}>{child.desc}</span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ul className={styles.megaGrid} data-count={flatChildren(megaLink).length}>
+                  {flatChildren(megaLink).map((child, ci) => (
+                    <li key={child.href} style={{ "--i": ci } as React.CSSProperties}>
+                      <Link href={child.href} className={styles.megaTile} tabIndex={mega ? 0 : -1}>
+                        <span className={styles.megaThumb}>
+                          {THUMBS[child.href] && <img src={THUMBS[child.href]} alt="" loading="lazy" decoding="async" />}
+                          <span className={styles.megaSq}>
+                            {FILES[megaIndex]}
+                            {ci + 1}
+                          </span>
+                        </span>
+                        <span className={styles.megaTileLabel}>{child.label}</span>
+                        <span className={styles.megaTileDesc}>{child.desc}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Mobile fullscreen overlay */}
+      <div
+        id="cv-mobile-menu"
+        ref={overlayRef}
+        className={`${styles.overlay} cv-board`}
+        data-open={menuOpen ? "true" : "false"}
+        aria-hidden={menuOpen ? undefined : true}
+        data-motion
+      >
+        <nav className={styles.ovNav} aria-label="Menu seluler">
+          <ul className={styles.ovList}>
+            {navLinks.map((link, i) => {
+              const active = i === activeIndex;
+              const expanded = openGroup === link.label;
+              return (
+                <li key={link.label} className={styles.ovItem}>
+                  <div className={styles.ovMask}>
+                    {isParent(link) ? (
+                      <button
+                        type="button"
+                        className={`${styles.ovLink} ${active ? styles.ovActive : ""}`}
+                        data-ov-row
+                        aria-expanded={expanded}
+                        tabIndex={menuOpen ? 0 : -1}
+                        onClick={() => setOpenGroup(expanded ? null : link.label)}
+                      >
+                        <span className={styles.ovFile}>{FILES[i]}</span>
+                        <span className={styles.ovLabel}>{link.label}</span>
+                        <span className={styles.ovPlus} data-open={expanded ? "true" : "false"} aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className={`${styles.ovLink} ${active ? styles.ovActive : ""}`}
+                        data-ov-row
+                        tabIndex={menuOpen ? 0 : -1}
+                        onClick={link.href === "/" ? triggerSplash : undefined}
+                      >
+                        <span className={styles.ovFile}>{FILES[i]}</span>
+                        <span className={styles.ovLabel}>{link.label}</span>
+                      </Link>
+                    )}
+                  </div>
+                  {isParent(link) && (
+                    <div className={styles.ovSub} data-open={expanded ? "true" : "false"}>
+                      <div className={styles.ovSubInner}>
+                        {link.children.map((c) =>
+                          isGroup(c) ? (
+                            <div key={c.label} className={styles.ovSubGroup}>
+                              <span className={styles.ovSubRank}>{c.label}</span>
+                              {c.children.map((s) => (
+                                <Link key={s.href} href={s.href} className={styles.ovSubLink} tabIndex={expanded ? 0 : -1}>
+                                  {s.label}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            <Link key={c.href} href={c.href} className={styles.ovSubLink} tabIndex={expanded ? 0 : -1}>
+                              {c.label}
+                            </Link>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <div className={styles.ovFoot} data-ov-foot>
+          <div className={styles.ovSocials}>
+            {SOCIAL_LINKS.map((s) => (
+              <a key={s.key} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} tabIndex={menuOpen ? 0 : -1}>
+                {s.icon}
+              </a>
+            ))}
+          </div>
+          <p className={styles.ovQuote}>
+            Hadir dengan seribu kejutan, <span className="cv-fire-text">Checkmate!</span>
+          </p>
+        </div>
+      </div>
+    </>
   );
 }

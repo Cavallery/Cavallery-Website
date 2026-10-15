@@ -1,0 +1,196 @@
+/* ================================================================
+   CAVALLERY DESIGN TOKENS — "Passion × Checkmate"
+   Single source of truth for colour, type, spacing & motion.
+   Base: dark board (#0a0a0a). Primary accent: Erine pink.
+   Passion fire palette is a secondary accent reserved for key
+   moments (hero, CTA, Team Passion milestones, footer, hover).
+   Blue & green are used very sparingly (cold era of the path).
+   ================================================================ */
+
+:root {
+  /* ── Board / neutrals ─────────────────────────────────────── */
+  --cv-ink: #0a0a0a;
+  --cv-ink-1: #101010;
+  --cv-ink-2: #161616;
+  --cv-ink-3: #1f1f1f;
+  --cv-bone: #f3ede4;
+  --cv-bone-2: #e7dfd2;
+  --cv-text: #f3ede4;
+  --cv-text-dim: rgba(243, 237, 228, 0.7);
+  --cv-text-mute: rgba(243, 237, 228, 0.5);
+  --cv-line: rgba(243, 237, 228, 0.12);
+  --cv-line-strong: rgba(243, 237, 228, 0.26);
+  --cv-square-dark: rgba(243, 237, 228, 0.028);
+
+  /* ── Erine accents (one primary, two very limited) ────────── */
+  --cv-pink: #ff4f8b;          /* primary accent */
+  --cv-pink-deep: #e0336f;
+  --cv-pink-soft: rgba(255, 79, 139, 0.14);
+  --cv-blue: #6aa8ff;          /* limited: "cold" era of the path */
+  --cv-green: #5cd6a2;         /* limited: success states */
+
+  /* ── Passion fire palette (secondary accent) ──────────────── */
+  --cv-ember: #d7301c;         /* merah bara */
+  --cv-flame: #f26a1b;         /* oranye Passion */
+  --cv-heat: #ffc14a;          /* kuning panas */
+  --cv-heat-pale: #ffe3a3;
+  --cv-ember-glow: rgba(242, 106, 27, 0.38);
+  --cv-fire: linear-gradient(90deg, var(--cv-ember) 0%, var(--cv-flame) 45%, var(--cv-heat) 100%);
+  --cv-fire-v: linear-gradient(0deg, var(--cv-ember) 0%, var(--cv-flame) 50%, var(--cv-heat) 100%);
+  /* Moving text gradient (animated via background-position only) */
+  --cv-fire-text: linear-gradient(100deg, var(--cv-heat) 0%, var(--cv-flame) 22%, var(--cv-ember) 40%, var(--cv-flame) 58%, var(--cv-heat) 78%, var(--cv-heat-pale) 100%);
+
+  /* ── Typography ───────────────────────────────────────────── */
+  --cv-font-display: "Anton", "Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --cv-font-body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --cv-fs-mega: clamp(3.6rem, 13.5vw, 14rem);
+  --cv-fs-h1: clamp(3rem, 9vw, 8.5rem);
+  --cv-fs-h2: clamp(2.6rem, 6.4vw, 5.6rem);
+  --cv-fs-h3: clamp(1.35rem, 2.4vw, 2rem);
+  --cv-fs-lead: clamp(1.02rem, 1.3vw, 1.2rem);
+  --cv-fs-body: 1rem;
+  --cv-fs-small: 0.875rem;
+  --cv-fs-label: 0.72rem;
+  --cv-tracking-label: 0.18em;
+
+  /* ── Spacing & layout ─────────────────────────────────────── */
+  --cv-gutter: 16px;
+  --cv-max: 1320px;
+  --cv-section-y: clamp(72px, 11vw, 160px);
+  --cv-square: 56px;           /* board texture square size */
+  --cv-radius: 2px;            /* chess squares → hard corners */
+  --cv-header-h: 64px;
+  --cv-rank-h: 4px;
+
+  /* ── Motion ───────────────────────────────────────────────── */
+  --cv-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --cv-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --cv-dur-fast: 0.25s;
+  --cv-dur: 0.5s;
+  --cv-dur-slow: 0.9s;
+
+  /* ── Layers ───────────────────────────────────────────────── */
+  --cv-z-header: 1000;
+  --cv-z-mega: 990;
+  --cv-z-overlay: 1100;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --cv-gutter: 32px;
+    --cv-header-h: 72px;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --cv-gutter: 48px;
+  }
+}
+
+/* ================================================================
+   SHARED CHESS PRIMITIVES (global utilities, prefixed cv-)
+   ================================================================ */
+
+/* Faint chessboard texture */
+.cv-board {
+  background-image: conic-gradient(
+    var(--cv-square-dark) 0 25%,
+    transparent 0 50%,
+    var(--cv-square-dark) 0 75%,
+    transparent 0
+  );
+  background-size: calc(var(--cv-square) * 2) calc(var(--cv-square) * 2);
+}
+
+.cv-container {
+  width: 100%;
+  max-width: var(--cv-max);
+  margin-inline: auto;
+  padding-inline: var(--cv-gutter);
+}
+
+/* Notation label: "♞ e4 — Informasi Terkini" */
+.cv-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  font-family: var(--cv-font-body);
+  font-size: var(--cv-fs-label);
+  font-weight: 700;
+  letter-spacing: var(--cv-tracking-label);
+  text-transform: uppercase;
+  color: var(--cv-text-dim);
+}
+
+.cv-eyebrow__sq {
+  color: var(--cv-pink);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.cv-eyebrow__dash {
+  width: 28px;
+  height: 1px;
+  background: var(--cv-line-strong);
+}
+
+.cv-display {
+  font-family: var(--cv-font-display);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+/* Glowing Passion text — gradient drifts via background-position only */
+.cv-fire-text {
+  background-image: var(--cv-fire-text);
+  background-size: 300% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--cv-flame);
+  animation: cv-fire-drift 7s linear infinite;
+}
+
+@keyframes cv-fire-drift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 300% 50%; }
+}
+
+/* Split-word reveal masks (used by <SplitWords/> + useReveal) */
+.cv-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.cv-word__in {
+  display: inline-block;
+  will-change: transform;
+}
+
+.cv-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-fire-text {
+    animation: none;
+    background-position: 30% 50%;
+  }
+}

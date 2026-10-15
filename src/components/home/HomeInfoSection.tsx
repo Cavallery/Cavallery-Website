@@ -1,13 +1,17 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./HomeInfoSection.module.css";
 import type { HomeBannerItem } from "@/lib/settings";
+import SectionHead from "@/components/chess/SectionHead";
+import { useReveal } from "@/hooks/useReveal";
 
 export default function HomeInfoSection() {
   const [banners, setBanners] = useState<HomeBannerItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const rootRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     fetch(`/api/master-data?_t=${Date.now()}`)
@@ -24,7 +28,9 @@ export default function HomeInfoSection() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Jika sedang loading atau tidak ada banner aktif, sembunyikan section agar tidak memakan ruang
+  useReveal(rootRef, [loading, banners.length]);
+
+  // Jika tidak ada banner aktif, sembunyikan section agar tidak memakan ruang
   if (!loading && banners.length === 0) {
     return null;
   }
@@ -54,181 +60,151 @@ export default function HomeInfoSection() {
     return "bx-bell";
   };
 
+  const toEmbed = (url: string) =>
+    url.includes("youtube.com/shorts/")
+      ? url.replace("youtube.com/shorts/", "www.youtube.com/embed/")
+      : url.includes("watch?v=")
+        ? url.replace("watch?v=", "embed/")
+        : url.includes("youtu.be/")
+          ? url.replace("youtu.be/", "www.youtube.com/embed/")
+          : url;
+
   return (
-    <section className={styles.section} id="info-berita">
-      <div className={styles.header}>
-        <div className="badge">
-          <i className="bx bx-broadcast" /> Agenda &amp; Pengumuman
+    <section ref={rootRef} className={styles.section} id="info-berita" data-motion>
+      <div className={styles.layout}>
+        <div className={styles.aside}>
+          <div className={styles.asideSticky}>
+            <SectionHead
+              square="f6"
+              eyebrow="Agenda & Pengumuman"
+              title="Informasi"
+              accent="Terkini"
+              subtitle="Pengumuman resmi komunitas, info open member, meet & greet, serta kegiatan terbaru Cavallery."
+            />
+            {!loading && (
+              <p className={styles.count} data-reveal="fade">
+                <span className={styles.countNum}>{String(banners.length).padStart(2, "0")}</span>
+                <span>pengumuman aktif</span>
+              </p>
+            )}
+          </div>
         </div>
-        <h2 className="sectionTitle textGold">Informasi Terkini</h2>
-        <div className="divider" />
-        <p className={styles.subtitle}>
-          Pengumuman resmi komunitas, info open member, meet &amp; greet, serta kegiatan terbaru Cavallery.
-        </p>
-      </div>
 
-      <div className={styles.grid}>
-        {banners.map((item) => {
-          const isExternal = item.actionUrl?.startsWith("http://") || item.actionUrl?.startsWith("https://");
-          const url = item.actionUrl || "/join";
+        <div className={styles.list} data-reveal="stagger">
+          {loading &&
+            [0, 1].map((i) => <div key={i} className={styles.skeleton} data-reveal-item aria-hidden="true" />)}
 
-          return (
-            <div key={item.id} className={styles.card}>
-              <div className={styles.cardGlow} />
+          {banners.map((item, idx) => {
+            const isExternal = item.actionUrl?.startsWith("http://") || item.actionUrl?.startsWith("https://");
+            const url = item.actionUrl || "/join";
+            const lead = idx === 0;
 
-              <div>
+            return (
+              <article
+                key={item.id}
+                className={`${styles.card} ${lead ? styles.lead : ""}`}
+                data-reveal-item
+              >
                 <div className={styles.topRow}>
+                  <span className={styles.index}>{String(idx + 1).padStart(2, "0")}</span>
                   <span className={`${styles.badge} ${getBadgeClass(item.badgeColor)}`}>
                     <i className={`bx ${getBadgeIcon(item.badge)}`} /> {item.badge}
                   </span>
-                  {item.priority && item.priority === 1 && (
-                    <span style={{ fontSize: "0.72rem", color: "var(--gold)", fontWeight: 700 }}>
-                      ? Utama
-                    </span>
-                  )}
+                  {item.priority && item.priority === 1 && <span className={styles.priority}>Utama</span>}
                 </div>
 
-                {/* Media Video / Gambar Utama */}
-                {item.videoUrl ? (
-                  <div
-                    className={styles.imageWrap}
-                    style={{
-                      height: "auto",
-                      background: "#000",
-                      overflow: "hidden",
-                      borderRadius: 12,
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      padding: item.videoOrientation === "portrait" ? "4px 0" : 0,
-                    }}
-                  >
-                    {item.videoUrl.includes("youtube.com") || item.videoUrl.includes("youtu.be") ? (
-                      <iframe
-                        src={
-                          item.videoUrl.includes("youtube.com/shorts/")
-                            ? item.videoUrl.replace("youtube.com/shorts/", "www.youtube.com/embed/")
-                            : item.videoUrl.includes("watch?v=")
-                            ? item.videoUrl.replace("watch?v=", "embed/")
-                            : item.videoUrl.includes("youtu.be/")
-                            ? item.videoUrl.replace("youtu.be/", "www.youtube.com/embed/")
-                            : item.videoUrl
-                        }
-                        title={item.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        style={{
-                          width: "100%",
-                          maxWidth: item.videoOrientation === "portrait" ? 280 : "100%",
-                          aspectRatio: item.videoOrientation === "portrait" ? "9 / 16" : "16 / 9",
-                          minHeight: item.videoOrientation === "portrait" ? 420 : 210,
-                          maxHeight: item.videoOrientation === "portrait" ? 520 : 360,
-                          border: "none",
-                          borderRadius: 8,
-                          display: "block",
-                        }}
-                      />
-                    ) : (
-                      <video
-                        src={item.videoUrl}
-                        controls
-                        playsInline
-                        preload="metadata"
-                        style={{
-                          width: "100%",
-                          maxWidth: item.videoOrientation === "portrait" ? 280 : "100%",
-                          aspectRatio: item.videoOrientation === "portrait" ? "9 / 16" : "16 / 9",
-                          maxHeight: item.videoOrientation === "portrait" ? 480 : 260,
-                          objectFit: "contain",
-                          display: "block",
-                          borderRadius: 8,
-                          background: "#000",
-                        }}
-                      />
-                    )}
-                  </div>
-                ) : item.imageUrl ? (
-                  <div className={styles.imageWrap}>
-                    <img src={item.imageUrl} alt={item.title} />
-                  </div>
-                ) : null}
-
-                <h3 className={styles.cardTitle}>{item.title}</h3>
-                <p className={styles.cardDesc}>{item.description}</p>
-
-                {(item.dateInfo || item.locationInfo) && (
-                  <div className={styles.metaInfo}>
-                    {item.dateInfo && (
-                      <div className={styles.metaItem}>
-                        <i className="bx bx-calendar" />
-                        <span>{item.dateInfo}</span>
-                      </div>
-                    )}
-                    {item.locationInfo && (
-                      <div className={styles.metaItem}>
-                        <i className="bx bx-map-pin" />
-                        <span>{item.locationInfo}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {item.sessions && item.sessions.length > 0 && (
-                  <div className={styles.sessionsTableWrap}>
-                    <div className={styles.sessionsTableTitle}>
-                      <i className="bx bx-time-five" />
-                      <span>Jadwal Sesi &amp; Waktu</span>
+                <div className={styles.body}>
+                  {/* Media Video / Gambar Utama */}
+                  {item.videoUrl ? (
+                    <div
+                      className={styles.videoWrap}
+                      data-orientation={item.videoOrientation === "portrait" ? "portrait" : "landscape"}
+                    >
+                      {item.videoUrl.includes("youtube.com") || item.videoUrl.includes("youtu.be") ? (
+                        <iframe
+                          src={toEmbed(item.videoUrl)}
+                          title={item.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          loading="lazy"
+                        />
+                      ) : (
+                        <video src={item.videoUrl} controls playsInline preload="metadata" />
+                      )}
                     </div>
-                    <table className={styles.sessionsTable}>
-                      <thead>
-                        <tr>
-                          <th>Sesi</th>
-                          <th>Waktu / Jam</th>
-                          <th>Keterangan / Jalur</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {item.sessions.map((s, sIdx) => (
-                          <tr key={sIdx}>
-                            <td>
-                              <span className={styles.sessionTag}>{s.sessionName}</span>
-                            </td>
-                            <td style={{ fontWeight: 600 }}>{s.time}</td>
-                            <td style={{ color: "var(--fg-dim)", fontSize: "0.75rem" }}>
-                              {s.info || "-"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                  ) : item.imageUrl ? (
+                    <div className={styles.imageWrap}>
+                      <img src={item.imageUrl} alt={item.title} loading="lazy" decoding="async" />
+                    </div>
+                  ) : null}
 
-              <div>
-                {isExternal ? (
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`${styles.actionBtn} ${styles.btnPrimary}`}
-                  >
-                    <span>{item.actionText || "Selengkapnya"}</span>
-                    <i className="bx bx-right-arrow-alt" />
-                  </a>
-                ) : (
-                  <Link
-                    href={url}
-                    className={`${styles.actionBtn} ${styles.btnPrimary}`}
-                  >
-                    <span>{item.actionText || "Selengkapnya"}</span>
-                    <i className="bx bx-right-arrow-alt" />
-                  </Link>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                  <div className={styles.text}>
+                    <h3 className={styles.cardTitle}>{item.title}</h3>
+                    <p className={styles.cardDesc}>{item.description}</p>
+
+                    {(item.dateInfo || item.locationInfo) && (
+                      <div className={styles.metaInfo}>
+                        {item.dateInfo && (
+                          <div className={styles.metaItem}>
+                            <i className="bx bx-calendar" />
+                            <span>{item.dateInfo}</span>
+                          </div>
+                        )}
+                        {item.locationInfo && (
+                          <div className={styles.metaItem}>
+                            <i className="bx bx-map-pin" />
+                            <span>{item.locationInfo}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {item.sessions && item.sessions.length > 0 && (
+                      <div className={styles.sessionsTableWrap}>
+                        <div className={styles.sessionsTableTitle}>
+                          <i className="bx bx-time-five" />
+                          <span>Jadwal Sesi &amp; Waktu</span>
+                        </div>
+                        <table className={styles.sessionsTable}>
+                          <thead>
+                            <tr>
+                              <th>Sesi</th>
+                              <th>Waktu / Jam</th>
+                              <th>Keterangan / Jalur</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {item.sessions.map((s, sIdx) => (
+                              <tr key={sIdx}>
+                                <td>
+                                  <span className={styles.sessionTag}>{s.sessionName}</span>
+                                </td>
+                                <td className={styles.sessionTime}>{s.time}</td>
+                                <td className={styles.sessionInfo}>{s.info || "-"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {isExternal ? (
+                      <a href={url} target="_blank" rel="noreferrer" className={styles.actionBtn}>
+                        <span>{item.actionText || "Selengkapnya"}</span>
+                        <i className="bx bx-right-arrow-alt" />
+                      </a>
+                    ) : (
+                      <Link href={url} className={styles.actionBtn}>
+                        <span>{item.actionText || "Selengkapnya"}</span>
+                        <i className="bx bx-right-arrow-alt" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
