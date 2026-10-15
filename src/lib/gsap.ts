@@ -17,6 +17,35 @@ export function registerGSAP() {
   gsap.defaults({ ease: "power3.out", duration: 0.8 });
   ScrollTrigger.config({ ignoreMobileResize: true });
   registered = true;
+  watchLayoutShifts();
+}
+
+/**
+ * Keeps every ScrollTrigger in sync with the real page height.
+ * CMS data, social embeds (X/TikTok/IG), web fonts and lazy images all grow
+ * the document *after* triggers were measured; without a refresh, every
+ * trigger below the change fires late (content stays hidden, the knight lags).
+ * One ResizeObserver on <body>, debounced, and it ignores the height changes
+ * caused by ScrollTrigger's own pin spacers (no refresh loop).
+ */
+function watchLayoutShifts() {
+  if (typeof ResizeObserver === "undefined") return;
+  const doc = document.documentElement;
+  let measured = doc.scrollHeight;
+  ScrollTrigger.addEventListener("refresh", () => {
+    measured = doc.scrollHeight;
+  });
+  const check = () => {
+    if (Math.abs(doc.scrollHeight - measured) > 2) scheduleRefresh(220);
+  };
+  const start = () => {
+    if (!document.body) return;
+    new ResizeObserver(check).observe(document.body);
+    document.fonts?.ready.then(check).catch(() => {});
+    window.addEventListener("load", check, { once: true });
+  };
+  if (document.body) start();
+  else document.addEventListener("DOMContentLoaded", start, { once: true });
 }
 
 registerGSAP();

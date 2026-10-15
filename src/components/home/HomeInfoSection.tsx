@@ -189,12 +189,12 @@ export default function HomeInfoSection() {
                     )}
 
                     {isExternal ? (
-                      <a href={url} target="_blank" rel="noreferrer" className={styles.actionBtn}>
+                      <a href={url} target="_blank" rel="noreferrer" className={`${styles.actionBtn} cv-flame-hover`}>
                         <span>{item.actionText || "Selengkapnya"}</span>
                         <i className="bx bx-right-arrow-alt" />
                       </a>
                     ) : (
-                      <Link href={url} className={styles.actionBtn}>
+                      <Link href={url} className={`${styles.actionBtn} cv-flame-hover`}>
                         <span>{item.actionText || "Selengkapnya"}</span>
                         <i className="bx bx-right-arrow-alt" />
                       </Link>

@@ -15,7 +15,7 @@
 .track {
   display: flex;
   align-items: stretch;
-  gap: 0;
+  gap: 14px;
   padding: 0 var(--cv-gutter);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -60,6 +60,8 @@
 
 /* ── Panels ───────────────────────────────────────────────────── */
 .panel {
+  border-radius: var(--cv-radius-xl);
+  overflow: hidden;
   position: relative;
   flex: 0 0 auto;
   width: 78vw;
@@ -129,6 +131,7 @@
 }
 
 .badge {
+  border-radius: var(--cv-radius-pill);
   padding: 3px 8px;
   border: 1px solid currentColor;
   font-size: 0.62rem;
@@ -142,6 +145,7 @@
 }
 
 .media {
+  border-radius: var(--cv-radius-lg);
   position: relative;
   overflow: hidden;
   min-height: 0;
@@ -169,6 +173,7 @@
 }
 
 .icon {
+  border-radius: 0 var(--cv-radius) 0 var(--cv-radius-lg);
   position: absolute;
   left: 0;
   bottom: 0;
@@ -258,6 +263,7 @@
 }
 
 .mark {
+  border-radius: 7px;
   display: grid;
   place-items: center;
   width: 22px;

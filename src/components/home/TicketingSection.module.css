@@ -43,11 +43,13 @@
 }
 
 .sheet {
+  border-radius: var(--cv-radius-xl);
+  overflow: hidden;
   position: relative;
   min-width: 0;
   background: var(--cv-bone);
   color: var(--cv-ink);
-  box-shadow: 10px 10px 0 0 var(--cv-ink-3);
+  box-shadow: var(--cv-shadow-soft), var(--cv-shadow-heat);
 }
 
 .sheetHead {
@@ -70,6 +72,8 @@
 }
 
 .identityToggle {
+  border-radius: var(--cv-radius-pill);
+  overflow: hidden;
   display: grid;
   grid-template-columns: 1fr 1fr;
   border: 1.5px solid var(--cv-ink);
@@ -172,6 +176,7 @@
 }
 
 .submit {
+  border-radius: var(--cv-radius-pill);
   position: relative;
   isolation: isolate;
   overflow: hidden;

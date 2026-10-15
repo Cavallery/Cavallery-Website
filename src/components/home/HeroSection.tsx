@@ -7,6 +7,7 @@ import styles from "./HeroSection.module.css";
 import { VIDEO_URLS } from "@/lib/videoAssets";
 import { gsap, useGSAP, MQ, prefersReducedMotion } from "@/lib/gsap";
 import EmberField from "@/components/chess/EmberField";
+import FlameLayer from "@/components/chess/FlameLayer";
 import ChessEyebrow from "@/components/chess/ChessEyebrow";
 import KnightSvg from "@/components/chess/KnightSvg";
 
@@ -28,6 +29,8 @@ const ROWS = 6; // 24 tiles
 const TILES = Array.from({ length: COLS * ROWS }, (_, i) => ({ c: i % COLS, r: Math.floor(i / COLS) }));
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const pad = (n: number) => String(n).padStart(2, "0");
+const SPARKS = 18;
+const CURSOR_EMBERS = 14;
 
 function Typewriter() {
   const [textIndex, setTextIndex] = useState(0);
@@ -102,7 +105,7 @@ function JikoTile() {
   return (
     <button
       type="button"
-      className={`${styles.tile} ${styles.tileDark}`}
+      className={`${styles.tile} ${styles.tileDark} cv-flame-hover`}
       onClick={toggleJiko}
       aria-pressed={isPlayingJiko}
     >
@@ -155,6 +158,29 @@ export default function HeroSection() {
       let current = 0;
       let busy = false;
 
+      // Sparks thrown off by burning tiles (pooled, transform/opacity only).
+      const frameWrap = root.querySelector<HTMLElement>("[data-frame-wrap]");
+      const sparks = Array.from(root.querySelectorAll<HTMLElement>("[data-spark]"));
+      let sparkIdx = 0;
+      const sparkFromTile = contextSafe((tile: HTMLElement) => {
+        if (!frameWrap || !sparks.length) return;
+        const fr = frameWrap.getBoundingClientRect();
+        const tr = tile.getBoundingClientRect();
+        const x = tr.left + tr.width / 2 - fr.left;
+        const y = tr.top + tr.height / 2 - fr.top;
+        for (let k = 0; k < 2; k++) {
+          const sp = sparks[sparkIdx++ % sparks.length];
+          const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+          const r = 40 + Math.random() * 70;
+          gsap.killTweensOf(sp);
+          gsap.fromTo(
+            sp,
+            { x, y, autoAlpha: 1, scale: 0.8 + Math.random() * 0.8 },
+            { x: x + Math.cos(a) * r, y: y + Math.sin(a) * r, autoAlpha: 0, scale: 0.1, duration: 0.6 + Math.random() * 0.5, ease: "power2.out" }
+          );
+        }
+      });
+
       const setActive = (i: number) => {
         bases.forEach((b, j) => (b.dataset.active = j === i ? "true" : "false"));
         if (counter) counter.textContent = `${pad(i + 1)} / ${pad(SLIDES.length)}`;
@@ -185,7 +211,7 @@ export default function HeroSection() {
         gsap.set(tileEls, { autoAlpha: 0, scale: 0.35 });
         gsap.set(burns, { opacity: 0 });
         const stagger = { each: 0.04, from: "random" as const };
-        gsap
+        const tl = gsap
           .timeline({
             onComplete: () => {
               setActive(to);
@@ -198,6 +224,10 @@ export default function HeroSection() {
           .to(darkBurns, { keyframes: { opacity: [0, 1, 0] }, duration: 0.95, ease: "none", stagger }, 0)
           .to(lightTiles, { autoAlpha: 1, scale: 1, duration: 0.6, ease: "power3.out", stagger }, 0.38)
           .to(lightBurns, { keyframes: { opacity: [0, 1, 0] }, duration: 0.95, ease: "none", stagger }, 0.38);
+        // throw sparks from a handful of tiles while they burn
+        for (let k = 0; k < 12; k++) {
+          tl.call(() => sparkFromTile(tileEls[Math.floor(Math.random() * tileEls.length)]), [], 0.08 + k * 0.075);
+        }
       });
 
       // ── Intro (after the splash video masks out) ─────────────────────
@@ -244,6 +274,28 @@ export default function HeroSection() {
         fallback = setTimeout(playIntro, 4500);
       }
 
+      // ── Ember trail following the cursor (desktop, fine pointer) ────────
+      const cursorEmbers = Array.from(root.querySelectorAll<HTMLElement>("[data-cursor-ember]"));
+      let ceIdx = 0;
+      let lastCe = 0;
+      const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+      const onMove = contextSafe((e: MouseEvent) => {
+        const now = performance.now();
+        if (now - lastCe < 34 || !cursorEmbers.length) return;
+        lastCe = now;
+        const rr = root.getBoundingClientRect();
+        const x = e.clientX - rr.left;
+        const y = e.clientY - rr.top;
+        const el = cursorEmbers[ceIdx++ % cursorEmbers.length];
+        gsap.killTweensOf(el);
+        gsap.fromTo(
+          el,
+          { x, y, autoAlpha: 0.95, scale: 0.6 + Math.random() * 0.9 },
+          { x: x + (Math.random() - 0.5) * 30, y: y - 40 - Math.random() * 40, autoAlpha: 0, scale: 0.1, duration: 0.9, ease: "power1.out" }
+        );
+      });
+      if (fine && !reduce) root.addEventListener("mousemove", onMove);
+
       // ── Autoplay: only while visible & tab active ─────────────────────
       let inView = true;
       const io = new IntersectionObserver((e) => (inView = e[0]?.isIntersecting ?? true), { threshold: 0.2 });
@@ -254,6 +306,7 @@ export default function HeroSection() {
       }, 7000);
 
       return () => {
+        root.removeEventListener("mousemove", onMove);
         clearInterval(timer);
         io.disconnect();
         if (fallback) clearTimeout(fallback);
@@ -283,11 +336,15 @@ export default function HeroSection() {
           </span>
         </p>
 
-        <div className={styles.frameWrap}>
+        <div className={styles.frameWrap} data-frame-wrap>
+          <FlameLayer id="hero-back" floating className={styles.flamesBack} density={8} intensity={0.72} />
           <div className={styles.embers} aria-hidden="true">
-            <EmberField desktop={34} mobile={13} />
+            <EmberField desktop={40} mobile={15} />
           </div>
           <div className={styles.heat} aria-hidden="true" />
+          {Array.from({ length: SPARKS }).map((_, i) => (
+            <span key={i} className={styles.spark} data-spark aria-hidden="true" />
+          ))}
 
           {/* CAVALLERY! behind the photo (solid) */}
           <p className={`${styles.cav} ${styles.cavBack} cv-display`} aria-hidden="true" data-par-cav>
@@ -341,6 +398,7 @@ export default function HeroSection() {
                 </div>
               ))}
             </div>
+            <FlameLayer id="hero-front" className={styles.flamesFront} density={6} intensity={0.75} />
             <span className={styles.frameSq}>e4</span>
             <span className={styles.counter}>
               <span data-counter>01 / {pad(SLIDES.length)}</span>
@@ -400,7 +458,7 @@ export default function HeroSection() {
             every chapter ahead.
           </p>
           <div className={styles.ctas} data-intro-copy>
-            <Link href="/about/erine" className={`${styles.tile} ${styles.tileLight}`}>
+            <Link href="/about/erine" className={`${styles.tile} ${styles.tileLight} cv-flame-hover`}>
               <span className={styles.tileFlip} aria-hidden="true" />
               <span className={styles.tileGlint} aria-hidden="true" />
               <span className={styles.tileSq}>d4</span>
@@ -417,6 +475,10 @@ export default function HeroSection() {
       </div>
 
       {/* Slow marquee */}
+      {Array.from({ length: CURSOR_EMBERS }).map((_, i) => (
+        <span key={i} className={styles.cursorEmber} data-cursor-ember aria-hidden="true" />
+      ))}
+
       <div className={styles.marquee} aria-hidden="true">
         <div className={styles.marqueeTrack}>
           {Array.from({ length: 2 }).map((_, k) => (

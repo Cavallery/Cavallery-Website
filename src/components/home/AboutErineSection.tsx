@@ -6,6 +6,7 @@ import { VIDEO_URLS } from "@/lib/videoAssets";
 import ChessEyebrow from "@/components/chess/ChessEyebrow";
 import KnightSvg from "@/components/chess/KnightSvg";
 import EmberField from "@/components/chess/EmberField";
+import FlameLayer from "@/components/chess/FlameLayer";
 import { gsap, useGSAP, MQ } from "@/lib/gsap";
 import { useReveal } from "@/hooks/useReveal";
 
@@ -510,7 +511,7 @@ export default function AboutErineSection() {
                href="https://www.idn.app/jkt48_erine"
   target="_blank"
   rel="noopener noreferrer"
-  className={styles.followBtn}
+  className={`${styles.followBtn} cv-flame-hover`}
 >
   &#43; Follow
 </a>
@@ -997,6 +998,9 @@ export default function AboutErineSection() {
 
                         <div className={styles.kabeshaPhotoWrap}>
                           <img src={img} alt={`${title} (${year})`} className={styles.kabeshaImg} loading="lazy" decoding="async" />
+                          {isPassion && (
+                            <FlameLayer id={`kabesha-flames-${idx}`} className={styles.kabeshaFlames} density={6} intensity={0.85} />
+                          )}
                           <div className={styles.photoZoomOverlay}>
                             <i className="bx bx-zoom-in" />
                             <span>Lihat Foto Pas</span>
