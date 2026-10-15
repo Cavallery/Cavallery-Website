@@ -87,6 +87,7 @@
 }
 
 .frame {
+  border-radius: var(--cv-radius-xl);
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -127,6 +128,7 @@
 }
 
 .tileCell {
+  border-radius: 4px;
   position: absolute;
   overflow: hidden;
   opacity: 0;
@@ -143,6 +145,7 @@
 
 /* burning square edge (opacity only) */
 .burn {
+  border-radius: 4px;
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -165,6 +168,7 @@
 }
 
 .frameSq {
+  border-radius: 0 0 var(--cv-radius) 0;
   left: 0;
   color: var(--cv-pink);
 }
@@ -184,6 +188,7 @@
 }
 
 .dots i {
+  border-radius: 50%;
   width: 7px;
   height: 7px;
   border: 1px solid var(--cv-line-strong);
@@ -226,13 +231,57 @@
   inset: 4% -16% -8% -16%;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(55% 50% at 50% 72%, rgba(242, 106, 27, 0.3) 0%, rgba(215, 48, 28, 0.12) 50%, transparent 74%);
-  animation: heat 5s ease-in-out infinite alternate;
+  background: radial-gradient(55% 50% at 50% 72%, rgba(242, 106, 27, 0.42) 0%, rgba(215, 48, 28, 0.18) 50%, transparent 74%);
+  animation: heat 2.8s ease-in-out infinite alternate;
 }
 
 @keyframes heat {
   from { opacity: 0.55; }
   to   { opacity: 1; }
+}
+
+/* ── Passion flames ───────────────────────────────────────────── */
+.flamesBack {
+  left: -14%;
+  right: -14%;
+  bottom: -9%;
+  height: 48%;
+  z-index: 0;
+}
+
+.flamesFront {
+  left: -2%;
+  right: -2%;
+  bottom: -2%;
+  height: 24%;
+  z-index: 3;
+}
+
+.spark,
+.cursorEmber {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #ffe3a3;
+  box-shadow: 0 0 8px 3px rgba(242, 106, 27, 0.75), 0 0 2px 1px #fff3cf;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.spark {
+  z-index: 6;
+}
+
+.cursorEmber {
+  z-index: 8;
+  width: 5px;
+  height: 5px;
 }
 
 .embers {
@@ -252,6 +301,7 @@
 
 /* ── Team Passion tag ─────────────────────────────────────────── */
 .passionTag {
+  border-radius: var(--cv-radius);
   position: absolute;
   z-index: 5;
   bottom: 8px;
@@ -313,6 +363,7 @@
 }
 
 .caret {
+  border-radius: 2px;
   display: inline-block;
   width: 9px;
   height: 1em;
@@ -337,11 +388,12 @@
 .ctas {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0;
+  gap: 10px;
   max-width: 460px;
 }
 
 .tile {
+  border-radius: var(--cv-radius-lg);
   position: relative;
   isolation: isolate;
   overflow: hidden;

@@ -25,6 +25,11 @@ const gameData: Record<string, { title: string; url: string; description: string
     url: "/play/love-tester.html",
     description: "Ukur seberapa besar cintamu untuk Erine!",
   },
+  "knight-passion": {
+    title: "Kuda Api Erine — Knight's Passion",
+    url: "/play/knight-passion.html",
+    description: "Gerakkan kuda catur dengan langkah L dan tangkap api Passion secepat mungkin!",
+  },
   "dress-up-erine": {
     title: "Dress Up Erine Outfit",
     url: "/play/dressuperine.html",

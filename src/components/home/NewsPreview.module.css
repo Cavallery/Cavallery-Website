@@ -39,6 +39,7 @@
 }
 
 .leadMedia {
+  border-radius: var(--cv-radius-xl);
   position: relative;
   display: block;
   aspect-ratio: 16 / 10;
@@ -82,6 +83,7 @@
 }
 
 .leadSq {
+  border-radius: 0 0 var(--cv-radius) 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -131,6 +133,7 @@
 }
 
 .pinned {
+  border-radius: var(--cv-radius-pill);
   padding: 2px 7px;
   background: var(--cv-flame);
   color: var(--cv-ink);
@@ -152,6 +155,9 @@
 }
 
 .row {
+  border-radius: var(--cv-radius);
+  padding-left: 8px;
+  padding-right: 8px;
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;
   gap: 14px;
@@ -190,6 +196,7 @@
 }
 
 .rowThumb {
+  border-radius: var(--cv-radius);
   width: 84px;
   aspect-ratio: 1;
   overflow: hidden;
@@ -214,6 +221,7 @@
 }
 
 .skeleton {
+  border-radius: var(--cv-radius-lg);
   height: 92px;
   background: linear-gradient(90deg, var(--cv-ink-2), var(--cv-ink-3), var(--cv-ink-2));
   background-size: 200% 100%;
@@ -230,6 +238,7 @@
 }
 
 .empty {
+  border-radius: var(--cv-radius-xl);
   display: grid;
   justify-items: center;
   gap: 10px;

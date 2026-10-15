@@ -9,6 +9,16 @@ export const metadata: Metadata = {
 
 const games = [
   {
+    title: "Kuda Api Erine — Knight's Passion",
+    desc: "Gerakkan kuda catur dengan langkah L dan tangkap api Passion secepat mungkin!",
+    href: "/games/knight-passion",
+    icon: "bxs-chess",
+    tag: "Puzzle · Baru",
+    color: "#f26a1b",
+    longDesc:
+      "Game terbaru #GameRine bertema Team Passion × Checkmate! Lompatkan kuda dengan langkah L untuk menangkap api Passion dalam 60 detik. Petak yang kamu tinggalkan ikut terbakar, jadi atur strategi, kejar bonus PERFECT & combo, dan rebut Api Emas Kabesha untuk skor tertinggi!",
+  },
+  {
     title: "Game DressUp Erine",
     desc: "Ayo dress up Erine sesukamu! Ganti baju, pilih wajah, dan tentukan lokasinya. Ciptakan look favoritmu dan bagikan ke semua orang!",
     href: "/games/dress-up-erine",

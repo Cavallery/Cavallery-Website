@@ -30,7 +30,7 @@ const ROTATIONS = [-2.4, 1.8, -1.6, 2.5, -2.8, 1.4, -2.1, 2.2];
 /** Team Passion era — the path "ignites" from this year onward. */
 const FIRE_FROM_YEAR = 2025;
 const PASSION_RE = /passion|promosi|promoted|dipromosikan|200%/i;
-const EMBER_POOL = 10;
+const EMBER_POOL = 18;
 
 function buildDefaultTimelineData(): TimelineData {
   const events = (initialMilestones || []) as TimelineEvent[];
@@ -207,9 +207,21 @@ export default function TimelineSection() {
                 <stop data-kp-stop="3" offset="0.8" stopColor="#f26a1b" />
                 <stop data-kp-stop="4" offset="1" stopColor="#ffc14a" />
               </linearGradient>
+              {/* flowing embers: invisible in the cold era, heat in the Passion era */}
+              <linearGradient id="kp-flow" data-kp-flowgrad gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1000">
+                <stop offset="0" stopColor="#ffe3a3" stopOpacity="0" />
+                <stop offset="0.5" stopColor="#ffe3a3" stopOpacity="0" />
+                <stop offset="0.52" stopColor="#ffe3a3" stopOpacity="1" />
+                <stop offset="1" stopColor="#ffc14a" stopOpacity="1" />
+              </linearGradient>
+              <mask id="kp-travelled" data-kp-mask maskUnits="userSpaceOnUse">
+                <path data-kp-maskpath d="" fill="none" stroke="#fff" strokeWidth="14" strokeLinecap="round" />
+              </mask>
             </defs>
             <path className={styles.pathBase} data-kp-base d="" />
+            <path className={styles.pathGlow} d="" data-kp-glow stroke="url(#kp-trail)" />
             <path className={styles.pathLit} data-kp-lit d="" stroke="url(#kp-trail)" />
+            <path className={styles.pathFlow} data-kp-flow d="" stroke="url(#kp-flow)" mask="url(#kp-travelled)" />
           </svg>
 
           <div className={styles.knight} data-kp-knight aria-hidden="true">
@@ -251,7 +263,7 @@ export default function TimelineSection() {
                         data-passion={isPassion ? "true" : "false"}
                         data-state="idle"
                       >
-                        <div className={styles.lane}>
+                        <div className={styles.lane} data-kp-lane>
                           <span className={styles.node} data-kp-node data-year={group.year} data-state="idle">
                             <span className={styles.tile} data-kp-tile />
                             <span className={styles.nodeGlow} />

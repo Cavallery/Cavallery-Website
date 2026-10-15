@@ -6,6 +6,7 @@ import { Fragment, useRef, useState } from "react";
 import styles from "./Footer.module.css";
 import KnightSvg from "./chess/KnightSvg";
 import EmberField from "./chess/EmberField";
+import FlameLayer from "./chess/FlameLayer";
 import { SOCIAL_LINKS } from "./chess/SocialIcons";
 import { gsap, useGSAP, MQ, prefersReducedMotion } from "@/lib/gsap";
 
@@ -56,6 +57,7 @@ const COLUMNS: FooterCol[] = [
     square: "g7",
     title: "#GameRine",
     links: [
+      { label: "Kuda Api Erine", href: "/games/knight-passion", preview: "/images/about/timeline-passion.jpg" },
       { label: "Game Bibir Yang Telah Dicuri", href: "/games/jumping-adventure", preview: "/images/about/timeline-other-4.jpeg" },
       { label: "Game Erine In Etherland", href: "/games/zombie-escape", preview: "/images/about/timeline-other-9.jpeg" },
       { label: "Game Belalang Yang Membangkang", href: "/games/grasshopper-collector", preview: "/images/about/timeline-2024-7.jpeg" },
@@ -97,8 +99,55 @@ export default function Footer() {
       const ignite = root.querySelector<HTMLElement>("[data-ignite]");
       const giant = root.querySelector<HTMLElement>("[data-giant]");
       const stops = Array.from(root.querySelectorAll<HTMLElement>("[data-waypoint]"));
+      const board = root.querySelector<HTMLElement>("[data-board]");
+      const trail = Array.from(root.querySelectorAll<HTMLElement>("[data-trail-ember]"));
+      const mateSparks = Array.from(root.querySelectorAll<HTMLElement>("[data-mate-spark]"));
+      const mateWord = root.querySelector<HTMLElement>("[data-mate]");
       if (!lit || !knight || !giant) return;
       const len = lit.getTotalLength();
+
+      // ember trail behind the walking knight (board coordinates)
+      let ti = 0;
+      let lastTrail = 0;
+      const trailAt = (p: number) => {
+        if (!board || !trail.length) return;
+        const now = performance.now();
+        if (now - lastTrail < 45) return;
+        lastTrail = now;
+        const k = board.clientWidth / 800;
+        const pt = lit.getPointAtLength(p * len);
+        const e = trail[ti++ % trail.length];
+        gsap.killTweensOf(e);
+        gsap.fromTo(
+          e,
+          { x: pt.x * k, y: pt.y * k, autoAlpha: 1, scale: 0.7 + Math.random() * 0.8 },
+          { x: pt.x * k + (Math.random() - 0.5) * 24, y: pt.y * k - 30 - Math.random() * 30, autoAlpha: 0, scale: 0.15, duration: 0.8, ease: "power1.out" }
+        );
+      };
+
+      // checkmate burst: sparks around h8 and around the burning word
+      const burst = () => {
+        if (!mateSparks.length) return;
+        const fr = root.getBoundingClientRect();
+        const anchors: DOMRect[] = [];
+        const goal = root.querySelector<HTMLElement>("[data-goal]");
+        if (goal) anchors.push(goal.getBoundingClientRect());
+        if (mateWord) anchors.push(mateWord.getBoundingClientRect());
+        mateSparks.forEach((sp, i) => {
+          const a = anchors[i % anchors.length];
+          if (!a) return;
+          const cx = a.left - fr.left + a.width * (0.15 + Math.random() * 0.7);
+          const cy = a.top - fr.top + a.height * (0.3 + Math.random() * 0.5);
+          const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.6;
+          const r = 50 + Math.random() * 90;
+          gsap.killTweensOf(sp);
+          gsap.fromTo(
+            sp,
+            { x: cx, y: cy, autoAlpha: 1, scale: 1 + Math.random() },
+            { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r, autoAlpha: 0, scale: 0.1, duration: 0.9 + Math.random() * 0.5, ease: "power2.out", delay: Math.random() * 0.25 }
+          );
+        });
+      };
 
       const mm = gsap.matchMedia();
 
@@ -123,7 +172,10 @@ export default function Footer() {
             scrub: 1,
             onUpdate(self) {
               const p = self.progress;
-              root.dataset.checkmate = p > 0.985 ? "true" : "false";
+              const mate = p > 0.985;
+              if (mate && root.dataset.checkmate !== "true") burst();
+              root.dataset.checkmate = mate ? "true" : "false";
+              if (p > 0.001 && p < 0.999) trailAt(p);
               stops.forEach((s, i) => (s.dataset.on = p >= i / (stops.length - 1) - 0.01 ? "true" : "false"));
             },
           },
@@ -194,7 +246,9 @@ export default function Footer() {
   return (
     <footer ref={rootRef} className={styles.footer} data-motion data-checkmate="false">
       {/* ── Endgame board ─────────────────────────────────────────── */}
-      <div className={styles.board} aria-hidden="true">
+      <FlameLayer id="footer-flames" className={styles.flames} density={12} intensity={0.55} />
+
+      <div className={styles.board} aria-hidden="true" data-board>
         <div className={styles.squares} />
         <svg className={styles.trail} viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
           <defs>
@@ -216,7 +270,10 @@ export default function Footer() {
             </g>
           ))}
         </svg>
-        <span className={styles.goal} />
+        <span className={styles.goal} data-goal />
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span key={i} className={styles.trailEmber} data-trail-ember />
+        ))}
         <span className={styles.boardKnight} data-board-knight>
           <KnightSvg size="100%" />
         </span>
@@ -249,7 +306,7 @@ export default function Footer() {
             return (
               <Fragment key={w}>
                 <span className={styles.gMask}>
-                  <span className={`${styles.gWord} ${isMate ? styles.mate : ""}`} data-giant-word>
+                  <span className={`${styles.gWord} ${isMate ? styles.mate : ""}`} data-giant-word data-mate={isMate ? "" : undefined}>
                     {isMate ? (
                       <>
                         <span className={styles.mateBase}>{w}</span>
@@ -354,6 +411,10 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      {Array.from({ length: 22 }).map((_, i) => (
+        <span key={i} className={styles.mateSpark} data-mate-spark aria-hidden="true" />
+      ))}
 
       <div className={styles.preview} data-preview aria-hidden="true">
         <img alt="" />

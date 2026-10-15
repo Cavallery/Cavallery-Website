@@ -39,3 +39,53 @@
   letter-spacing: 0.1em;
   color: var(--cv-text-mute);
 }
+
+.files {
+  position: relative;
+}
+
+/* burning fuse along the board edge */
+.fuse {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1.5px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 99px;
+  pointer-events: none;
+}
+
+.fuseFill {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  background: var(--cv-fire-text);
+  background-size: 300% 100%;
+  animation: cv-fire-drift 3s linear infinite;
+  opacity: 0.85;
+}
+
+.spark {
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #fff3cf;
+  box-shadow: 0 0 10px 4px rgba(255, 193, 74, 0.85), 0 0 22px 8px rgba(242, 106, 27, 0.5);
+}
+
+.fuse {
+  overflow: visible;
+  clip-path: inset(-12px 0 -12px 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fuseFill {
+    animation: none;
+  }
+}

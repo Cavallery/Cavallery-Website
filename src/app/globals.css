@@ -195,7 +195,7 @@ button { cursor: pointer; font-family: var(--sans); }
 .glassCard {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--cv-radius-lg);
   transition: transform 0.35s var(--cv-ease-out), border-color 0.35s ease;
 }
 
@@ -227,8 +227,8 @@ button { cursor: pointer; font-family: var(--sans); }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-radius: 2px;
+  padding: 6px 14px;
+  border-radius: var(--cv-radius-pill);
   border: 1px solid var(--cv-line-strong);
   background: transparent;
   color: var(--fg-dim);
@@ -250,7 +250,7 @@ button { cursor: pointer; font-family: var(--sans); }
   justify-content: center;
   gap: 10px;
   padding: 16px 28px;
-  border-radius: 2px;
+  border-radius: var(--cv-radius-pill);
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.04em;
@@ -284,18 +284,20 @@ button { cursor: pointer; font-family: var(--sans); }
 .btnPrimary::before { background: var(--cv-ink); }
 .btnOutline::before { background: var(--cv-bone); }
 
-/* Passion glint on the tile edge */
+/* Passion flame licking up from the bottom on hover */
 .btnPrimary::after,
 .btnOutline::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: var(--cv-fire);
+  left: -10%;
+  right: -10%;
+  bottom: -40%;
+  height: 120%;
+  z-index: -1;
+  background: radial-gradient(60% 70% at 50% 100%, rgba(255, 225, 160, 0.9) 0%, rgba(242, 106, 27, 0.8) 35%, rgba(215, 48, 28, 0.3) 62%, transparent 78%);
   opacity: 0;
-  transition: opacity 0.35s ease;
+  transform: translateY(60%);
+  transition: opacity 0.3s ease, transform 0.45s var(--cv-ease-out);
 }
 
 .btnPrimary:hover { color: var(--cv-bone); }
@@ -303,7 +305,11 @@ button { cursor: pointer; font-family: var(--sans); }
 .btnPrimary:hover::before,
 .btnOutline:hover::before { transform: scaleY(1); }
 .btnPrimary:hover::after,
-.btnOutline:hover::after { opacity: 1; }
+.btnOutline:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+  animation: cv-flame-lick 0.9s ease-in-out 0.45s infinite alternate;
+}
 
 .btnPrimary:disabled { opacity: 0.6; cursor: progress; }
 
@@ -312,7 +318,7 @@ button { cursor: pointer; font-family: var(--sans); }
    ================================================================ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #2b2b2b; border-radius: 0; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb { background: #2b2b2b; border-radius: 99px; border: 2px solid var(--bg); }
 ::-webkit-scrollbar-thumb:hover { background: var(--cv-pink); }
 
 @media (max-width: 768px) {
@@ -380,6 +386,8 @@ button { cursor: pointer; font-family: var(--sans); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .btnPrimary:hover::after,
+  .btnOutline:hover::after { animation: none; }
   .reveal-init, .revealed, .glassCard {
     transition: none !important;
     transform: none !important;

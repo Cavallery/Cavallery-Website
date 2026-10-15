@@ -51,11 +51,26 @@ export function useReveal(scope: RefObject<HTMLElement | null>, dependencies: un
               stagger: isDesktop ? 0.08 : 0.05,
               scrollTrigger,
             });
+          } else if (type === "fuse") {
+            gsap.fromTo(el, { xPercent: -101 }, { xPercent: 0, duration: 1.6, ease: "power2.inOut", scrollTrigger });
           } else if (type === "fade") {
             gsap.from(el, { opacity: 0, duration: 1, ease: "power2.out", scrollTrigger });
           } else {
             gsap.from(el, { y: dist, opacity: 0, duration: 0.9, scrollTrigger });
           }
+        });
+      });
+
+      // Reduced motion: no travel, no stagger cascade — just a short fade so the
+      // page still feels alive (opacity is vestibular-safe).
+      mm.add(MQ.reduce, () => {
+        root.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+          gsap.from(el, {
+            opacity: 0,
+            duration: 0.5,
+            ease: "power1.out",
+            scrollTrigger: { trigger: el, start: el.dataset.revealStart || "top 92%", once: true },
+          });
         });
       });
 

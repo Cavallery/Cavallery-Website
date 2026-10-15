@@ -41,6 +41,7 @@
 }
 
 .squares {
+  border-radius: var(--cv-radius-lg);
   position: absolute;
   inset: 0;
   background-image: conic-gradient(
@@ -103,6 +104,7 @@
 }
 
 .goal {
+  border-radius: var(--cv-radius-sm);
   position: absolute;
   top: 0;
   right: 0;
@@ -138,6 +140,38 @@
 
 .footer[data-checkmate="true"] .boardKnight {
   color: var(--cv-heat);
+}
+
+/* Passion flames rising from the bottom edge of the endgame */
+.flames {
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: min(22svh, 190px);
+  z-index: 0;
+}
+
+.trailEmber,
+.mateSpark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: #ffe3a3;
+  box-shadow: 0 0 8px 3px rgba(242, 106, 27, 0.75), 0 0 2px 1px #fff3cf;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.mateSpark {
+  z-index: 3;
+  width: 7px;
+  height: 7px;
 }
 
 .embers {
@@ -211,6 +245,7 @@
 }
 
 .toTopTrack {
+  border-radius: var(--cv-radius);
   position: relative;
   display: grid;
   place-items: center;
@@ -302,6 +337,21 @@
 
 .footer[data-checkmate="true"] .mate::after {
   opacity: 1;
+  animation: mateBlaze 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes mateBlaze {
+  from { transform: scale(0.96, 0.9); opacity: 0.75; }
+  to   { transform: scale(1.04, 1.12); opacity: 1; }
+}
+
+.footer[data-checkmate="true"] .goal {
+  animation: goalBurn 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes goalBurn {
+  from { opacity: 0.8; }
+  to   { opacity: 1; }
 }
 
 /* Lower area: columns + socials */
@@ -443,7 +493,7 @@
 .socialRow {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 64px));
-  gap: 0;
+  gap: 8px;
 }
 
 .social {
@@ -463,6 +513,7 @@
 
 .socialFront,
 .socialBack {
+  border-radius: var(--cv-radius);
   position: absolute;
   inset: 0;
   display: grid;
@@ -505,7 +556,10 @@
   padding-top: 18px;
   border-top: 1px solid var(--cv-line);
   font-size: 0.74rem;
-  color: var(--cv-text-mute);
+  color: var(--cv-text-dim);
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 1px 8px rgba(10, 10, 10, 0.9);
 }
 
 .bottomLinks {
@@ -519,6 +573,7 @@
 
 /* Cursor preview */
 .preview {
+  border-radius: var(--cv-radius);
   position: fixed;
   top: 0;
   left: 0;
@@ -640,7 +695,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toTop:hover .toTopKnight {
+  .toTop:hover .toTopKnight,
+  .footer[data-checkmate="true"] .mate::after,
+  .footer[data-checkmate="true"] .goal {
     animation: none;
   }
   .socialInner,

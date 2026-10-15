@@ -5,6 +5,14 @@ import styles from "./GameRineSection.module.css";
 
 const games = [
   {
+    title: "Kuda Api Erine — Knight's Passion",
+    desc: "Game terbaru! Lompatkan kuda dengan langkah L dan tangkap api Passion sebelum waktu habis.",
+    href: "/games/knight-passion",
+    icon: "bxs-chess",
+    tag: "Puzzle · Baru",
+    color: "#f26a1b",
+  },
+  {
     title: "Game Belalang Yang Membangkang",
     desc: "Bantu Erine mengumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
     href: "/games/grasshopper-collector",
