@@ -1372,23 +1372,41 @@ function DiscordManager() {
   const STORAGE_KEY = "cava_discord_logs";
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          // Normalisasi id jika ada log lama yang belum punya id
-          const normalized = parsed.map((item: any, idx: number) => ({
-            ...item,
-            id: item.id || `log-${Date.now()}-${idx}`,
-            description: item.description || "",
+    // 1. Ambil data pengumuman aktif dari /api/discord agar sinkron dengan web internal
+    fetch("/api/discord")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const apiLogs: DiscordLog[] = json.data.map((item: any) => ({
+            id: item.id || `log-${Date.now()}`,
+            time: item.date || item.timestamp,
+            title: item.title,
+            description: item.content || "",
             url: item.url || "https://cavallery.id",
-            status: item.status || "success",
+            mention: item.mention || "—",
+            image: item.image || "",
+            hasImage: !!item.image,
+            status: "success",
           }));
-          setLogs(normalized);
+          setLogs(apiLogs);
+        } else {
+          // Fallback ke localStorage jika API kosong
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) setLogs(parsed);
+          }
         }
-      }
-    } catch {}
+      })
+      .catch(() => {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) setLogs(parsed);
+          }
+        } catch {}
+      });
   }, []);
 
   const saveLogs = (newLogs: DiscordLog[]) => {
@@ -1453,9 +1471,9 @@ function DiscordManager() {
       const resData = await res.json().catch(() => null);
 
       if (res.ok && resData?.success !== false) {
-        showToast("✅ Berhasil dikirim ke Discord!", "success");
+        showToast("✅ Berhasil diposting ke Web & Discord!", "success");
         const newLog: DiscordLog = {
-          id: `log-${Date.now()}`,
+          id: resData?.data?.id || `log-${Date.now()}`,
           time,
           title: title.trim(),
           description: cleanDesc,
@@ -1521,12 +1539,15 @@ function DiscordManager() {
   };
 
   // Hapus single log
-  const deleteSingleLog = (id: string) => {
+  const deleteSingleLog = async (id: string) => {
+    try {
+      await fetch(`/api/discord?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    } catch {}
     const updated = logs.filter(l => l.id !== id);
     saveLogs(updated);
     setDeleteLogId(null);
     if (viewLog?.id === id) setViewLog(null);
-    showToast("🗑️ Log pengumuman dihapus", "success");
+    showToast("🗑️ Pengumuman dihapus dari web & log", "success");
   };
 
   const clearLogs = () => { saveLogs([]); setConfirmClear(false); showToast("Semua riwayat log dihapus", "success"); };
@@ -1622,10 +1643,30 @@ function DiscordManager() {
         </div>
       )}
 
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>
-          <i className="bxl-discord-alt" style={{ color: "#5865f2" }} /> Discord Notifier
+      <div className={styles.sectionHeader} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <h2 className={styles.sectionTitle} style={{ margin: 0 }}>
+          <i className="bxl-discord-alt" style={{ color: "#5865f2" }} /> Discord Notifier &amp; Pengumuman Web
         </h2>
+        <a
+          href="/internal/pengumuman-discord-xv7r2q"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: "0.82rem",
+            fontWeight: 700,
+            padding: "6px 14px",
+            borderRadius: 8,
+            background: "rgba(88, 101, 242, 0.15)",
+            color: "#c9cdfb",
+            border: "1px solid rgba(88, 101, 242, 0.35)",
+            textDecoration: "none",
+          }}
+        >
+          <i className="bx bx-link-external" /> Buka Halaman Pengumuman Internal ↗
+        </a>
       </div>
 
       <div className={styles.discordLayout}>

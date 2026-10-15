@@ -150,6 +150,17 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "discord pengumuman";
 
   // Deteksi perintah media khusus
+  const isHbdCommand =
+    text === "hbd" ||
+    text === "!hbd" ||
+    text === "/hbd" ||
+    text === "#hbd" ||
+    text.includes("hbd") ||
+    text.includes("selamat ulang tahun") ||
+    text.includes("happy birthday") ||
+    text.includes("ultah") ||
+    text.includes("met ultah");
+
   const isWaduhCommand = text.includes("waduh");
   const isNiterineCommand =
     text.includes("niterine") ||
@@ -177,6 +188,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     isKasCommand ||
     isBayarKasCommand ||
     isPengumumanCommand ||
+    isHbdCommand ||
     isHelpCommand ||
     isWaduhCommand ||
     isNiterineCommand ||
@@ -403,7 +415,15 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         "Kamu juga bisa bebas ngobrol santai seputar Erine atau kirim kata kunci spesial seperti 'waduh', 'niterine', 'ngasal', atau 'happy diesvenerine'!",
     };
   }
-  // 4. Perintah Video Khusus: waduh, niterine, ngasal, Happy DiesVenErine
+  // 4. Perintah Video Ulang Tahun / HBD Erine
+  else if (isHbdCommand) {
+    messagePayload = {
+      type: "video",
+      originalContentUrl: "https://cavallery.id/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4",
+      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
+    };
+  }
+  // 5. Perintah Video Khusus: waduh, niterine, ngasal, Happy DiesVenErine
   else if (text.includes("waduh")) {
     messagePayload = {
       type: "video",
@@ -471,7 +491,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         },
         body: JSON.stringify({
           replyToken: event.replyToken,
-          messages: [messagePayload],
+          messages: Array.isArray(messagePayload) ? messagePayload : [messagePayload],
         }),
       });
 

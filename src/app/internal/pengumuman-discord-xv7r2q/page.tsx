@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
-import announcementsData from "@/data/discord-announcements.json";
+import defaultAnnouncementsData from "@/data/discord-announcements.json";
 
 interface Announcement {
   id: string;
@@ -24,19 +24,50 @@ interface Announcement {
   tags?: string[];
 }
 
+const REACTION_CONFIG = [
+  { id: "heart", icon: "bx bxs-heart", color: "#e11d48", defaultCount: 172 },
+  { id: "star", icon: "bx bxs-star", color: "#eab308", defaultCount: 148 },
+  { id: "party", icon: "bx bxs-party", color: "#a855f7", defaultCount: 120 },
+  { id: "like", icon: "bx bxs-like", color: "#3b82f6", defaultCount: 114 },
+  { id: "flame", icon: "bx bxs-flame", color: "#f97316", defaultCount: 96 },
+];
+
 export default function DiscordAnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>(
+    defaultAnnouncementsData as Announcement[]
+  );
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedMention, setSelectedMention] = useState<string>("semua");
   const [activeImage, setActiveImage] = useState<string | null>(null);
+
   const [userReactions, setUserReactions] = useState<Record<string, Record<string, number>>>({
-    "sts-terima-kasih-2026": { "🐴": 148, "❤️": 172, "✨": 120, "🎉": 96 },
-    "sts-project-launch-2026": { "🐴": 134, "🔥": 165, "✨": 110, "🎂": 142 },
-    "sts-rapat-koordinasi-2026": { "🫡": 88, "✅": 104, "📢": 67 },
-    "transparansi-dana-rh-2026": { "🙏": 156, "💎": 98, "📊": 112 },
+    "sts-terima-kasih-2026": { heart: 172, star: 148, party: 120, like: 114 },
+    "sts-project-launch-2026": { heart: 165, star: 134, flame: 142, party: 110 },
+    "sts-rapat-koordinasi-2026": { like: 104, star: 88, flame: 67 },
+    "transparansi-dana-rh-2026": { heart: 156, star: 112, like: 98 },
   });
   const [myClickedReactions, setMyClickedReactions] = useState<Record<string, string[]>>({});
 
-  const announcements: Announcement[] = announcementsData as Announcement[];
+  // ── Fetch pengumuman terbaru dari /api/discord (Sinkron dengan Dashboard Admin) ──
+  const fetchAnnouncements = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/discord");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        setAnnouncements(json.data);
+      }
+    } catch (e) {
+      console.error("[Discord Internal] Gagal memuat pengumuman terbaru:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
 
   const filteredAnnouncements = useMemo(() => {
     return announcements.filter((item) => {
@@ -47,30 +78,30 @@ export default function DiscordAnnouncementsPage() {
 
       if (!search.trim()) return true;
       const q = search.toLowerCase();
-      const matchTitle = item.title.toLowerCase().includes(q);
-      const matchContent = item.content.toLowerCase().includes(q);
-      const matchAuthor = item.author.name.toLowerCase().includes(q);
+      const matchTitle = (item.title || "").toLowerCase().includes(q);
+      const matchContent = (item.content || "").toLowerCase().includes(q);
+      const matchAuthor = (item.author?.name || "").toLowerCase().includes(q);
       const matchTags = item.tags?.some((t) => t.toLowerCase().includes(q));
 
       return matchTitle || matchContent || matchAuthor || matchTags;
     });
   }, [announcements, search, selectedMention]);
 
-  const handleToggleReaction = (announcementId: string, emoji: string) => {
+  const handleToggleReaction = (announcementId: string, reactionId: string) => {
     const currentMy = myClickedReactions[announcementId] || [];
-    const hasClicked = currentMy.includes(emoji);
+    const hasClicked = currentMy.includes(reactionId);
 
     setMyClickedReactions((prev) => ({
       ...prev,
       [announcementId]: hasClicked
-        ? (prev[announcementId] || []).filter((e) => e !== emoji)
-        : [...(prev[announcementId] || []), emoji],
+        ? (prev[announcementId] || []).filter((e) => e !== reactionId)
+        : [...(prev[announcementId] || []), reactionId],
     }));
 
     setUserReactions((prev) => {
       const annMap = { ...(prev[announcementId] || {}) };
-      const currentCount = annMap[emoji] || 0;
-      annMap[emoji] = hasClicked ? Math.max(0, currentCount - 1) : currentCount + 1;
+      const currentCount = annMap[reactionId] || 0;
+      annMap[reactionId] = hasClicked ? Math.max(0, currentCount - 1) : currentCount + 1;
       return { ...prev, [announcementId]: annMap };
     });
   };
@@ -154,6 +185,30 @@ export default function DiscordAnnouncementsPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              type="button"
+              onClick={fetchAnnouncements}
+              disabled={loading}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                padding: "8px 14px",
+                borderRadius: 10,
+                background: "var(--surface, #1e1f22)",
+                color: "var(--fg, #f1f5f9)",
+                border: "1px solid var(--border, rgba(255,255,255,0.1))",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+              title="Segarkan pengumuman terbaru"
+            >
+              <i className={`bx bx-refresh ${loading ? "bx-spin" : ""}`} style={{ fontSize: "1.1rem", color: "#5865F2" }} />
+              {loading ? "Memuat..." : "Segarkan"}
+            </button>
+
             <Link
               href="/internal/iuran-kas-xv7r2q"
               style={{
@@ -207,8 +262,9 @@ export default function DiscordAnnouncementsPage() {
               #
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <i className="bx bxs-megaphone" style={{ color: "#5865F2", fontSize: "1.15rem" }} />
               <span style={{ fontWeight: 800, fontSize: "1.05rem", letterSpacing: "0.01em" }}>
-                📢┃pengumuman-fanbase
+                pengumuman-fanbase
               </span>
               <span
                 style={{
@@ -383,7 +439,7 @@ export default function DiscordAnnouncementsPage() {
                     overflow: "hidden",
                   }}
                 >
-                  {/* Left Discord Amber/Blurple Line Indicator */}
+                  {/* Left Discord Line Indicator */}
                   <div
                     style={{
                       position: "absolute",
@@ -413,8 +469,8 @@ export default function DiscordAnnouncementsPage() {
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <img
-                        src={item.author.avatar || "/images/cava-logo-round.png"}
-                        alt={item.author.name}
+                        src={item.author?.avatar || "/images/cava-logo-round.png"}
+                        alt={item.author?.name || "Admin"}
                         style={{
                           width: 42,
                           height: 42,
@@ -432,7 +488,7 @@ export default function DiscordAnnouncementsPage() {
                               color: "#f2f3f5",
                             }}
                           >
-                            {item.author.name}
+                            {item.author?.name || "Cavallery Official"}
                           </span>
                           <span
                             style={{
@@ -446,7 +502,7 @@ export default function DiscordAnnouncementsPage() {
                               letterSpacing: "0.04em",
                             }}
                           >
-                            {item.author.role || "ADMIN"}
+                            {item.author?.role || "ADMIN"}
                           </span>
                         </div>
                         <div
@@ -462,7 +518,10 @@ export default function DiscordAnnouncementsPage() {
                           <i className="bx bx-calendar" style={{ fontSize: "0.85rem" }} />
                           <span>{item.date}</span>
                           <span>•</span>
-                          <span>in #{item.channel}</span>
+                          <span>
+                            <i className="bx bxs-megaphone" style={{ fontSize: "0.8rem", marginRight: 3, verticalAlign: "middle" }} />
+                            #{item.channel || "pengumuman-fanbase"}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -491,7 +550,7 @@ export default function DiscordAnnouncementsPage() {
                         }}
                       >
                         <i className="bx bx-at" />
-                        {item.mention.replace("@", "")}
+                        {(item.mention || "@everyone").replace("@", "")}
                       </span>
                     </div>
                   </div>
@@ -607,7 +666,7 @@ export default function DiscordAnnouncementsPage() {
                     </div>
                   )}
 
-                  {/* Tags & Reaksi Interaktif Discord */}
+                  {/* Tags & Reaksi Boxicons Discord */}
                   <div
                     style={{
                       borderTop: "1px solid rgba(255, 255, 255, 0.08)",
@@ -619,20 +678,22 @@ export default function DiscordAnnouncementsPage() {
                       gap: 10,
                     }}
                   >
-                    {/* Emoji Reactions */}
+                    {/* Reaksi Boxicon (Bukan unicode emoji) */}
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {Object.entries(reactions).map(([emoji, count]) => {
-                        const isClicked = myReactions.includes(emoji);
+                      {REACTION_CONFIG.map((rc) => {
+                        const count = reactions[rc.id] ?? rc.defaultCount;
+                        const isClicked = myReactions.includes(rc.id);
+
                         return (
                           <button
-                            key={emoji}
+                            key={rc.id}
                             type="button"
-                            onClick={() => handleToggleReaction(item.id, emoji)}
+                            onClick={() => handleToggleReaction(item.id, rc.id)}
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 6,
-                              padding: "4px 9px",
+                              padding: "4px 10px",
                               borderRadius: 8,
                               border: isClicked
                                 ? "1.5px solid #5865F2"
@@ -645,7 +706,7 @@ export default function DiscordAnnouncementsPage() {
                               transition: "all 0.15s",
                             }}
                           >
-                            <span>{emoji}</span>
+                            <i className={rc.icon} style={{ color: rc.color, fontSize: "1rem" }} />
                             <span>{count}</span>
                           </button>
                         );
@@ -678,7 +739,7 @@ export default function DiscordAnnouncementsPage() {
           )}
         </div>
 
-        {/* ── FOOTER DOKUMEN ── */}
+        {/* ── FOOTER DOKUMEN (Tanpa Caterine Vallencia Fanbase © 2026) ── */}
         <div
           style={{
             marginTop: 32,
@@ -697,9 +758,7 @@ export default function DiscordAnnouncementsPage() {
           }}
         >
           <i className="bx bxl-discord" style={{ color: "#5865F2", fontSize: "1.2rem" }} />
-          <span>
-            Arsip Pengumuman Discord Resmi Cavallery · Caterine Vallencia Fanbase © {new Date().getFullYear()}
-          </span>
+          <span>Arsip Pengumuman Discord Resmi Cavallery</span>
         </div>
       </div>
 
@@ -749,7 +808,7 @@ export default function DiscordAnnouncementsPage() {
                   justifyContent: "center",
                 }}
               >
-                ✕
+                <i className="bx bx-x" />
               </button>
             </div>
             <div
