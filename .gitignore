@@ -64,3 +64,6 @@ theater_res.json
 theater_test.json
 test-*.mjs
 test-*.js
+
+# Preview screenshots (scripts/capture-preview.mjs) — never part of the build
+/screenshots

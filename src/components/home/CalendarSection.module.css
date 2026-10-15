@@ -1,172 +1,182 @@
+/* ================================================================
+   KALENDER — the month as a chessboard (7 columns → natural checker)
+   ================================================================ */
+
 .section {
-  padding: 100px 24px;
-  max-width: 1200px;
+  padding: var(--cv-section-y) var(--cv-gutter);
+  max-width: var(--cv-max);
   margin: 0 auto;
 }
 
 .inner {
   display: flex;
   flex-direction: column;
-  gap: 40px;
-}
-
-.header {
-  text-align: center;
-}
-
-.title {
-  margin: 12px 0;
-}
-
-.subtitle {
-  color: var(--fg-dim);
-  font-size: 1.05rem;
 }
 
 .calendarCard {
-  padding: 30px;
+  position: relative;
+  padding: 0;
+  background: var(--cv-ink-1);
+  border: 1px solid var(--cv-line);
 }
 
 .calendarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--cv-line);
+}
+
+.monthTitle {
+  font-family: var(--cv-font-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--cv-text);
 }
 
 .monthNav {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 0;
 }
 
 .navBtn {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--fg);
-  padding: 8px 16px;
-  border-radius: 30px;
-  font-weight: 600;
-  transition: all 0.3s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 10px 14px;
+  margin-left: -1px;
+  background: transparent;
+  border: 1px solid var(--cv-line-strong);
+  color: var(--cv-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .navBtn:hover {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.monthTitle {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--gold);
+  background: var(--cv-bone);
+  color: var(--cv-ink);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .dayOfWeek {
-  text-align: center;
+  padding: 10px 8px;
+  text-align: left;
+  font-size: 0.66rem;
   font-weight: 700;
-  color: var(--fg-dim);
-  font-size: 0.85rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding-bottom: 12px;
+  color: var(--cv-text-mute);
+  border-bottom: 1px solid var(--cv-line);
 }
 
 .cell {
-  aspect-ratio: 1.2;
-  border-radius: 16px;
-  border: 1px solid var(--border);
+  position: relative;
+  aspect-ratio: 1.15;
   padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: var(--surface-2);
-  transition: all 0.3s;
-  position: relative;
   overflow: hidden;
+  background: transparent;
+  transition: background-color 0.25s ease;
+}
+
+/* 7 columns is odd → index parity draws a checkerboard */
+.cell:nth-child(even) {
+  background: rgba(243, 237, 228, 0.035);
 }
 
 .emptyCell {
-  background: transparent;
-  border: none;
   cursor: default;
 }
 
 .cell:not(.emptyCell):hover {
-  border-color: var(--gold);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--gold-glow);
+  background: rgba(255, 79, 139, 0.1);
+}
+
+.cell:not(.emptyCell):hover .dateNum {
+  color: var(--cv-pink);
 }
 
 .today {
-  border-color: var(--primary) !important;
-  background: var(--gold-glow) !important;
+  box-shadow: inset 0 0 0 2px var(--cv-pink);
+}
+
+.today .dateNum {
+  color: var(--cv-pink);
 }
 
 .dateNum {
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.eventBadge {
-  background: var(--gold);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 8px;
-  text-align: center;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  cursor: pointer;
-  margin-top: 4px;
-}
-
-.eventErine {
-  background: linear-gradient(135deg, var(--gold) 0%, #f59e0b 100%);
-  animation: shine 3s infinite alternate;
+  font-family: var(--cv-font-display);
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--cv-text);
+  transition: color 0.2s ease;
 }
 
 .eventInfoList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  overflow-y: auto;
-  max-height: calc(100% - 24px);
+  gap: 3px;
+  overflow: hidden;
+  max-height: calc(100% - 26px);
+}
+
+.eventBadge {
+  padding: 3px 6px;
+  background: var(--cv-ink-3);
+  color: var(--cv-text);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  border-left: 2px solid var(--cv-text-mute);
+}
+
+/* Erine events carry the Passion ember edge */
+.eventErine {
+  background: rgba(242, 106, 27, 0.14);
+  color: var(--cv-heat-pale);
+  border-left-color: var(--cv-flame);
 }
 
 .activeDayPanel {
-  margin-top: 24px;
-  padding: 24px;
-  border-radius: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border-gold);
-  animation: fadeIn 0.3s ease;
+  padding: 22px 20px;
+  border-top: 1px solid var(--cv-line);
+  background: var(--cv-ink-2);
 }
 
 .activeDayTitle {
-  font-size: 1.2rem;
+  font-family: var(--cv-font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
   margin-bottom: 16px;
-  color: var(--gold);
+  color: var(--cv-text);
 }
 
 .eventCard {
-  border-left: 4px solid var(--gold);
+  border-left: 2px solid var(--cv-pink);
   padding-left: 16px;
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  color: var(--cv-text);
 }
 
 @media (min-width: 768px) {
@@ -180,9 +190,7 @@
   flex-shrink: 0;
   width: 100%;
   max-width: 180px;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .eventThumb img {
@@ -195,6 +203,7 @@
 
 .eventContent {
   flex: 1;
+  min-width: 0;
 }
 
 .metaItem {
@@ -209,14 +218,14 @@
 }
 
 .eventTitle {
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
 .eventMeta {
-  font-size: 0.85rem;
-  color: var(--fg-dim);
+  font-size: 0.84rem;
+  color: var(--cv-text-mute);
   margin-bottom: 8px;
 }
 
@@ -227,76 +236,44 @@
 }
 
 .memberTag {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--cv-ink-3);
+  border: 1px solid var(--cv-line);
 }
 
 .memberErine {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--cv-flame);
+  color: var(--cv-heat);
   font-weight: 700;
 }
 
-@keyframes shine {
-  0% { filter: brightness(1); }
-  100% { filter: brightness(1.2); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @media (max-width: 768px) {
-  .grid {
-    gap: 6px;
-  }
-  .cell {
-    aspect-ratio: 1;
-    padding: 6px;
-    border-radius: 10px;
-  }
-  .dateNum {
-    font-size: 0.9rem;
-  }
-  .dayOfWeek {
-    font-size: 0.7rem;
-    letter-spacing: 0.05em;
-  }
-  .eventBadge {
-    font-size: 0.55rem;
-    padding: 2px 4px;
-  }
   .calendarHeader {
     flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
+    padding: 14px;
   }
-  .monthTitle {
-    width: 100%;
-    text-align: center;
-    font-size: 1.1rem;
+  .cell {
+    aspect-ratio: 0.82;
+    padding: 5px;
   }
-  .monthNav {
-    width: 100%;
-    justify-content: center;
+  .dateNum {
+    font-size: 0.95rem;
+  }
+  .dayOfWeek {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    padding: 8px 4px;
+  }
+  .eventBadge {
+    font-size: 0.5rem;
+    padding: 2px 3px;
   }
   .navBtn {
-    padding: 6px 12px;
-    font-size: 0.8rem;
+    padding: 8px 10px;
+    font-size: 0.64rem;
   }
-  .calendarCard {
-    padding: 16px;
+  .activeDayPanel {
+    padding: 18px 14px;
   }
-}
-
-
-
-@media (max-width: 768px) {
-  .calendarWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
-  .calendarGrid { min-width: 600px; }
-  .eventCard { padding: 8px; font-size: 0.8rem; }
 }
