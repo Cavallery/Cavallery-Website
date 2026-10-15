@@ -1,154 +1,354 @@
+/* ================================================================
+   EKSPLORASI — 8 corners as alternating board squares.
+   Desktop: pinned horizontal scroll. Mobile: native swipe + snap.
+   ================================================================ */
+
 .section {
   position: relative;
-  padding: 80px 24px;
-  overflow: hidden;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
+.pin {
   position: relative;
-  z-index: 1;
+  padding: var(--cv-section-y) 0 72px;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 48px;
+.track {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 var(--cv-gutter);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--cv-gutter);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
 }
 
-.title {
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
-  font-weight: 900;
-  margin-top: 12px;
+.track::-webkit-scrollbar {
+  display: none;
 }
 
-.subtitle {
-  color: var(--fg-muted);
-  font-size: 0.95rem;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.7;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.card {
+.intro {
+  flex: 0 0 84vw;
   display: flex;
   flex-direction: column;
-  padding: 24px 20px 20px;
-  border-radius: 20px;
-  text-decoration: none;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  border: 1.5px solid var(--border);
-}
-
-.card:hover {
-  transform: translateY(-6px);
-  border-color: var(--accent-color, var(--border-gold));
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2), 0 0 24px rgba(212, 175, 55, 0.08);
-}
-
-.cardTop {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  gap: 24px;
+  padding-right: 24px;
+  scroll-snap-align: start;
 }
 
-.iconWrap {
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cv-text-mute);
+}
+
+.hintLine {
   width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  height: 1px;
+  background: var(--cv-pink);
+}
+
+.hintDesktop { display: none; }
+
+/* ── Panels ───────────────────────────────────────────────────── */
+.panel {
+  position: relative;
+  flex: 0 0 auto;
+  width: 78vw;
+  height: min(66svh, 540px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 18px;
+  scroll-snap-align: start;
+  transition: color 0.3s ease;
+}
+
+.dark {
+  background: var(--cv-ink-2);
+  color: var(--cv-bone);
+}
+
+.light {
+  background: var(--cv-bone);
+  color: var(--cv-ink);
+}
+
+/* Team Passion corner: warm ember square */
+.passion {
+  background: #140806;
+  color: var(--cv-bone);
+}
+
+.passion::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: var(--cv-fire);
+}
+
+.panelTop {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  transition: transform 0.3s ease;
+  gap: 10px;
+  min-width: 0;
 }
 
-.card:hover .iconWrap {
-  transform: scale(1.1) rotate(4deg);
+.sq {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cv-pink);
+}
+
+.light .sq {
+  color: var(--cv-pink-deep);
+}
+
+.category {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badge {
-  font-size: 0.68rem;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
-.cardCategory {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--fg-dim);
-  margin-bottom: 6px;
+.passion .badge {
+  color: var(--cv-heat);
 }
 
-.cardTitle {
-  font-family: var(--serif);
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--fg);
-  margin: 0 0 8px;
-  line-height: 1.3;
-  transition: color 0.2s ease;
+.media {
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  background: var(--cv-ink-3);
 }
 
-.card:hover .cardTitle {
-  color: var(--accent-color, var(--gold));
+.media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.001);
+  transition: transform 0.9s var(--cv-ease-out);
 }
 
-.cardDesc {
-  font-size: 0.84rem;
-  color: var(--fg-muted);
-  line-height: 1.6;
-  margin: 0 0 20px;
-  flex: 1;
+.mediaHeat {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(215, 48, 28, 0.55) 0%, rgba(242, 106, 27, 0.18) 30%, transparent 55%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
 }
 
-.cardFooter {
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
+.passion .mediaHeat {
+  opacity: 0.8;
 }
 
-.linkText {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent-color, var(--gold));
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: gap 0.2s ease;
+.icon {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--cv-ink);
+  color: var(--cv-bone);
+  font-size: 1.3rem;
 }
 
-.card:hover .linkText {
+.light .icon {
+  background: var(--cv-bone);
+  color: var(--cv-ink);
+}
+
+.passion .icon {
+  color: var(--cv-flame);
+  background: var(--cv-ink);
+}
+
+.panelBottom {
+  display: grid;
   gap: 8px;
 }
 
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+.num {
+  font-family: var(--cv-font-display);
+  font-size: 0.95rem;
+  opacity: 0.5;
+}
+
+.title {
+  font-family: var(--cv-font-display);
+  font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.desc {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cta svg {
+  transition: transform 0.35s var(--cv-ease-out);
+}
+
+.panel:hover .media img,
+.panel:focus-visible .media img {
+  transform: scale(1.06);
+}
+
+.panel:hover .mediaHeat,
+.panel:focus-visible .mediaHeat {
+  opacity: 1;
+}
+
+.panel:hover .cta svg {
+  transform: translateX(4px);
+}
+
+.trackEnd {
+  flex: 0 0 var(--cv-gutter);
+}
+
+/* ── Progress marks a–h ───────────────────────────────────────── */
+.marks {
+  position: absolute;
+  left: var(--cv-gutter);
+  bottom: 24px;
+  display: flex;
+  gap: 4px;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--cv-line-strong);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--cv-text-mute);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.mark[data-on="true"] {
+  background: var(--cv-pink);
+  border-color: var(--cv-pink);
+  color: var(--cv-ink);
+}
+
+/* ================================================================
+   DESKTOP: pinned horizontal scroll
+   ================================================================ */
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .pin {
+    height: 100svh;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  .track {
+    width: max-content;
+    overflow: visible;
+    scroll-snap-type: none;
+    align-items: center;
+    padding-top: calc(var(--cv-header-h) + 8px);
+    will-change: transform;
+  }
+
+  .intro {
+    flex: 0 0 min(40vw, 580px);
+    align-self: stretch;
+    justify-content: center;
+    padding-right: 5vw;
+  }
+
+  .hintDesktop { display: inline; }
+  .hintMobile { display: none; }
+
+  .panel {
+    width: clamp(300px, 25vw, 400px);
+    height: min(72svh, 640px);
+    padding: 22px;
+  }
+
+  .panel:nth-of-type(even) {
+    margin-top: 6vh;
+  }
+
+  .panel:nth-of-type(odd) {
+    margin-bottom: 6vh;
+  }
+
+  .marks {
+    bottom: 32px;
   }
 }
 
-@media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+/* Desktop with reduced motion: no pin — a wrapped board grid instead */
+@media (min-width: 900px) and (prefers-reduced-motion: reduce) {
+  .track {
+    flex-wrap: wrap;
+    overflow: visible;
+    scroll-snap-type: none;
   }
-  .section {
-    padding: 60px 16px;
+
+  .intro {
+    flex: 0 0 100%;
+    margin-bottom: 32px;
+  }
+
+  .panel {
+    width: 25%;
+  }
+
+  .marks { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media img,
+  .mediaHeat,
+  .cta svg {
+    transition: none;
   }
 }

@@ -1,198 +1,362 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Fragment, useRef, useState } from "react";
 import styles from "./Footer.module.css";
+import KnightSvg from "./chess/KnightSvg";
+import EmberField from "./chess/EmberField";
+import { SOCIAL_LINKS } from "./chess/SocialIcons";
+import { gsap, useGSAP, MQ, prefersReducedMotion } from "@/lib/gsap";
+
+interface FooterLink {
+  label: string;
+  href: string;
+  external?: boolean;
+  preview?: string;
+}
+
+interface FooterCol {
+  square: string;
+  title: string;
+  links: FooterLink[];
+}
+
+const COLUMNS: FooterCol[] = [
+  {
+    square: "a1",
+    title: "About",
+    links: [
+      { label: "About Erine", href: "/about/erine", preview: "/images/erine2.jpg" },
+      { label: "About Cavallery", href: "/about/cavallery", preview: "/images/about/cava-group-1.jpeg" },
+    ],
+  },
+  {
+    square: "c3",
+    title: "Info",
+    links: [
+      { label: "Show Theater", href: "/show-theater", preview: "/images/about/timeline-2024-1.jpeg" },
+      { label: "Live Status", href: "https://www.showroom-live.com/r/JKT48_Erine", external: true, preview: "/images/showroom.png" },
+      { label: "News JKT48", href: "/news", preview: "/images/about/timeline-2024-3.jpeg" },
+      { label: "News Cavallery", href: "/news/cavallery-statement", preview: "/images/about/filosofi-emblem.jpg" },
+    ],
+  },
+  {
+    square: "e5",
+    title: "Project",
+    links: [
+      { label: "Request Hour 2026", href: "/request-hour-2026", preview: "/images/rkj.jpg" },
+      { label: "#CatErine17th", href: "/caterine17th", preview: "/images/caterine17th-poster.jpg" },
+      { label: "Erine in Etherland", href: "/erine-in-etherland", preview: "/images/about/timeline-other-6.jpeg" },
+      { label: "Erine 100 Show", href: "/erine100show", preview: "/images/passion.jpg" },
+      { label: "SSK JKT48 2024", href: "/ssk", preview: "/images/chapter.jpg" },
+    ],
+  },
+  {
+    square: "g7",
+    title: "#GameRine",
+    links: [
+      { label: "Game Bibir Yang Telah Dicuri", href: "/games/jumping-adventure", preview: "/images/about/timeline-other-4.jpeg" },
+      { label: "Game Erine In Etherland", href: "/games/zombie-escape", preview: "/images/about/timeline-other-9.jpeg" },
+      { label: "Game Belalang Yang Membangkang", href: "/games/grasshopper-collector", preview: "/images/about/timeline-2024-7.jpeg" },
+      { label: "Love Erine Meter", href: "/games/love-erine-meter", preview: "/images/pajama.jpg" },
+      { label: "Dressup Erine", href: "/games/dress-up", preview: "/images/kkg.jpg" },
+    ],
+  },
+];
+
+const GIANT = ["Hadir", "dengan", "seribu", "kejutan,", "Checkmate!"];
+
+/**
+ * Knight's Path finale on an 8×8 board (viewBox 800, square = 100):
+ * b1 → c3 → e4 → g5 → f7 → h8 — every hop an "L", ending on the last square.
+ */
+const BOARD_PATH = "M150 750 L150 550 L250 550 L450 550 L450 450 L650 450 L650 350 L650 150 L550 150 L550 50 L750 50";
+const WAYPOINTS = [
+  { sq: "b1", x: 150, y: 750 },
+  { sq: "c3", x: 250, y: 550 },
+  { sq: "e4", x: 450, y: 450 },
+  { sq: "g5", x: 650, y: 350 },
+  { sq: "f7", x: 550, y: 150 },
+  { sq: "h8", x: 750, y: 50 },
+];
 
 export default function Footer() {
   const pathname = usePathname();
-  const currentYear = new Date().getFullYear();
+  const rootRef = useRef<HTMLElement | null>(null);
+  const [openCol, setOpenCol] = useState<string | null>(null);
+  const hidden = pathname?.startsWith("/admin") || pathname?.startsWith("/internal/dashboard-admin-xv7r2q");
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/internal/dashboard-admin-xv7r2q")) {
-    return null;
-  }
+  const { contextSafe } = useGSAP(
+    () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const lit = root.querySelector<SVGPathElement>("[data-trail-lit]");
+      const knight = root.querySelector<HTMLElement>("[data-board-knight]");
+      const words = root.querySelectorAll<HTMLElement>("[data-giant-word]");
+      const ignite = root.querySelector<HTMLElement>("[data-ignite]");
+      const giant = root.querySelector<HTMLElement>("[data-giant]");
+      const stops = Array.from(root.querySelectorAll<HTMLElement>("[data-waypoint]"));
+      if (!lit || !knight || !giant) return;
+      const len = lit.getTotalLength();
+
+      const mm = gsap.matchMedia();
+
+      mm.add(MQ.reduce, () => {
+        gsap.set(lit, { strokeDasharray: len, strokeDashoffset: 0 });
+        gsap.set(knight, { motionPath: { path: lit, align: lit, alignOrigin: [0.5, 0.5], start: 1, end: 1 } });
+        if (ignite) gsap.set(ignite, { opacity: 1 });
+        root.dataset.checkmate = "true";
+        stops.forEach((s) => (s.dataset.on = "true"));
+      });
+
+      mm.add(MQ.motion, () => {
+        gsap.set(lit, { strokeDasharray: len, strokeDashoffset: len });
+
+        // ♞ walks the last moves of the Knight's Path as the footer scrolls in.
+        const walk = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: root,
+            start: "top 85%",
+            end: "bottom bottom",
+            scrub: 1,
+            onUpdate(self) {
+              const p = self.progress;
+              root.dataset.checkmate = p > 0.985 ? "true" : "false";
+              stops.forEach((s, i) => (s.dataset.on = p >= i / (stops.length - 1) - 0.01 ? "true" : "false"));
+            },
+          },
+        });
+        walk.to(lit, { strokeDashoffset: 0, duration: 1 }, 0);
+        walk.to(knight, { motionPath: { path: lit, align: lit, alignOrigin: [0.5, 0.5] }, duration: 1 }, 0);
+
+        // Giant line revealed word by word, "Checkmate!" ignites at the end.
+        const reveal = gsap.timeline({
+          scrollTrigger: { trigger: giant, start: "top 88%", end: "bottom 62%", scrub: 0.8 },
+        });
+        reveal.fromTo(words, { yPercent: 105 }, { yPercent: 0, ease: "power2.out", stagger: 0.18, duration: 0.6 });
+        if (ignite) reveal.fromTo(ignite, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power1.in" }, ">-0.1");
+      });
+
+      return () => mm.revert();
+    },
+    { scope: rootRef, dependencies: [hidden], revertOnUpdate: true }
+  );
+
+  // Cursor-following image preview (desktop, fine pointer only)
+  const xTo = useRef<((v: number) => void) | null>(null);
+  const yTo = useRef<((v: number) => void) | null>(null);
+
+  const canPreview = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 900px)").matches;
+
+  // contextSafe is applied inside the handlers (not during render) so tweens
+  // created on hover/click are still reverted with the component.
+  const safe = (fn: () => void) => (contextSafe ? contextSafe(fn)() : fn());
+
+  const showPreview = (src?: string) => safe(() => {
+    const el = rootRef.current?.querySelector<HTMLElement>("[data-preview]");
+    const img = el?.querySelector("img");
+    if (!el || !img || !src || !canPreview()) return;
+    if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    if (!xTo.current) {
+      xTo.current = gsap.quickTo(el, "x", { duration: 0.45, ease: "power3" });
+      yTo.current = gsap.quickTo(el, "y", { duration: 0.45, ease: "power3" });
+    }
+    gsap.to(el, { autoAlpha: 1, scale: 1, duration: prefersReducedMotion() ? 0 : 0.3, overwrite: "auto" });
+  });
+
+  const hidePreview = () =>
+    safe(() => {
+      const el = rootRef.current?.querySelector<HTMLElement>("[data-preview]");
+      if (el) gsap.to(el, { autoAlpha: 0, scale: 0.92, duration: 0.25, overwrite: "auto" });
+    });
+
+  const movePreview = (e: React.MouseEvent) => {
+    if (!xTo.current || !yTo.current) return;
+    xTo.current(e.clientX + 22);
+    yTo.current(e.clientY - 70);
+  };
+
+  const backToTop = () => safe(() => {
+    const k = rootRef.current?.querySelector<HTMLElement>("[data-top-knight]");
+    const smooth = !prefersReducedMotion();
+    if (k && smooth) {
+      gsap.fromTo(k, { y: 0 }, { y: -26, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 });
+    }
+    window.scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+  });
+
+  if (hidden) return null;
 
   return (
-    <footer className={styles.footer}>
-      {/* Decorative wave divider */}
-      <div className={styles.waveWrap} aria-hidden="true">
-        <svg
-          viewBox="0 0 1440 80"
-          preserveAspectRatio="none"
-          className={styles.waveSvg}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,40 C360,80 1080,0 1440,40 L1440,0 L0,0 Z"
-            fill="currentColor"
-          />
+    <footer ref={rootRef} className={styles.footer} data-motion data-checkmate="false">
+      {/* ── Endgame board ─────────────────────────────────────────── */}
+      <div className={styles.board} aria-hidden="true">
+        <div className={styles.squares} />
+        <svg className={styles.trail} viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="cv-endgame-fire" x1="0" y1="800" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stopColor="#ff4f8b" />
+              <stop offset="0.45" stopColor="#d7301c" />
+              <stop offset="0.75" stopColor="#f26a1b" />
+              <stop offset="1" stopColor="#ffc14a" />
+            </linearGradient>
+          </defs>
+          <path className={styles.trailBase} d={BOARD_PATH} />
+          <path className={styles.trailLit} d={BOARD_PATH} data-trail-lit stroke="url(#cv-endgame-fire)" />
+          {WAYPOINTS.map((w) => (
+            <g key={w.sq} className={styles.waypoint} data-waypoint data-on="false">
+              <rect x={w.x - 50} y={w.y - 50} width="100" height="100" />
+              <text x={w.x - 42} y={w.y - 34}>
+                {w.sq}
+              </text>
+            </g>
+          ))}
         </svg>
+        <span className={styles.goal} />
+        <span className={styles.boardKnight} data-board-knight>
+          <KnightSvg size="100%" />
+        </span>
       </div>
 
-      <div className={styles.container}>
-        {/* ── TOP ROW ───────────────────────────────── */}
+      <div className={styles.embers} aria-hidden="true">
+        <EmberField desktop={30} mobile={12} intensity={0.9} />
+      </div>
+
+      <div className={styles.inner}>
         <div className={styles.top}>
-          {/* Brand col */}
-          <div className={styles.brand}>
+          <div className={styles.brandBlock}>
             <Link href="/" className={styles.logo}>
-              <span className={styles.logoText}>cavallery</span>
-              <span className={styles.logoDot}>.id</span>
+              <img src="/images/cava-logo-round.png" alt="" width={44} height={44} />
+              <span>
+                cavallery<span className={styles.logoDot}>.id</span>
+              </span>
             </Link>
-
             <p className={styles.tagline}>
-              Fanbase resmi Catherina Vallencia Kurniawan. Hadir untuk mendukung, merayakan, dan berbagi setiap langkah perjalanan Erine bersama Cavallery.
+              Fanbase resmi Catherina Vallencia Kurniawan. Hadir untuk mendukung, merayakan, dan berbagi setiap
+              langkah perjalanan Erine bersama Cavallery.
             </p>
-
-            <p className={styles.quote}>"Hadir dengan seribu kejutan, Checkmate!"</p>
-
-            <div className={styles.socials}>
-              <a
-                href="https://x.com/CErine_JKT48"
-                aria-label="X (Twitter)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="bx bx-x" />
-              </a>
-
-              <a
-                href="https://www.instagram.com/jkt48.erine/"
-                aria-label="Instagram"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="bx bxl-instagram" />
-              </a>
-
-              <a
-                href="https://www.tiktok.com/@jkt48.erine_"
-                aria-label="TikTok"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="bx bxl-tiktok" />
-              </a>
-
-              <a
-                href="https://whatsapp.com/channel/0029VbAQsPj35fLwVgznp12S"
-                aria-label="WhatsApp Community"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="bx bxl-whatsapp" />
-              </a>
-
-              <a
-                href="http://linktr.ee/cavallery"
-                aria-label="Linktree"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="bx bx-link" />
-              </a>
-            </div>
-          </div>
-
-          {/* Links cols */}
-          <div className={styles.grid}>
-            <div className={styles.col}>
-              <h4 className={styles.title}>About</h4>
-              <ul className={styles.links}>
-                <li>
-                  <Link href="/about/erine">About Erine</Link>
-                </li>
-                <li>
-                  <Link href="/about/cavallery">About Cavallery</Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className={styles.col}>
-              <h4 className={styles.title}>Info</h4>
-              <ul className={styles.links}>
-                <li>
-                  <Link href="/show-theater">Show Theater</Link>
-                </li>
-                <li>
-                  <a
-                    href="https://www.showroom-live.com/r/JKT48_Erine"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Live Status
-                  </a>
-                </li>
-                <li>
-                  <Link href="/news">News JKT48</Link>
-                </li>
-                <li>
-                  <Link href="/news/cavallery-statement">News Cavallery</Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className={styles.col}>
-              <h4 className={styles.title}>Project</h4>
-              <ul className={styles.links}>
-                <li>
-                  <Link href="/request-hour-2026">Request Hour 2026</Link>
-                </li>
-                <li>
-                  <Link href="/caterine17th">#CatErine17th</Link>
-                </li>
-                <li>
-                  <Link href="/erine-in-etherland">Erine in Etherland</Link>
-                </li>
-                <li>
-                  <Link href="/erine100show">Erine 100 Show</Link>
-                </li>
-                <li>
-                  <Link href="/ssk">SSK JKT48 2024</Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className={styles.col}>
-              <h4 className={styles.title}>#GameRine</h4>
-              <ul className={styles.links}>
-                <li>
-                  <Link href="/games/jumping-adventure">
-                    Game Bibir Yang Telah Dicuri
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/games/zombie-escape">
-                    Game Erine In Etherland
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/games/grasshopper-collector">
-                    Game Belalang Yang Membangkang
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/games/love-erine-meter">Love Erine Meter</Link>
-                </li>
-                <li>
-                  <Link href="/games/dress-up">Dressup Erine</Link>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
 
-        {/* ── BOTTOM ROW ────────────────────────────── */}
+        {/* Giant endgame line */}
+        <p className={`${styles.giant} cv-display`} data-giant>
+          {GIANT.map((w, i) => {
+            const isMate = i === GIANT.length - 1;
+            return (
+              <Fragment key={w}>
+                <span className={styles.gMask}>
+                  <span className={`${styles.gWord} ${isMate ? styles.mate : ""}`} data-giant-word>
+                    {isMate ? (
+                      <>
+                        <span className={styles.mateBase}>{w}</span>
+                        <span className={`${styles.mateFire} cv-fire-text`} data-ignite aria-hidden="true">
+                          {w}
+                        </span>
+                      </>
+                    ) : (
+                      w
+                    )}
+                  </span>
+                </span>
+                {i < GIANT.length - 1 ? " " : null}
+              </Fragment>
+            );
+          })}
+        </p>
+
+        <div className={styles.lower}>
+          <nav
+            className={styles.cols}
+            aria-label="Tautan footer"
+            onMouseMove={movePreview}
+            onMouseLeave={hidePreview}
+          >
+            {COLUMNS.map((col) => {
+              const open = openCol === col.title;
+              return (
+                <div key={col.title} className={styles.col} data-open={open ? "true" : "false"}>
+                  <button
+                    type="button"
+                    className={styles.colHead}
+                    aria-expanded={open}
+                    onClick={() => setOpenCol(open ? null : col.title)}
+                  >
+                    <span className={styles.colSq}>{col.square}</span>
+                    <span className={styles.colDot}>·</span>
+                    <span className={styles.colTitle}>{col.title}</span>
+                    <span className={styles.colPlus} aria-hidden="true" />
+                  </button>
+                  <ul className={styles.colBody}>
+                    {col.links.map((l) => (
+                      <li key={l.href}>
+                        {l.external ? (
+                          <a
+                            href={l.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onMouseEnter={() => showPreview(l.preview)}
+                            onMouseLeave={hidePreview}
+                          >
+                            {l.label}
+                          </a>
+                        ) : (
+                          <Link href={l.href} onMouseEnter={() => showPreview(l.preview)} onMouseLeave={hidePreview}>
+                            {l.label}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className={styles.socials}>
+            <span className={styles.socialsLabel}>Ikuti Erine</span>
+            <div className={styles.socialRow}>
+              {SOCIAL_LINKS.map((s) => (
+                <a
+                  key={s.key}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  className={styles.social}
+                >
+                  <span className={styles.socialInner}>
+                    <span className={styles.socialFront}>{s.icon}</span>
+                    <span className={styles.socialBack}>{s.icon}</span>
+                  </span>
+                </a>
+              ))}
+            </div>
+            <button type="button" className={styles.toTop} onClick={backToTop} aria-label="Back to top">
+            <span className={styles.toTopTrack} aria-hidden="true">
+              <span className={styles.toTopKnight} data-top-knight>
+                <KnightSvg size={22} />
+              </span>
+            </span>
+            <span className={styles.toTopLabel}>Back to top</span>
+          </button>
+          </div>
+        </div>
+
         <div className={styles.bottom}>
+          <p className={styles.copy}>&copy; 2026 Cavallery. All Rights Reserved.</p>
           <div className={styles.bottomLinks}>
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
           </div>
-
-          <p className={styles.copy}>
-            &copy; 2026 Cavallery. All Rights Reserved.
-          </p>
-
-          <div className={styles.bottomRightSpacer} />
         </div>
+      </div>
+
+      <div className={styles.preview} data-preview aria-hidden="true">
+        <img alt="" />
       </div>
     </footer>
   );
