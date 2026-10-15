@@ -71,6 +71,7 @@
 }
 
 .sq {
+  border-radius: 99px;
   position: relative;
   overflow: hidden;
   background: rgba(243, 237, 228, 0.07);
@@ -81,9 +82,13 @@
 }
 
 .sqFill {
+  border-radius: 99px;
   position: absolute;
   inset: 0;
-  background: var(--cv-fire);
+  background: var(--cv-fire-text);
+  background-size: 300% 100%;
+  animation: cv-fire-drift 2.6s linear infinite;
+  box-shadow: 0 0 10px rgba(242, 106, 27, 0.7);
   transform: scaleX(0);
   transform-origin: left;
 }
@@ -114,11 +119,21 @@
 }
 
 .logo {
+  box-shadow: 0 0 0 2px rgba(242, 106, 27, 0.35);
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
   transition: transform 0.5s var(--cv-ease-out);
+}
+
+@keyframes logoHeat {
+  from { box-shadow: 0 0 0 2px rgba(242, 106, 27, 0.35), 0 0 0 0 rgba(242, 106, 27, 0); }
+  to   { box-shadow: 0 0 0 2px rgba(255, 193, 74, 0.7), 0 0 18px 2px rgba(242, 106, 27, 0.45); }
+}
+
+.logo {
+  animation: logoHeat 1.8s ease-in-out infinite alternate;
 }
 
 .header[data-compact="true"] .logo {
@@ -270,6 +285,7 @@
 }
 
 .toggleBoard i {
+  border-radius: 3px;
   display: block;
   border: 1.5px solid currentColor;
   transition: transform 0.45s var(--cv-ease-out), background-color 0.3s ease, border-color 0.3s ease;
@@ -298,9 +314,13 @@
 /* ── Mega menu ────────────────────────────────────────────────── */
 .mega {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  top: calc(100% + 8px);
+  left: var(--cv-gutter);
+  right: var(--cv-gutter);
+  border-radius: var(--cv-radius-xl);
+  border: 1px solid var(--cv-line);
+  overflow: hidden;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9), var(--cv-shadow-heat);
   z-index: -1;
   display: none;
   background-color: var(--cv-ink);
@@ -314,7 +334,7 @@
 }
 
 .header[data-compact="true"] .mega {
-  top: calc(100% - 14px);
+  top: calc(100% - 6px);
 }
 
 .mega[data-open="true"] {
@@ -329,7 +349,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
+  top: 0;
   height: 1px;
   background: var(--cv-fire);
   opacity: 0.6;
@@ -398,6 +418,7 @@
 }
 
 .megaThumb {
+  border-radius: var(--cv-radius);
   position: relative;
   display: block;
   aspect-ratio: 4 / 3;
@@ -437,6 +458,7 @@
 }
 
 .megaSq {
+  border-radius: 0 0 var(--cv-radius-sm) 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -502,6 +524,7 @@
 }
 
 .megaRowThumb {
+  border-radius: var(--cv-radius-sm);
   position: relative;
   width: 56px;
   height: 56px;
@@ -677,6 +700,7 @@
 }
 
 .ovSocials a {
+  border-radius: var(--cv-radius);
   display: grid;
   place-items: center;
   width: 48px;
@@ -715,6 +739,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sqFill,
+  .logo {
+    animation: none !important;
+  }
   .header,
   .bar,
   .logo,

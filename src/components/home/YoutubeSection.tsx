@@ -201,7 +201,7 @@ export default function YoutubeSection({
                     href={video.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles.card}
+                    className={`${styles.card} cv-flame-hover`}
                     data-reveal-item
                   >
                     <div className={styles.thumbnailWrapper}>

@@ -80,7 +80,7 @@
   padding: 10px 20px;
   background: var(--cv-ink);
   border: 1px solid var(--cv-line-strong);
-  border-radius: 0;
+  border-radius: var(--cv-radius-pill);
   color: var(--cv-text);
   font-size: 0.72rem;
   font-weight: 700;

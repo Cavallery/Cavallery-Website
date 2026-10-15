@@ -15,15 +15,15 @@
 
 .navButtons {
   display: flex;
-  gap: 0;
+  gap: 8px;
 }
 
 .navBtn {
+  border-radius: 50%;
   display: grid;
   place-items: center;
   width: 52px;
   height: 52px;
-  margin-right: -1px;
   background: transparent;
   border: 1px solid var(--cv-line-strong);
   color: var(--cv-text);
@@ -65,6 +65,8 @@
 }
 
 .card {
+  border-radius: var(--cv-radius-lg);
+  overflow: hidden;
   position: relative;
   flex: 0 0 auto;
   width: min(78vw, 340px);
@@ -144,6 +146,7 @@
 }
 
 .playBtnCircle {
+  border-radius: 50%;
   display: grid;
   place-items: center;
   width: 56px;
@@ -197,6 +200,8 @@
 
 /* states */
 .skeletonCard {
+  border-radius: var(--cv-radius-lg);
+  overflow: hidden;
   flex: 0 0 auto;
   width: min(78vw, 340px);
   border: 1px solid var(--cv-line);
@@ -223,6 +228,7 @@
 }
 
 .stateWrapper {
+  border-radius: var(--cv-radius-xl);
   display: grid;
   justify-items: center;
   gap: 12px;
@@ -236,6 +242,7 @@
 }
 
 .retryBtn {
+  border-radius: var(--cv-radius-pill);
   padding: 10px 18px;
   background: var(--cv-bone);
   color: var(--cv-ink);

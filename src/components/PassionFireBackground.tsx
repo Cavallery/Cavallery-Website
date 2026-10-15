@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import styles from "./PassionFireBackground.module.css";
+import FlameLayer from "./chess/FlameLayer";
 
 /**
  * TEAM PASSION — ambient "heat horizon".
@@ -19,6 +20,7 @@ export default function PassionFireBackground() {
     <div className={styles.horizon} aria-hidden="true">
       <div className={styles.haze} />
       <div className={styles.hazeHot} />
+      <FlameLayer id="horizon-flames" className={styles.flames} density={16} intensity={0.42} />
       <div className={styles.line} />
     </div>
   );
