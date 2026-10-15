@@ -18,7 +18,7 @@ function verifyLocalToken(token: string): { valid: boolean; username?: string; r
     if (parsed.exp < Date.now()) return { valid: false };
     const username = parsed.username || "Vallencia";
     const u = username.toLowerCase();
-    const role = parsed.role || (["admin", "vallencia", "aditya"].includes(u) ? "superadmin" : "admin");
+    const role = parsed.role || (["admin", "vallencia", "aditya"].includes(u) || u.includes("aditya") ? "superadmin" : "admin");
     return { valid: true, username, role, expiresAt: new Date(parsed.exp).toISOString() };
   } catch {
     return { valid: false };
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
 async function verifySession(req: NextRequest) {
   try {
-    const token = req.cookies.get("cava_session")?.value;
+    const token = req.cookies.get("cava_session")?.value || req.cookies.get("cavallery_admin_session")?.value;
 
     if (!token) {
       return NextResponse.json(
@@ -48,7 +48,7 @@ async function verifySession(req: NextRequest) {
     const local = verifyLocalToken(token);
     if (local.valid) {
       const u = (local.username || "").toLowerCase();
-      const isSuper = ["admin", "vallencia", "aditya"].includes(u);
+      let isSuper = ["admin", "vallencia", "aditya"].includes(u) || u.includes("aditya") || local.role === "superadmin";
       let role = isSuper ? "superadmin" : (local.role || "admin");
 
       // Ambil role dan nama asli dari MySQL
@@ -61,6 +61,7 @@ async function verifySession(req: NextRequest) {
           );
           if (userRows && userRows.length > 0) {
             if (userRows[0].name) realName = userRows[0].name;
+            if (userRows[0].role === "superadmin") isSuper = true;
             if (!isSuper && userRows[0].role) role = userRows[0].role;
           } else {
             const adminRows = await query<any[]>(
@@ -69,10 +70,15 @@ async function verifySession(req: NextRequest) {
             );
             if (adminRows && adminRows.length > 0) {
               if (adminRows[0].nama) realName = adminRows[0].nama;
+              if (adminRows[0].role === "superadmin") isSuper = true;
               if (!isSuper && adminRows[0].role) role = adminRows[0].role;
             }
           }
         } catch {}
+      }
+
+      if (realName && realName.toLowerCase().includes("aditya")) {
+        isSuper = true;
       }
 
       if (isSuper) {

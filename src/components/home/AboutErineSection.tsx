@@ -96,6 +96,105 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
   );
 }
 
+const DEFAULT_TRIVIA_LIST = [
+  {
+    id: 1,
+    q: "Kapan penampilan pertama Erine di panggung theater JKT48?",
+    options: [
+      "1 Februari 2025 (Zenza Girl - Glory Days)",
+      "18 November 2023 (Trainee Debut)",
+      "25 Oktober 2025 (Promosi Team Passion)"
+    ],
+    correctIndex: 0,
+    a: "Penampilan pertama Erine sebagai penari latar (zenza girl) di JKT48 Stage ke-5 untuk lagu 'Glory Days' adalah pada tanggal 1 Februari 2025.",
+    tag: "Panggung Theater",
+  },
+  {
+    id: 2,
+    q: "Siapa grup dan idol K-Pop favorit Erine?",
+    options: [
+      "NewJeans — Haerin",
+      "aespa — Ningning",
+      "IVE — Wonyoung"
+    ],
+    correctIndex: 1,
+    a: "Erine sangat mengidolakan girlgroup aespa, dengan bias utama Erine yaitu Ningning.",
+    tag: "Favorit",
+  },
+  {
+    id: 3,
+    q: "Apa cita-cita unik Erine semasa upacara sekolah?",
+    options: [
+      "Petugas pembawa bendera upacara",
+      "Pemimpin paduan suara (Dirigen)",
+      "Pembaca naskah Pembukaan UUD 1945"
+    ],
+    correctIndex: 0,
+    a: "Erine punya cita-cita unik ingin menjadi petugas pembawa bendera saat Erine upacara bendera di sekolah.",
+    tag: "Masa Sekolah",
+  },
+  {
+    id: 4,
+    q: "Waktu SMA, Erine memilih jurusan apa?",
+    options: [
+      "IPA (Ilmu Pengetahuan Alam)",
+      "Bahasa dan Budaya",
+      "IPS (Ilmu Pengetahuan Sosial)"
+    ],
+    correctIndex: 2,
+    a: "Erine mengambil jurusan IPS saat Erine menempuh pendidikan di SMA.",
+    tag: "Pendidikan",
+  },
+  {
+    id: 5,
+    q: "Alat musik apa yang bisa dimainkan oleh Erine?",
+    options: [
+      "Kalimba (alat musik petik jempol)",
+      "Ukulele akustik",
+      "Biola elektrik"
+    ],
+    correctIndex: 0,
+    a: "Erine mahir memainkan alat musik Kalimba (alat musik petik jempol).",
+    tag: "Bakat Musik",
+  },
+  {
+    id: 6,
+    q: "Bagaimana kondisi kesehatan mata Erine?",
+    options: [
+      "Minus 1.5 mata kiri",
+      "Mata sangat sehat, tanpa minus maupun silinder",
+      "Silinder ringan 0.75"
+    ],
+    correctIndex: 1,
+    a: "Mata Erine sangat sehat dan jernih, Erine sama sekali tidak memiliki silinder ataupun minus.",
+    tag: "Fisik & Kesehatan",
+  },
+  {
+    id: 7,
+    q: "Kapan Erine mengirimkan formulir pendaftaran audisi JKT48?",
+    options: [
+      "Hari pertama pembukaan audisi",
+      "1 minggu sebelum batas waktu",
+      "Tepat di hari terakhir penutupan pendaftaran!"
+    ],
+    correctIndex: 2,
+    a: "Erine mendaftarkan diri pada audisi JKT48 tepat di hari terakhir penutupan pendaftaran!",
+    tag: "Audisi JKT48",
+  },
+  {
+    id: 8,
+    q: "Apakah Erine benar-benar jago bermain catur?",
+    options: [
+      "Sebenarnya tidak bisa, jiko Checkmate murni ide spontan!",
+      "Juara catur tingkat sekolah",
+      "Menguasai taktik grandmaster catur"
+    ],
+    correctIndex: 0,
+    a: "Sebenarnya Erine tidak bisa main catur! Jikoshoukai 'Checkmate' Erine itu murni ide spontan yang terlintas begitu saja di pikiran Erine.",
+    tag: "Jikoshoukai",
+  },
+];
+
 export default function AboutErineSection() {
   const age = calculateAge();
   const [activeSlide, setActiveSlide] = useState(0);
@@ -113,7 +212,7 @@ export default function AboutErineSection() {
   const [updates, setUpdates] = useState<any[]>([]);
   const [kabeshas, setKabeshas] = useState<any[]>([]);
   const [funfacts, setFunfacts] = useState<any[]>([]);
-  const [openFunFactIds, setOpenFunFactIds] = useState<number[]>([]);
+  const [triviaGuesses, setTriviaGuesses] = useState<Record<number, number>>({});
   const [debutVideoId, setDebutVideoId] = useState<string>("Obxn7knXq38");
   const [sskVideoId, setSskVideoId] = useState<string>("_Qn9B9mD2bI");
   const [updatesLoaded, setUpdatesLoaded] = useState(false);
@@ -304,6 +403,45 @@ export default function AboutErineSection() {
       }
     };
   }, []);
+
+  const handleSelectTriviaOption = (itemId: number, optionIdx: number) => {
+    if (triviaGuesses[itemId] !== undefined) return;
+    setTriviaGuesses((prev) => ({ ...prev, [itemId]: optionIdx }));
+  };
+
+  const handleResetTriviaGame = () => {
+    setTriviaGuesses({});
+  };
+
+  const triviaList = funfacts.length > 0
+    ? funfacts.map((f: any, i: number) => {
+        const raw = f.fact || f.content || "";
+        let q = `Trivia #${i + 1}: Tahukah kamu tentang hal ini?`;
+        let a = raw;
+        if (raw.includes("?") || raw.includes("—") || raw.includes(":")) {
+          const parts = raw.split(/[?|—|:]/);
+          if (parts.length >= 2 && parts[0].trim().length > 5) {
+            q = parts[0].trim() + (raw.includes("?") ? "?" : "");
+            a = parts.slice(1).join(" ").trim();
+          }
+        }
+        if (!a.toLowerCase().includes("erine")) {
+          a = `Fakta Erine: ${a}`;
+        }
+        return {
+          id: f.id || i + 1,
+          q,
+          options: ["Fakta Asli Erine (Benar)", "Mitos Belaka (Salah)"],
+          correctIndex: 0,
+          a,
+          tag: f.category || "Fun Fact"
+        };
+      })
+    : DEFAULT_TRIVIA_LIST;
+
+  const totalTrivia = triviaList.length;
+  const answeredCount = Object.keys(triviaGuesses).length;
+  const correctCount = triviaList.filter((item) => triviaGuesses[item.id] === item.correctIndex).length;
 
   return (
     <section className={styles.wrapper}>
@@ -539,123 +677,150 @@ export default function AboutErineSection() {
         <div className={styles.ewFf}>
           <div className={styles.ffHeader}>
             <div>
+              <div className={styles.ffGameBadge}>
+                <i className="bx bxs-game" /> MINI GAME TRIVIA
+              </div>
               <h3 className={styles.ffTitle}>
-                <i className="bx bx-help-circle" style={{ color: "var(--gold)", marginRight: 8 }} />
-                Fun Fact & Trivia Erine
+                <i className="bx bx-joystick" style={{ color: "var(--gold)", marginRight: 8 }} />
+                Tebak Trivia &amp; Fakta Erine
               </h3>
               <p className={styles.ffSubtitle}>
-                Klik pertanyaan di bawah untuk mengungkap fakta & rahasia menarik tentang Erine! 🐣✨
+                Uji seberapa kenal kamu dengan Erine! Pilih tebakanmu di tiap pertanyaan untuk mengungkap rahasia dan fakta aslinya. 🐣✨
               </p>
             </div>
-            <button
-              type="button"
-              className={styles.ffToggleAllBtn}
-              onClick={() => {
-                const totalIds = (funfacts.length > 0 ? funfacts : [1, 2, 3, 4, 5, 6, 7, 8]).map((_, i) => i + 1);
-                setOpenFunFactIds(openFunFactIds.length === totalIds.length ? [] : totalIds);
-              }}
-            >
-              {openFunFactIds.length > 0 ? "Tutup Semua" : "Buka Semua"}
-            </button>
+
+            <div className={styles.ffGameStatsBar}>
+              <div className={styles.ffStatItem}>
+                <span className={styles.ffStatLabel}>Telah Ditebak</span>
+                <span className={styles.ffStatVal}>{answeredCount} / {totalTrivia}</span>
+              </div>
+              <div className={styles.ffStatItem}>
+                <span className={styles.ffStatLabel}>Skor Benar</span>
+                <span className={`${styles.ffStatVal} ${styles.ffStatValGold}`}>⭐ {correctCount}</span>
+              </div>
+              {answeredCount > 0 && (
+                <button
+                  type="button"
+                  className={styles.ffResetGameBtn}
+                  onClick={handleResetTriviaGame}
+                  title="Mulai Ulang Game"
+                >
+                  <i className="bx bx-refresh" /> Reset Game
+                </button>
+              )}
+            </div>
           </div>
 
+          {answeredCount === totalTrivia && totalTrivia > 0 && (
+            <div className={styles.gameCompletionBanner}>
+              <div className={styles.gameCompletionEmoji}>
+                {correctCount >= 6 ? "👑" : "🎉"}
+              </div>
+              <div className={styles.gameCompletionContent}>
+                <h4>
+                  {correctCount === totalTrivia
+                    ? "Sempurna! Kamu Jenius Cavallery Sejati! ♟️💙"
+                    : correctCount >= 5
+                    ? "Keren Banget! Kamu Tahu Banyak Soal Erine! 🐣✨"
+                    : "Permainan Bagus! Terus dukung dan kenali Erine ya! 💙"}
+                </h4>
+                <p>
+                  Kamu berhasil menjawab <strong>{correctCount} dari {totalTrivia}</strong> pertanyaan trivia dengan tepat!
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.playAgainBtn}
+                onClick={handleResetTriviaGame}
+              >
+                <i className="bx bx-rotate-left" /> Main Lagi
+              </button>
+            </div>
+          )}
+
           <div className={styles.ffGrid}>
-            {(funfacts.length > 0
-              ? funfacts.map((f: any, i: number) => {
-                  const raw = f.fact || f.content || "";
-                  let q = `Trivia #${i + 1}: Tahukah kamu tentang hal ini?`;
-                  let a = raw;
-                  if (raw.includes("?") || raw.includes("—") || raw.includes(":")) {
-                    const parts = raw.split(/[?|—|:]/);
-                    if (parts.length >= 2 && parts[0].trim().length > 5) {
-                      q = parts[0].trim() + (raw.includes("?") ? "?" : "");
-                      a = parts.slice(1).join(" ").trim();
-                    }
-                  }
-                  if (!a.toLowerCase().includes("erine")) {
-                    a = `Fakta Erine: ${a}`;
-                  }
-                  return { id: f.id || i + 1, q, a, tag: "Fun Fact" };
-                })
-              : [
-                  {
-                    id: 1,
-                    q: "Kapan penampilan pertama Erine di panggung theater JKT48?",
-                    a: "Penampilan pertama Erine sebagai penari latar (zenza girl) di JKT48 Stage ke-5 untuk lagu 'Glory Days' adalah pada tanggal 1 Februari 2025.",
-                    tag: "Panggung Theater",
-                  },
-                  {
-                    id: 2,
-                    q: "Siapa grup dan idol K-Pop favorit Erine?",
-                    a: "Erine sangat mengidolakan girlgroup aespa, dengan bias utama Erine yaitu Ningning.",
-                    tag: "Favorit",
-                  },
-                  {
-                    id: 3,
-                    q: "Apa cita-cita unik Erine semasa upacara sekolah?",
-                    a: "Erine punya cita-cita unik ingin menjadi petugas pembawa bendera saat Erine upacara bendera di sekolah.",
-                    tag: "Masa Sekolah",
-                  },
-                  {
-                    id: 4,
-                    q: "Waktu SMA, Erine memilih jurusan apa?",
-                    a: "Erine mengambil jurusan IPS saat Erine menempuh pendidikan di SMA.",
-                    tag: "Pendidikan",
-                  },
-                  {
-                    id: 5,
-                    q: "Alat musik apa yang bisa dimainkan oleh Erine?",
-                    a: "Erine mahir memainkan alat musik Kalimba (alat musik petik jempol).",
-                    tag: "Bakat Musik",
-                  },
-                  {
-                    id: 6,
-                    q: "Bagaimana kondisi kesehatan mata Erine?",
-                    a: "Mata Erine sangat sehat dan jernih, Erine sama sekali tidak memiliki silinder ataupun minus.",
-                    tag: "Fisik & Kesehatan",
-                  },
-                  {
-                    id: 7,
-                    q: "Kapan Erine mengirimkan formulir pendaftaran audisi JKT48?",
-                    a: "Erine mendaftarkan diri pada audisi JKT48 tepat di hari terakhir penutupan pendaftaran!",
-                    tag: "Audisi JKT48",
-                  },
-                  {
-                    id: 8,
-                    q: "Apakah Erine benar-benar jago bermain catur?",
-                    a: "Sebenarnya Erine tidak bisa main catur! Jikoshoukai 'Checkmate' Erine itu murni ide spontan yang terlintas begitu saja di pikiran Erine.",
-                    tag: "Jikoshoukai",
-                  },
-                ]
-            ).map((item: any) => {
-              const isOpen = openFunFactIds.includes(item.id);
+            {triviaList.map((item) => {
+              const selectedOpt = triviaGuesses[item.id];
+              const isAnswered = selectedOpt !== undefined;
+              const isCorrect = selectedOpt === item.correctIndex;
+
               return (
                 <div
                   key={item.id}
-                  className={`${styles.ffCard} ${isOpen ? styles.ffCardOpen : ""}`}
-                  onClick={() => {
-                    setOpenFunFactIds((prev) =>
-                      prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-                    );
-                  }}
+                  className={`${styles.ffCard} ${
+                    isAnswered ? (isCorrect ? styles.ffCardCorrect : styles.ffCardWrong) : ""
+                  }`}
                 >
                   <div className={styles.ffQuestionRow}>
                     <div className={styles.ffQuestionLeft}>
                       <span className={styles.ffNumberBadge}>Q{item.id}</span>
                       <span className={styles.ffQuestionText}>{item.q}</span>
                     </div>
-                    <div className={styles.ffChevron}>
-                      <i className={`bx ${isOpen ? "bx-chevron-up" : "bx-chevron-down"}`} />
-                    </div>
+                    {item.tag && <span className={styles.ffTagBadge}>{item.tag}</span>}
                   </div>
 
-                  {isOpen && (
+                  {/* Multiple Choice Game Options */}
+                  <div className={styles.triviaOptionsList}>
+                    {item.options.map((opt: string, optIdx: number) => {
+                      const letter = ["A", "B", "C", "D"][optIdx] || `${optIdx + 1}`;
+                      const isThisSelected = selectedOpt === optIdx;
+                      const isThisCorrect = optIdx === item.correctIndex;
+
+                      let optClass = styles.triviaOptionBtn;
+                      if (isAnswered) {
+                        if (isThisCorrect) {
+                          optClass = `${styles.triviaOptionBtn} ${styles.triviaOptionCorrect}`;
+                        } else if (isThisSelected) {
+                          optClass = `${styles.triviaOptionBtn} ${styles.triviaOptionWrong}`;
+                        } else {
+                          optClass = `${styles.triviaOptionBtn} ${styles.triviaOptionDimmed}`;
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={optIdx}
+                          type="button"
+                          className={optClass}
+                          onClick={() => handleSelectTriviaOption(item.id, optIdx)}
+                          disabled={isAnswered}
+                        >
+                          <span className={styles.triviaLetter}>{letter}</span>
+                          <span className={styles.triviaOptText}>{opt}</span>
+                          {isAnswered && isThisCorrect && (
+                            <i className={`bx bx-check-circle ${styles.optResultIcon}`} />
+                          )}
+                          {isAnswered && isThisSelected && !isThisCorrect && (
+                            <i className={`bx bx-x-circle ${styles.optResultIcon}`} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Before Answered Hint */}
+                  {!isAnswered && (
+                    <div className={styles.ffGuessPrompt}>
+                      <i className="bx bx-help-circle" /> Pilih salah satu opsi di atas untuk menebak &amp; membuka rahasianya!
+                    </div>
+                  )}
+
+                  {/* After Answered: Unlocked Fact */}
+                  {isAnswered && (
                     <div className={styles.ffAnswerBox}>
                       <div className={styles.ffAnswerHeader}>
-                        <span className={styles.ffAnswerBadge}>
-                          <i className="bx bx-bulb" /> Jawaban
+                        <span
+                          className={
+                            isCorrect ? styles.ffAnswerBadgeCorrect : styles.ffAnswerBadgeWrong
+                          }
+                        >
+                          <i
+                            className={`bx ${
+                              isCorrect ? "bx-check-circle" : "bx-info-circle"
+                            }`}
+                          />
+                          {isCorrect ? "Tebakanmu Tepat Sekali! 🎉" : "Kurang Tepat, Ini Jawabannya:"}
                         </span>
-                        {item.tag && <span className={styles.ffTagBadge}>{item.tag}</span>}
                       </div>
                       <p className={styles.ffAnswerText}>{item.a}</p>
                     </div>

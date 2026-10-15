@@ -2877,6 +2877,25 @@ export default function CavalleryKasPage() {
                     <i className="bx bx-id-card" /> KTA Digital
                   </button>
 
+                  {sessionUser.jabatan === "Admin Fanbase" && (
+                    <a
+                      href="https://cavallery.id/internal/dashboard-admin-xv7r2q"
+                      className={styles.memberKtaPrimaryBtn}
+                      style={{
+                        background: "linear-gradient(135deg, #b45309 0%, #d97706 100%)",
+                        color: "#ffffff",
+                        borderColor: "#f59e0b",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6
+                      }}
+                      title="Buka Dashboard Admin Fanbase"
+                    >
+                      <i className="bx bxs-dashboard" /> Dashboard Admin
+                    </a>
+                  )}
+
                   {sessionUser.tanggalLahir && sessionUser.tanggalLahir.trim() && checkIsBirthdayToday(sessionUser.tanggalLahir) && (
                     <button
                       type="button"
@@ -3318,7 +3337,7 @@ export default function CavalleryKasPage() {
                 dari ketentuan iuran kas bulanan."
               </p>
 
-              <a href="/admin/keanggotaan" className={styles.adminQuickBtn}>
+              <a href="https://cavallery.id/internal/dashboard-admin-xv7r2q" className={styles.adminQuickBtn}>
                 <i className="bx bxs-dashboard" /> Buka Dashboard Admin Fanbase
               </a>
 
@@ -7208,7 +7227,7 @@ export default function CavalleryKasPage() {
             <div className={styles.birthdayMediaCard}>
               <div className={styles.birthdayMediaImgWrap}>
                 <video
-                  src="https://images.jkt48connect.com/cavallery/images/2026/09/88f6584a5c714b26.mp4"
+                  src="/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4"
                   className={styles.birthdayMediaImg}
                   autoPlay
                   controls

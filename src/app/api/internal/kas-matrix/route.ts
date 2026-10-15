@@ -39,6 +39,20 @@ export async function GET(req: Request) {
       0
     );
 
+    // Ambil data pemasukan eksternal pada tahun yang dipilih
+    const pemasukanRows = (await query<any[]>(
+      `SELECT id, tanggal, tahun, kategori, sumber, nominal, pj_nama, bukti_nota_url, catatan 
+       FROM pemasukan_kas 
+       WHERE tahun = ? 
+       ORDER BY tanggal DESC, id DESC`,
+      [tahun]
+    )) || [];
+
+    const totalPemasukanEksternal = pemasukanRows.reduce(
+      (sum: number, p: any) => sum + (Number(p.nominal) || 0),
+      0
+    );
+
     const saldoKasBersih = data.saldoKasTahun ?? (data.allTimeSaldo ?? (data.grandTotalPemasukan - totalPengeluaran));
 
     return NextResponse.json({
@@ -49,6 +63,7 @@ export async function GET(req: Request) {
       monthlyPaidCounts: data.monthlyPaidCounts,
       grandTotalPemasukan: data.grandTotalPemasukan,
       totalPengeluaran: data.totalPengeluaranKas ?? totalPengeluaran,
+      totalPemasukanEksternal: data.totalPemasukanEksternal ?? totalPemasukanEksternal,
       saldoKasBersih,
       allTimeIuranKas: data.allTimeIuranKas ?? data.allTimePemasukan,
       allTimePemasukanEksternal: data.allTimePemasukanEksternal ?? 0,
@@ -57,6 +72,7 @@ export async function GET(req: Request) {
       allTimeSaldo: data.allTimeSaldo ?? saldoKasBersih,
       matrixRows: publicRows,
       pengeluaranList: pengeluaranRows,
+      pemasukanList: pemasukanRows,
     });
   } catch (err: any) {
     console.error("[Public Matrix API] Error:", err);

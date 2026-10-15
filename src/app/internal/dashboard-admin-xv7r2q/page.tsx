@@ -97,6 +97,20 @@ function useAdminAuth() {
   const [username, setUsername] = useState<string>("");
   const [checking, setChecking] = useState(true);
 
+  const applyUserData = (data: { username?: string; name?: string; role?: string }) => {
+    const uName = data.name || data.username || "Admin";
+    currentAdminUsername = data.username || "admin";
+    const uLower = (data.username || "").toLowerCase();
+    const nameLower = (data.name || "").toLowerCase();
+    const isSuper = data.role === "superadmin" || 
+                    ["admin", "vallencia", "aditya"].includes(uLower) || 
+                    uLower.includes("aditya") || 
+                    nameLower.includes("aditya");
+    setRole(isSuper ? "superadmin" : (data.role || "admin"));
+    setUsername(uName);
+    setAuthed(true);
+  };
+
   useEffect(() => {
     // Verifikasi session ke server saat mount dengan timeout 3.5 detik
     const controller = new AbortController();
@@ -110,14 +124,10 @@ function useAdminAuth() {
       .then(res => res.json())
       .then(data => {
         const isValid = data.status === true && data.valid === true;
-        setAuthed(isValid);
         if (isValid) {
-          const uName = data.name || data.username || "Admin";
-          currentAdminUsername = data.username || "admin";
-          const uLower = (data.username || "").toLowerCase();
-          const isSuper = ["admin", "vallencia", "aditya"].includes(uLower);
-          setRole(isSuper ? "superadmin" : (data.role || "admin"));
-          setUsername(uName);
+          applyUserData(data);
+        } else {
+          setAuthed(false);
         }
       })
       .catch(() => {
@@ -144,11 +154,11 @@ function useAdminAuth() {
     setAuthed(false);
   };
 
-  return { authed, role, username, checking, setAuthed, logout };
+  return { authed, role, username, checking, setAuthed, logout, applyUserData };
 }
 
 // ─── LOGIN PAGE (auth via API → httpOnly cookie) ──────────────
-function LoginPage({ onLogin }: { onLogin: () => void }) {
+function LoginPage({ onLogin }: { onLogin: (userData: any) => void }) {
   const [user, setUser]       = useState("");
   const [pass, setPass]       = useState("");
   const [hp, setHp]           = useState("");
@@ -179,7 +189,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
       const data = await res.json();
 
       if (data.status) {
-        onLogin();
+        onLogin(data);
       } else {
         setErr(data.message || "Username atau password salah.");
       }
@@ -10426,7 +10436,7 @@ const navGroups: NavGroup[] = [
 
 // ─── MAIN ─────────────────────────────────────────────────────
 export default function AdminPage() {
-  const { authed, role, username, checking, setAuthed, logout } = useAdminAuth();
+  const { authed, role, username, checking, setAuthed, logout, applyUserData } = useAdminAuth();
 
   const [active, setActive] = useState<Section>("dashboard");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -10455,7 +10465,7 @@ export default function AdminPage() {
     </AdminPortal>
   );
 
-  if (!authed) return <LoginPage onLogin={() => setAuthed(true)} />;
+  if (!authed) return <LoginPage onLogin={(userData) => applyUserData(userData)} />;
 
   const navigate = (section: Section) => {
     const SYSTEM_SECTIONS = ["users", "activitylogs", "loginlogs", "visitorlocations"];

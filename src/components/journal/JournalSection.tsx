@@ -172,7 +172,7 @@ export default function JournalSection() {
                       <input
                         type="text"
                         name="Nama"
-                        placeholder="Contoh: Santoso"
+                        placeholder="Contoh: Erine Oshi"
                         required
                         className={styles.input}
                       />

@@ -165,11 +165,16 @@ export async function POST(req: NextRequest) {
 
           // Cek kecocokan password dengan database MySQL
           if (isValid) {
-            clearAttempts(ip);
             const displayName = userRow.nama || userRow.name || userRow.username;
             const uLower = u.toLowerCase();
             const rowUserLower = String(userRow.username || "").toLowerCase();
-            const isSuper = ["admin", "vallencia", "aditya"].includes(uLower) || ["admin", "vallencia", "aditya"].includes(rowUserLower);
+            const rowNameLower = String(userRow.nama || userRow.name || "").toLowerCase();
+            const isSuper = ["admin", "vallencia", "aditya"].includes(uLower) || 
+                            ["admin", "vallencia", "aditya"].includes(rowUserLower) ||
+                            uLower.includes("aditya") ||
+                            rowUserLower.includes("aditya") ||
+                            rowNameLower.includes("aditya") ||
+                            userRow.role === "superadmin";
             const userRole = isSuper ? "superadmin" : (userRow.role || "admin");
             const token = createSessionToken(displayName, userRole);
             const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();

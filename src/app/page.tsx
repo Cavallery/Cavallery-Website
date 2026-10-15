@@ -11,7 +11,9 @@ import SectionDivider from "@/components/SectionDivider";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: {
+    absolute: "Cavallery.id",
+  },
   description:
     "Cavallery adalah komunitas resmi penggemar Erine JKT48. Jadwal, berita, games, dan proyek eksklusif.",
 };

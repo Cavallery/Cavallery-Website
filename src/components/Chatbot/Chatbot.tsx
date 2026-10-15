@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import styles from "./Chatbot.module.css";
 
 const BOT_AVATAR_URL = "https://images.jkt48connect.com/cavallery/images/2026/09/cf207d2f32384a39.jpg";
+const BIRTHDAY_VIDEO_URL = "/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4";
 
 interface Message {
   text: string;
   sender: "user" | "bot";
+  videoUrl?: string;
 }
 
 const DEFAULT_RECOMMENDATIONS = [
@@ -34,8 +36,17 @@ const FALLBACK_RULES = [
   { triggers: [["terima kasih", "makasih", "thanks"]], response: "Sama-sama ya! Seneng bisa bantu. Jangan lupa terus dukung Erine dan Cavallery ya!" },
 ];
 
-function getClientFallbackReply(text: string): string {
+function getClientFallbackReply(text: string): { reply: string; videoUrl?: string } {
   const msg = text.toLowerCase();
+
+  // Cek trigger ucapan ulang tahun / HBD Erine
+  if (/(hbd|selamat\s+ulang\s+tahun|happy\s+birthday|met\s+ultah|met\s+ulang\s+tahun|selamat\s+ultah)/i.test(msg)) {
+    return {
+      reply: "Selamat Ulang Tahun Erine! 🎉🎂💙 Terima kasih banyak atas ucapan hangat dan doa tulusnya untuk Erine ya. Ini ada video spesial ucapan ulang tahun untukmu! ✨",
+      videoUrl: BIRTHDAY_VIDEO_URL
+    };
+  }
+
   let rules = FALLBACK_RULES;
   let fallbackDefault = "Wah pertanyaan seru nih! Coba tanyain aku soal Erine, setlist teaternya, projek Cavallery kayak #RoseObscura, atau hestek-hestek seru lainnya ya! Aku siap bantu.";
 
@@ -54,10 +65,10 @@ function getClientFallbackReply(text: string): string {
     if (!rule.triggers || !Array.isArray(rule.triggers) || rule.triggers.length === 0) continue;
     const groups: string[][] = rule.triggers.map((item: any) => Array.isArray(item) ? item : [item]);
     const isMatch = groups.every((group: string[]) => group.some((t: string) => msg.includes(t.toLowerCase().trim())));
-    if (isMatch) return rule.response;
+    if (isMatch) return { reply: rule.response };
   }
 
-  return fallbackDefault;
+  return { reply: fallbackDefault };
 }
 
 export default function Chatbot() {
@@ -122,18 +133,18 @@ export default function Chatbot() {
       if (response.ok) {
         const data = await response.json();
         if (data.reply) {
-          setMessages((prev) => [...prev, { text: data.reply, sender: "bot" }]);
+          setMessages((prev) => [...prev, { text: data.reply, sender: "bot", videoUrl: data.videoUrl }]);
           setIsLoading(false);
           return;
         }
       }
 
       // If response not ok or no reply, use client fallback
-      const fallbackReply = getClientFallbackReply(text);
-      setMessages((prev) => [...prev, { text: fallbackReply, sender: "bot" }]);
+      const fallback = getClientFallbackReply(text);
+      setMessages((prev) => [...prev, { text: fallback.reply, sender: "bot", videoUrl: fallback.videoUrl }]);
     } catch {
-      const fallbackReply = getClientFallbackReply(text);
-      setMessages((prev) => [...prev, { text: fallbackReply, sender: "bot" }]);
+      const fallback = getClientFallbackReply(text);
+      setMessages((prev) => [...prev, { text: fallback.reply, sender: "bot", videoUrl: fallback.videoUrl }]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 150);
@@ -217,7 +228,18 @@ export default function Chatbot() {
                     msg.sender === "user" ? styles.user : styles.bot
                   }`}
                 >
-                  {msg.text}
+                  <div>{msg.text}</div>
+                  {msg.videoUrl && (
+                    <div className={styles.msgVideoContainer}>
+                      <video
+                        src={msg.videoUrl}
+                        controls
+                        autoPlay
+                        playsInline
+                        className={styles.msgVideo}
+                      />
+                    </div>
+                  )}
                 </div>
               ))
             )}

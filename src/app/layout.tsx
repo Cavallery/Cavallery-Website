@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Cavallery | Home",
+    default: "Cavallery.id",
     template: "Cavallery | %s",
   },
   description:

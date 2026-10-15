@@ -1844,3 +1844,273 @@
   .bioTable td:first-child { font-weight: bold; color: var(--gold); font-size: 0.8rem; text-transform: uppercase; }
   .statsGrid, .electionGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
+
+/* ── TRIVIA MINI GAME STYLES ── */
+.ffGameBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--gold, #b45309);
+  background: var(--gold-dim, rgba(180, 83, 9, 0.1));
+  border: 1px solid var(--border-gold, rgba(180, 83, 9, 0.3));
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ffGameStatsBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ffStatItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface-2, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 10px;
+  min-width: 80px;
+}
+
+.ffStatLabel {
+  font-size: 0.68rem;
+  color: var(--fg-dim, #78716c);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ffStatVal {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.ffStatValGold {
+  color: var(--gold, #b45309);
+}
+
+.ffResetGameBtn {
+  background: var(--surface-2, rgba(212, 175, 55, 0.08));
+  border: 1px solid var(--border-gold, rgba(180, 83, 9, 0.4));
+  color: var(--gold, #b45309);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.ffResetGameBtn:hover {
+  background: var(--gold, #b45309);
+  color: #fff;
+  border-color: var(--gold, #b45309);
+}
+
+.gameCompletionBanner {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.12) 0%, rgba(217, 119, 6, 0.18) 100%);
+  border: 1.5px solid var(--border-gold, rgba(180, 83, 9, 0.4));
+  border-radius: 16px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: bannerPop 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes bannerPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.gameCompletionEmoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.gameCompletionContent {
+  flex: 1;
+}
+
+.gameCompletionContent h4 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--fg);
+  margin: 0 0 4px;
+}
+
+.gameCompletionContent p {
+  font-size: 0.88rem;
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.playAgainBtn {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3);
+}
+
+.playAgainBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(180, 83, 9, 0.4);
+}
+
+.ffCardCorrect {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  background: rgba(16, 185, 129, 0.04) !important;
+}
+
+.ffCardWrong {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  background: rgba(239, 68, 68, 0.03) !important;
+}
+
+.triviaOptionsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.triviaOptionBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.triviaOptionBtn:hover:not(:disabled) {
+  border-color: var(--gold, #b45309);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.12);
+}
+
+.triviaLetter {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--surface-2, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--fg);
+  flex-shrink: 0;
+}
+
+.triviaOptText {
+  flex: 1;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.optResultIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.triviaOptionCorrect {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #047857 !important;
+  font-weight: 700;
+}
+
+:global([data-theme="dark"]) .triviaOptionCorrect {
+  color: #6ee7b7 !important;
+}
+
+.triviaOptionWrong {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #b91c1c !important;
+  font-weight: 700;
+}
+
+:global([data-theme="dark"]) .triviaOptionWrong {
+  color: #fca5a5 !important;
+}
+
+.triviaOptionDimmed {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ffGuessPrompt {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.ffAnswerBadgeCorrect {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+:global([data-theme="dark"]) .ffAnswerBadgeCorrect {
+  color: #34d399;
+}
+
+.ffAnswerBadgeWrong {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+:global([data-theme="dark"]) .ffAnswerBadgeWrong {
+  color: #fbbf24;
+}
