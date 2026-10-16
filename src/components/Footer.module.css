@@ -45,9 +45,9 @@
   position: absolute;
   inset: 0;
   background-image: conic-gradient(
-    rgba(243, 237, 228, 0.045) 0 25%,
+    color-mix(in srgb, var(--cv-bone) 4.5%, transparent) 0 25%,
     transparent 0 50%,
-    rgba(243, 237, 228, 0.045) 0 75%,
+    color-mix(in srgb, var(--cv-bone) 4.5%, transparent) 0 75%,
     transparent 0
   );
   background-size: 25% 25%;
@@ -72,7 +72,7 @@
 }
 
 .trailBase {
-  stroke: rgba(243, 237, 228, 0.16);
+  stroke: color-mix(in srgb, var(--cv-bone) 16%, transparent);
   stroke-width: 2;
   stroke-dasharray: 6 10;
 }
@@ -91,7 +91,7 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
-  fill: rgba(243, 237, 228, 0.25);
+  fill: color-mix(in srgb, var(--cv-bone) 25%, transparent);
   transition: fill 0.4s ease;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .waypoint[data-on="true"] text {
-  fill: var(--cv-heat);
+  fill: var(--cv-orange-hi);
 }
 
 .goal {
@@ -112,9 +112,9 @@
   height: 12.5%;
   opacity: 0;
   box-shadow:
-    inset 0 0 0 2px var(--cv-heat),
+    inset 0 0 0 2px var(--cv-orange-hi),
     inset 0 0 30px rgba(242, 106, 27, 0.9);
-  background: radial-gradient(circle, rgba(255, 193, 74, 0.25), rgba(215, 48, 28, 0.15) 70%);
+  background: radial-gradient(circle, rgba(255, 146, 74, 0.25), rgba(216, 103, 27, 0.15) 70%);
   transition: opacity 0.6s ease;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .footer[data-checkmate="true"] .boardKnight {
-  color: var(--cv-heat);
+  color: var(--cv-orange-hi);
 }
 
 /* Passion flames rising from the bottom edge of the endgame */
@@ -160,7 +160,7 @@
   height: 6px;
   margin: -3px 0 0 -3px;
   border-radius: 50%;
-  background: #ffe3a3;
+  background: #ffc7a1;
   box-shadow: 0 0 8px 3px rgba(242, 106, 27, 0.75), 0 0 2px 1px #fff3cf;
   opacity: 0;
   visibility: hidden;
@@ -223,7 +223,7 @@
 }
 
 .logoDot {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .tagline {
@@ -258,7 +258,7 @@
 
 .toTopKnight {
   display: block;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .toTopLabel {
@@ -270,7 +270,7 @@
 }
 
 .toTop:hover .toTopTrack {
-  border-color: var(--cv-flame);
+  border-color: var(--cv-orange);
 }
 
 .toTop:hover .toTopKnight {
@@ -314,7 +314,7 @@
 }
 
 .mateBase {
-  color: var(--cv-ember);
+  color: var(--cv-orange-deep);
 }
 
 .mateFire {
@@ -384,7 +384,7 @@
 .colSq {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .colDot {
@@ -424,7 +424,7 @@
 
 .col[data-open="true"] .colPlus {
   transform: rotate(45deg);
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .colBody {
@@ -454,7 +454,7 @@
   top: 50%;
   width: 7px;
   height: 7px;
-  background: var(--cv-flame);
+  background: var(--cv-orange);
   opacity: 0;
   transform: translateY(-50%) scale(0.4);
   transition: opacity 0.25s ease, transform 0.3s var(--cv-ease-out);
@@ -538,7 +538,7 @@
   color: var(--cv-ink);
   border-color: var(--cv-bone);
   transform: rotateY(180deg);
-  box-shadow: inset 0 -3px 0 0 var(--cv-flame);
+  box-shadow: inset 0 -3px 0 0 var(--cv-orange);
 }
 
 .social:hover .socialInner,
@@ -559,7 +559,7 @@
   color: var(--cv-text-dim);
   position: relative;
   z-index: 2;
-  text-shadow: 0 1px 8px rgba(10, 10, 10, 0.9);
+  text-shadow: 0 1px 8px color-mix(in srgb, var(--cv-ink) 90%, transparent);
 }
 
 .bottomLinks {

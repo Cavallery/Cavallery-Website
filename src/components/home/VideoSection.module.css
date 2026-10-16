@@ -40,8 +40,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(0deg, rgba(10, 10, 10, 0.94) 0%, rgba(10, 10, 10, 0.55) 34%, rgba(10, 10, 10, 0) 62%),
-    linear-gradient(90deg, rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0) 55%);
+    linear-gradient(0deg, color-mix(in srgb, var(--cv-ink) 94%, transparent) 0%, color-mix(in srgb, var(--cv-ink) 55%, transparent) 34%, transparent 62%),
+    linear-gradient(90deg, color-mix(in srgb, var(--cv-ink) 55%, transparent) 0%, transparent 55%);
 }
 
 /* fire hairline — Passion accent on the frame edge */
@@ -83,7 +83,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(10, 10, 10, 0.75);
+  background: color-mix(in srgb, var(--cv-ink) 75%, transparent);
   border: 1px solid var(--cv-line-strong);
   color: var(--cv-text);
   font-size: 0.7rem;
@@ -107,9 +107,9 @@
   justify-self: start;
   margin-top: 20px;
   padding: 12px 16px;
-  background: rgba(10, 10, 10, 0.8);
+  background: color-mix(in srgb, var(--cv-ink) 80%, transparent);
   border: 1px solid var(--cv-line-strong);
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .fallbackPlayer > span {

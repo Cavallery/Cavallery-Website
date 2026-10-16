@@ -23,7 +23,7 @@
 .haze {
   background: radial-gradient(
     120% 100% at 50% 100%,
-    rgba(215, 48, 28, 0.2) 0%,
+    rgba(216, 103, 27, 0.2) 0%,
     rgba(242, 106, 27, 0.08) 45%,
     transparent 75%
   );
@@ -32,7 +32,7 @@
 .hazeHot {
   background: radial-gradient(
     60% 70% at 50% 100%,
-    rgba(255, 193, 74, 0.12) 0%,
+    rgba(255, 146, 74, 0.12) 0%,
     rgba(242, 106, 27, 0.08) 40%,
     transparent 75%
   );
@@ -57,10 +57,10 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--cv-ember) 18%,
-    var(--cv-flame) 50%,
-    var(--cv-heat) 64%,
-    var(--cv-ember) 82%,
+    var(--cv-orange-deep) 18%,
+    var(--cv-orange) 50%,
+    var(--cv-orange-hi) 64%,
+    var(--cv-orange-deep) 82%,
     transparent 100%
   );
   opacity: 0.55;

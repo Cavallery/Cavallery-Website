@@ -335,9 +335,9 @@
 }
 
 .rank1 {
-  background: linear-gradient(135deg, #fbbf24, #d97706);
+  background: linear-gradient(135deg, #fb7a24, #d97706);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.5);
+  box-shadow: 0 2px 8px rgba(251, 122, 36, 0.5);
 }
 
 .rank2 {

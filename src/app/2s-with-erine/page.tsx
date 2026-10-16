@@ -258,7 +258,7 @@ export default function TwoShotPage() {
           {/* Header Mading Toolbar */}
           <div className={styles.boardHeaderBanner}>
             <div className={styles.boardTitleTag}>
-              <i className="bx bxs-pin" style={{ color: "#e11d48" }} />
+              <i className="bx bxs-pin" style={{ color: "#e26b1c" }} />
               <span>Mading Foto & Pesan 2-Shot</span>
             </div>
 
@@ -334,7 +334,7 @@ export default function TwoShotPage() {
           {/* Loading State */}
           {loading && (
             <div className={styles.loadingState}>
-              <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2.5rem", color: "#e11d48", marginBottom: "1rem" }} />
+              <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2.5rem", color: "#e26b1c", marginBottom: "1rem" }} />
               <p>Membuka papan mading 2S with Erine...</p>
             </div>
           )}
@@ -439,7 +439,7 @@ export default function TwoShotPage() {
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>
-                <i className="bx bx-pin" style={{ color: "#e11d48" }} />
+                <i className="bx bx-pin" style={{ color: "#e26b1c" }} />
                 Tempel Foto 2-Shot & Pesan di Mading
               </h3>
               <button
@@ -452,7 +452,7 @@ export default function TwoShotPage() {
 
             {hasSubmittedBefore && !submitted ? (
               <div style={{ textAlign: "center", padding: "2.5rem 1.5rem" }}>
-                <i className="bx bxs-badge-check" style={{ fontSize: "3.5rem", color: "#10b981", marginBottom: "0.8rem", display: "block" }} />
+                <i className="bx bxs-badge-check" style={{ fontSize: "3.5rem", color: "#b95410", marginBottom: "0.8rem", display: "block" }} />
                 <h3 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.5rem" }}>
                   Kamu Sudah Mengirimkan 1 Foto 2-Shot
                 </h3>
@@ -470,7 +470,7 @@ export default function TwoShotPage() {
               </div>
             ) : submitted ? (
               <div style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
-                <i className="bx bxs-check-circle" style={{ fontSize: "4rem", color: "#10b981", marginBottom: "1rem" }} />
+                <i className="bx bxs-check-circle" style={{ fontSize: "4rem", color: "#b95410", marginBottom: "1rem" }} />
                 <h3 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "0.5rem" }}>
                   Momen 2-Shot Berhasil Dikirim!
                 </h3>
@@ -482,15 +482,15 @@ export default function TwoShotPage() {
               <form onSubmit={handleSubmit}>
                 <div className={styles.modalBody}>
                   {formError && (
-                    <div style={{ padding: "10px 14px", background: "rgba(225, 29, 72, 0.1)", border: "1px solid rgba(225, 29, 72, 0.3)", borderRadius: 10, color: "#e11d48", fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ padding: "10px 14px", background: "rgba(226, 107, 28, 0.1)", border: "1px solid rgba(226, 107, 28, 0.3)", borderRadius: 10, color: "#e26b1c", fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 8 }}>
                       <i className="bx bx-error-circle" style={{ fontSize: "1.2rem" }} />
                       <span>{formError}</span>
                     </div>
                   )}
 
                   {/* Rules reminder inside form */}
-                  <div style={{ background: "rgba(225, 29, 72, 0.05)", borderLeft: "3px solid #e11d48", padding: "8px 12px", borderRadius: "0 8px 8px 0", fontSize: "0.82rem", color: "var(--fg-muted)" }}>
-                    <i className="bx bx-info-circle" style={{ color: "#e11d48", marginRight: 4 }} />
+                  <div style={{ background: "rgba(226, 107, 28, 0.05)", borderLeft: "3px solid #e26b1c", padding: "8px 12px", borderRadius: "0 8px 8px 0", fontSize: "0.82rem", color: "var(--fg-muted)" }}>
+                    <i className="bx bx-info-circle" style={{ color: "#e26b1c", marginRight: 4 }} />
                     Batas: <strong>1 foto per orang</strong>. Foto akan diperiksa dan di-ACC Admin sebelum tampil di mading.
                   </div>
 
@@ -662,7 +662,7 @@ export default function TwoShotPage() {
                     <div>
                       <div className={styles.lightboxAuthorName}>{activeLightbox.user_name}</div>
                       {activeLightbox.user_social && (
-                        <div style={{ fontSize: "0.82rem", color: "#e11d48", fontWeight: 600 }}>
+                        <div style={{ fontSize: "0.82rem", color: "#e26b1c", fontWeight: 600 }}>
                           {activeLightbox.user_social}
                         </div>
                       )}
@@ -679,7 +679,7 @@ export default function TwoShotPage() {
 
                 <div className={styles.lightboxMetaRow}>
                   {activeLightbox.event_name && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(225, 29, 72, 0.1)", color: "#e11d48", padding: "4px 10px", borderRadius: 8, fontWeight: 700, fontSize: "0.8rem" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(226, 107, 28, 0.1)", color: "#e26b1c", padding: "4px 10px", borderRadius: 8, fontWeight: 700, fontSize: "0.8rem" }}>
                       <i className="bx bx-calendar-event" /> {activeLightbox.event_name}
                     </span>
                   )}
@@ -689,7 +689,7 @@ export default function TwoShotPage() {
                 </div>
 
                 <div style={{ fontSize: "0.85rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fg-dim)" }}>
-                  <i className="bx bxs-note" style={{ color: "#eab308", marginRight: 4 }} /> Pesan Tempel untuk Erine:
+                  <i className="bx bxs-note" style={{ color: "#ea6208", marginRight: 4 }} /> Pesan Tempel untuk Erine:
                 </div>
 
                 <div className={styles.lightboxMessageFull}>

@@ -24,9 +24,9 @@
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--gold, #d4af37);
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--gold, #e47327);
+  background: rgba(228, 115, 39, 0.12);
+  border: 1px solid rgba(228, 115, 39, 0.35);
   padding: 5px 14px;
   border-radius: 50px;
   margin-bottom: 14px;
@@ -60,7 +60,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 22px;
-  background: var(--gold, #d4af37);
+  background: var(--gold, #e47327);
   color: #000;
   font-weight: 800;
   font-size: 0.9rem;
@@ -68,12 +68,12 @@
   border: none;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 4px 14px rgba(228, 115, 39, 0.35);
 }
 
 .toggleFormBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 6px 20px rgba(228, 115, 39, 0.5);
 }
 
 /* ── FORM CONTAINER ── */
@@ -151,8 +151,8 @@
 
 .input:focus,
 .textarea:focus {
-  border-color: var(--gold, #d4af37);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+  border-color: var(--gold, #e47327);
+  box-shadow: 0 0 0 3px rgba(228, 115, 39, 0.15);
 }
 
 .hint {
@@ -164,7 +164,7 @@
 .submitBtn {
   margin-top: 6px;
   padding: 14px 20px;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
+  background: linear-gradient(135deg, #e47327, #b8500b);
   color: #000;
   font-size: 0.95rem;
   font-weight: 800;
@@ -175,18 +175,18 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 6px 18px rgba(228, 115, 39, 0.35);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .submitBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 8px 24px rgba(228, 115, 39, 0.5);
 }
 
 .successMsgCard {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1.5px dashed rgba(16, 185, 129, 0.4);
+  background: rgba(185, 84, 16, 0.12);
+  border: 1.5px dashed rgba(185, 84, 16, 0.4);
   border-radius: 18px;
   padding: 30px;
   text-align: center;
@@ -194,13 +194,13 @@
 
 .successIcon {
   font-size: 2.5rem;
-  color: #10b981;
+  color: #b95410;
   margin-bottom: 8px;
 }
 
 .successMsgCard h3 {
   font-size: 1.3rem;
-  color: #10b981;
+  color: #b95410;
   margin: 0 0 6px 0;
   font-weight: 800;
 }
@@ -212,7 +212,7 @@
 }
 
 .resetBtn {
-  background: #10b981;
+  background: #b95410;
   color: #fff;
   border: none;
   border-radius: 50px;
@@ -304,7 +304,7 @@
 
 /* ── STICKY NOTE CARD (EXACT STYLE OF IMAGE 2) ── */
 .stickyNote {
-  background: #93c5fd; /* Signature sky-blue post-it note from image 2 */
+  background: #fdbd93; /* Signature sky-blue post-it note from image 2 */
   border-radius: 10px;
   padding: 24px 20px 18px 20px;
   position: relative;
@@ -313,7 +313,7 @@
     0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.25s ease, box-shadow 0.25s ease, z-index 0.25s;
   cursor: pointer;
-  color: #0f172a;
+  color: #2a1a0f;
 }
 
 /* Subtle organic tilt variations for realistic bulletin board look */
@@ -356,7 +356,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ff4b4b, #dc2626 65%, #7f1d1d 100%);
+  background: radial-gradient(circle at 35% 35%, #ff934b, #e36d1f 65%, #8b4211 100%);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
   position: relative;
   margin: 0 auto;
@@ -402,7 +402,7 @@
   font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
   font-size: 1.35rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #2a1a0f;
   margin: 0;
   line-height: 1.1;
   letter-spacing: 0.2px;
@@ -411,14 +411,14 @@
 .authorHandle {
   font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
   font-size: 0.95rem;
-  color: #334155;
+  color: #554333;
   margin-top: 2px;
 }
 
 .noteDate {
   font-family: 'Patrick Hand', 'Caveat', cursive, sans-serif;
   font-size: 0.95rem;
-  color: #334155;
+  color: #554333;
   white-space: nowrap;
   font-weight: 600;
 }
@@ -432,13 +432,13 @@
   font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
   font-size: 1.18rem;
   line-height: 1.55;
-  color: #0f172a;
+  color: #2a1a0f;
   margin: 0;
   word-break: break-word;
 }
 
 .readMoreBtn {
-  color: #dc2626;
+  color: #e36d1f;
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
@@ -449,7 +449,7 @@
 }
 
 .readMoreBtn:hover {
-  color: #991b1b;
+  color: #a04c14;
 }
 
 /* ── SPOTIFY MINI-PLAYER WIDGET (MATCHING IMAGE 2) ── */
@@ -458,7 +458,7 @@
 }
 
 .spotifyBar {
-  background: #4a1964; /* Royal plum/purple background matching image 2 */
+  background: #6f350e; /* Royal plum/purple background matching image 2 */
   border-radius: 18px;
   padding: 10px 14px;
   display: flex;
@@ -510,7 +510,7 @@
 
 .spotifyArtist {
   font-size: 0.8rem;
-  color: #d8b4fe; /* Soft lavender artist name */
+  color: #fed2b4; /* Soft lavender artist name */
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -590,7 +590,7 @@
 
 .spotifyPlayBtn:hover {
   transform: scale(1.1);
-  background: #f1f5f9;
+  background: #f9f5f1;
 }
 
 .spotifyIframeWrap {
@@ -630,7 +630,7 @@
 }
 
 .modalCard {
-  background: #93c5fd;
+  background: #fdbd93;
   border-radius: 16px;
   padding: 36px 30px 30px 30px;
   max-width: 520px;
@@ -638,7 +638,7 @@
   position: relative;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
   animation: modalPop 0.25s ease;
-  color: #0f172a;
+  color: #2a1a0f;
 }
 
 @keyframes modalPop {
@@ -654,7 +654,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ff4b4b, #dc2626 65%, #7f1d1d 100%);
+  background: radial-gradient(circle at 35% 35%, #ff934b, #e36d1f 65%, #8b4211 100%);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
 }
 
@@ -672,7 +672,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #0f172a;
+  color: #2a1a0f;
   transition: background 0.2s;
 }
 
@@ -688,7 +688,7 @@
   font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
   font-size: 1.45rem;
   line-height: 1.65;
-  color: #0f172a;
+  color: #2a1a0f;
   margin: 0;
   word-break: break-word;
 }
@@ -699,7 +699,7 @@
   gap: 8px;
   padding: 10px 18px;
   border-radius: 50px;
-  background: #1db954;
+  background: #be5a18;
   color: #ffffff;
   font-weight: 700;
   font-size: 0.9rem;

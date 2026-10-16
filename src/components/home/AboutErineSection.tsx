@@ -973,7 +973,7 @@ export default function AboutErineSection() {
 
                     <div className={styles.kabeshaStepContent}>
                       <div
-                        className={styles.kabeshaPinnedCard}
+                        className={`${styles.kabeshaPinnedCard} ${isPassion ? "cv-dark" : ""}`}
                         onClick={() => openModal(img, `${year} • ${title}`, desc)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" || e.key === " ") {

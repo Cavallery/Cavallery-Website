@@ -244,7 +244,7 @@ export default function Footer() {
   if (hidden) return null;
 
   return (
-    <footer ref={rootRef} className={styles.footer} data-motion data-checkmate="false">
+    <footer ref={rootRef} className={`${styles.footer} cv-dark`} data-motion data-checkmate="false">
       {/* ── Endgame board ─────────────────────────────────────────── */}
       <FlameLayer id="footer-flames" className={styles.flames} density={12} intensity={0.55} />
 
@@ -253,10 +253,10 @@ export default function Footer() {
         <svg className={styles.trail} viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet">
           <defs>
             <linearGradient id="cv-endgame-fire" x1="0" y1="800" x2="0" y2="0" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stopColor="#ff4f8b" />
-              <stop offset="0.45" stopColor="#d7301c" />
+              <stop offset="0" stopColor="#ff954f" />
+              <stop offset="0.45" stopColor="#d8671b" />
               <stop offset="0.75" stopColor="#f26a1b" />
-              <stop offset="1" stopColor="#ffc14a" />
+              <stop offset="1" stopColor="#ff924a" />
             </linearGradient>
           </defs>
           <path className={styles.trailBase} d={BOARD_PATH} />

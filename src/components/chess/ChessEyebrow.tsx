@@ -11,7 +11,7 @@ interface Props {
 export default function ChessEyebrow({ square, label, className }: Props) {
   return (
     <span className={`cv-eyebrow ${className || ""}`}>
-      <KnightSvg size={14} style={{ color: "var(--cv-pink)" }} />
+      <KnightSvg size={14} style={{ color: "var(--cv-orange)" }} />
       <span className="cv-eyebrow__sq">{square}</span>
       <span className="cv-eyebrow__dash" aria-hidden="true" />
       <span>{label}</span>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Navbar.module.css";
 import KnightSvg from "./chess/KnightSvg";
+import ThemeToggle from "./ThemeToggle";
 import { SOCIAL_LINKS } from "./chess/SocialIcons";
 import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { useHeaderScroll } from "@/hooks/useHeaderScroll";
@@ -177,13 +178,6 @@ export default function Navbar() {
   }, [mega, menuOpen]);
 
   useHeaderScroll(headerRef, { lockRef, dependencies: [pathname] });
-
-  // Public site is always on the dark board (admin keeps its own toggle).
-  useEffect(() => {
-    if (isAdmin) return;
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.classList.add("dark");
-  }, [isAdmin, pathname]);
 
   // Close every menu on navigation (adjust state during render, no effect).
   const [prevPath, setPrevPath] = useState(pathname);
@@ -381,23 +375,27 @@ export default function Navbar() {
             </span>
           </nav>
 
-          {/* Custom mobile toggle: a 2×2 board that turns into a cross */}
-          <button
-            type="button"
-            className={styles.toggle}
-            aria-expanded={menuOpen}
-            aria-controls="cv-mobile-menu"
-            aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <span className={styles.toggleLabel}>{menuOpen ? "Tutup" : "Menu"}</span>
-            <span className={styles.toggleBoard} aria-hidden="true">
-              <i />
-              <i />
-              <i />
-              <i />
-            </span>
-          </button>
+          <div className={styles.tools}>
+            <ThemeToggle />
+
+            {/* Custom mobile toggle: a 2×2 board that turns into a cross */}
+            <button
+              type="button"
+              className={styles.toggle}
+              aria-expanded={menuOpen}
+              aria-controls="cv-mobile-menu"
+              aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <span className={styles.toggleLabel}>{menuOpen ? "Tutup" : "Menu"}</span>
+              <span className={styles.toggleBoard} aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Mega menu panel */}

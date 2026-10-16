@@ -79,9 +79,9 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(185, 84, 16, 0.12);
+  color: #b95410;
+  border: 1px solid rgba(185, 84, 16, 0.3);
   padding: 4px 12px;
   border-radius: 50px;
 }
@@ -90,8 +90,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
+  background: #b95410;
+  box-shadow: 0 0 8px #b95410;
   animation: pulse 2s infinite;
 }
 
@@ -112,7 +112,7 @@
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold, #b45309), #f59e0b);
+  background: linear-gradient(135deg, var(--gold, #b45309), #f5690b);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -221,9 +221,9 @@
 }
 
 .kasBtn {
-  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #964712 0%, #2a1a0f 100%);
   color: #ffffff;
-  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.25);
+  box-shadow: 0 6px 20px rgba(150, 71, 18, 0.25);
 }
 
 :global([data-theme="dark"]) .kasBtn {
@@ -240,7 +240,7 @@
 
 :global([data-theme="dark"]) .donasiBtn {
   background: rgba(30, 26, 22, 0.9);
-  color: #f59e0b;
+  color: #f5690b;
 }
 
 .actionBtn:hover {
@@ -287,13 +287,13 @@
 }
 
 .statIconKas {
-  background: rgba(30, 58, 138, 0.1);
-  color: #1e3a8a;
+  background: rgba(150, 71, 18, 0.1);
+  color: #964712;
 }
 
 :global([data-theme="dark"]) .statIconKas {
   background: rgba(180, 83, 9, 0.15);
-  color: #f59e0b;
+  color: #f5690b;
 }
 
 .statIconDonasi {

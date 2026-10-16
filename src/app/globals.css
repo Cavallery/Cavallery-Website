@@ -12,37 +12,37 @@
   --font-cinzel: 'Cinzel', Georgia, serif;
   --font-jakarta: var(--cv-font-body);
   --bg: var(--cv-ink);
-  --bg-checker: #141414;
+  --bg-checker: #161616;
   --fg: var(--cv-bone);
-  --fg-muted: rgba(243, 237, 228, 0.82);
-  --fg-dim: rgba(243, 237, 228, 0.62);
+  --fg-muted: rgba(245, 239, 230, 0.82);
+  --fg-dim: rgba(245, 239, 230, 0.62);
 
-  --primary: var(--cv-pink);
+  --primary: var(--cv-orange);
   --secondary: var(--cv-ink-2);
   --accent: #1b1b1b;
-  --gold: var(--cv-pink);
-  --gold-dim: rgba(255, 79, 139, 0.12);
-  --gold-glow: rgba(255, 79, 139, 0.22);
+  --gold: var(--cv-orange);
+  --gold-dim: rgba(255, 107, 26, 0.12);
+  --gold-glow: rgba(255, 107, 26, 0.22);
 
   --surface: var(--cv-ink-2);
   --surface-2: var(--cv-ink-3);
   --border: var(--cv-line);
-  --border-gold: rgba(255, 79, 139, 0.38);
+  --border-gold: rgba(255, 107, 26, 0.38);
 
   --nav-h: var(--cv-header-h);
   --serif: var(--cv-font-display);
   --sans: var(--cv-font-body);
   --font-sans: var(--cv-font-body);
 
-  --map-c1: #ffc14a;
-  --map-c2: #f9a23a;
-  --map-c3: #f26a1b;
-  --map-c4: #d7301c;
-  --map-c5: #a3261a;
-  --map-c6: #6e1d16;
-  --map-c7: #3d1511;
-  --map-c8: #26110e;
-  --map-c9: #170c0a;
+  --map-c1: #ffc7a1;
+  --map-c2: #ffa66b;
+  --map-c3: #ff8f4d;
+  --map-c4: #ff6b1a;
+  --map-c5: #d9500b;
+  --map-c6: #a83e0a;
+  --map-c7: #7a2e09;
+  --map-c8: #4d1e08;
+  --map-c9: #2a1108;
 
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -58,23 +58,23 @@
   --radius: 0.25rem;
 }
 
-/* Light mode is kept only for the internal admin dashboard toggle. */
+/* Light mode — legacy names follow the light Passion tokens */
 [data-theme="light"] {
-  --bg: #f4efe6;
-  --bg-checker: #ebe4d5;
-  --fg: #372e27;
-  --fg-muted: #574d44;
-  --fg-dim: #8c7e73;
-  --primary: #b45309;
-  --secondary: #fbf9f5;
-  --accent: #ebe4d5;
-  --gold: #b45309;
-  --gold-dim: rgba(180, 83, 9, 0.1);
-  --gold-glow: rgba(180, 83, 9, 0.15);
-  --surface: #ebe4d5;
-  --surface-2: #e3d9c3;
-  --border: rgba(55, 46, 39, 0.1);
-  --border-gold: rgba(180, 83, 9, 0.3);
+  --bg: var(--cv-ink);
+  --bg-checker: var(--cv-ink-3);
+  --fg: var(--cv-bone);
+  --fg-muted: rgba(28, 20, 14, 0.82);
+  --fg-dim: rgba(28, 20, 14, 0.62);
+  --primary: var(--cv-orange);
+  --secondary: var(--cv-ink-2);
+  --accent: var(--cv-ink-3);
+  --gold: var(--cv-orange);
+  --gold-dim: rgba(201, 74, 11, 0.1);
+  --gold-glow: rgba(201, 74, 11, 0.16);
+  --surface: var(--cv-ink-2);
+  --surface-2: var(--cv-ink-3);
+  --border: var(--cv-line);
+  --border-gold: rgba(201, 74, 11, 0.35);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -119,7 +119,8 @@ body {
   body { overflow-x: clip; }
 }
 
-/* Faint chessboard texture for the whole site (fixed, GPU-cheap) */
+/* Passion atmosphere for the whole site (fixed, static, GPU-cheap):
+   warm grain + faint heat-contour lines + two soft orange glows. */
 body::before {
   content: "";
   position: fixed;
@@ -127,26 +128,36 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-color: var(--bg);
-  background-image: conic-gradient(
-    var(--cv-square-dark) 0 25%,
-    transparent 0 50%,
-    var(--cv-square-dark) 0 75%,
-    transparent 0
-  );
-  background-size: calc(var(--cv-square) * 2) calc(var(--cv-square) * 2);
+  background-image:
+    var(--cv-grain),
+    var(--cv-contour),
+    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.11), transparent 70%),
+    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.08), transparent 70%);
+  background-size: 180px 180px, cover, 100% 100%, 100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+  background-position: 0 0, center, 0 0, 0 0;
+}
+
+[data-theme="light"] html,
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 [data-theme="light"] body::before {
-  background-image: none;
+  background-image:
+    var(--cv-grain),
+    var(--cv-contour),
+    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.12), transparent 70%),
+    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.08), transparent 70%);
 }
 
 ::selection {
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   color: var(--cv-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--cv-pink);
+  outline: 2px solid var(--cv-orange);
   outline-offset: 3px;
 }
 
@@ -187,7 +198,7 @@ button { cursor: pointer; font-family: var(--sans); }
    ================================================================ */
 
 .textGold {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   background: none;
   -webkit-text-fill-color: currentColor;
 }
@@ -205,7 +216,7 @@ button { cursor: pointer; font-family: var(--sans); }
 }
 
 [data-theme="light"] .glassCard {
-  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 10px 40px rgba(42, 26, 15, 0.05);
 }
 
 .section {
@@ -238,7 +249,7 @@ button { cursor: pointer; font-family: var(--sans); }
   text-transform: uppercase;
 }
 
-.badge i { color: var(--cv-pink); }
+.badge i { color: var(--cv-orange); }
 
 .btnPrimary,
 .btnOutline {
@@ -258,9 +269,9 @@ button { cursor: pointer; font-family: var(--sans); }
 }
 
 .btnPrimary {
-  background: var(--cv-bone);
-  color: var(--cv-ink);
-  border: 1px solid var(--cv-bone);
+  background: var(--cv-orange);
+  color: var(--cv-on-orange);
+  border: 1px solid var(--cv-orange);
 }
 
 .btnOutline {
@@ -294,13 +305,13 @@ button { cursor: pointer; font-family: var(--sans); }
   bottom: -40%;
   height: 120%;
   z-index: -1;
-  background: radial-gradient(60% 70% at 50% 100%, rgba(255, 225, 160, 0.9) 0%, rgba(242, 106, 27, 0.8) 35%, rgba(215, 48, 28, 0.3) 62%, transparent 78%);
+  background: radial-gradient(60% 70% at 50% 100%, rgba(255, 143, 77, 0.9) 0%, rgba(255, 107, 26, 0.8) 35%, rgba(217, 80, 11, 0.3) 62%, transparent 78%);
   opacity: 0;
   transform: translateY(60%);
   transition: opacity 0.3s ease, transform 0.45s var(--cv-ease-out);
 }
 
-.btnPrimary:hover { color: var(--cv-bone); }
+.btnPrimary:hover { color: var(--cv-bone); border-color: var(--cv-orange-hi); }
 .btnOutline:hover { color: var(--cv-ink); border-color: var(--cv-bone); }
 .btnPrimary:hover::before,
 .btnOutline:hover::before { transform: scaleY(1); }
@@ -319,7 +330,7 @@ button { cursor: pointer; font-family: var(--sans); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: #2b2b2b; border-radius: 99px; border: 2px solid var(--bg); }
-::-webkit-scrollbar-thumb:hover { background: var(--cv-pink); }
+::-webkit-scrollbar-thumb:hover { background: var(--cv-orange); }
 
 @media (max-width: 768px) {
   html, body, div, section, main, article {
@@ -444,8 +455,8 @@ button { cursor: pointer; font-family: var(--sans); }
 
 /* Global select option styling for dark theme forms */
 select option {
-  background-color: #161616 !important;
-  color: #f3ede4 !important;
+  background-color: var(--cv-ink-2) !important;
+  color: var(--cv-text) !important;
 }
 
 /* ── GLOBAL PRINT STYLES (E-Kwitansi & KTA Digital) ── */
