@@ -808,3 +808,8 @@
     display: none;
   }
 }
+
+.colTitle {
+  flex: none;
+  text-align: center;
+}
