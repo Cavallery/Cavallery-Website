@@ -1,89 +1,75 @@
+/* ================================================================
+   SECTION DIVIDER — crossing Passion tapes
+   ================================================================ */
 .dividerWrap {
+  position: relative;
   width: 100%;
-  max-width: var(--cv-max);
-  margin: 0 auto;
-  padding: 0 var(--cv-gutter);
-}
-
-.files {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  border-top: 1px solid var(--cv-line);
-}
-
-.file {
-  position: relative;
-  height: 22px;
-  border-left: 1px solid var(--cv-line);
-}
-
-.file:last-child {
-  border-right: 1px solid var(--cv-line);
-}
-
-.file[data-dark="true"]::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 6px;
-  background: color-mix(in srgb, var(--cv-bone) 6%, transparent);
-}
-
-.label {
-  position: absolute;
-  left: 6px;
-  bottom: 0;
-  font-family: var(--cv-font-body);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: var(--cv-text-mute);
-}
-
-.files {
-  position: relative;
-}
-
-/* burning fuse along the board edge */
-.fuse {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1.5px;
-  height: 3px;
+  height: clamp(96px, 11vw, 140px);
   overflow: hidden;
-  border-radius: 99px;
   pointer-events: none;
+  user-select: none;
 }
 
-.fuseFill {
+.tape {
   position: absolute;
-  inset: 0;
-  display: block;
-  border-radius: inherit;
-  background: var(--cv-fire-text);
-  opacity: 0.85;
-}
-
-.spark {
-  position: absolute;
-  right: -3px;
+  left: -6%;
+  right: -6%;
   top: 50%;
-  width: 8px;
-  height: 8px;
-  margin-top: -4px;
-  border-radius: 50%;
-  background: #fff3cf;
-  box-shadow: 0 0 10px 4px rgba(255, 146, 74, 0.85), 0 0 22px 8px rgba(242, 106, 27, 0.5);
+  overflow: hidden;
+  border-block: 1px solid var(--cv-orange-line);
 }
 
-.fuse {
-  overflow: visible;
-  clip-path: inset(-12px 0 -12px 0);
+.front {
+  background: var(--cv-orange);
+  color: var(--cv-on-orange);
+  transform: translateY(-50%) rotate(-2.4deg);
+  box-shadow: var(--cv-shadow-heat);
+  z-index: 2;
+}
+
+.back {
+  background: var(--cv-ink-2);
+  color: var(--cv-orange);
+  transform: translateY(-50%) rotate(2deg);
+  z-index: 1;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: tape 46s linear infinite;
+  animation-direction: var(--dir, normal);
+}
+
+.back .track {
+  animation-duration: 58s;
+}
+
+.group {
+  display: flex;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  font-family: var(--cv-font-display);
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.knight {
+  flex: none;
+  opacity: 0.9;
+}
+
+@keyframes tape {
+  to { transform: translateX(-50%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fuseFill {
-    animation: none;
-  }
+  .track { animation: none; }
 }

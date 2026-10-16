@@ -1,51 +1,39 @@
-"use client";
-import { useRef } from "react";
+import type { CSSProperties } from "react";
 import styles from "./SectionDivider.module.css";
-import { gsap, useGSAP, MQ } from "@/lib/gsap";
+import KnightSvg from "./chess/KnightSvg";
 
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const WORDS = ["Cavallery", "Team Passion", "Checkmate!", "Erine JKT48", "Hadir dengan seribu kejutan"];
 
-/** Rank/file divider: a board edge with a–h coordinates and a burning fuse. */
-export default function SectionDivider({ rank }: { rank?: number }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add(MQ.motion, () => {
-        gsap.fromTo(
-          "[data-fuse]",
-          { xPercent: -101 },
-          {
-            xPercent: 0,
-            duration: 1.8,
-            ease: "power2.inOut",
-            scrollTrigger: { trigger: ref.current, start: "top 90%", once: true },
-          }
-        );
-      });
-      return () => mm.revert();
-    },
-    { scope: ref }
-  );
-
+function Tape({ rank, reverse, className }: { rank?: number; reverse?: boolean; className: string }) {
+  const words = rank ? [...WORDS, `Rank ${rank}`] : WORDS;
   return (
-    <div className={styles.dividerWrap} aria-hidden="true" ref={ref}>
-      <div className={styles.files}>
-        <span className={styles.fuse}>
-          <span className={styles.fuseFill} data-fuse>
-            <span className={styles.spark} />
-          </span>
-        </span>
-        {FILES.map((f, i) => (
-          <span key={f} className={styles.file} data-dark={i % 2 === 0 ? "true" : "false"}>
-            <span className={styles.label}>
-              {f}
-              {rank ? rank : ""}
-            </span>
-          </span>
+    <div className={`${styles.tape} ${className}`}>
+      <div className={styles.track} style={{ "--dir": reverse ? "reverse" : "normal" } as CSSProperties}>
+        {[0, 1].map((g) => (
+          <div className={styles.group} key={g}>
+            {[...words, ...words].map((w, i) => (
+              <span className={styles.item} key={i}>
+                {w}
+                <KnightSvg size={18} className={styles.knight} />
+              </span>
+            ))}
+          </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Section break: two crossing Passion tapes that scroll in opposite
+ * directions — fills the gap between sections with motion and colour.
+ * Pure CSS (transform only); static under prefers-reduced-motion.
+ */
+export default function SectionDivider({ rank }: { rank?: number }) {
+  return (
+    <div className={styles.dividerWrap} aria-hidden="true">
+      <Tape rank={rank} reverse className={styles.back} />
+      <Tape rank={rank} className={styles.front} />
     </div>
   );
 }

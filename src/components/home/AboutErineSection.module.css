@@ -1856,3 +1856,30 @@
     transition: none;
   }
 }
+
+/* Giant outlined word behind each sub-heading (fills the background) */
+.erineTitle[data-ghost],
+.ffTitle[data-ghost] {
+  position: relative;
+  isolation: isolate;
+}
+
+.erineTitle[data-ghost]::before,
+.ffTitle[data-ghost]::before {
+  content: attr(data-ghost);
+  position: absolute;
+  z-index: -1;
+  top: -0.55em;
+  left: -0.06em;
+  font-family: var(--cv-font-display);
+  font-size: clamp(4.5rem, 15vw, 14rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--cv-orange) 28%, transparent);
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+}
