@@ -559,7 +559,7 @@ export default function AdminKeanggotaanPage() {
                       borderRadius: 50,
                       border: filterJabatan === f ? "2px solid var(--primary)" : "1.5px solid var(--border)",
                       background: filterJabatan === f ? "var(--primary)" : "transparent",
-                      color: filterJabatan === f ? "#fff" : "var(--fg-muted)",
+                      color: filterJabatan === f ? "var(--cv-on-orange)" : "var(--fg-muted)",
                       fontWeight: 700,
                       fontSize: "0.78rem",
                       cursor: "pointer",
@@ -587,9 +587,9 @@ export default function AdminKeanggotaanPage() {
                     style={{
                       padding: "5px 14px",
                       borderRadius: 50,
-                      border: filterGender === g ? "2px solid #e879f9" : "1.5px solid var(--border)",
-                      background: filterGender === g ? "rgba(232,121,249,0.15)" : "transparent",
-                      color: filterGender === g ? "#e879f9" : "var(--fg-muted)",
+                      border: filterGender === g ? "2px solid var(--cv-orange)" : "1.5px solid var(--border)",
+                      background: filterGender === g ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)" : "transparent",
+                      color: filterGender === g ? "var(--cv-orange-hi)" : "var(--fg-muted)",
                       fontWeight: 700,
                       fontSize: "0.78rem",
                       cursor: "pointer",
@@ -643,12 +643,12 @@ export default function AdminKeanggotaanPage() {
             const totalNominal = filtered.length;
             return (
             <div className={styles.tableWrap}>
-              <div style={{ padding: "8px 14px", marginBottom: 10, background: "rgba(var(--primary-rgb,160,100,30),0.08)", borderRadius: 10, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ padding: "8px 14px", marginBottom: 10, background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", borderRadius: 10, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <span><i className="bx bx-user-check" style={{ color: "#10b981" }} /> <strong style={{ color: "var(--fg)" }}>{totalNominal}</strong> anggota ditampilkan</span>
                 <span><i className="bx bx-check-circle" style={{ color: "#10b981" }} /> <strong style={{ color: "#10b981" }}>{filtered.filter(a => a.status === "aktif").length}</strong> aktif</span>
                 <span><i className="bx bx-x-circle" style={{ color: "#ef4444" }} /> <strong style={{ color: "#ef4444" }}>{filtered.filter(a => a.status === "nonaktif").length}</strong> nonaktif</span>
-                <span><i className="bx bx-female" style={{ color: "#e879f9" }} /> <strong style={{ color: "#e879f9" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
-                <span><i className="bx bx-male" style={{ color: "#60a5fa" }} /> <strong style={{ color: "#60a5fa" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
+                <span><i className="bx bx-female" style={{ color: "var(--cv-orange-hi)" }} /> <strong style={{ color: "var(--cv-orange-hi)" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
+                <span><i className="bx bx-male" style={{ color: "var(--cv-orange-hi)" }} /> <strong style={{ color: "var(--cv-orange-hi)" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
                 <span><i className="bx bx-shield" style={{ color: "var(--primary)" }} /> <strong style={{ color: "var(--primary)" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>
               </div>
               <table className={styles.table}>
@@ -673,8 +673,8 @@ export default function AdminKeanggotaanPage() {
                             setShowBadgeGuideModal(true);
                           }}
                           style={{
-                            background: "rgba(201, 168, 76, 0.2)",
-                            border: "1px solid var(--border-gold, #c9a84c)",
+                            background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
+                            border: "1px solid var(--border-gold)",
                             color: "var(--gold)",
                             borderRadius: "50%",
                             width: 18,
@@ -723,7 +723,7 @@ export default function AdminKeanggotaanPage() {
                         <td className={styles.nameCol}>
                           {namaLengkap}
                           {a.gender === "Perempuan" && (
-                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "rgba(232,121,249,0.18)", color: "#e879f9", fontWeight: 700, verticalAlign: "middle" }}>
+                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "color-mix(in srgb, var(--cv-orange) 18%, transparent)", color: "var(--cv-orange-hi)", fontWeight: 700, verticalAlign: "middle" }}>
                               <i className="bx bx-female" /> P
                             </span>
                           )}
@@ -783,8 +783,8 @@ export default function AdminKeanggotaanPage() {
                                   fontSize: "0.75rem",
                                   padding: "2px 6px",
                                   borderRadius: 6,
-                                  background: "rgba(201, 168, 76, 0.12)",
-                                  border: "1px solid rgba(201, 168, 76, 0.3)",
+                                  background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                                  border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                                   color: "var(--gold)",
                                   fontWeight: 700,
                                 }}
@@ -814,7 +814,7 @@ export default function AdminKeanggotaanPage() {
                                 gap: 4,
                                 fontSize: "0.8rem",
                                 fontWeight: 700,
-                                color: a.gender === "Perempuan" ? "#e879f9" : "#60a5fa",
+                                color: a.gender === "Perempuan" ? "var(--cv-orange-hi)" : "var(--cv-orange-hi)",
                               }}
                             >
                               <i className={a.gender === "Perempuan" ? "bx bx-female" : "bx bx-male"} />
@@ -1545,8 +1545,8 @@ export default function AdminKeanggotaanPage() {
                     width: 40,
                     height: 40,
                     borderRadius: 10,
-                    background: "rgba(201, 168, 76, 0.15)",
-                    border: "1px solid var(--border-gold, #c9a84c)",
+                    background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)",
+                    border: "1px solid var(--border-gold)",
                     color: "var(--gold)",
                     display: "flex",
                     alignItems: "center",
@@ -1584,7 +1584,7 @@ export default function AdminKeanggotaanPage() {
                 flexWrap: "wrap",
                 gap: 8,
                 padding: "14px 18px",
-                background: "rgba(0, 0, 0, 0.25)",
+                background: "color-mix(in srgb, var(--cv-ink) 50%, transparent)",
                 border: "1px solid var(--border)",
                 borderRadius: 14,
                 marginBottom: 20,
@@ -1610,7 +1610,7 @@ export default function AdminKeanggotaanPage() {
                         gap: 6,
                         padding: "6px 12px",
                         borderRadius: 20,
-                        background: isActive ? b.bgColor : "rgba(255, 255, 255, 0.04)",
+                        background: isActive ? b.bgColor : "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
                         border: `1.5px solid ${isActive ? b.color : b.borderColor}`,
                         color: b.color,
                         fontWeight: 800,
@@ -1640,7 +1640,7 @@ export default function AdminKeanggotaanPage() {
                     style={{
                       padding: "16px 18px",
                       borderRadius: 14,
-                      background: isSelected ? b.bgColor : "rgba(255, 255, 255, 0.02)",
+                      background: isSelected ? b.bgColor : "color-mix(in srgb, var(--cv-bone) 2%, transparent)",
                       border: isSelected ? `2px solid ${b.color}` : "1px solid var(--border)",
                       transition: "all 0.2s",
                       display: "flex",
@@ -1712,7 +1712,7 @@ export default function AdminKeanggotaanPage() {
                       style={{
                         fontSize: "0.8rem",
                         color: "var(--fg)",
-                        background: "rgba(0,0,0,0.2)",
+                        background: "color-mix(in srgb, var(--cv-ink) 40%, transparent)",
                         padding: "8px 12px",
                         borderRadius: 8,
                         borderLeft: `3px solid ${b.color}`,
@@ -1725,11 +1725,11 @@ export default function AdminKeanggotaanPage() {
                     <div
                       style={{
                         fontSize: "0.8rem",
-                        color: b.nextBadge ? "#f59e0b" : "#10b981",
-                        background: b.nextBadge ? "rgba(245, 158, 11, 0.08)" : "rgba(16, 185, 129, 0.08)",
+                        color: b.nextBadge ? "var(--cv-orange)" : "#10b981",
+                        background: b.nextBadge ? "color-mix(in srgb, var(--cv-orange) 8%, transparent)" : "rgba(16, 185, 129, 0.08)",
                         padding: "10px 14px",
                         borderRadius: 10,
-                        border: `1px solid ${b.nextBadge ? "rgba(245, 158, 11, 0.3)" : "rgba(16, 185, 129, 0.3)"}`,
+                        border: `1px solid ${b.nextBadge ? "color-mix(in srgb, var(--cv-orange) 30%, transparent)" : "rgba(16, 185, 129, 0.3)"}`,
                         display: "flex",
                         alignItems: "flex-start",
                         gap: 8,

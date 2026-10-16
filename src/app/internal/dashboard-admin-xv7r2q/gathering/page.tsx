@@ -132,8 +132,8 @@ export default function AdminGatheringPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--bg, #0d0e12)",
-        color: "var(--fg, #e5e7eb)",
+        background: "var(--bg)",
+        color: "var(--fg)",
         fontFamily: "var(--font-jakarta, sans-serif)",
         padding: "24px 20px 80px",
       }}
@@ -182,17 +182,17 @@ export default function AdminGatheringPage() {
             flexWrap: "wrap",
             gap: 12,
             marginBottom: 24,
-            background: "rgba(255, 255, 255, 0.03)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
+            border: "1px solid var(--cv-line)",
             borderRadius: 16,
             padding: "16px 20px",
           }}
         >
           <div>
-            <span style={{ fontSize: "0.74rem", color: "var(--fg-dim, #888)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <span style={{ fontSize: "0.74rem", color: "var(--fg-dim)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Event Terpilih
             </span>
-            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--gold, #c9a84c)", marginTop: 2 }}>
+            <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--gold)", marginTop: 2 }}>
               {eventName}
             </div>
           </div>
@@ -203,8 +203,8 @@ export default function AdminGatheringPage() {
               href="/gathering/scan"
               target="_blank"
               style={{
-                background: "linear-gradient(135deg, #c9a84c 0%, #a8842e 100%)",
-                color: "#0a0f0c",
+                background: "var(--cv-orange)",
+                color: "var(--cv-on-orange)",
                 padding: "10px 18px",
                 borderRadius: 10,
                 textDecoration: "none",
@@ -213,7 +213,7 @@ export default function AdminGatheringPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                boxShadow: "0 4px 14px rgba(201, 168, 76, 0.3)",
+                boxShadow: "0 4px 14px color-mix(in srgb, var(--cv-orange) 30%, transparent)",
               }}
             >
               <i className="bx bx-camera" style={{ fontSize: 18 }} />
@@ -245,9 +245,9 @@ export default function AdminGatheringPage() {
             <button
               onClick={() => setShowManualModal(true)}
               style={{
-                background: "rgba(255, 255, 255, 0.08)",
-                color: "var(--fg, #e5e7eb)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
+                background: "color-mix(in srgb, var(--cv-bone) 8%, transparent)",
+                color: "var(--fg)",
+                border: "1px solid var(--cv-line-strong)",
                 padding: "10px 16px",
                 borderRadius: 10,
                 fontWeight: 700,
@@ -267,8 +267,8 @@ export default function AdminGatheringPage() {
               onClick={fetchData}
               style={{
                 background: "transparent",
-                color: "var(--fg-dim, #888)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "var(--fg-dim)",
+                border: "1px solid var(--cv-line)",
                 padding: "10px 14px",
                 borderRadius: 10,
                 cursor: "pointer",
@@ -319,12 +319,12 @@ export default function AdminGatheringPage() {
               <i className="bx bx-user-check" />
             </div>
             <div>
-              <span style={{ fontSize: "0.75rem", color: "var(--fg-dim, #888)", textTransform: "uppercase", fontWeight: 700 }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", textTransform: "uppercase", fontWeight: 700 }}>
                 Anggota Hadir
               </span>
               <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#10b981", lineHeight: 1.1 }}>
                 {stats.totalHadir}{" "}
-                <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--fg-dim, #888)" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--fg-dim)" }}>
                   / {stats.totalAnggota}
                 </span>
               </div>
@@ -334,8 +334,8 @@ export default function AdminGatheringPage() {
           {/* Persentase Kehadiran */}
           <div
             style={{
-              background: "rgba(201, 168, 76, 0.08)",
-              border: "1px solid rgba(201, 168, 76, 0.25)",
+              background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)",
               borderRadius: 16,
               padding: "20px 22px",
               display: "flex",
@@ -348,8 +348,8 @@ export default function AdminGatheringPage() {
                 width: 52,
                 height: 52,
                 borderRadius: 14,
-                background: "rgba(201, 168, 76, 0.2)",
-                color: "#c9a84c",
+                background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
+                color: "var(--cv-orange)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -359,10 +359,10 @@ export default function AdminGatheringPage() {
               <i className="bx bx-pie-chart-alt-2" />
             </div>
             <div>
-              <span style={{ fontSize: "0.75rem", color: "var(--fg-dim, #888)", textTransform: "uppercase", fontWeight: 700 }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", textTransform: "uppercase", fontWeight: 700 }}>
                 Tingkat Kehadiran
               </span>
-              <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "#ffd778", lineHeight: 1.1 }}>
+              <div style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--cv-orange-hi)", lineHeight: 1.1 }}>
                 {pct}%
               </div>
             </div>
@@ -371,8 +371,8 @@ export default function AdminGatheringPage() {
           {/* Breakdown Badge */}
           <div
             style={{
-              background: "rgba(255, 255, 255, 0.03)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
+              border: "1px solid var(--cv-line)",
               borderRadius: 16,
               padding: "20px 22px",
               display: "flex",
@@ -381,7 +381,7 @@ export default function AdminGatheringPage() {
               gap: 6,
             }}
           >
-            <span style={{ fontSize: "0.75rem", color: "var(--fg-dim, #888)", textTransform: "uppercase", fontWeight: 700 }}>
+            <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", textTransform: "uppercase", fontWeight: 700 }}>
               Distribusi Badge Hadir
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
@@ -406,7 +406,7 @@ export default function AdminGatheringPage() {
                   );
                 })
               ) : (
-                <span style={{ fontSize: 12, color: "var(--fg-dim, #888)" }}>Belum ada data</span>
+                <span style={{ fontSize: 12, color: "var(--fg-dim)" }}>Belum ada data</span>
               )}
             </div>
           </div>
@@ -432,7 +432,7 @@ export default function AdminGatheringPage() {
                   left: 12,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: "var(--fg-dim, #888)",
+                  color: "var(--fg-dim)",
                   fontSize: 18,
                 }}
               />
@@ -445,9 +445,9 @@ export default function AdminGatheringPage() {
                   width: "100%",
                   padding: "10px 12px 10px 38px",
                   borderRadius: 10,
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
-                  color: "#fff",
+                  background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
+                  border: "1px solid var(--cv-line)",
+                  color: "var(--cv-text)",
                   fontSize: 13,
                   boxSizing: "border-box",
                 }}
@@ -460,9 +460,9 @@ export default function AdminGatheringPage() {
               style={{
                 padding: "10px 14px",
                 borderRadius: 10,
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                color: "#fff",
+                background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
+                border: "1px solid var(--cv-line)",
+                color: "var(--cv-text)",
                 fontSize: 13,
                 cursor: "pointer",
               }}
@@ -476,7 +476,7 @@ export default function AdminGatheringPage() {
             </select>
           </div>
 
-          <div style={{ fontSize: 13, color: "var(--fg-dim, #888)", fontWeight: 600 }}>
+          <div style={{ fontSize: 13, color: "var(--fg-dim)", fontWeight: 600 }}>
             Menampilkan {filtered.length} dari {attendees.length} kehadiran
           </div>
         </div>
@@ -484,20 +484,20 @@ export default function AdminGatheringPage() {
         {/* ── ATTENDEES TABLE ── */}
         <div
           style={{
-            background: "rgba(255, 255, 255, 0.02)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "color-mix(in srgb, var(--cv-bone) 2%, transparent)",
+            border: "1px solid var(--cv-line)",
             borderRadius: 16,
             overflow: "hidden",
             boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
           }}
         >
           {loading ? (
-            <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--gold, #c9a84c)" }}>
+            <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--gold)" }}>
               <i className="bx bx-loader-alt bx-spin" style={{ fontSize: 32, marginBottom: 10, display: "block" }} />
               <span>Memuat data kehadiran gathering...</span>
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--fg-dim, #888)" }}>
+            <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--fg-dim)" }}>
               <i className="bx bx-user-x" style={{ fontSize: 42, marginBottom: 10, display: "block", opacity: 0.5 }} />
               <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Belum ada data presensi</div>
               <p style={{ fontSize: 13, margin: 0 }}>
@@ -510,9 +510,9 @@ export default function AdminGatheringPage() {
                 <thead>
                   <tr
                     style={{
-                      background: "rgba(255, 255, 255, 0.04)",
-                      borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                      color: "var(--fg-dim, #aaa)",
+                      background: "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
+                      borderBottom: "1px solid var(--cv-line)",
+                      color: "var(--fg-dim)",
                     }}
                   >
                     <th style={{ padding: "14px 16px", width: 50 }}>#</th>
@@ -542,13 +542,13 @@ export default function AdminGatheringPage() {
                       <tr
                         key={a.id || idx}
                         style={{
-                          borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+                          borderBottom: "1px solid var(--cv-line)",
                           transition: "background 0.15s",
                         }}
-                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(255, 255, 255, 0.02)")}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "color-mix(in srgb, var(--cv-bone) 3%, transparent)")}
                         onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                       >
-                        <td style={{ padding: "14px 16px", color: "var(--fg-dim, #777)", fontFamily: "monospace" }}>
+                        <td style={{ padding: "14px 16px", color: "var(--fg-dim)", fontFamily: "monospace" }}>
                           {idx + 1}
                         </td>
                         <td style={{ padding: "14px 16px" }}>
@@ -558,8 +558,8 @@ export default function AdminGatheringPage() {
                                 width: 34,
                                 height: 34,
                                 borderRadius: "50%",
-                                background: "#1a1e24",
-                                border: "1px solid #c9a84c",
+                                background: "var(--cv-ink-2)",
+                                border: "1px solid var(--cv-orange)",
                                 overflow: "hidden",
                                 flexShrink: 0,
                               }}
@@ -577,18 +577,18 @@ export default function AdminGatheringPage() {
                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                               />
                             </div>
-                            <div style={{ fontWeight: 700, color: "var(--fg, #f0f0f0)" }}>
+                            <div style={{ fontWeight: 700, color: "var(--fg)" }}>
                               {a.nama_lengkap}
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: "14px 16px", fontFamily: "monospace", fontWeight: 700, color: "var(--gold, #c9a84c)" }}>
+                        <td style={{ padding: "14px 16px", fontFamily: "monospace", fontWeight: 700, color: "var(--gold)" }}>
                           {a.no_anggota}
                         </td>
-                        <td style={{ padding: "14px 16px", color: "var(--fg-dim, #aaa)" }}>
+                        <td style={{ padding: "14px 16px", color: "var(--fg-dim)" }}>
                           {a.domisili || "-"}
                         </td>
-                        <td style={{ padding: "14px 16px", color: "var(--fg-dim, #aaa)" }}>
+                        <td style={{ padding: "14px 16px", color: "var(--fg-dim)" }}>
                           {a.id_line ? `LINE: ${a.id_line}` : a.kontak_id || "-"}
                         </td>
                         <td style={{ padding: "14px 16px" }}>
@@ -619,7 +619,7 @@ export default function AdminGatheringPage() {
                               padding: "2px 6px",
                               borderRadius: 4,
                               background: a.metode_checkin === "manual" ? "rgba(148, 163, 184, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                              color: a.metode_checkin === "manual" ? "#94a3b8" : "#34d399",
+                              color: a.metode_checkin === "manual" ? "var(--cv-text-mute)" : "#34d399",
                             }}
                           >
                             {a.metode_checkin === "manual" ? "Manual" : "QR Scan"}
@@ -676,8 +676,8 @@ export default function AdminGatheringPage() {
             style={{
               width: "100%",
               maxWidth: 520,
-              background: "#161b22",
-              border: "1px solid rgba(201, 168, 76, 0.4)",
+              background: "var(--cv-ink-2)",
+              border: "1px solid color-mix(in srgb, var(--cv-orange) 40%, transparent)",
               borderRadius: 20,
               padding: "24px 26px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.7)",
@@ -686,25 +686,25 @@ export default function AdminGatheringPage() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <i className="bx bx-user-plus" style={{ fontSize: 24, color: "var(--gold, #c9a84c)" }} />
-                <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#fff3d0" }}>
+                <i className="bx bx-user-plus" style={{ fontSize: 24, color: "var(--gold)" }} />
+                <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "var(--cv-orange-hi)" }}>
                   Catat Kehadiran Manual
                 </h3>
               </div>
               <button
                 onClick={() => setShowManualModal(false)}
-                style={{ background: "transparent", border: "none", color: "#888", fontSize: 20, cursor: "pointer" }}
+                style={{ background: "transparent", border: "none", color: "var(--cv-text-mute)", fontSize: 20, cursor: "pointer" }}
               >
                 ✕
               </button>
             </div>
 
-            <p style={{ fontSize: 13, color: "#a0a8a3", marginBottom: 16, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: "var(--cv-text-mute)", marginBottom: 16, lineHeight: 1.5 }}>
               Cari anggota dari database fanbase jika anggota tidak dapat menampilkan kartu KTA Digital.
             </p>
 
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", display: "block", marginBottom: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--cv-orange)", display: "block", marginBottom: 6 }}>
                 Cari Anggota (Nama / No Anggota)
               </label>
               <input
@@ -716,9 +716,9 @@ export default function AdminGatheringPage() {
                   width: "100%",
                   padding: "10px 14px",
                   borderRadius: 10,
-                  background: "#0d1117",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#fff",
+                  background: "var(--cv-ink-1)",
+                  border: "1px solid var(--cv-line-strong)",
+                  color: "var(--cv-text)",
                   fontSize: 14,
                   boxSizing: "border-box",
                 }}
@@ -731,9 +731,9 @@ export default function AdminGatheringPage() {
                 style={{
                   maxHeight: 220,
                   overflowY: "auto",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  border: "1px solid var(--cv-line)",
                   borderRadius: 10,
-                  background: "#0d1117",
+                  background: "var(--cv-ink-1)",
                   marginBottom: 16,
                 }}
               >
@@ -743,13 +743,13 @@ export default function AdminGatheringPage() {
                     onClick={() => handleCheckinMember(m)}
                     style={{
                       padding: "10px 14px",
-                      borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+                      borderBottom: "1px solid var(--cv-line)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
                       cursor: "pointer",
                     }}
-                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "rgba(201, 168, 76, 0.15)")}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "color-mix(in srgb, var(--cv-orange) 15%, transparent)")}
                     onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "transparent")}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -758,8 +758,8 @@ export default function AdminGatheringPage() {
                           width: 34,
                           height: 34,
                           borderRadius: "50%",
-                          background: "#1a1e24",
-                          border: "1px solid #c9a84c",
+                          background: "var(--cv-ink-2)",
+                          border: "1px solid var(--cv-orange)",
                           overflow: "hidden",
                           flexShrink: 0,
                         }}
@@ -778,8 +778,8 @@ export default function AdminGatheringPage() {
                         />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: "#fff3d0" }}>{m.nama_lengkap}</div>
-                        <div style={{ fontSize: 11, color: "var(--gold, #c9a84c)", fontFamily: "monospace" }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--cv-orange-hi)" }}>{m.nama_lengkap}</div>
+                        <div style={{ fontSize: 11, color: "var(--gold)", fontFamily: "monospace" }}>
                           {m.no_anggota} {m.domisili ? `• ${m.domisili}` : ""}
                         </div>
                       </div>
@@ -806,7 +806,7 @@ export default function AdminGatheringPage() {
             )}
 
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--fg-dim, #aaa)", display: "block", marginBottom: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--fg-dim)", display: "block", marginBottom: 6 }}>
                 Catatan (Opsional)
               </label>
               <input
@@ -818,9 +818,9 @@ export default function AdminGatheringPage() {
                   width: "100%",
                   padding: "8px 12px",
                   borderRadius: 8,
-                  background: "#0d1117",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
-                  color: "#fff",
+                  background: "var(--cv-ink-1)",
+                  border: "1px solid var(--cv-line)",
+                  color: "var(--cv-text)",
                   fontSize: 13,
                   boxSizing: "border-box",
                 }}
@@ -833,8 +833,8 @@ export default function AdminGatheringPage() {
                 onClick={() => setShowManualModal(false)}
                 style={{
                   background: "transparent",
-                  color: "#aaa",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "var(--cv-text-mute)",
+                  border: "1px solid var(--cv-line-strong)",
                   borderRadius: 8,
                   padding: "8px 16px",
                   fontSize: 13,

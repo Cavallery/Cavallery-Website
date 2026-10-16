@@ -117,13 +117,13 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                 whiteSpace: "nowrap",
                 transition: "all 0.15s ease",
                 background: isActive
-                  ? "color-mix(in srgb, var(--cv-orange) 25%, transparent)"
+                  ? "var(--cv-orange-soft)"
                   : "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
-                color: isActive ? "var(--cv-orange-hi)" : "var(--fg-dim)",
+                color: isActive ? "var(--cv-orange)" : "var(--fg-dim)",
                 border: isActive
-                  ? "1px solid color-mix(in srgb, var(--cv-orange) 50%, transparent)"
+                  ? "1px solid var(--cv-orange-line)"
                   : "1px solid var(--cv-line)",
-                boxShadow: isActive ? "0 2px 8px color-mix(in srgb, var(--cv-orange) 20%, transparent)" : "none",
+                boxShadow: "none",
               }}
             >
               <i className={`bx ${item.icon}`} style={{ fontSize: "1rem" }} />
