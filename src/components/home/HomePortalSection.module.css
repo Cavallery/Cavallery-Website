@@ -148,52 +148,47 @@
   border-radius: var(--cv-radius-lg);
   position: relative;
   overflow: hidden;
-  min-height: 0;
+  min-height: 140px;
   background: var(--cv-ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cv-line);
+  transition: border-color 0.4s ease, transform 0.4s var(--cv-ease-out);
 }
 
-.media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.001);
-  transition: transform 0.9s var(--cv-ease-out);
+.light .media {
+  background: color-mix(in srgb, var(--cv-ink) 5%, var(--cv-bone));
+  border-color: color-mix(in srgb, var(--cv-ink) 12%, transparent);
+}
+
+.iconBox {
+  display: grid;
+  place-items: center;
+  font-size: 3.5rem;
+  color: var(--cv-orange);
+  transition: transform 0.5s var(--cv-ease-out), color 0.3s ease;
+  z-index: 1;
+}
+
+.light .iconBox {
+  color: var(--cv-orange-deep);
+}
+
+.passion .iconBox {
+  color: var(--cv-orange-hi);
 }
 
 .mediaHeat {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(216, 103, 27, 0.55) 0%, rgba(242, 106, 27, 0.18) 30%, transparent 55%);
+  background: radial-gradient(circle at center, rgba(242, 106, 27, 0.25) 0%, transparent 70%);
   opacity: 0;
   transition: opacity 0.45s ease;
 }
 
 .passion .mediaHeat {
-  opacity: 0.8;
-}
-
-.icon {
-  border-radius: 0 var(--cv-radius) 0 var(--cv-radius-lg);
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  background: var(--cv-ink);
-  color: var(--cv-bone);
-  font-size: 1.3rem;
-}
-
-.light .icon {
-  background: var(--cv-bone);
-  color: var(--cv-ink);
-}
-
-.passion .icon {
-  color: var(--cv-orange);
-  background: var(--cv-ink);
+  opacity: 0.6;
 }
 
 .panelBottom {
@@ -235,9 +230,14 @@
   transition: transform 0.35s var(--cv-ease-out);
 }
 
-.panel:hover .media img,
-.panel:focus-visible .media img {
-  transform: scale(1.06);
+.panel:hover .iconBox,
+.panel:focus-visible .iconBox {
+  transform: scale(1.15);
+  color: var(--cv-orange-hi);
+}
+
+.panel:hover .media {
+  border-color: var(--cv-orange);
 }
 
 .panel:hover .mediaHeat,

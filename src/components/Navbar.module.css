@@ -414,7 +414,7 @@
 }
 
 .megaGrid[data-count="6"] .megaThumb {
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 1;
 }
 
 .megaTile {
@@ -425,18 +425,17 @@
 .megaThumb {
   border-radius: var(--cv-radius);
   position: relative;
-  display: block;
+  display: grid;
+  place-items: center;
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--cv-ink-3);
 }
 
-.megaThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.001);
-  transition: transform 0.7s var(--cv-ease-out);
+.megaThumb i {
+  font-size: 2.4rem;
+  color: var(--cv-orange);
+  transition: transform 0.5s var(--cv-ease-out), color 0.3s ease;
 }
 
 /* fire edge on hover */
@@ -452,9 +451,10 @@
   transition: opacity 0.3s ease;
 }
 
-.megaTile:hover .megaThumb img,
-.megaTile:focus-visible .megaThumb img {
-  transform: scale(1.07);
+.megaTile:hover .megaThumb i,
+.megaTile:focus-visible .megaThumb i {
+  transform: scale(1.15);
+  color: var(--cv-text);
 }
 
 .megaTile:hover .megaThumb::after,
@@ -535,17 +535,19 @@
   height: 56px;
   overflow: hidden;
   background: var(--cv-ink-3);
+  display: grid;
+  place-items: center;
 }
 
-.megaRowThumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s var(--cv-ease-out);
+.megaRowThumb i {
+  font-size: 1.5rem;
+  color: var(--cv-orange);
+  transition: transform 0.5s var(--cv-ease-out), color 0.3s ease;
 }
 
-.megaRow:hover .megaRowThumb img {
-  transform: scale(1.1);
+.megaRow:hover .megaRowThumb i {
+  transform: scale(1.15);
+  color: var(--cv-text);
 }
 
 .megaRowText {

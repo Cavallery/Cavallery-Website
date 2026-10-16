@@ -31,6 +31,7 @@ export default function ShowTheaterPage() {
   const [error, setError] = useState("");
   const [filterErine, setFilterErine] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "next_week" | "month" | "all">("week");
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
@@ -47,14 +48,72 @@ export default function ShowTheaterPage() {
   const displayed = useMemo(() => {
     let list = shows;
 
-    // Filter Tahun (2026, 2024, 2025, semua)
-    if (selectedYear !== "all") {
-      const yNum = parseInt(selectedYear, 10);
+    // Filter Tahun jika tab all atau month
+    if (selectedPeriod === "all" || selectedPeriod === "month") {
+      if (selectedYear !== "all") {
+        const yNum = parseInt(selectedYear, 10);
+        list = list.filter((s) => {
+          const dateStr = s.date ?? s.showDate ?? "";
+          if (!dateStr) return false;
+          const d = new Date(dateStr);
+          return d.getFullYear() === yNum;
+        });
+      }
+    }
+
+    // Filter Periode (Minggu Ini, Minggu Depan, Bulan Ini)
+    if (selectedPeriod === "week" || selectedPeriod === "next_week") {
+      const now = new Date();
+      const day = now.getDay();
+      const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfCurrentWeek = new Date(now.getFullYear(), now.getMonth(), diffToMonday);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+
+      const targetStart = new Date(startOfCurrentWeek);
+      if (selectedPeriod === "next_week") {
+        targetStart.setDate(targetStart.getDate() + 7);
+      }
+      const targetEnd = new Date(targetStart);
+      targetEnd.setDate(targetEnd.getDate() + 7);
+
+      const inWeek = list.filter((s) => {
+        const dateStr = s.date ?? s.showDate ?? "";
+        if (!dateStr) return false;
+        const d = new Date(dateStr).getTime();
+        return d >= targetStart.getTime() && d < targetEnd.getTime();
+      });
+
+      if (inWeek.length > 0) {
+        list = inWeek;
+      } else if (selectedPeriod === "week") {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const upcoming = list
+          .filter((s) => {
+            const dateStr = s.date ?? s.showDate ?? "";
+            if (!dateStr) return false;
+            return new Date(dateStr).getTime() >= today;
+          })
+          .sort((a, b) => new Date(a.date ?? a.showDate ?? "").getTime() - new Date(b.date ?? b.showDate ?? "").getTime());
+
+        if (upcoming.length > 0) {
+          const firstShowTime = new Date(upcoming[0].date ?? upcoming[0].showDate ?? "").getTime();
+          list = upcoming.filter((s) => {
+            const t = new Date(s.date ?? s.showDate ?? "").getTime();
+            return t >= firstShowTime && t <= firstShowTime + 7 * 86400000;
+          });
+        } else {
+          list = list.slice(0, 7);
+        }
+      } else {
+        list = [];
+      }
+    } else if (selectedPeriod === "month") {
+      const now = new Date();
       list = list.filter((s) => {
         const dateStr = s.date ?? s.showDate ?? "";
         if (!dateStr) return false;
         const d = new Date(dateStr);
-        return d.getFullYear() === yNum;
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
     }
 
@@ -72,7 +131,7 @@ export default function ShowTheaterPage() {
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
       return db - da;
     });
-  }, [shows, selectedYear, filterErine]);
+  }, [shows, selectedYear, selectedPeriod, filterErine]);
 
   const erineCount = useMemo(() => {
     const now = new Date();
@@ -114,40 +173,79 @@ export default function ShowTheaterPage() {
         {/* Controls */}
         <div className={styles.controls}>
           <div className={styles.controlLeft} style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+            {/* Tab Periode */}
             <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", padding: "3px", borderRadius: "50px", border: "1px solid var(--border)", gap: "4px" }}>
               <button
                 type="button"
-                className={`${styles.filterBtn} ${selectedYear === "2026" ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${selectedPeriod === "week" ? styles.filterActive : ""}`}
                 style={{ padding: "6px 14px", fontSize: "0.78rem" }}
-                onClick={() => setSelectedYear("2026")}
+                onClick={() => setSelectedPeriod("week")}
               >
-                2026
+                Minggu Ini
               </button>
               <button
                 type="button"
-                className={`${styles.filterBtn} ${selectedYear === "2024" ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${selectedPeriod === "next_week" ? styles.filterActive : ""}`}
                 style={{ padding: "6px 14px", fontSize: "0.78rem" }}
-                onClick={() => setSelectedYear("2024")}
+                onClick={() => setSelectedPeriod("next_week")}
               >
-                2024 (Trainee)
+                Minggu Depan
               </button>
               <button
                 type="button"
-                className={`${styles.filterBtn} ${selectedYear === "2025" ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${selectedPeriod === "month" ? styles.filterActive : ""}`}
                 style={{ padding: "6px 14px", fontSize: "0.78rem" }}
-                onClick={() => setSelectedYear("2025")}
+                onClick={() => setSelectedPeriod("month")}
               >
-                2025
+                Bulan Ini
               </button>
               <button
                 type="button"
-                className={`${styles.filterBtn} ${selectedYear === "all" ? styles.filterActive : ""}`}
+                className={`${styles.filterBtn} ${selectedPeriod === "all" ? styles.filterActive : ""}`}
                 style={{ padding: "6px 14px", fontSize: "0.78rem" }}
-                onClick={() => setSelectedYear("all")}
+                onClick={() => setSelectedPeriod("all")}
               >
                 Semua
               </button>
             </div>
+
+            {/* Pilihan Tahun (saat Semua dipilih) */}
+            {selectedPeriod === "all" && (
+              <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", padding: "3px", borderRadius: "50px", border: "1px solid var(--border)", gap: "4px" }}>
+                <button
+                  type="button"
+                  className={`${styles.filterBtn} ${selectedYear === "2026" ? styles.filterActive : ""}`}
+                  style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                  onClick={() => setSelectedYear("2026")}
+                >
+                  2026
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.filterBtn} ${selectedYear === "2025" ? styles.filterActive : ""}`}
+                  style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                  onClick={() => setSelectedYear("2025")}
+                >
+                  2025
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.filterBtn} ${selectedYear === "2024" ? styles.filterActive : ""}`}
+                  style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                  onClick={() => setSelectedYear("2024")}
+                >
+                  2024
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.filterBtn} ${selectedYear === "all" ? styles.filterActive : ""}`}
+                  style={{ padding: "6px 12px", fontSize: "0.75rem" }}
+                  onClick={() => setSelectedYear("all")}
+                >
+                  Semua
+                </button>
+              </div>
+            )}
             <span className={styles.count} style={{ marginLeft: "6px" }}>
               <i className="bx bx-list-ul" /> {displayed.length} show
             </span>
