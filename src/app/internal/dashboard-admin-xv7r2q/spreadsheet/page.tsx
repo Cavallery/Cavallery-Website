@@ -117,7 +117,7 @@ export default function AdminSpreadsheetPage() {
             <Link href="/internal/dashboard-admin-xv7r2q/donasi" className={styles.backBtn}>
               <i className="bx bx-donate-heart" /> Donasi
             </Link>
-            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "#8b5cf6", borderColor: "rgba(139,92,246,0.4)" }}>
+            <Link href="/internal/dashboard-admin-xv7r2q/master-data" className={styles.backBtn} style={{ color: "var(--cv-orange-hi)", borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)" }}>
               <i className="bx bx-slider-alt" /> Master Data
             </Link>
             <ThemeToggle />

@@ -4,7 +4,7 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface AdminSubNavProps {
-  activeKey: "dashboard" | "keanggotaan" | "kontributor" | "kas" | "donasi" | "master-data" | "gathering";
+  activeKey: "dashboard" | "keanggotaan" | "kontributor" | "kas" | "donasi" | "master-data" | "gathering" | "struktur";
   title?: string;
   subtitle?: string;
 }
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { key: "donasi", href: "/internal/dashboard-admin-xv7r2q/donasi", label: "Donasi", icon: "bx-donate-heart" },
   { key: "kontributor", href: "/internal/dashboard-admin-xv7r2q/kontributor", label: "Kontributor", icon: "bx-heart-circle" },
   { key: "master-data", href: "/internal/dashboard-admin-xv7r2q/master-data", label: "Master Data", icon: "bx-slider-alt" },
+  { key: "struktur", href: "/internal/dashboard-admin-xv7r2q/struktur", label: "Struktur Admin", icon: "bx-sitemap" },
 ];
 
 export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavProps) {
@@ -28,7 +29,7 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
         gap: 14,
         marginBottom: 24,
         paddingBottom: 16,
-        borderBottom: "1px solid var(--adm-border, rgba(255,255,255,0.08))",
+        borderBottom: "1px solid var(--adm-border, var(--cv-line))",
       }}
     >
       <div
@@ -46,19 +47,19 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
               style={{
                 fontSize: "1.45rem",
                 fontWeight: 800,
-                color: "var(--fg, #f0f0f0)",
+                color: "var(--fg)",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
                 margin: 0,
               }}
             >
-              <i className="bx bxs-shield-alt-2" style={{ color: "var(--gold, #c9a84c)" }} />
+              <i className="bx bxs-shield-alt-2" style={{ color: "var(--gold)" }} />
               {title}
             </h1>
           )}
           {subtitle && (
-            <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "var(--fg-dim, #888)" }}>
+            <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "var(--fg-dim)" }}>
               {subtitle}
             </p>
           )}
@@ -75,9 +76,9 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
               fontSize: "0.8rem",
               padding: "6px 12px",
               borderRadius: 8,
-              background: "rgba(255,255,255,0.05)",
-              color: "var(--fg-dim, #aaa)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
+              color: "var(--fg-dim)",
+              border: "1px solid var(--cv-line)",
               textDecoration: "none",
               fontWeight: 600,
             }}
@@ -116,13 +117,13 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                 whiteSpace: "nowrap",
                 transition: "all 0.15s ease",
                 background: isActive
-                  ? "linear-gradient(135deg, rgba(201, 168, 76, 0.25) 0%, rgba(201, 168, 76, 0.1) 100%)"
-                  : "rgba(255, 255, 255, 0.04)",
-                color: isActive ? "#ffd778" : "var(--fg-dim, #aaa)",
+                  ? "var(--cv-orange-soft)"
+                  : "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
+                color: isActive ? "var(--cv-orange)" : "var(--fg-dim)",
                 border: isActive
-                  ? "1px solid rgba(201, 168, 76, 0.5)"
-                  : "1px solid rgba(255, 255, 255, 0.08)",
-                boxShadow: isActive ? "0 2px 8px rgba(201, 168, 76, 0.2)" : "none",
+                  ? "1px solid var(--cv-orange-line)"
+                  : "1px solid var(--cv-line)",
+                boxShadow: "none",
               }}
             >
               <i className={`bx ${item.icon}`} style={{ fontSize: "1rem" }} />
@@ -133,7 +134,7 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                     width: 6,
                     height: 6,
                     borderRadius: "50%",
-                    background: "var(--gold, #c9a84c)",
+                    background: "var(--gold)",
                     display: "inline-block",
                   }}
                 />

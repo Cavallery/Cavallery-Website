@@ -29,15 +29,15 @@ export default function HomePage() {
     <div className={styles.page}>
       <HeroSection />
       <HomeInfoSection />
-      <SectionDivider rank={6} />
+      <SectionDivider />
       <HomePortalSection />
       <VideoSection />
       <CalendarSection />
-      <SectionDivider rank={3} />
+      <SectionDivider />
       <TicketingSection />
-      <SectionDivider rank={5} />
+      <SectionDivider />
       <NewsPreview />
-      <SectionDivider rank={7} />
+      <SectionDivider />
       <YoutubeSection />
     </div>
   );
