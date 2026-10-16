@@ -1659,9 +1659,9 @@ function DiscordManager() {
             fontWeight: 700,
             padding: "6px 14px",
             borderRadius: 8,
-            background: "rgba(88, 101, 242, 0.15)",
-            color: "#c9cdfb",
-            border: "1px solid rgba(88, 101, 242, 0.35)",
+            background: "var(--cv-orange-soft)",
+            color: "var(--cv-orange)",
+            border: "1px solid var(--cv-orange-line)",
             textDecoration: "none",
           }}
         >
