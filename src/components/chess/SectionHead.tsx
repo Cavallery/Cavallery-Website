@@ -16,6 +16,8 @@ interface Props {
   as?: "h1" | "h2";
   aside?: ReactNode;
   className?: string;
+  /** Giant outlined word behind the heading (defaults to the title). */
+  ghost?: string | false;
 }
 
 /** Editorial section header: notation eyebrow + display title + lead. */
@@ -30,10 +32,16 @@ export default function SectionHead({
   as: Tag = "h2",
   aside,
   className,
+  ghost,
 }: Props) {
   const accentClass = tone === "fire" ? styles.fire : tone === "pink" ? styles.pink : "";
   return (
     <header className={`${styles.head} ${className || ""}`} data-layout={layout}>
+      {ghost !== false && (
+        <span className={styles.ghost} aria-hidden="true">
+          {ghost || accent || title}
+        </span>
+      )}
       <div className={styles.main}>
         <div data-reveal="fade">
           <ChessEyebrow square={square} label={eyebrow} />
