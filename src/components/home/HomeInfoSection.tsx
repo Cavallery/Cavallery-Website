@@ -99,7 +99,6 @@ export default function HomeInfoSection() {
             <nav className={styles.quick} aria-label="Pintasan cepat" data-reveal="stagger">
               {QUICK_LINKS.map((q) => (
                 <a key={q.href} href={q.href} className={`${styles.quickLink} cv-flame-hover`} data-reveal-item>
-                  <span className={styles.quickSq}>{q.sq}</span>
                   <i className={`bx ${q.icon}`} aria-hidden="true" />
                   <span className={styles.quickText}>
                     <strong>{q.label}</strong>

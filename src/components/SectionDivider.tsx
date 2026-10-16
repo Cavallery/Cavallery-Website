@@ -4,8 +4,8 @@ import KnightSvg from "./chess/KnightSvg";
 
 const WORDS = ["Cavallery", "Team Passion", "Checkmate!", "Erine JKT48", "Hadir dengan seribu kejutan"];
 
-function Tape({ rank, reverse, className }: { rank?: number; reverse?: boolean; className: string }) {
-  const words = rank ? [...WORDS, `Rank ${rank}`] : WORDS;
+function Tape({ reverse, className }: { reverse?: boolean; className: string }) {
+  const words = WORDS;
   return (
     <div className={`${styles.tape} ${className}`}>
       <div className={styles.track} style={{ "--dir": reverse ? "reverse" : "normal" } as CSSProperties}>
@@ -29,11 +29,11 @@ function Tape({ rank, reverse, className }: { rank?: number; reverse?: boolean; 
  * directions — fills the gap between sections with motion and colour.
  * Pure CSS (transform only); static under prefers-reduced-motion.
  */
-export default function SectionDivider({ rank }: { rank?: number }) {
+export default function SectionDivider() {
   return (
     <div className={styles.dividerWrap} aria-hidden="true">
-      <Tape rank={rank} reverse className={styles.back} />
-      <Tape rank={rank} className={styles.front} />
+      <Tape reverse className={styles.back} />
+      <Tape className={styles.front} />
     </div>
   );
 }

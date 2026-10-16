@@ -27,7 +27,6 @@ const SLIDES = [
 const COLS = 4;
 const ROWS = 6; // 24 tiles
 const TILES = Array.from({ length: COLS * ROWS }, (_, i) => ({ c: i % COLS, r: Math.floor(i / COLS) }));
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const pad = (n: number) => String(n).padStart(2, "0");
 const SPARKS = 18;
 const CURSOR_EMBERS = 14;
@@ -111,7 +110,6 @@ function JikoTile() {
     >
       <span className={styles.tileFlip} aria-hidden="true" />
       <span className={styles.tileGlint} aria-hidden="true" />
-      <span className={styles.tileSq}>e5</span>
       <span className={styles.tileLabel}>{isPlayingJiko ? "Playing..." : "Play Jikoshoukai"}</span>
       <span className={styles.tileIcon} aria-hidden="true">
         {isPlayingJiko ? (
@@ -399,7 +397,6 @@ export default function HeroSection() {
               ))}
             </div>
             <FlameLayer id="hero-front" className={styles.flamesFront} density={6} intensity={0.75} />
-            <span className={styles.frameSq}>e4</span>
             <span className={styles.counter}>
               <span data-counter>01 / {pad(SLIDES.length)}</span>
               <span className={styles.dots}>
@@ -418,17 +415,6 @@ export default function HeroSection() {
               </span>
             </span>
           </p>
-
-          <div className={styles.files} aria-hidden="true">
-            {FILES.map((f) => (
-              <span key={f}>{f}</span>
-            ))}
-          </div>
-          <div className={styles.ranks} aria-hidden="true">
-            {[8, 7, 6, 5, 4, 3, 2, 1].map((r) => (
-              <span key={r}>{r}</span>
-            ))}
-          </div>
 
           <div className={styles.passionTag}>
             <span className={styles.passionName}>JKT48 Erine</span>
@@ -461,7 +447,6 @@ export default function HeroSection() {
             <Link href="/about/erine" className={`${styles.tile} ${styles.tileLight} cv-flame-hover`}>
               <span className={styles.tileFlip} aria-hidden="true" />
               <span className={styles.tileGlint} aria-hidden="true" />
-              <span className={styles.tileSq}>d4</span>
               <span className={styles.tileLabel}>Meet Erine?</span>
               <span className={styles.tileIcon} aria-hidden="true">
                 <svg viewBox="0 0 16 16" width="16" height="16">

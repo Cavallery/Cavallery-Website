@@ -178,10 +178,10 @@ export default function TimelineSection() {
         {head}
 
         <div className={styles.board} ref={boardRef} data-kp-era="cold">
-          {/* Sticky year "ranks" */}
+          {/* Sticky year rail */}
           <aside className={styles.rail} aria-hidden="true">
             <div className={styles.railSticky}>
-              <span className={styles.railLabel}>Rank</span>
+              <span className={styles.railLabel}>Tahun</span>
               <div className={styles.railYears}>
                 {yearGroups.map((g, i) => (
                   <span
@@ -189,7 +189,6 @@ export default function TimelineSection() {
                     className={`${styles.railYear} ${Number(g.year) >= FIRE_FROM_YEAR ? styles.railFire : ""}`}
                     data-kp-year={g.year}
                   >
-                    <span className={styles.railRank}>R{i + 1}</span>
                     <span className={styles.railNum}>{g.year}</span>
                   </span>
                 ))}
@@ -237,7 +236,6 @@ export default function TimelineSection() {
                 <div
                   className={`${styles.yearMark} ${Number(group.year) >= FIRE_FROM_YEAR ? styles.yearFire : ""}`}
                 >
-                  <span className={styles.yearRank}>Rank {gIdx + 1}</span>
                   <span className={styles.yearNum}>{group.year}</span>
                   <span className={styles.yearLine} aria-hidden="true" />
                 </div>
