@@ -90,8 +90,8 @@
 }
 
 .skip:hover {
-  border-color: var(--cv-pink);
-  color: var(--cv-pink);
+  border-color: var(--cv-orange);
+  color: var(--cv-orange);
 }
 
 /* ── Exit ─────────────────────────────────────────────────────── */

@@ -190,7 +190,7 @@ export default function JournalSection() {
 
                   <div className={styles.field}>
                     <label>
-                      <i className="bx bxl-spotify" style={{ color: "#1db954", marginRight: 4 }} />
+                      <i className="bx bxl-spotify" style={{ color: "#be5a18", marginRight: 4 }} />
                       URL Lagu Spotify (Opsional)
                     </label>
                     <input

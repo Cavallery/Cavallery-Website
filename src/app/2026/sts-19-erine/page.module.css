@@ -14,7 +14,7 @@
 }
 
 :global([data-theme="dark"]) .page {
-  background: radial-gradient(circle at 50% 10%, rgba(201, 168, 76, 0.08) 0%, transparent 60%), transparent;
+  background: radial-gradient(circle at 50% 10%, rgba(229, 120, 48, 0.08) 0%, transparent 60%), transparent;
   color: #ece3d0;
 }
 
@@ -47,7 +47,7 @@
 
 :global([data-theme="dark"]) .videoCard {
   background: #000;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(201, 168, 76, 0.3);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(229, 120, 48, 0.3);
 }
 
 .videoHeader {
@@ -64,7 +64,7 @@
 
 :global([data-theme="dark"]) .videoHeader {
   background: rgba(22, 28, 24, 0.95);
-  border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+  border-bottom: 1px solid rgba(229, 120, 48, 0.2);
   color: #ffd778;
 }
 
@@ -106,7 +106,7 @@
 }
 
 :global([data-theme="dark"]) .photoboothWrap {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(201, 168, 76, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(229, 120, 48, 0.35);
 }
 
 .photoboothIframe {
@@ -149,28 +149,28 @@
 }
 
 :global([data-theme="dark"]) .badge {
-  background: rgba(201, 168, 76, 0.12);
-  border: 1px solid rgba(201, 168, 76, 0.35);
-  color: #f0be53;
+  background: rgba(229, 120, 48, 0.12);
+  border: 1px solid rgba(229, 120, 48, 0.35);
+  color: #f09253;
 }
 
 .title {
+  color: var(--cv-orange);
+  -webkit-text-fill-color: currentColor;
+  background: none;
   font-family: var(--serif, "Playfair Display", Georgia, serif);
   font-size: clamp(2.4rem, 6vw, 4.2rem);
   font-weight: 800;
   letter-spacing: -0.01em;
-  background: linear-gradient(135deg, var(--fg) 30%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   text-align: center;
   margin: 0 0 12px 0;
   line-height: 1.15;
 }
 
 :global([data-theme="dark"]) .title {
-  background: linear-gradient(135deg, #ffffff 30%, #f0be53 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--cv-orange);
+  -webkit-text-fill-color: currentColor;
+  background: none;
 }
 
 .subtitle {
@@ -195,23 +195,23 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, rgba(123, 2, 11, 0.9), rgba(89, 0, 7, 0.95));
+  background: linear-gradient(135deg, rgba(123, 50, 2, 0.9), rgba(89, 36, 0, 0.95));
   color: #ffd778;
-  border: 1.5px solid rgba(201, 168, 76, 0.45);
+  border: 1.5px solid rgba(229, 120, 48, 0.45);
   padding: 10px 22px;
   border-radius: 30px;
   font-size: 0.92rem;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 4px 18px rgba(123, 2, 11, 0.25);
+  box-shadow: 0 4px 18px rgba(123, 50, 2, 0.25);
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .philosophyBtn:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #7b020b, #590007);
+  background: linear-gradient(135deg, #7b3202, #592400);
   border-color: #ffd778;
-  box-shadow: 0 8px 24px rgba(123, 2, 11, 0.4), 0 0 15px rgba(240, 190, 83, 0.2);
+  box-shadow: 0 8px 24px rgba(123, 50, 2, 0.4), 0 0 15px rgba(240, 146, 83, 0.2);
 }
 
 .philosophyBtn .btnIcon {
@@ -243,7 +243,7 @@
   gap: 10px;
   background: var(--surface-2, #f5f0eb);
   color: var(--primary);
-  border: 1.5px solid rgba(201, 168, 76, 0.4);
+  border: 1.5px solid rgba(229, 120, 48, 0.4);
   padding: 10px 24px;
   border-radius: 30px;
   font-size: 0.92rem;
@@ -256,18 +256,18 @@
 :global([data-theme="dark"]) .storylinePhilosophyBtn {
   background: rgba(26, 34, 28, 0.85);
   color: #ffd778;
-  border-color: rgba(201, 168, 76, 0.35);
+  border-color: rgba(229, 120, 48, 0.35);
 }
 
 .storylinePhilosophyBtn:hover {
   transform: translateY(-2px);
   border-color: var(--primary);
-  box-shadow: 0 6px 20px rgba(123, 2, 11, 0.15);
+  box-shadow: 0 6px 20px rgba(123, 50, 2, 0.15);
 }
 
 :global([data-theme="dark"]) .storylinePhilosophyBtn:hover {
   border-color: #ffd778;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(229, 120, 48, 0.15);
 }
 
 .storylinePhilosophyBtn .btnIcon {
@@ -313,7 +313,7 @@
 }
 
 :global([data-theme="dark"]) .sectionTag {
-  color: #c9a84c;
+  color: #e57830;
 }
 
 .sectionTitle {
@@ -344,21 +344,21 @@
 .appreciationBoard {
   width: 100%;
   background: #fdfcf9;
-  border: 2px solid rgba(201, 168, 76, 0.35);
+  border: 2px solid rgba(229, 120, 48, 0.35);
   border-radius: 24px;
   padding: 36px 32px 28px;
   display: flex;
   flex-direction: column;
   gap: 28px;
-  box-shadow: 0 14px 40px rgba(123, 2, 11, 0.06), 0 4px 14px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 14px 40px rgba(123, 50, 2, 0.06), 0 4px 14px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
 }
 
 :global([data-theme="dark"]) .appreciationBoard {
   background: #141a16;
-  border: 2px solid rgba(201, 168, 76, 0.3);
-  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(201, 168, 76, 0.08);
+  border: 2px solid rgba(229, 120, 48, 0.3);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 0 25px rgba(229, 120, 48, 0.08);
 }
 
 .boardTierSection {
@@ -368,11 +368,11 @@
   align-items: center;
   gap: 16px;
   padding-bottom: 22px;
-  border-bottom: 1px dashed rgba(201, 168, 76, 0.35);
+  border-bottom: 1px dashed rgba(229, 120, 48, 0.35);
 }
 
 :global([data-theme="dark"]) .boardTierSection {
-  border-bottom: 1px dashed rgba(201, 168, 76, 0.25);
+  border-bottom: 1px dashed rgba(229, 120, 48, 0.25);
 }
 
 .boardTierSection:last-of-type {
@@ -395,23 +395,23 @@
 
 /* PATHFINDER: Deep Burgundy with Gold text */
 .pathfinder .tierRibbon {
-  background: linear-gradient(135deg, #7b020b, #590007);
+  background: linear-gradient(135deg, #7b3202, #592400);
   color: #ffd778;
-  border: 1px solid #c9a84c;
+  border: 1px solid #e57830;
 }
 
 /* NAVIGATOR: Gold Metallic with Dark Velvet text */
 .navigator .tierRibbon {
-  background: linear-gradient(135deg, #f0be53, #b8860b);
-  color: #2a0508;
-  border: 1px solid #e0ad38;
+  background: linear-gradient(135deg, #f09253, #b8500b);
+  color: #2a1405;
+  border: 1px solid #e67a32;
 }
 
 /* EXPLORER: Emerald / Slate with Cream text */
 .explorer .tierRibbon {
-  background: linear-gradient(135deg, #1e3a2b, #12241b);
+  background: linear-gradient(135deg, #3a2b1e, #241a12);
   color: #f3efe6;
-  border: 1px solid #2d553f;
+  border: 1px solid #55402d;
 }
 
 /* ── STAGGERED STICKERS FLOW & ROWS (TIDAK SEJAJAR) ─────────── */
@@ -456,20 +456,20 @@
 
 /* 1. PATHFINDER (Gede / Besar, Deep Burgundy & Gold Rim) */
 .pathfinderTag {
-  background: linear-gradient(135deg, #7b020b, #590007);
+  background: linear-gradient(135deg, #7b3202, #592400);
   color: #ffffff;
   font-size: clamp(1.2rem, 2.7vw, 1.5rem);
   font-weight: 900;
   padding: 10px 22px;
-  border: 1.5px solid #c9a84c;
+  border: 1.5px solid #e57830;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 :global([data-theme="dark"]) .pathfinderTag {
-  background: linear-gradient(135deg, #8b0c16, #5c0208);
+  background: linear-gradient(135deg, #8b3f0c, #5c2602);
   color: #fff4d4;
-  border: 1.5px solid #e5b955;
-  box-shadow: 0 4px 14px rgba(123, 2, 11, 0.4);
+  border: 1.5px solid #e98e51;
+  box-shadow: 0 4px 14px rgba(123, 50, 2, 0.4);
 }
 
 /* LEAD TAG: MPK & William Santoso Paling Atas & Menonjol */
@@ -477,27 +477,27 @@
   font-size: clamp(1.4rem, 3.2vw, 1.85rem) !important;
   padding: 13px 30px !important;
   border: 2px solid #ffd778 !important;
-  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 6px 18px rgba(229, 120, 48, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
 }
 
 :global([data-theme="dark"]) .leadTag {
   border: 2px solid #ffd778 !important;
-  box-shadow: 0 6px 20px rgba(240, 190, 83, 0.4) !important;
+  box-shadow: 0 6px 20px rgba(240, 146, 83, 0.4) !important;
 }
 
 /* 2. NAVIGATOR (Sedang / Medium, Royal Gold Label Tape) */
 .navigatorTag {
-  background: linear-gradient(135deg, #f0be53, #b8860b);
-  color: #240406;
+  background: linear-gradient(135deg, #f09253, #b8500b);
+  color: #241104;
   font-size: clamp(1rem, 2.3vw, 1.22rem);
   font-weight: 800;
   padding: 9px 20px;
-  border: 1px solid #d4a034;
+  border: 1px solid #e47124;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 :global([data-theme="dark"]) .navigatorTag {
-  background: linear-gradient(135deg, #e5b955, #a37400);
+  background: linear-gradient(135deg, #e98e51, #a34100);
   color: #1a0305;
   border: 1px solid #ffd778;
 }
@@ -505,7 +505,7 @@
 /* 3. EXPLORER (Kecil / Compact, Cream & Burgundy Accents) */
 .explorerTag {
   background: #fdf8f0;
-  color: #7b020b;
+  color: #7b3202;
   font-size: clamp(0.82rem, 1.9vw, 0.96rem);
   font-weight: 700;
   padding: 7px 15px;
@@ -513,14 +513,14 @@
 }
 
 :global([data-theme="dark"]) .explorerTag {
-  background: rgba(201, 168, 76, 0.12);
+  background: rgba(229, 120, 48, 0.12);
   color: #ffd778;
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  border: 1px solid rgba(229, 120, 48, 0.3);
 }
 
 /* ── BOTTOM FOOTER TAPE STRIP (CAVALLERY THEME) ──────────────── */
 .boardFooterStrip {
-  background: linear-gradient(135deg, #7b020b, #4a0106);
+  background: linear-gradient(135deg, #7b3202, #4a1e01);
   color: #ffd778;
   padding: 11px 20px;
   border-radius: 6px;
@@ -529,16 +529,16 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-top: 6px;
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  border: 1px solid rgba(229, 120, 48, 0.4);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
   transform: rotate(-0.3deg);
   line-height: 1.5;
 }
 
 :global([data-theme="dark"]) .boardFooterStrip {
-  background: linear-gradient(135deg, #590007, #2d0004);
+  background: linear-gradient(135deg, #592400, #2d1200);
   color: #ffd778;
-  border: 1px solid rgba(201, 168, 76, 0.35);
+  border: 1px solid rgba(229, 120, 48, 0.35);
 }
 
 @media (max-width: 640px) {
@@ -595,19 +595,19 @@
 :global([data-theme="dark"]) .storyCard {
   background: rgba(20, 26, 22, 0.75);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(201, 168, 76, 0.22);
+  border: 1px solid rgba(229, 120, 48, 0.22);
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.45);
 }
 
 .storyCard:hover {
   transform: translateY(-4px);
   border-color: var(--primary);
-  box-shadow: 0 20px 50px rgba(123, 2, 11, 0.12);
+  box-shadow: 0 20px 50px rgba(123, 50, 2, 0.12);
 }
 
 :global([data-theme="dark"]) .storyCard:hover {
-  border-color: rgba(240, 190, 83, 0.5);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(201, 168, 76, 0.15);
+  border-color: rgba(240, 146, 83, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(229, 120, 48, 0.15);
 }
 
 .storyCardReverse {
@@ -629,7 +629,7 @@
   overflow: hidden;
   aspect-ratio: 16 / 10;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 1.5px solid rgba(201, 168, 76, 0.3);
+  border: 1.5px solid rgba(229, 120, 48, 0.3);
 }
 
 .storyImage {
@@ -648,7 +648,7 @@
   position: absolute;
   top: 14px;
   left: 14px;
-  background: rgba(123, 2, 11, 0.88);
+  background: rgba(123, 50, 2, 0.88);
   color: #ffd778;
   backdrop-filter: blur(8px);
   padding: 5px 14px;
@@ -656,7 +656,7 @@
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  border: 1px solid rgba(240, 190, 83, 0.4);
+  border: 1px solid rgba(240, 146, 83, 0.4);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -724,8 +724,8 @@
 
 :global([data-theme="dark"]) .storyQuote {
   color: #ffe6a0;
-  border-left-color: #f0be53;
-  background: rgba(201, 168, 76, 0.1);
+  border-left-color: #f09253;
+  background: rgba(229, 120, 48, 0.1);
 }
 
 .quoteMark {

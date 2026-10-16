@@ -45,13 +45,13 @@
 .heroArtInner {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0d3320 0%, #1db954 100%);
+  background: linear-gradient(135deg, #331c0d 0%, #be5a18 100%);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 16px 48px rgba(29,185,84,0.3);
+  box-shadow: 0 16px 48px rgba(190, 90, 24, 0.3);
   overflow: hidden;
 }
 
@@ -59,7 +59,7 @@
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 2px dashed rgba(29,185,84,0.3);
+  border: 2px dashed rgba(190, 90, 24, 0.3);
 }
 
 /* Meta */
@@ -116,7 +116,7 @@
   right: 0;
   z-index: 200;
   background: var(--surface);
-  border-top: 1.5px solid rgba(29,185,84,0.3);
+  border-top: 1.5px solid rgba(190, 90, 24, 0.3);
   box-shadow: 0 -8px 32px rgba(0,0,0,0.2);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -143,7 +143,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #1db954;
+  background: #be5a18;
   animation: pulse 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -238,7 +238,7 @@
   transition: border-color 0.2s;
 }
 
-.searchInput:focus { border-color: #1db954; }
+.searchInput:focus { border-color: #be5a18; }
 
 .filterRow {
   display: flex;
@@ -259,8 +259,8 @@
   transition: all 0.2s;
 }
 
-.filterBtn:hover { border-color: #1db954; color: #1db954; }
-.filterActive { background: rgba(29,185,84,0.12); color: #1db954; border-color: rgba(29,185,84,0.4); }
+.filterBtn:hover { border-color: #be5a18; color: #be5a18; }
+.filterActive { background: rgba(190, 90, 24, 0.12); color: #be5a18; border-color: rgba(190, 90, 24, 0.4); }
 
 /* ─── LIST HEADER ────────────────────────────────────────────── */
 .listHeader {
@@ -296,7 +296,7 @@
 }
 
 .songRow:hover { background: var(--surface); }
-.songRowActive { background: rgba(29,185,84,0.08) !important; }
+.songRowActive { background: rgba(190, 90, 24, 0.08) !important; }
 
 /* Index col */
 .rowIndex {
@@ -416,7 +416,7 @@
   transition: color 0.15s;
 }
 
-.rowHandle:hover { color: #1db954; }
+.rowHandle:hover { color: #be5a18; }
 
 /* Type badge */
 .typePill {
@@ -497,7 +497,7 @@
   margin-top: 32px;
   padding: 20px;
   background: var(--surface);
-  border: 1.5px solid rgba(29,185,84,0.25);
+  border: 1.5px solid rgba(190, 90, 24, 0.25);
   border-radius: 16px;
 }
 
@@ -507,7 +507,7 @@
   gap: 8px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #1db954;
+  color: #be5a18;
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;

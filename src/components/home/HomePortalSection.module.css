@@ -53,7 +53,7 @@
 .hintLine {
   width: 48px;
   height: 1px;
-  background: var(--cv-pink);
+  background: var(--cv-orange);
 }
 
 .hintDesktop { display: none; }
@@ -110,11 +110,11 @@
 .sq {
   font-size: 0.72rem;
   font-weight: 800;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .light .sq {
-  color: var(--cv-pink-deep);
+  color: var(--cv-orange-deep);
 }
 
 .category {
@@ -141,7 +141,7 @@
 }
 
 .passion .badge {
-  color: var(--cv-heat);
+  color: var(--cv-orange-hi);
 }
 
 .media {
@@ -163,7 +163,7 @@
 .mediaHeat {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(215, 48, 28, 0.55) 0%, rgba(242, 106, 27, 0.18) 30%, transparent 55%);
+  background: linear-gradient(0deg, rgba(216, 103, 27, 0.55) 0%, rgba(242, 106, 27, 0.18) 30%, transparent 55%);
   opacity: 0;
   transition: opacity 0.45s ease;
 }
@@ -192,7 +192,7 @@
 }
 
 .passion .icon {
-  color: var(--cv-flame);
+  color: var(--cv-orange);
   background: var(--cv-ink);
 }
 
@@ -276,8 +276,8 @@
 }
 
 .mark[data-on="true"] {
-  background: var(--cv-pink);
-  border-color: var(--cv-pink);
+  background: var(--cv-orange);
+  border-color: var(--cv-orange);
   color: var(--cv-ink);
 }
 

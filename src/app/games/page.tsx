@@ -14,7 +14,7 @@ const games = [
     href: "/games/knight-passion",
     icon: "bxs-chess",
     tag: "Puzzle · Baru",
-    color: "#f26a1b",
+    color: "var(--cv-orange)",
     longDesc:
       "Game terbaru #GameRine bertema Team Passion × Checkmate! Lompatkan kuda dengan langkah L untuk menangkap api Passion dalam 60 detik. Petak yang kamu tinggalkan ikut terbakar, jadi atur strategi, kejar bonus PERFECT & combo, dan rebut Api Emas Kabesha untuk skor tertinggi!",
   },
@@ -24,7 +24,7 @@ const games = [
     href: "/games/dress-up-erine",
     icon: "bx-closet",
     tag: "Fashion",
-    color: "#e879f9",
+    color: "var(--cv-orange)",
     longDesc:
       "Jadilah stylist pribadi Erine! Pilih busana dari berbagai koleksi kostum, atur ekspresi wajahnya, dan tentukan lokasi pemotretan impianmu. Setiap kombinasi menghasilkan tampilan unik — simpan hasilnya dan tunjukkan ke seluruh Cavallery siapa yang paling kreatif!",
   },
@@ -34,7 +34,7 @@ const games = [
     href: "/games/zombie-escape",
     icon: "bx-run",
     tag: "Survival",
-    color: "#f87171",
+    color: "var(--cv-orange)",
     longDesc:
       "Game survival menegangkan! Misi utama kamu adalah membawa Ratu Erine ke Istana Cavallery dengan selamat sambil menghindari kejaran zombie yang tiada henti. Seberapa jauh kamu bisa memandu sang Ratu? Buktikan ketangkasanmu sekarang!",
   },
@@ -44,7 +44,7 @@ const games = [
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
     tag: "Arcade",
-    color: "#4ade80",
+    color: "var(--cv-orange)",
     longDesc:
       "Tantang dirimu membantu Erine mengumpulkan sebanyak mungkin belalang dalam waktu terbatas. Gerakkan karakter Erine ke kiri dan kanan, hindari rintangan, dan raih skor tertinggi di leaderboard Cavallery!",
   },
@@ -54,7 +54,7 @@ const games = [
     href: "/games/jumping-adventure",
     icon: "bx-up-arrow-circle",
     tag: "Adventure",
-    color: "#60a5fa",
+    color: "var(--cv-orange)",
     longDesc:
       "Sebuah petualangan tanpa akhir bersama Erine! Uji refleks dan ketangkasanmu memandu Erine melompati semua rintangan. Jadilah yang terbaik di papan skor Cavallery dan bantu Erine menyelesaikan misinya!",
   },
@@ -64,7 +64,7 @@ const games = [
     href: "/games/love-erine-meter",
     icon: "bxs-heart",
     tag: "Fun",
-    color: "#f472b6",
+    color: "var(--cv-orange)",
     longDesc:
       "Game spesial untuk seluruh Cavallery! Masukkan namamu dan ukur seberapa besar cintamu untuk Erine. Bagikan hasilnya dan tag @cavallery.id!",
   },

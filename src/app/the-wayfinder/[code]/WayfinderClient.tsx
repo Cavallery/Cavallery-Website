@@ -101,13 +101,13 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.fillRect(0, 0, W, H);
 
       // Card Border
-      ctx.strokeStyle = "rgba(240,190,83,0.4)";
+      ctx.strokeStyle = "rgba(240, 146, 83, 0.4)";
       ctx.lineWidth = 4;
       ctx.strokeRect(10, 10, W - 20, H - 20);
 
       // Badge: SEITANSAI PROJECT
       ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.strokeStyle = "rgba(240,190,83,0.35)";
+      ctx.strokeStyle = "rgba(240, 146, 83, 0.35)";
       ctx.lineWidth = 1.5;
       const badgeW = 300;
       const badgeH = 34;
@@ -118,7 +118,7 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "#f0be53";
+      ctx.fillStyle = "#f09253";
       ctx.font = "700 13px Montserrat, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText((cfg.badgeText || "SEITANSAI PROJECT 2026").toUpperCase(), W / 2, badgeY + 22);
@@ -140,7 +140,7 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.fillText(spacedTitle, W / 2, 280);
 
       // Gold Divider Line
-      ctx.strokeStyle = "#f0be53";
+      ctx.strokeStyle = "#f09253";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(W / 2 - 40, 320);
@@ -152,8 +152,8 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       const iby = 355;
       const ibw = W - 240;
       const ibh = 125;
-      ctx.fillStyle = "rgba(240,190,83,0.09)";
-      ctx.strokeStyle = "rgba(240,190,83,0.35)";
+      ctx.fillStyle = "rgba(240, 146, 83, 0.09)";
+      ctx.strokeStyle = "rgba(240, 146, 83, 0.35)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.roundRect(ibx, iby, ibw, ibh, 12);
@@ -185,7 +185,7 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.stroke();
 
       // Details Header
-      ctx.fillStyle = "#f0be53";
+      ctx.fillStyle = "#f09253";
       ctx.font = "700 14px Montserrat, sans-serif";
       ctx.fillText("DETAIL ACARA", W / 2, by + 45);
 

@@ -33,7 +33,7 @@
   position: absolute;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(201, 168, 76, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(229, 120, 48, 0.15) 0%, transparent 70%);
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
@@ -44,18 +44,18 @@
   position: absolute;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(123, 2, 11, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(123, 50, 2, 0.12) 0%, transparent 70%);
   bottom: 10%;
   right: 15%;
   filter: blur(60px);
 }
 
 :global([data-theme="dark"]) .glowOrb1 {
-  background: radial-gradient(circle, rgba(240, 190, 83, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 146, 83, 0.18) 0%, transparent 70%);
 }
 
 :global([data-theme="dark"]) .glowOrb2 {
-  background: radial-gradient(circle, rgba(123, 2, 11, 0.22) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(123, 50, 2, 0.22) 0%, transparent 70%);
 }
 
 .container {
@@ -104,11 +104,11 @@
   border-radius: 20px;
   background: var(--gold-dim);
   color: var(--primary);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  border: 1px solid rgba(229, 120, 48, 0.4);
 }
 
 :global([data-theme="dark"]) .yearBadge {
-  background: rgba(201, 168, 76, 0.12);
+  background: rgba(229, 120, 48, 0.12);
   color: #ffd778;
 }
 
@@ -116,22 +116,22 @@
 .lockedCard {
   width: 100%;
   background: var(--surface);
-  border: 2px solid rgba(201, 168, 76, 0.4);
+  border: 2px solid rgba(229, 120, 48, 0.4);
   border-radius: 28px;
   padding: 48px 36px 42px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  box-shadow: 0 16px 50px rgba(123, 2, 11, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 16px 50px rgba(123, 50, 2, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
   position: relative;
   backdrop-filter: blur(16px);
 }
 
 :global([data-theme="dark"]) .lockedCard {
   background: rgba(20, 26, 22, 0.85);
-  border: 2px solid rgba(201, 168, 76, 0.35);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 35px rgba(201, 168, 76, 0.08);
+  border: 2px solid rgba(229, 120, 48, 0.35);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 35px rgba(229, 120, 48, 0.08);
 }
 
 .lockIconWrap {
@@ -142,8 +142,8 @@
   width: 84px;
   height: 84px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(201, 168, 76, 0.2), rgba(123, 2, 11, 0.1));
-  border: 1.5px solid rgba(201, 168, 76, 0.5);
+  background: linear-gradient(135deg, rgba(229, 120, 48, 0.2), rgba(123, 50, 2, 0.1));
+  border: 1.5px solid rgba(229, 120, 48, 0.5);
   margin-bottom: 24px;
 }
 
@@ -165,7 +165,7 @@
   right: -4px;
   bottom: -4px;
   border-radius: 50%;
-  border: 1.5px solid rgba(201, 168, 76, 0.4);
+  border: 1.5px solid rgba(229, 120, 48, 0.4);
   animation: pulseRing 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
 
@@ -230,7 +230,7 @@
 
 .timeBox {
   background: var(--surface-2, #f5f2eb);
-  border: 1.5px solid rgba(201, 168, 76, 0.4);
+  border: 1.5px solid rgba(229, 120, 48, 0.4);
   border-radius: 16px;
   padding: 16px 20px;
   min-width: 96px;
@@ -242,7 +242,7 @@
 
 :global([data-theme="dark"]) .timeBox {
   background: rgba(26, 34, 28, 0.85);
-  border-color: rgba(201, 168, 76, 0.35);
+  border-color: rgba(229, 120, 48, 0.35);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
@@ -264,7 +264,7 @@
 }
 
 :global([data-theme="dark"]) .secondsVal {
-  color: #f59e0b;
+  color: #f5690b;
 }
 
 .timeLabel {
@@ -298,11 +298,11 @@
   padding: 12px 24px;
   background: var(--gold-dim);
   border-radius: 12px;
-  border: 1px dashed rgba(201, 168, 76, 0.4);
+  border: 1px dashed rgba(229, 120, 48, 0.4);
 }
 
 :global([data-theme="dark"]) .quoteWrap {
-  background: rgba(201, 168, 76, 0.08);
+  background: rgba(229, 120, 48, 0.08);
 }
 
 .quoteText {
@@ -326,9 +326,9 @@
 }
 
 .btnPrimary {
-  background: linear-gradient(135deg, #7b020b, #590007);
+  background: linear-gradient(135deg, #7b3202, #592400);
   color: #ffd778;
-  border: 1.5px solid #c9a84c;
+  border: 1.5px solid #e57830;
   padding: 12px 24px;
   border-radius: 25px;
   font-weight: 700;
@@ -337,13 +337,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 15px rgba(123, 2, 11, 0.25);
+  box-shadow: 0 4px 15px rgba(123, 50, 2, 0.25);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btnPrimary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(123, 2, 11, 0.35);
+  box-shadow: 0 8px 22px rgba(123, 50, 2, 0.35);
 }
 
 .btnSecondary {
@@ -370,7 +370,7 @@
 .unlockedCard {
   width: 100%;
   background: var(--surface);
-  border: 2px solid rgba(201, 168, 76, 0.4);
+  border: 2px solid rgba(229, 120, 48, 0.4);
   border-radius: 28px;
   padding: 48px 36px;
   text-align: center;
@@ -379,15 +379,15 @@
 
 :global([data-theme="dark"]) .unlockedCard {
   background: rgba(20, 26, 22, 0.85);
-  border-color: rgba(201, 168, 76, 0.4);
+  border-color: rgba(229, 120, 48, 0.4);
 }
 
 .unlockedBadge {
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.16em;
-  color: #16a34a;
-  background: rgba(22, 163, 74, 0.1);
+  color: #a54e14;
+  background: rgba(165, 78, 20, 0.1);
   padding: 4px 16px;
   border-radius: 20px;
   display: inline-block;
@@ -410,7 +410,7 @@
 
 .contentPlaceholder {
   background: var(--gold-dim);
-  border: 2px dashed rgba(201, 168, 76, 0.4);
+  border: 2px dashed rgba(229, 120, 48, 0.4);
   border-radius: 20px;
   padding: 48px 24px;
   display: flex;

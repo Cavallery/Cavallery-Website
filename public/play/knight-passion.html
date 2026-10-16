@@ -4,28 +4,64 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Kuda Api Erine — Knight's Passion</title>
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem("theme");
+      var dark = t ? t === "dark" : !window.matchMedia("(prefers-color-scheme: light)").matches;
+      document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      window.addEventListener("storage", function (e) {
+        if (e.key === "theme") document.documentElement.setAttribute("data-theme", e.newValue === "light" ? "light" : "dark");
+      });
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
-    --ink: #0a0a0a;
+    --ink: #0c0a09;
     --ink-2: #141210;
     --cream: #f3ede4;
     --dim: rgba(243, 237, 228, 0.7);
     --mute: rgba(243, 237, 228, 0.45);
-    --pink: #ff4f8b;
-    --ember: #c8281a;
-    --flame: #f26a1b;
-    --gold: #ffc14a;
+    --pink: #ff8f4d;
+    --ember: #d9500b;
+    --flame: #ff6b1a;
+    --gold: #ff8f4d;
     --sq-dark: #171412;
     --sq-light: #221d19;
     --line: rgba(243, 237, 228, 0.1);
+    --line-strong: rgba(243, 237, 228, 0.25);
+    --track: rgba(243, 237, 228, 0.08);
+    --board-bg: #15110e;
+    --overlay-bg: radial-gradient(80% 70% at 50% 100%, rgba(255, 107, 26, 0.35), rgba(12, 10, 9, 0.93) 70%);
     --r: 14px;
-    --fire: linear-gradient(100deg, #ffc14a 0%, #f26a1b 45%, #c8281a 100%);
+    --fire: #ff6b1a;
+  }
+  /* light mode — follows the site theme (same localStorage key) */
+  html[data-theme="light"] {
+    --ink: #f7f1e8;
+    --ink-2: #fffaf3;
+    --cream: #1c140e;
+    --dim: rgba(28, 20, 14, 0.74);
+    --mute: rgba(28, 20, 14, 0.55);
+    --pink: #c94a0b;
+    --gold: #b3420a;
+    --sq-dark: #e6d9c8;
+    --sq-light: #f6eee3;
+    --line: rgba(28, 20, 14, 0.12);
+    --line-strong: rgba(28, 20, 14, 0.28);
+    --track: rgba(28, 20, 14, 0.08);
+    --board-bg: #efe5d7;
+    --overlay-bg: radial-gradient(80% 70% at 50% 100%, rgba(255, 107, 26, 0.25), rgba(247, 241, 232, 0.95) 70%);
+  }
+  html[data-theme="light"] body {
+    background: radial-gradient(90% 60% at 50% 110%, rgba(255, 107, 26, 0.18), transparent 70%), var(--ink);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; }
   body {
     background:
-      radial-gradient(90% 60% at 50% 110%, rgba(200, 40, 26, 0.35), transparent 70%),
+      radial-gradient(90% 60% at 50% 110%, rgba(201, 95, 25, 0.35), transparent 70%),
       var(--ink);
     color: var(--cream);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -103,11 +139,11 @@
     font-weight: 800;
   }
   .stat.time strong { color: var(--gold); }
-  .stat.time.low strong { color: #ff6a4d; animation: pulse 0.6s ease-in-out infinite alternate; }
+  .stat.time.low strong { color: #ff944d; animation: pulse 0.6s ease-in-out infinite alternate; }
   .bar {
     height: 6px;
     border-radius: 999px;
-    background: rgba(243, 237, 228, 0.08);
+    background: var(--track);
     overflow: hidden;
     margin-bottom: 14px;
   }
@@ -126,9 +162,9 @@
     position: relative;
     border-radius: 20px;
     padding: 10px;
-    background: linear-gradient(180deg, #1b1714, #0f0d0c);
+    background: var(--board-bg);
     border: 1px solid var(--line);
-    box-shadow: 0 30px 60px -30px rgba(200, 40, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: 0 30px 60px -30px rgba(201, 95, 25, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
   .board {
     position: relative;
@@ -165,7 +201,7 @@
     position: absolute;
     inset: 36%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 193, 74, 0.9), rgba(242, 106, 27, 0.5) 60%, transparent 72%);
+    background: radial-gradient(circle, rgba(255, 146, 74, 0.9), rgba(242, 106, 27, 0.5) 60%, transparent 72%);
     animation: breathe 1.2s ease-in-out infinite alternate;
   }
   .sq.move:hover::after, .sq.move:focus-visible::after { inset: 26%; }
@@ -173,12 +209,12 @@
   /* burning ember: cannot land here */
   .sq.burn {
     background:
-      radial-gradient(circle at 50% 70%, rgba(242, 106, 27, 0.55), rgba(200, 40, 26, 0.25) 45%, transparent 70%),
+      radial-gradient(circle at 50% 70%, rgba(242, 106, 27, 0.55), rgba(201, 95, 25, 0.25) 45%, transparent 70%),
       var(--sq-dark);
   }
   .sq.burn.light {
     background:
-      radial-gradient(circle at 50% 70%, rgba(242, 106, 27, 0.55), rgba(200, 40, 26, 0.25) 45%, transparent 70%),
+      radial-gradient(circle at 50% 70%, rgba(242, 106, 27, 0.55), rgba(201, 95, 25, 0.25) 45%, transparent 70%),
       var(--sq-light);
   }
   .sq.burn::before {
@@ -189,7 +225,7 @@
     bottom: 18%;
     height: 34%;
     border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
-    background: linear-gradient(to top, rgba(242, 106, 27, 0.8), rgba(255, 193, 74, 0));
+    background: linear-gradient(to top, rgba(242, 106, 27, 0.8), rgba(255, 146, 74, 0));
     transform-origin: 50% 100%;
     animation: flick 0.5s ease-in-out infinite alternate;
   }
@@ -215,7 +251,7 @@
     font-size: clamp(22px, 6.5vw, 40px);
     line-height: 1;
     color: #1a0d07;
-    background: linear-gradient(160deg, #ffe3a3, #ffc14a 40%, #f26a1b);
+    background: var(--flame);
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15), 0 8px 24px -6px rgba(242, 106, 27, 0.9), 0 0 28px rgba(255, 140, 40, 0.45);
   }
   .piece.hop span { animation: hop 0.26s ease-out; }
@@ -233,7 +269,7 @@
     position: absolute;
     inset: 4%;
     border-radius: 50%;
-    border: 2px dashed rgba(255, 193, 74, 0.8);
+    border: 2px dashed rgba(255, 146, 74, 0.8);
     animation: spin 4s linear infinite;
   }
   .target .ttl {
@@ -261,7 +297,7 @@
     height: 6px;
     border-radius: 50%;
     pointer-events: none;
-    background: radial-gradient(circle, #fff6dc, #ffc14a 40%, rgba(242, 106, 27, 0) 70%);
+    background: radial-gradient(circle, #ffe6d4, #ff924a 40%, rgba(242, 106, 27, 0) 70%);
     animation: spark 0.7s ease-out forwards;
   }
 
@@ -284,7 +320,7 @@
     place-items: center;
     padding: 20px;
     text-align: center;
-    background: radial-gradient(80% 70% at 50% 100%, rgba(200, 40, 26, 0.45), rgba(10, 10, 10, 0.92) 70%);
+    background: var(--overlay-bg);
     backdrop-filter: blur(2px);
     z-index: 5;
   }
@@ -305,7 +341,7 @@
     margin: 8px 0 6px;
     padding: 6px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 193, 74, 0.45);
+    border: 1px solid rgba(255, 146, 74, 0.45);
     color: var(--gold);
     font-size: 12px;
     letter-spacing: 0.18em;
@@ -345,7 +381,7 @@
   .btn.ghost {
     background: transparent;
     color: var(--cream);
-    border: 1px solid rgba(243, 237, 228, 0.25);
+    border: 1px solid var(--line-strong);
     box-shadow: none;
   }
 
@@ -421,9 +457,9 @@
     Keyboard: Tab untuk pilih petak, Enter untuk melangkah.
   </p>
   <div class="legend" aria-hidden="true">
-    <span><i style="background: #ffc14a"></i>Langkah valid</span>
+    <span><i style="background: #ff924a"></i>Langkah valid</span>
     <span><i style="background: #f26a1b"></i>Petak terbakar</span>
-    <span><i style="background: #fff1c9"></i>Api emas</span>
+    <span><i style="background: #ffc7a1"></i>Api emas</span>
   </div>
 </div>
 
@@ -444,8 +480,8 @@
 
   const flameSVG = `<svg viewBox="0 0 40 50" aria-hidden="true">
       <defs>
-        <linearGradient id="fg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c8281a"/><stop offset=".5" stop-color="#f26a1b"/><stop offset="1" stop-color="#ffc14a"/></linearGradient>
-        <linearGradient id="fc" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff6dc"/><stop offset="1" stop-color="#ffc14a"/></linearGradient>
+        <linearGradient id="fg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#c95f19"/><stop offset=".5" stop-color="#f26a1b"/><stop offset="1" stop-color="#ff924a"/></linearGradient>
+        <linearGradient id="fc" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffe6d4"/><stop offset="1" stop-color="#ff924a"/></linearGradient>
       </defs>
       <path class="t1" fill="url(#fg)" d="M20 50C8 50 3 41 5 32c2-8 9-11 9-20 6 4 9 9 8 15 3-3 4-7 4-11 8 6 12 14 11 22-1 7-7 12-17 12z"/>
       <path class="t2" fill="url(#fc)" d="M20 49c-6 0-9-4-8-9 1-4 5-6 6-11 3 3 4 6 3 9 2-1 3-3 3-5 3 3 5 7 4 10-1 4-4 6-8 6z"/>

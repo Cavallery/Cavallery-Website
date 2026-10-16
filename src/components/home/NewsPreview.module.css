@@ -10,7 +10,7 @@
   align-items: center;
   gap: 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid var(--cv-pink);
+  border-bottom: 1px solid var(--cv-orange);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -78,8 +78,9 @@
 .noImg {
   position: absolute;
   inset: 0;
-  background-image: conic-gradient(rgba(243, 237, 228, 0.06) 0 25%, transparent 0 50%, rgba(243, 237, 228, 0.06) 0 75%, transparent 0);
-  background-size: 25% 40%;
+  background-color: var(--cv-ink-3);
+  background-image: var(--cv-grain);
+  background-size: 180px 180px;
 }
 
 .leadSq {
@@ -89,7 +90,7 @@
   left: 0;
   padding: 7px 10px;
   background: var(--cv-ink);
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -129,13 +130,13 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .pinned {
   border-radius: var(--cv-radius-pill);
   padding: 2px 7px;
-  background: var(--cv-flame);
+  background: var(--cv-orange);
   color: var(--cv-ink);
   font-size: 0.6rem;
   font-weight: 800;
@@ -169,7 +170,7 @@
 }
 
 .row:hover {
-  background: rgba(243, 237, 228, 0.03);
+  background: color-mix(in srgb, var(--cv-bone) 3%, transparent);
 }
 
 .rowIndex {
@@ -180,7 +181,7 @@
 }
 
 .row:hover .rowIndex {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .rowBody {
@@ -249,7 +250,7 @@
 
 .empty i {
   font-size: 2rem;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 @media (min-width: 1000px) {
