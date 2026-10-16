@@ -320,12 +320,12 @@
 .mega {
   position: absolute;
   top: calc(100% + 8px);
-  left: var(--cv-gutter);
-  right: var(--cv-gutter);
-  border-radius: var(--cv-radius-xl);
+  left: max(var(--cv-gutter), calc((100vw - 1100px) / 2));
+  right: max(var(--cv-gutter), calc((100vw - 1100px) / 2));
+  border-radius: var(--cv-radius-lg);
   border: 1px solid var(--cv-line);
   overflow: hidden;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9), var(--cv-shadow-heat);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9), var(--cv-shadow-heat);
   z-index: -1;
   display: none;
   background-color: var(--cv-ink);
@@ -334,8 +334,8 @@
   border-bottom: 1px solid var(--cv-line);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.45s var(--cv-ease-out), visibility 0s linear 0.3s;
+  transform: translateY(-8px);
+  transition: opacity 0.25s ease, transform 0.35s var(--cv-ease-out), visibility 0s linear 0.25s;
 }
 
 .header[data-compact="true"] .mega {
@@ -346,7 +346,7 @@
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
-  transition: opacity 0.3s ease, transform 0.45s var(--cv-ease-out), visibility 0s;
+  transition: opacity 0.25s ease, transform 0.35s var(--cv-ease-out), visibility 0s;
 }
 
 .mega::after {
@@ -362,41 +362,42 @@
 
 .megaInner {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr;
-  gap: 56px;
-  max-width: 1600px;
+  grid-template-columns: 180px 1fr;
+  gap: 28px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 40px var(--cv-gutter) 48px;
+  padding: 22px 24px 24px;
 }
 
 .megaIntro {
   display: grid;
   align-content: start;
-  gap: 14px;
-  padding-right: 32px;
+  gap: 6px;
+  padding-right: 20px;
   border-right: 1px solid var(--cv-line);
 }
 
 .megaTitle {
-  font-size: 4.6rem;
+  font-size: 2.2rem;
   color: var(--cv-text);
+  line-height: 1.05;
 }
 
 .megaBlurb {
   color: var(--cv-text-dim);
-  font-size: 0.92rem;
-  line-height: 1.6;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .megaGrid {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 12px;
 }
 
 .megaGrid[data-count="2"] {
-  grid-template-columns: repeat(2, minmax(0, 280px));
+  grid-template-columns: repeat(2, minmax(0, 220px));
 }
 
 .megaGrid li,
@@ -414,12 +415,12 @@
 }
 
 .megaGrid[data-count="6"] .megaThumb {
-  aspect-ratio: 1;
+  height: 52px;
 }
 
 .megaTile {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .megaThumb {
@@ -427,15 +428,15 @@
   position: relative;
   display: grid;
   place-items: center;
-  aspect-ratio: 4 / 3;
+  height: 60px;
   overflow: hidden;
   background: var(--cv-ink-3);
 }
 
 .megaThumb i {
-  font-size: 2.4rem;
+  font-size: 1.6rem;
   color: var(--cv-orange);
-  transition: transform 0.5s var(--cv-ease-out), color 0.3s ease;
+  transition: transform 0.4s var(--cv-ease-out), color 0.3s ease;
 }
 
 /* fire edge on hover */
@@ -477,35 +478,35 @@
 
 .megaTileLabel {
   font-family: var(--cv-font-display);
-  font-size: 1.25rem;
+  font-size: 0.98rem;
   line-height: 1.05;
   text-transform: uppercase;
   color: var(--cv-text);
 }
 
 .megaTileDesc {
-  font-size: 0.8rem;
-  line-height: 1.5;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--cv-text-mute);
 }
 
 .megaRanks {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  gap: 16px;
 }
 
 .megaRank {
   display: grid;
   align-content: start;
-  gap: 14px;
-  padding-left: 18px;
+  gap: 6px;
+  padding-left: 12px;
   border-left: 1px solid var(--cv-line);
 }
 
 .megaRankLabel {
   font-family: var(--cv-font-display);
-  font-size: 2.6rem;
+  font-size: 1.4rem;
   line-height: 1;
   color: transparent;
   -webkit-text-stroke: 1px var(--cv-line-strong);
@@ -518,21 +519,21 @@
 .megaRankList {
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
 .megaRow {
   display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 12px;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
   align-items: center;
 }
 
 .megaRowThumb {
   border-radius: var(--cv-radius-sm);
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 36px;
+  height: 36px;
   overflow: hidden;
   background: var(--cv-ink-3);
   display: grid;
@@ -540,9 +541,9 @@
 }
 
 .megaRowThumb i {
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   color: var(--cv-orange);
-  transition: transform 0.5s var(--cv-ease-out), color 0.3s ease;
+  transition: transform 0.4s var(--cv-ease-out), color 0.3s ease;
 }
 
 .megaRow:hover .megaRowThumb i {
@@ -556,7 +557,12 @@
 }
 
 .megaRow .megaTileLabel {
-  font-size: 1.02rem;
+  font-size: 0.86rem;
+}
+
+.megaRow .megaTileDesc {
+  font-size: 0.7rem;
+  line-height: 1.3;
 }
 
 /* ── Mobile overlay ───────────────────────────────────────────── */
