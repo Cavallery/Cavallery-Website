@@ -19,7 +19,6 @@ interface PortalItem {
   passion?: boolean;
 }
 
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 const PORTAL_ITEMS: PortalItem[] = [
   // 1. Dengerine
@@ -184,10 +183,6 @@ export default function HomePortalSection() {
               className={`${styles.panel} ${i % 2 === 0 ? styles.dark : styles.light} ${item.passion ? `${styles.passion} cv-dark` : ""} cv-flame-hover`}
             >
               <span className={styles.panelTop}>
-                <span className={styles.sq}>
-                  {FILES[i]}
-                  {i + 1}
-                </span>
                 <span className={styles.category}>{item.category}</span>
                 {item.badge && <span className={styles.badge}>{item.badge}</span>}
               </span>
@@ -217,10 +212,8 @@ export default function HomePortalSection() {
         </div>
 
         <div className={styles.marks} aria-hidden="true">
-          {FILES.map((f) => (
-            <span key={f} className={styles.mark} data-mark data-on="false">
-              {f}
-            </span>
+          {PORTAL_ITEMS.map((item) => (
+            <span key={item.title} className={styles.mark} data-mark data-on="false" />
           ))}
         </div>
       </div>

@@ -130,7 +130,7 @@ export default function NewsPreview() {
                 ) : (
                   <span className={styles.noImg} aria-hidden="true" />
                 )}
-                <span className={styles.leadSq}>h5 · 01</span>
+                <span className={styles.leadSq}>Terbaru</span>
               </span>
               <span className={styles.leadBody}>
                 <span className={styles.labelRow}>
