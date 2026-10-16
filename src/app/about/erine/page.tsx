@@ -19,9 +19,9 @@ export default function AboutErinePage() {
   return (
     <div className={styles.page}>
       <AboutErineSection />
-      <SectionDivider rank={6} />
+      <SectionDivider />
       <YoutubeSection square="e6" />
-      <SectionDivider rank={7} />
+      <SectionDivider />
       <TimelineSection />
     </div>
   );

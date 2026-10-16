@@ -618,7 +618,6 @@ export default function AboutErineSection() {
 
         <div className={styles.rightCol}>
           <div className={styles.mainPhotoFrame}>
-            <span className={styles.photoSq} aria-hidden="true">e4</span>
             {slides.map((src, idx) => (
               <img
                 key={src}

@@ -264,9 +264,6 @@ export default function Footer() {
           {WAYPOINTS.map((w) => (
             <g key={w.sq} className={styles.waypoint} data-waypoint data-on="false">
               <rect x={w.x - 50} y={w.y - 50} width="100" height="100" />
-              <text x={w.x - 42} y={w.y - 34}>
-                {w.sq}
-              </text>
             </g>
           ))}
         </svg>
@@ -342,8 +339,6 @@ export default function Footer() {
                     aria-expanded={open}
                     onClick={() => setOpenCol(open ? null : col.title)}
                   >
-                    <span className={styles.colSq}>{col.square}</span>
-                    <span className={styles.colDot}>·</span>
                     <span className={styles.colTitle}>{col.title}</span>
                     <span className={styles.colPlus} aria-hidden="true" />
                   </button>

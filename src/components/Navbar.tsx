@@ -290,7 +290,6 @@ export default function Navbar() {
   if (isAdmin) return null;
 
   const megaLink = navLinks.find((l) => isParent(l) && l.label === (mega || lastMega)) as NavParent | undefined;
-  const megaIndex = megaLink ? navLinks.indexOf(megaLink) : -1;
 
   const triggerSplash = () => window.dispatchEvent(new Event("trigger-splash"));
 
@@ -344,7 +343,6 @@ export default function Navbar() {
                         onFocus={() => safeJump(i)}
                         onClick={() => openMega(mega === link.label ? null : link.label)}
                       >
-                        <span className={styles.file}>{FILES[i]}</span>
                         <span>{link.label}</span>
                         <svg className={styles.chev} viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
                           <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.4" />
@@ -362,7 +360,6 @@ export default function Navbar() {
                         onFocus={() => safeJump(i)}
                         onClick={link.href === "/" ? triggerSplash : undefined}
                       >
-                        <span className={styles.file}>{FILES[i]}</span>
                         <span>{link.label}</span>
                       </Link>
                     )}
@@ -411,7 +408,6 @@ export default function Navbar() {
             <div className={styles.megaInner} key={megaLink.label}>
               <div className={styles.megaIntro}>
                 <span className="cv-eyebrow">
-                  <span className="cv-eyebrow__sq">{FILES[megaIndex]}-file</span>
                   <span className="cv-eyebrow__dash" />
                   <span>{flatChildren(megaLink).length} tautan</span>
                 </span>
@@ -449,10 +445,6 @@ export default function Navbar() {
                       <Link href={child.href} className={styles.megaTile} tabIndex={mega ? 0 : -1}>
                         <span className={styles.megaThumb}>
                           {THUMBS[child.href] && <img src={THUMBS[child.href]} alt="" loading="lazy" decoding="async" />}
-                          <span className={styles.megaSq}>
-                            {FILES[megaIndex]}
-                            {ci + 1}
-                          </span>
                         </span>
                         <span className={styles.megaTileLabel}>{child.label}</span>
                         <span className={styles.megaTileDesc}>{child.desc}</span>
@@ -492,7 +484,6 @@ export default function Navbar() {
                         tabIndex={menuOpen ? 0 : -1}
                         onClick={() => setOpenGroup(expanded ? null : link.label)}
                       >
-                        <span className={styles.ovFile}>{FILES[i]}</span>
                         <span className={styles.ovLabel}>{link.label}</span>
                         <span className={styles.ovPlus} data-open={expanded ? "true" : "false"} aria-hidden="true" />
                       </button>
@@ -504,7 +495,6 @@ export default function Navbar() {
                         tabIndex={menuOpen ? 0 : -1}
                         onClick={link.href === "/" ? triggerSplash : undefined}
                       >
-                        <span className={styles.ovFile}>{FILES[i]}</span>
                         <span className={styles.ovLabel}>{link.label}</span>
                       </Link>
                     )}
