@@ -110,8 +110,8 @@ export default function DiscordAnnouncementsPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--bg, #0f1015)",
-        color: "var(--fg, #f1f5f9)",
+        background: "var(--bg)",
+        color: "var(--fg)",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         paddingTop: "calc(var(--nav-h, 72px) + 24px)",
         paddingBottom: 60,
@@ -142,11 +142,11 @@ export default function DiscordAnnouncementsPage() {
                 fontWeight: 800,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: "#5865F2",
-                background: "rgba(88, 101, 242, 0.12)",
+                color: "var(--cv-orange)",
+                background: "var(--cv-orange-soft)",
                 padding: "4px 12px",
                 borderRadius: 8,
-                border: "1px solid rgba(88, 101, 242, 0.3)",
+                border: "1px solid var(--cv-orange-line)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
@@ -168,14 +168,14 @@ export default function DiscordAnnouncementsPage() {
                 flexWrap: "wrap",
               }}
             >
-              <i className="bx bx-broadcast" style={{ color: "var(--gold, #c9a84c)" }} />
+              <i className="bx bx-broadcast" style={{ color: "var(--gold)" }} />
               Pengumuman Resmi Discord Cavallery
             </h1>
             <p
               style={{
                 margin: 0,
                 fontSize: "0.85rem",
-                color: "var(--fg-muted, #94a3b8)",
+                color: "var(--fg-muted)",
                 lineHeight: 1.5,
               }}
             >
@@ -197,9 +197,9 @@ export default function DiscordAnnouncementsPage() {
                 fontWeight: 700,
                 padding: "8px 14px",
                 borderRadius: 10,
-                background: "var(--surface, #1e1f22)",
-                color: "var(--fg, #f1f5f9)",
-                border: "1px solid var(--border, rgba(255,255,255,0.1))",
+                background: "var(--surface)",
+                color: "var(--fg)",
+                border: "1px solid var(--border)",
                 cursor: "pointer",
                 transition: "all 0.15s",
               }}
@@ -219,9 +219,9 @@ export default function DiscordAnnouncementsPage() {
                 fontWeight: 700,
                 padding: "8px 14px",
                 borderRadius: 10,
-                background: "rgba(201, 168, 76, 0.12)",
-                color: "var(--gold, #c9a84c)",
-                border: "1px solid rgba(201, 168, 76, 0.3)",
+                background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                color: "var(--gold)",
+                border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                 textDecoration: "none",
                 transition: "all 0.15s",
               }}
@@ -240,8 +240,8 @@ export default function DiscordAnnouncementsPage() {
             color: "#f2f3f5",
             borderRadius: "14px 14px 0 0",
             padding: "14px 20px",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderBottom: "1px solid rgba(0, 0, 0, 0.2)",
+            border: "1px solid var(--cv-line)",
+            borderBottom: "1px solid var(--cv-line)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -315,7 +315,7 @@ export default function DiscordAnnouncementsPage() {
         <div
           style={{
             background: "#1e1f22",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: "1px solid var(--cv-line)",
             borderTop: "none",
             borderRadius: "0 0 14px 14px",
             padding: "12px 18px",
@@ -349,14 +349,14 @@ export default function DiscordAnnouncementsPage() {
                       ? tab.id === "@everyone"
                         ? "#5865F2"
                         : tab.id === "@here"
-                        ? "#eab308"
-                        : "var(--gold, #c9a84c)"
+                        ? "var(--cv-orange)"
+                        : "var(--gold)"
                       : "#2b2d31",
                   color:
                     selectedMention === tab.id
-                      ? tab.id === "@here"
-                        ? "#000"
-                        : "#fff"
+                      ? tab.id === "@everyone"
+                        ? "#fff"
+                        : "var(--cv-on-orange)"
                       : "#dbdee1",
                   fontWeight: selectedMention === tab.id ? 800 : 600,
                   fontSize: "0.8rem",
@@ -390,7 +390,7 @@ export default function DiscordAnnouncementsPage() {
                 width: "100%",
                 padding: "7px 12px 7px 32px",
                 borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.08)",
+                border: "1px solid var(--cv-line)",
                 background: "#2b2d31",
                 color: "#f2f3f5",
                 fontSize: "0.82rem",
@@ -410,7 +410,7 @@ export default function DiscordAnnouncementsPage() {
                 background: "#2b2d31",
                 borderRadius: 14,
                 color: "#949ba4",
-                border: "1px dashed rgba(255,255,255,0.1)",
+                border: "1px dashed var(--cv-line)",
               }}
             >
               <i className="bx bx-message-rounded-x" style={{ fontSize: "2.8rem", opacity: 0.5, marginBottom: 10, display: "block" }} />
@@ -432,7 +432,7 @@ export default function DiscordAnnouncementsPage() {
                   style={{
                     background: "#313338",
                     borderRadius: 14,
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    border: "1px solid var(--cv-line)",
                     padding: "20px 22px",
                     boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
                     position: "relative",
@@ -451,8 +451,8 @@ export default function DiscordAnnouncementsPage() {
                         item.mention === "@everyone"
                           ? "#5865F2"
                           : item.mention === "@here"
-                          ? "#eab308"
-                          : "var(--gold, #c9a84c)",
+                          ? "var(--cv-orange)"
+                          : "var(--gold)",
                     }}
                   />
 
@@ -476,7 +476,7 @@ export default function DiscordAnnouncementsPage() {
                           height: 42,
                           borderRadius: "50%",
                           objectFit: "cover",
-                          border: "2px solid rgba(255, 255, 255, 0.1)",
+                          border: "2px solid var(--cv-line)",
                         }}
                       />
                       <div>
@@ -540,13 +540,13 @@ export default function DiscordAnnouncementsPage() {
                           background:
                             item.mention === "@everyone"
                               ? "rgba(88, 101, 242, 0.2)"
-                              : "rgba(234, 179, 8, 0.2)",
+                              : "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
                           color:
-                            item.mention === "@everyone" ? "#c9cdfb" : "#fef08a",
+                            item.mention === "@everyone" ? "#c9cdfb" : "var(--cv-orange-hi)",
                           border:
                             item.mention === "@everyone"
                               ? "1px solid rgba(88, 101, 242, 0.4)"
-                              : "1px solid rgba(234, 179, 8, 0.4)",
+                              : "1px solid color-mix(in srgb, var(--cv-orange) 40%, transparent)",
                         }}
                       >
                         <i className="bx bx-at" />
@@ -560,7 +560,7 @@ export default function DiscordAnnouncementsPage() {
                     style={{
                       fontSize: "1.22rem",
                       fontWeight: 800,
-                      color: "var(--gold, #fcd34d)",
+                      color: "var(--gold)",
                       margin: "0 0 12px",
                       lineHeight: 1.4,
                     }}
@@ -612,7 +612,7 @@ export default function DiscordAnnouncementsPage() {
                             maxHeight: 280,
                             borderRadius: 10,
                             overflow: "hidden",
-                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            border: "1px solid var(--cv-line)",
                             cursor: "pointer",
                             background: "#1e1f22",
                             position: "relative",
@@ -642,7 +642,7 @@ export default function DiscordAnnouncementsPage() {
                               maxHeight: 160,
                               borderRadius: 10,
                               overflow: "hidden",
-                              border: "1px solid rgba(255, 255, 255, 0.12)",
+                              border: "1px solid var(--cv-line)",
                               cursor: "pointer",
                               background: "#1e1f22",
                               position: "relative",
@@ -669,7 +669,7 @@ export default function DiscordAnnouncementsPage() {
                   {/* Tags & Reaksi Boxicons Discord */}
                   <div
                     style={{
-                      borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                      borderTop: "1px solid var(--cv-line)",
                       paddingTop: 12,
                       display: "flex",
                       justifyContent: "space-between",
@@ -697,7 +697,7 @@ export default function DiscordAnnouncementsPage() {
                               borderRadius: 8,
                               border: isClicked
                                 ? "1.5px solid #5865F2"
-                                : "1px solid rgba(255, 255, 255, 0.1)",
+                                : "1px solid var(--cv-line)",
                               background: isClicked ? "rgba(88, 101, 242, 0.2)" : "#2b2d31",
                               color: isClicked ? "#c9cdfb" : "#dbdee1",
                               fontSize: "0.82rem",
@@ -722,7 +722,7 @@ export default function DiscordAnnouncementsPage() {
                             style={{
                               fontSize: "0.72rem",
                               color: "#949ba4",
-                              background: "rgba(255, 255, 255, 0.05)",
+                              background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
                               padding: "2px 8px",
                               borderRadius: 6,
                             }}
@@ -746,7 +746,7 @@ export default function DiscordAnnouncementsPage() {
             padding: "16px 20px",
             background: "#2b2d31",
             borderRadius: 14,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            border: "1px solid var(--cv-line)",
             fontSize: "0.8rem",
             color: "#949ba4",
             textAlign: "center",
@@ -765,6 +765,7 @@ export default function DiscordAnnouncementsPage() {
       {/* ── LIGHTBOX MODAL: FULL PREVIEW GAMBAR ── */}
       {activeImage && (
         <div
+          className="cv-dark"
           style={{
             position: "fixed",
             inset: 0,
@@ -795,9 +796,9 @@ export default function DiscordAnnouncementsPage() {
                 type="button"
                 onClick={() => setActiveImage(null)}
                 style={{
-                  background: "rgba(255, 255, 255, 0.15)",
+                  background: "color-mix(in srgb, var(--cv-bone) 15%, transparent)",
                   border: "none",
-                  color: "#fff",
+                  color: "var(--cv-text)",
                   fontSize: "1.2rem",
                   width: 36,
                   height: 36,
@@ -815,9 +816,9 @@ export default function DiscordAnnouncementsPage() {
               style={{
                 borderRadius: 12,
                 overflow: "hidden",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
+                border: "1px solid var(--cv-line-strong)",
                 boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
-                background: "#000",
+                background: "var(--cv-ink)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

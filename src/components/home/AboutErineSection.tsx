@@ -1,9 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
 import styles from "./AboutErineSection.module.css";
 import { VIDEO_URLS } from "@/lib/videoAssets";
+import ChessEyebrow from "@/components/chess/ChessEyebrow";
+import KnightSvg from "@/components/chess/KnightSvg";
+import EmberField from "@/components/chess/EmberField";
+import FlameLayer from "@/components/chess/FlameLayer";
+import { gsap, useGSAP, MQ } from "@/lib/gsap";
+import { useReveal } from "@/hooks/useReveal";
 
 function parseSongs(raw: any): string[] {
   if (!raw) return [];
@@ -57,14 +62,20 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
     <div
       className={styles.stickyCard}
       onClick={() => setIsFlipped(!isFlipped)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setIsFlipped(!isFlipped);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isFlipped}
+      aria-label={`${set.title} — balik kartu untuk melihat unit songs`}
+      data-flipped={isFlipped ? "true" : "false"}
       style={{ zIndex: isFlipped ? 10 : 1 }}
     >
-      <motion.div
-        className={styles.flipInner}
-        initial={false}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
-      >
+      <div className={styles.flipInner}>
         <div className={styles.flipFront}>
           <div className={styles.tapeStrip} />
           <div className={styles.polaroidFrame}>
@@ -91,7 +102,7 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
             })}
           </ul>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -217,6 +228,7 @@ export default function AboutErineSection() {
   const [sskVideoId, setSskVideoId] = useState<string>("_Qn9B9mD2bI");
   const [updatesLoaded, setUpdatesLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const rootRef = useRef<HTMLElement | null>(null);
 
   const [slides, setSlides] = useState<string[]>([]);
 
@@ -439,23 +451,67 @@ export default function AboutErineSection() {
       })
     : DEFAULT_TRIVIA_LIST;
 
+  useReveal(rootRef, [kabeshas.length, setlists.length, statsData.length, updates.length, pmLoading]);
+
+  // Kabesha Journey: the line between the three stages draws itself on scroll.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add({ desktop: MQ.desktop, mobile: MQ.mobile }, (ctx) => {
+        const isDesktop = Boolean(ctx.conditions?.desktop);
+        const fill = rootRef.current?.querySelector("[data-kabesha-fill]");
+        const steps = rootRef.current?.querySelectorAll<HTMLElement>("[data-kabesha-step]");
+        const board = rootRef.current?.querySelector("[data-kabesha-board]");
+        if (!fill || !board || !steps) return;
+        gsap.fromTo(
+          fill,
+          isDesktop ? { scaleX: 0 } : { scaleY: 0 },
+          {
+            ...(isDesktop ? { scaleX: 1 } : { scaleY: 1 }),
+            ease: "none",
+            scrollTrigger: {
+              trigger: board,
+              start: "top 75%",
+              end: "bottom 70%",
+              scrub: 0.6,
+              onUpdate(self) {
+                steps.forEach((st, i) => {
+                  const at = steps.length > 1 ? i / (steps.length - 1) : 0;
+                  st.dataset.lit = self.progress >= at - 0.02 ? "true" : "false";
+                });
+              },
+            },
+          }
+        );
+      });
+      mm.add(MQ.reduce, () => {
+        rootRef.current
+          ?.querySelectorAll<HTMLElement>("[data-kabesha-step]")
+          .forEach((st) => (st.dataset.lit = "true"));
+      });
+      return () => mm.revert();
+    },
+    { scope: rootRef, dependencies: [kabeshas.length], revertOnUpdate: true }
+  );
+
   const totalTrivia = triviaList.length;
   const answeredCount = Object.keys(triviaGuesses).length;
   const correctCount = triviaList.filter((item) => triviaGuesses[item.id] === item.correctIndex).length;
 
   return (
-    <section className={styles.wrapper}>
+    <section ref={rootRef} className={styles.wrapper} data-motion>
       {/* 1. Wiki Style Profile Card */}
-      <div className={`glassCard ${styles.profileContainer}`}>
+      <div className={styles.profileContainer}>
         <div className={styles.leftCol}>
-          <div className={styles.headerSection}>
+          <div className={styles.headerSection} data-reveal="up">
+            <ChessEyebrow square="a1" label="Profil · Gen 12 · Team Passion" />
             <div className={styles.titleBox}>
               <h1 className={styles.wikiName}>Erine</h1>
               <a
                href="https://www.idn.app/jkt48_erine"
   target="_blank"
   rel="noopener noreferrer"
-  className={styles.followBtn}
+  className={`${styles.followBtn} cv-flame-hover`}
 >
   &#43; Follow
 </a>
@@ -463,7 +519,7 @@ export default function AboutErineSection() {
             <span className={styles.jpName}>Japan : エリーヌ</span>
           </div>
 
-          <div className={styles.tableContainer}>
+          <div className={styles.tableContainer} data-reveal="up">
             <table className={styles.bioTable}>
               <tbody>
                 <tr>
@@ -515,14 +571,19 @@ export default function AboutErineSection() {
           <div className={styles.jikoBar}>
             <div className={styles.jikoLeft}>
               <div className={styles.jikoLabel}>Jikoshoukai</div>
-              <button className={styles.audioBtn} onClick={toggleJiko}>
+              <button
+                className={styles.audioBtn}
+                onClick={toggleJiko}
+                aria-label={isPlayingJiko ? "Hentikan jikoshoukai" : "Putar jikoshoukai"}
+                aria-pressed={isPlayingJiko}
+              >
                 <i className={`bx ${isPlayingJiko ? "bx-pause" : "bx-play"}`} />
               </button>
             </div>
             <div className={styles.jikoQuoteBox}>
               Hadir dengan seribu kejutan,
               <br />
-              <span className={styles.checkmateAnim}>Checkmate!</span>
+              <span className={`${styles.checkmateAnim} cv-fire-text`}>Checkmate!</span>
               <br />
               Siap memenangkan hatimu.
             </div>
@@ -569,7 +630,7 @@ export default function AboutErineSection() {
           <div className={styles.galleryStrip}>
             <div className={styles.thumbsGrid}>
               {slides.slice(1, 4).map((src) => (
-                <div key={src} className={`glassCard ${styles.thumbItem}`}>
+                <div key={src} className={styles.thumbItem}>
                   <img src={src} alt="Thumb" />
                 </div>
               ))}
@@ -586,10 +647,9 @@ export default function AboutErineSection() {
       {/* 2. Intro & Hashtags Section */}
       <div className={styles.ewContainer}>
         {/* Introduction */}
-        <div className={styles.ewIntro}>
+        <div className={styles.ewIntro} data-reveal="up">
           <div className={styles.ewIntroBadge}>
-            <i className="bx bx-user-circle" style={{ color: "var(--gold)" }} />
-            <span>Introduction</span>
+            <ChessEyebrow square="b3" label="Introduction" />
           </div>
           <p>
             Erine adalah member JKT48 generasi ke-12. Erine dikenal sebagai{" "}
@@ -598,11 +658,11 @@ export default function AboutErineSection() {
           </p>
         </div>
 
-        <div className={styles.ewSplit}>
+        <div className={styles.ewSplit} data-reveal="stagger">
           {/* Bio Cards */}
           <div className={styles.ewBio}>
             <div className={styles.ewBioHeader}>
-              <i className="bx bx-id-card" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
+              <i className="bx bx-id-card" />
               <span>Profil Erine</span>
             </div>
             <div className={styles.ewBioGrid}>
@@ -632,8 +692,8 @@ export default function AboutErineSection() {
           {/* Hashtags */}
           <div className={styles.ewHt}>
             <div className={styles.ewHtHeader}>
-              <i className="bx bxl-twitter" style={{ color: "var(--gold)", fontSize: "1.2rem" }} />
-              <span># Official Hashtags</span>
+              <i className="bx bx-hash" />
+              <span>Official Hashtags</span>
             </div>
             <div className={styles.ewHtList}>
               {[
@@ -674,15 +734,14 @@ export default function AboutErineSection() {
           </div>
         </div>
 
-        <div className={styles.ewFf}>
+        <div className={styles.ewFf} data-reveal="up">
           <div className={styles.ffHeader}>
             <div>
               <div className={styles.ffGameBadge}>
-                <i className="bx bxs-game" /> MINI GAME TRIVIA
+                <ChessEyebrow square="c5" label="Mini Game Trivia" />
               </div>
-              <h3 className={styles.ffTitle}>
-                <i className="bx bx-joystick" style={{ color: "var(--gold)", marginRight: 8 }} />
-                Tebak Trivia &amp; Fakta Erine
+              <h3 data-ghost="TRIVIA" className={styles.ffTitle}>
+                Tebak Trivia &amp; <span className={styles.ffTitleAccent}>Fakta Erine</span>
               </h3>
               <p className={styles.ffSubtitle}>
                 Uji seberapa kenal kamu dengan Erine! Pilih tebakanmu di tiap pertanyaan untuk mengungkap rahasia dan fakta aslinya. 🐣✨
@@ -696,7 +755,7 @@ export default function AboutErineSection() {
               </div>
               <div className={styles.ffStatItem}>
                 <span className={styles.ffStatLabel}>Skor Benar</span>
-                <span className={`${styles.ffStatVal} ${styles.ffStatValGold}`}>⭐ {correctCount}</span>
+                <span className={`${styles.ffStatVal} ${styles.ffStatValGold}`}>{correctCount}</span>
               </div>
               {answeredCount > 0 && (
                 <button
@@ -713,8 +772,8 @@ export default function AboutErineSection() {
 
           {answeredCount === totalTrivia && totalTrivia > 0 && (
             <div className={styles.gameCompletionBanner}>
-              <div className={styles.gameCompletionEmoji}>
-                {correctCount >= 6 ? "👑" : "🎉"}
+              <div className={styles.gameCompletionEmoji} aria-hidden="true">
+                <KnightSvg size={40} />
               </div>
               <div className={styles.gameCompletionContent}>
                 <h4>
@@ -834,9 +893,11 @@ export default function AboutErineSection() {
 
       {/* 3. Showcase Section */}
       <div className={styles.showcaseContainer}>
-        <div className={styles.videoDebut}>
-          <div className={styles.nailedFrame} />
-          <h3 className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
+        <div className={styles.videoDebut} data-reveal="up">
+          <div className={styles.nailedFrame}>
+            <ChessEyebrow square="d7" label="Debut" />
+          </div>
+          <h3 data-ghost="DEBUT" className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
           <div className={styles.videoFrameWrapper}>
             <div className={styles.responsiveVideo}>
               <iframe src={`https://www.youtube.com/embed/${debutVideoId}`} title="Debut" allowFullScreen />
@@ -844,26 +905,32 @@ export default function AboutErineSection() {
           </div>
         </div>
 
-        {/* ── ERINE'S KABESHA ALUR PERJALANAN (WINDING TRAIL) ── */}
+        {/* ── ERINE'S KABESHA JOURNEY: Trainee → Regular → Team Passion ── */}
         <div className={styles.kabeshaBoardWrapper}>
-          <div className={styles.kabeshaBoardHeader}>
-            <div className={styles.nailedFrame} />
-            <h3 className={styles.erineTitle}>{"Erine's Kabesha Journey"}</h3>
+          <div className={styles.kabeshaBoardHeader} data-reveal="up">
+            <div className={styles.nailedFrame}>
+              <ChessEyebrow square="e5" label="Kabesha Journey" />
+            </div>
+            <h3 data-ghost="KABESHA" className={styles.erineTitle}>
+              {"Erine's Kabesha"} <span className={styles.erineTitleAccent}>Journey</span>
+            </h3>
             <p className={styles.kabeshaSubtitle}>
               Alur jejak visual &amp; evolusi kabesha Erine dari generasi ke generasi di JKT48
             </p>
           </div>
 
-          <div className={styles.kabeshaParchmentBoard}>
+          <div className={styles.kabeshaParchmentBoard} data-kabesha-board>
             <div className={styles.kabeshaAlurContainer}>
-              {/* Central connecting journey spine */}
-              <div className={styles.kabeshaAlurSpine} />
+              {/* Connecting line (drawn on scroll: cold → Passion fire) */}
+              <div className={styles.kabeshaAlurSpine} aria-hidden="true">
+                <span className={styles.kabeshaSpineFill} data-kabesha-fill />
+              </div>
 
               {(kabeshas.length > 0 ? kabeshas : [
                 { image_url: "/images/trainee.jpg", era: "2024", title: "Trainee Member", description: "Langkah awal perjalanan Erine di JKT48 diperkenalkan sebagai Trainee pada Jak Japan Matsuri (18 November 2023)." },
                 { image_url: "/images/regular.webp", era: "2025", title: "Regular Member", description: "Berkat dedikasi dan kerja keras, Erine resmi dipromosikan menjadi Member reguler JKT48 (1 Mei 2025)." },
                 { image_url: "/images/erine-passion.webp", era: "2026", title: "Team Passion", description: "Membuka babak baru yang membanggakan sebagai bagian dari formasi resmi Team Passion JKT48." },
-              ]).map((item: any, idx: number) => {
+              ]).map((item: any, idx: number, arr: any[]) => {
                 const img = item.image_url || item.img || "/images/cava-logo.jpg";
                 const year = item.era || item.year_label || item.year || (idx === 0 ? "2024" : idx === 1 ? "2025" : "2026");
                 const title = item.title || item.era_name || "Kabesha";
@@ -883,16 +950,18 @@ export default function AboutErineSection() {
                   stickerBottom = "Member";
                 }
 
+                const isPassion = /passion/i.test(title) || (idx === arr.length - 1 && arr.length > 1 && !arr.some((k: any) => /passion/i.test(k.title || "")));
                 const isLeft = idx % 2 === 0;
-                const tilts = [-2.5, 2.5, -2, 2.2];
-                const cardTilt = tilts[idx % tilts.length];
 
                 return (
                   <div
                     key={item.id || `${year}-${title}-${idx}`}
                     className={`${styles.kabeshaAlurStep} ${isLeft ? styles.stepLeft : styles.stepRight}`}
+                    data-kabesha-step
+                    data-lit="false"
+                    data-passion={isPassion ? "true" : "false"}
                   >
-                    {/* Titik Jalan (Checkpoint Dot with Route Number & Year) */}
+                    {/* Checkpoint node with stage number & year */}
                     <div className={styles.kabeshaTitikJalan}>
                       <div className={styles.titikNode}>
                         <span className={styles.titikNumber}>0{idx + 1}</span>
@@ -901,40 +970,45 @@ export default function AboutErineSection() {
                       <div className={styles.titikYearPill}>{year}</div>
                     </div>
 
-                    {/* Polaroid Scrapbook Card on Trail */}
                     <div className={styles.kabeshaStepContent}>
                       <div
-                        className={styles.kabeshaPinnedCard}
-                        style={{ transform: `rotate(${cardTilt}deg)` }}
+                        className={`${styles.kabeshaPinnedCard} ${isPassion ? "cv-dark" : ""}`}
                         onClick={() => openModal(img, `${year} • ${title}`, desc)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openModal(img, `${year} • ${title}`, desc);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
                         title={`Klik untuk melihat foto Kabesha ${year} (${title})`}
                       >
-                        {/* 3D Red Pushpin with realistic needle and shadow */}
-                        <div className={styles.kabesha3dPin}>
-                          <div className={styles.pinCap} />
-                          <div className={styles.pinNeedle} />
-                          <div className={styles.pinShadow} />
-                        </div>
+                        {isPassion && (
+                          <div className={styles.kabeshaEmbers} aria-hidden="true">
+                            <EmberField desktop={16} mobile={8} intensity={1} />
+                          </div>
+                        )}
 
-                        {/* Cute Sticker Badge at Top-Right */}
                         <div className={styles.kabeshaStickerBadge}>
                           <span className={styles.stickerLine1}>{stickerTop}</span>
                           <span className={styles.stickerLine2}>{stickerBottom}</span>
                         </div>
 
-                        {/* Photo Container */}
                         <div className={styles.kabeshaPhotoWrap}>
-                          <img src={img} alt={`${title} (${year})`} className={styles.kabeshaImg} />
+                          <img src={img} alt={`${title} (${year})`} className={styles.kabeshaImg} loading="lazy" decoding="async" />
+                          {isPassion && (
+                            <FlameLayer id={`kabesha-flames-${idx}`} className={styles.kabeshaFlames} density={6} intensity={0.85} />
+                          )}
                           <div className={styles.photoZoomOverlay}>
                             <i className="bx bx-zoom-in" />
                             <span>Lihat Foto Pas</span>
                           </div>
                         </div>
 
-                        {/* Card Caption Info */}
                         <div className={styles.kabeshaCardInfo}>
                           <div className={styles.kabeshaMarkerYear}>{year}</div>
-                          <div className={styles.kabeshaEraTitle}>{title}</div>
+                          <div className={`${styles.kabeshaEraTitle} ${isPassion ? "cv-fire-text" : ""}`}>{title}</div>
                           <p className={styles.kabeshaDescSnippet}>{desc}</p>
                         </div>
                       </div>
@@ -946,9 +1020,11 @@ export default function AboutErineSection() {
           </div>
         </div>
 
-        <div className={styles.electionSection}>
-          <div className={styles.nailedFrame} />
-          <h3 className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
+        <div className={styles.electionSection} data-reveal="up">
+          <div className={styles.nailedFrame}>
+            <ChessEyebrow square="f3" label="Sousenkyo" />
+          </div>
+          <h3 data-ghost="SENBATSU" className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
           <div className={styles.frameCardWide}>
             <div className={styles.responsiveVideo}>
               <iframe
@@ -961,6 +1037,8 @@ export default function AboutErineSection() {
             <div className={styles.electionGrid}>
               <div
                 className={styles.electionItem}
+                role="button"
+                tabIndex={0}
                 onClick={() => openModal("/images/chapter.jpg", "Campaign 2024", "Erine mengusung Project SSK dengan #Dongeng & #Chapter.")}
               >
                 <div className={styles.electionImg}><img src="/images/chapter.jpg" alt="Poster" /></div>
@@ -968,6 +1046,8 @@ export default function AboutErineSection() {
               </div>
               <div
                 className={styles.electionItem}
+                role="button"
+                tabIndex={0}
                 onClick={() => openModal("https://cava.jkt48connect.com/IMG-20260525-WA0211.jpg", "Result Rank #18", "Erine berhasil mendapatkan posisi ke 18.")}
               >
                 <div className={styles.electionImg}>
@@ -982,11 +1062,17 @@ export default function AboutErineSection() {
 
       {/* 4. Journal & Stats Section */}
       <div className={styles.journalWrapper}>
-        <div className={styles.statsBoard}>
+        <div className={styles.journalHead} data-reveal="up">
+          <ChessEyebrow square="g5" label="Setlist & Statistik" />
+          <h3 data-ghost="PANGGUNG" className={styles.erineTitle}>
+            Jejak <span className={styles.erineTitleAccent}>Panggung</span>
+          </h3>
+        </div>
+        <div className={styles.statsBoard} data-reveal="up">
           <div className={styles.pinTack} />
           <div className={styles.statsGrid}>
             {statsData.length === 0 ? (
-              <div style={{ color: "var(--gold)", padding: "1rem" }}>
+              <div className={styles.loadingNote}>
                 <i className="bx bx-loader-alt bx-spin" /> Memuat statistik...
               </div>
             ) : (
@@ -1003,9 +1089,9 @@ export default function AboutErineSection() {
           </div>
         </div>
 
-        <div className={styles.cardsGrid}>
+        <div className={styles.cardsGrid} data-reveal="stagger">
           {setlists.length === 0 ? (
-            <div style={{ color: "var(--gold)", padding: "1rem" }}>
+            <div className={styles.loadingNote}>
               <i className="bx bx-loader-alt bx-spin" /> Memuat setlist...
             </div>
           ) : (
@@ -1027,9 +1113,11 @@ export default function AboutErineSection() {
       </div>
 
       {/* 4.5 PM Weekly Stats */}
-      <div className={styles.pmStatsSection}>
-        <div className={styles.nailedFrame} />
-        <h3 className={styles.erineTitle}>Statistik PM Mingguan</h3>
+      <div className={styles.pmStatsSection} data-reveal="up">
+        <div className={styles.nailedFrame}>
+          <ChessEyebrow square="h3" label="Personal Message" />
+        </div>
+        <h3 data-ghost="PESAN" className={styles.erineTitle}>Statistik PM Mingguan</h3>
         {pmLoading ? (
           <div className={styles.pmLoading}>
             <i className="bx bx-loader-alt bx-spin" /> Memuat data...
@@ -1072,7 +1160,7 @@ export default function AboutErineSection() {
               <div className={styles.pmBarTrack}>
                 <div
                   className={styles.pmBarFill}
-                  style={{ width: `${Math.min((parseInt(pmStats.messages_per_week) / 100) * 100, 100)}%` }}
+                  style={{ transform: `scaleX(${Math.min((parseInt(pmStats.messages_per_week) || 0) / 100, 1)})` }}
                 />
               </div>
               <div className={styles.pmBarHint}>Skala: 0 – 100 pesan/minggu</div>
@@ -1085,10 +1173,12 @@ export default function AboutErineSection() {
 
       {/* 5. Social Media Embeds */}
       <div className={styles.embedsSection}>
-        <div className={styles.nailedFrame} />
-        <h3 className={styles.erineTitle}>Latest Updates</h3>
+        <div className={styles.nailedFrame} data-reveal="fade">
+          <ChessEyebrow square="f4" label="Sosial Media" />
+        </div>
+        <h3 data-ghost="UPDATES" className={styles.erineTitle} data-reveal="up">Latest Updates</h3>
         {updates.length === 0 ? (
-          <div style={{ color: "var(--gold)", padding: "1rem", textAlign: "center" }}>
+          <div className={styles.loadingNote}>
             {updatesLoaded ? (
               <><i className="bx bx-info-circle" /> Belum ada updates terbaru.</>
             ) : (

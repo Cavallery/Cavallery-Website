@@ -739,8 +739,8 @@ export default function AdminMasterDataPage() {
             <div
               className={styles.sectionCard}
               style={{
-                border: "2px solid rgba(201, 168, 76, 0.45)",
-                background: "linear-gradient(180deg, rgba(201, 168, 76, 0.08) 0%, rgba(15, 20, 30, 0.65) 100%)",
+                border: "2px solid color-mix(in srgb, var(--cv-orange) 45%, transparent)",
+                background: "color-mix(in srgb, var(--cv-orange) 6%, var(--cv-ink-2))",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
               }}
             >
@@ -763,13 +763,13 @@ export default function AdminMasterDataPage() {
                     gap: 6,
                     padding: "8px 16px",
                     borderRadius: 10,
-                    background: "linear-gradient(135deg, #c9a84c 0%, #a07d2c 100%)",
-                    color: "#0d1117",
+                    background: "var(--cv-orange)",
+                    color: "var(--cv-on-orange)",
                     fontWeight: 700,
                     fontSize: "0.85rem",
                     border: "none",
                     cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(201, 168, 76, 0.3)",
+                    boxShadow: "0 4px 14px color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                   }}
                 >
                   <i className="bx bx-plus-circle" style={{ fontSize: "1.1rem" }} /> Tambah Banner / Info
@@ -790,8 +790,8 @@ export default function AdminMasterDataPage() {
                       style={{
                         padding: 16,
                         borderRadius: 12,
-                        background: b.isActive ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.01)",
-                        border: b.isActive ? "1px solid rgba(201, 168, 76, 0.35)" : "1px dashed rgba(255, 255, 255, 0.15)",
+                        background: b.isActive ? "color-mix(in srgb, var(--cv-bone) 3%, transparent)" : "color-mix(in srgb, var(--cv-bone) 1%, transparent)",
+                        border: b.isActive ? "1px solid color-mix(in srgb, var(--cv-orange) 35%, transparent)" : "1px dashed var(--cv-line-strong)",
                         opacity: b.isActive ? 1 : 0.6,
                         display: "flex",
                         flexDirection: "column",
@@ -808,8 +808,8 @@ export default function AdminMasterDataPage() {
                               fontWeight: 800,
                               padding: "2px 8px",
                               borderRadius: 12,
-                              background: b.badgeColor === "blue" ? "rgba(59, 130, 246, 0.2)" : b.badgeColor === "green" ? "rgba(16, 185, 129, 0.2)" : b.badgeColor === "red" ? "rgba(239, 68, 68, 0.2)" : "rgba(201, 168, 76, 0.2)",
-                              color: b.badgeColor === "blue" ? "#93c5fd" : b.badgeColor === "green" ? "#6ee7b7" : b.badgeColor === "red" ? "#fca5a5" : "#f7d57f",
+                              background: b.badgeColor === "blue" ? "color-mix(in srgb, var(--cv-orange) 20%, transparent)" : b.badgeColor === "green" ? "rgba(16, 185, 129, 0.2)" : b.badgeColor === "red" ? "rgba(239, 68, 68, 0.2)" : "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
+                              color: b.badgeColor === "blue" ? "var(--cv-orange-hi)" : b.badgeColor === "green" ? "#6ee7b7" : b.badgeColor === "red" ? "#fca5a5" : "var(--cv-orange-hi)",
                               border: "1px solid currentColor",
                             }}
                           >
@@ -835,7 +835,7 @@ export default function AdminMasterDataPage() {
                         </div>
 
                         {b.imageUrl && (
-                          <div style={{ width: "100%", height: 110, borderRadius: 8, overflow: "hidden", marginBottom: 10, border: "1px solid rgba(255,255,255,0.12)" }}>
+                          <div style={{ width: "100%", height: 110, borderRadius: 8, overflow: "hidden", marginBottom: 10, border: "1px solid var(--cv-line)" }}>
                             <img src={b.imageUrl} alt={b.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           </div>
                         )}
@@ -847,17 +847,17 @@ export default function AdminMasterDataPage() {
                           </div>
                         )}
 
-                        <h4 style={{ margin: "0 0 6px", fontSize: "1rem", color: "#fff" }}>{b.title}</h4>
-                        <p style={{ margin: "0 0 10px", fontSize: "0.82rem", color: "var(--fg-dim, #aaa)", lineHeight: 1.45 }}>{b.description}</p>
+                        <h4 style={{ margin: "0 0 6px", fontSize: "1rem", color: "var(--cv-text)" }}>{b.title}</h4>
+                        <p style={{ margin: "0 0 10px", fontSize: "0.82rem", color: "var(--fg-dim)", lineHeight: 1.45 }}>{b.description}</p>
 
                         {b.sessions && b.sessions.length > 0 && (
-                          <div style={{ marginBottom: 8, padding: "6px 10px", background: "rgba(201, 168, 76, 0.1)", borderRadius: 6, border: "1px solid rgba(201, 168, 76, 0.25)", fontSize: "0.76rem" }}>
+                          <div style={{ marginBottom: 8, padding: "6px 10px", background: "color-mix(in srgb, var(--cv-orange) 10%, transparent)", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)", fontSize: "0.76rem" }}>
                             <strong style={{ color: "var(--gold)", display: "block", marginBottom: 2 }}>
                               <i className="bx bx-time-five" /> {b.sessions.length} Sesi Terjadwal:
                             </strong>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                               {b.sessions.map((s, si) => (
-                                <span key={si} style={{ background: "rgba(0,0,0,0.3)", padding: "2px 6px", borderRadius: 4, color: "#e5e7eb" }}>
+                                <span key={si} style={{ background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)", padding: "2px 6px", borderRadius: 4, color: "var(--cv-text)" }}>
                                   {s.sessionName}: {s.time}
                                 </span>
                               ))}
@@ -866,7 +866,7 @@ export default function AdminMasterDataPage() {
                         )}
 
                         {(b.dateInfo || b.locationInfo) && (
-                          <div style={{ fontSize: "0.76rem", color: "#d1d5db", display: "flex", flexDirection: "column", gap: 3, marginBottom: 8, background: "rgba(0,0,0,0.25)", padding: "6px 10px", borderRadius: 6 }}>
+                          <div style={{ fontSize: "0.76rem", color: "var(--cv-text-dim)", display: "flex", flexDirection: "column", gap: 3, marginBottom: 8, background: "color-mix(in srgb, var(--cv-ink) 50%, transparent)", padding: "6px 10px", borderRadius: 6 }}>
                             {b.dateInfo && <div><i className="bx bx-calendar" style={{ color: "var(--gold)", marginRight: 6 }} />{b.dateInfo}</div>}
                             {b.locationInfo && <div><i className="bx bx-map-pin" style={{ color: "var(--gold)", marginRight: 6 }} />{b.locationInfo}</div>}
                           </div>
@@ -877,7 +877,7 @@ export default function AdminMasterDataPage() {
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 8, borderTop: "1px solid var(--cv-line)" }}>
                         <button
                           type="button"
                           className={styles.actionBtnEdit}
@@ -905,8 +905,8 @@ export default function AdminMasterDataPage() {
             <div
               className={styles.sectionCard}
               style={{
-                border: "2px solid rgba(201, 168, 76, 0.45)",
-                background: "linear-gradient(180deg, rgba(201, 168, 76, 0.05) 0%, rgba(20, 16, 12, 0.4) 100%)",
+                border: "2px solid color-mix(in srgb, var(--cv-orange) 45%, transparent)",
+                background: "color-mix(in srgb, var(--cv-orange) 6%, var(--cv-ink-2))",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
               }}
             >
@@ -977,7 +977,7 @@ export default function AdminMasterDataPage() {
                         style={{
                           padding: "8px 14px",
                           borderRadius: 10,
-                          background: "rgba(201, 168, 76, 0.12)",
+                          background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
                           border: "1px dashed var(--gold)",
                           fontSize: "0.78rem",
                           fontWeight: 800,
@@ -1146,8 +1146,8 @@ export default function AdminMasterDataPage() {
                     disabled={savingWarEvent}
                     className={styles.btnCreate}
                     style={{
-                      background: "linear-gradient(135deg, #d4af37 0%, #b45309 100%)",
-                      color: "#000",
+                      background: "var(--cv-orange)",
+                      color: "var(--cv-on-orange)",
                       fontWeight: 800,
                       padding: "10px 24px",
                       borderRadius: 12,
@@ -1155,7 +1155,7 @@ export default function AdminMasterDataPage() {
                       alignItems: "center",
                       gap: 8,
                       border: "none",
-                      boxShadow: "0 4px 14px rgba(212, 175, 55, 0.35)",
+                      boxShadow: "0 4px 14px color-mix(in srgb, var(--cv-orange) 35%, transparent)",
                     }}
                   >
                     {savingWarEvent ? (
@@ -1175,11 +1175,11 @@ export default function AdminMasterDataPage() {
             {/* ── 1. KATEGORI PENGELUARAN KAS (BARU DITAMBAHKAN) ── */}
             <div
               className={styles.sectionCard}
-              style={{ border: "1.5px solid rgba(225, 29, 72, 0.3)" }}
+              style={{ border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)" }}
             >
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-receipt" style={{ color: "#e11d48" }} />
+                  <i className="bx bx-receipt" style={{ color: "var(--cv-orange)" }} />
                   Kategori Pengeluaran Kas Operasional (
                   {(data.kategoriPengeluaran || []).length})
                 </h2>
@@ -1213,9 +1213,9 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(225, 29, 72, 0.1)",
-                      border: "1px solid rgba(225, 29, 72, 0.3)",
-                      color: "#e11d48",
+                      background: "color-mix(in srgb, var(--cv-orange) 10%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+                      color: "var(--cv-orange)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
@@ -1263,8 +1263,8 @@ export default function AdminMasterDataPage() {
                   onClick={addKategoriPengeluaran}
                   disabled={saving || !newKategoriPengeluaran.trim()}
                   style={{
-                    background: "#e11d48",
-                    color: "#fff",
+                    background: "var(--cv-orange)",
+                    color: "var(--cv-on-orange)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -1387,8 +1387,8 @@ export default function AdminMasterDataPage() {
                         gap: 6,
                         padding: "6px 12px",
                         borderRadius: 50,
-                        background: "rgba(201, 168, 76, 0.12)",
-                        border: "1px solid rgba(201, 168, 76, 0.3)",
+                        background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                         color: "var(--gold)",
                         fontWeight: 800,
                         fontSize: "0.85rem",
@@ -1444,7 +1444,7 @@ export default function AdminMasterDataPage() {
                 <h2 className={styles.sectionTitle}>
                   <i
                     className="bx bx-user-check"
-                    style={{ color: "#3b82f6" }}
+                    style={{ color: "var(--cv-orange)" }}
                   />
                   Jabatan Bebas Iuran Kas Wajib ({(data.jabatanBebasKas || []).length})
                 </h2>
@@ -1477,9 +1477,9 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(59, 130, 246, 0.1)",
-                      border: "1px solid rgba(59, 130, 246, 0.3)",
-                      color: "#3b82f6",
+                      background: "color-mix(in srgb, var(--cv-orange) 10%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+                      color: "var(--cv-orange)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
@@ -1567,8 +1567,8 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(201, 168, 76, 0.12)",
-                      border: "1px solid rgba(201, 168, 76, 0.3)",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                       color: "var(--primary)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
@@ -1664,8 +1664,8 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(201, 168, 76, 0.12)",
-                      border: "1px solid rgba(201, 168, 76, 0.3)",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                       color: "var(--gold)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
@@ -1722,7 +1722,7 @@ export default function AdminMasterDataPage() {
             <div className={styles.sectionCard}>
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-share-alt" style={{ color: "#8b5cf6" }} />
+                  <i className="bx bx-share-alt" style={{ color: "var(--cv-orange-hi)" }} />
                   Pilihan Platform Kontak ({(data.platforms || []).length})
                 </h2>
               </div>
@@ -1755,9 +1755,9 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(139, 92, 246, 0.12)",
-                      border: "1px solid rgba(139, 92, 246, 0.3)",
-                      color: "#8b5cf6",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+                      color: "var(--cv-orange-hi)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
@@ -1812,11 +1812,11 @@ export default function AdminMasterDataPage() {
             {/* ── 7. MASTER TIPE REWARD KUPON KAS ── */}
             <div
               className={styles.sectionCard}
-              style={{ border: "1.5px solid rgba(139, 92, 246, 0.3)" }}
+              style={{ border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)" }}
             >
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-gift" style={{ color: "#8b5cf6" }} />
+                  <i className="bx bx-gift" style={{ color: "var(--cv-orange-hi)" }} />
                   Pilihan Tipe Reward Kupon Kas ({(data.tipeRewardKupon || []).length})
                 </h2>
               </div>
@@ -1849,9 +1849,9 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(139, 92, 246, 0.12)",
-                      border: "1px solid rgba(139, 92, 246, 0.3)",
-                      color: "#8b5cf6",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+                      color: "var(--cv-orange-hi)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
@@ -1897,8 +1897,8 @@ export default function AdminMasterDataPage() {
                   onClick={addTipeReward}
                   disabled={saving || !newTipeReward.trim()}
                   style={{
-                    background: "#8b5cf6",
-                    color: "#fff",
+                    background: "var(--cv-orange)",
+                    color: "var(--cv-on-orange)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -2052,7 +2052,7 @@ export default function AdminMasterDataPage() {
             {/* ── 9. MASTER NOMINAL DONASI (CHIPS CEPAT DONASI) ── */}
             <div
               className={styles.sectionCard}
-              style={{ border: "1.5px solid rgba(245, 158, 11, 0.3)" }}
+              style={{ border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)" }}
             >
               <div
                 className={styles.sectionHeader}
@@ -2060,7 +2060,7 @@ export default function AdminMasterDataPage() {
               >
                 <div>
                   <h2 className={styles.sectionTitle}>
-                    <i className="bx bx-heart" style={{ color: "#f59e0b" }} />
+                    <i className="bx bx-heart" style={{ color: "var(--cv-orange)" }} />
                     Pilihan Nominal Donasi ({(data.nominalDonasi || []).length})
                   </h2>
                   <p
@@ -2115,9 +2115,9 @@ export default function AdminMasterDataPage() {
                       gap: 6,
                       padding: "6px 14px",
                       borderRadius: 50,
-                      background: "rgba(245, 158, 11, 0.12)",
-                      border: "1px solid rgba(245, 158, 11, 0.3)",
-                      color: "#d97706",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+                      color: "var(--cv-orange)",
                       fontWeight: 700,
                       fontSize: "0.85rem",
                     }}
@@ -2163,8 +2163,8 @@ export default function AdminMasterDataPage() {
                   onClick={addNominalDonasi}
                   disabled={saving || !newNominalDonasi.trim()}
                   style={{
-                    background: "#f59e0b",
-                    color: "#fff",
+                    background: "var(--cv-orange)",
+                    color: "var(--cv-on-orange)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -2314,8 +2314,8 @@ export default function AdminMasterDataPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 14px", background: "rgba(59, 130, 246, 0.12)", borderRadius: 10, border: "1px solid rgba(59, 130, 246, 0.3)" }}>
-                    <span style={{ fontSize: "0.78rem", color: "#93c5fd", display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 14px", background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)", borderRadius: 10, border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)" }}>
+                    <span style={{ fontSize: "0.78rem", color: "var(--cv-orange-hi)", display: "flex", alignItems: "center", gap: 6 }}>
                       <i className="bx bx-bulb" style={{ fontSize: "1rem" }} /> Impor data otomatis dari Jadwal VC / M&amp;G Erine?
                     </span>
                     <button
@@ -2326,15 +2326,15 @@ export default function AdminMasterDataPage() {
                         padding: "6px 14px",
                         fontSize: "0.75rem",
                         borderRadius: 8,
-                        background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-                        color: "#fff",
+                        background: "var(--cv-orange)",
+                        color: "var(--cv-on-orange)",
                         border: "none",
                         cursor: "pointer",
                         fontWeight: 700,
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 6,
-                        boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 2px 8px color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                       }}
                     >
                       <i className={`bx ${importingVc ? "bx-loader-alt bx-spin" : "bx-sync"}`} />
@@ -2359,7 +2359,7 @@ export default function AdminMasterDataPage() {
                         style={{
                           padding: "9px 14px",
                           borderRadius: 10,
-                          background: "rgba(201, 168, 76, 0.18)",
+                          background: "color-mix(in srgb, var(--cv-orange) 18%, transparent)",
                           border: "1px solid var(--gold)",
                           color: "var(--gold)",
                           fontSize: "0.78rem",
@@ -2384,11 +2384,11 @@ export default function AdminMasterDataPage() {
                       </label>
                     </div>
                     {bannerForm.imageUrl && (
-                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: 8, background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, padding: 8, background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)", borderRadius: 10, border: "1px solid var(--cv-line)" }}>
                         <img
                           src={bannerForm.imageUrl}
                           alt="Preview"
-                          style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)" }}
+                          style={{ width: 80, height: 48, objectFit: "cover", borderRadius: 6, border: "1px solid var(--cv-line-strong)" }}
                         />
                         <span style={{ fontSize: "0.75rem", color: "var(--fg-dim)", flex: 1, wordBreak: "break-all" }}>
                           {bannerForm.imageUrl.length > 50 ? `${bannerForm.imageUrl.slice(0, 50)}...` : bannerForm.imageUrl}
@@ -2442,8 +2442,8 @@ export default function AdminMasterDataPage() {
                           style={{
                             padding: "8px 12px",
                             borderRadius: 8,
-                            border: (bannerForm.videoOrientation || "landscape") === "landscape" ? "2px solid var(--gold)" : "1px solid rgba(255,255,255,0.12)",
-                            background: (bannerForm.videoOrientation || "landscape") === "landscape" ? "rgba(201, 168, 76, 0.18)" : "rgba(255,255,255,0.03)",
+                            border: (bannerForm.videoOrientation || "landscape") === "landscape" ? "2px solid var(--gold)" : "1px solid var(--cv-line)",
+                            background: (bannerForm.videoOrientation || "landscape") === "landscape" ? "color-mix(in srgb, var(--cv-orange) 18%, transparent)" : "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
                             color: (bannerForm.videoOrientation || "landscape") === "landscape" ? "var(--gold)" : "var(--fg-dim)",
                             display: "flex",
                             alignItems: "center",
@@ -2466,8 +2466,8 @@ export default function AdminMasterDataPage() {
                           style={{
                             padding: "8px 12px",
                             borderRadius: 8,
-                            border: bannerForm.videoOrientation === "portrait" ? "2px solid #ef4444" : "1px solid rgba(255,255,255,0.12)",
-                            background: bannerForm.videoOrientation === "portrait" ? "rgba(239, 68, 68, 0.2)" : "rgba(255,255,255,0.03)",
+                            border: bannerForm.videoOrientation === "portrait" ? "2px solid #ef4444" : "1px solid var(--cv-line)",
+                            background: bannerForm.videoOrientation === "portrait" ? "rgba(239, 68, 68, 0.2)" : "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
                             color: bannerForm.videoOrientation === "portrait" ? "#fca5a5" : "var(--fg-dim)",
                             display: "flex",
                             alignItems: "center",
@@ -2505,7 +2505,7 @@ export default function AdminMasterDataPage() {
                   </div>
 
                   {/* TABEL SESI & JAM ERINE */}
-                  <div style={{ padding: "14px", background: "rgba(0, 0, 0, 0.35)", borderRadius: 12, border: "1px solid rgba(201, 168, 76, 0.25)" }}>
+                  <div style={{ padding: "14px", background: "color-mix(in srgb, var(--cv-ink) 70%, transparent)", borderRadius: 12, border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
                       <div>
                         <strong style={{ fontSize: "0.85rem", color: "var(--gold)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -2521,7 +2521,7 @@ export default function AdminMasterDataPage() {
                         style={{
                           padding: "6px 14px",
                           borderRadius: 8,
-                          background: "rgba(201, 168, 76, 0.2)",
+                          background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
                           border: "1px solid var(--gold)",
                           color: "var(--gold)",
                           fontSize: "0.75rem",
@@ -2588,7 +2588,7 @@ export default function AdminMasterDataPage() {
                     )}
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)", borderRadius: 10, border: "1px solid var(--cv-line)" }}>
                     <div>
                       <strong style={{ fontSize: "0.88rem", display: "block" }}>Status Tampil di Home</strong>
                       <span style={{ fontSize: "0.78rem", color: "var(--fg-dim)" }}>Jika dicentang, banner akan langsung muncul di halaman utama</span>

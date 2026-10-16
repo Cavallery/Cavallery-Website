@@ -13,7 +13,7 @@
 .heroBg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at top, rgba(212,175,55,0.1) 0%, transparent 65%);
+  background: radial-gradient(ellipse at top, rgba(228, 115, 39, 0.1) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -124,12 +124,12 @@
 
 .cardErine {
   border: 1px solid var(--border-gold);
-  box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 20px rgba(228, 115, 39, 0.1);
 }
 
 .cardErine:hover {
   border-color: var(--gold);
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 0 30px rgba(228, 115, 39, 0.25);
 }
 
 .erineBadge {
@@ -149,7 +149,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1/1;
-  background: #1a1a2e;
+  background: #2e231a;
 }
 
 .cardImg img {

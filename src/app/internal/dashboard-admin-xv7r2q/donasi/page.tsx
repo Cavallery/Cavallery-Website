@@ -134,10 +134,10 @@ export default function AdminDonasiPage() {
 
           <div className={styles.sectionCard} style={{ margin: 0, padding: 18 }}>
             <div style={{ fontSize: "0.8rem", color: "var(--fg-muted)", fontWeight: 700 }}>
-              <i className="bx bx-time" style={{ color: "#f59e0b", marginRight: 5 }} />
+              <i className="bx bx-time" style={{ color: "var(--cv-orange)", marginRight: 5 }} />
               TOTAL PENDING
             </div>
-            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#f59e0b", marginTop: 4 }}>
+            <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--cv-orange)", marginTop: 4 }}>
               {formatRupiah(totalNominalPending)}
             </div>
             <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
@@ -174,7 +174,7 @@ export default function AdminDonasiPage() {
                 borderRadius: 50,
                 border: filterTipe === t ? "2px solid var(--primary)" : "1.5px solid var(--border)",
                 background: filterTipe === t ? "var(--primary)" : "transparent",
-                color: filterTipe === t ? "#fff" : "var(--fg-muted)",
+                color: filterTipe === t ? "var(--cv-on-orange)" : "var(--fg-muted)",
                 fontWeight: 700,
                 fontSize: "0.8rem",
                 cursor: "pointer",
@@ -219,7 +219,7 @@ export default function AdminDonasiPage() {
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>
-              <i className="bx bx-time-five" style={{ color: "#e11d48" }} />
+              <i className="bx bx-time-five" style={{ color: "var(--cv-orange)" }} />
               Antrean Konfirmasi Donasi (Menunggu Verifikasi)
               <span className={styles.countBadge}>{pendingDonasi.length} Menunggu</span>
             </h2>
@@ -496,9 +496,9 @@ export default function AdminDonasiPage() {
                 position: "absolute",
                 top: 12,
                 right: 12,
-                background: "rgba(0,0,0,0.3)",
+                background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)",
                 border: "none",
-                color: "#fff",
+                color: "var(--cv-text)",
                 width: 32,
                 height: 32,
                 borderRadius: "50%",

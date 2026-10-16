@@ -1,6 +1,6 @@
 .section {
   padding: 120px 24px;
-  background: radial-gradient(ellipse at 60% 40%, #f0ece2, #e8e0d0 40%, #d8ccb8 100%);
+  background: radial-gradient(ellipse at 60% 40%, #f0ece2, #e8e0d0 40%, #d8c7b8 100%);
   position: relative;
   overflow: hidden;
   min-height: 800px;
@@ -22,7 +22,7 @@
   padding: 40px 60px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 40px rgba(122, 92, 16, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 40px rgba(123, 58, 15, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -129,9 +129,9 @@
   top: 150px;
   width: 400px;
   height: 400px;
-  background: radial-gradient(#e8d090, #c8a840, #a07820);
+  background: radial-gradient(#e8d090, #e47124, #ab5115);
   border-radius: 100%;
-  border-bottom: 80px solid #7a5c10;
+  border-bottom: 80px solid #7b3a0f;
   transform: scaleY(0.225);
   z-index: 1;
 }
@@ -210,7 +210,7 @@
   height: 300px;
   border-top-left-radius: 50% 30%;
   border-top-right-radius: 50% 30%;
-  background-color: #b8c8d8;
+  background-color: #d8c7b8;
   transform: perspective(200px) rotateX(8deg) scale(1.075, 1);
   opacity: 0.18;
 }
@@ -228,8 +228,8 @@
   width: 100px;
   height: 150px;
   background-color: transparent;
-  border: solid 4px #3a7030;
-  border-color: transparent transparent transparent #3a7030;
+  border: solid 4px #704e30;
+  border-color: transparent transparent transparent #704e30;
   border-radius: 50%/120px 100px 0 0;
   transform: rotate(-3deg) scale(1.1, 0.9);
 }
@@ -244,21 +244,21 @@
   border-top-right-radius: 50% 10%;
   border-bottom-left-radius: 50% 40%;
   border-bottom-right-radius: 50% 40%;
-  background-color: #0050aa;
-  box-shadow: 1px -1px 1px 0 #002060, 0 0 35px 0 #6aaeee;
+  background-color: #aa4400;
+  box-shadow: 1px -1px 1px 0 #602600, 0 0 35px 0 #ee9f6a;
   transform: rotate(32deg) scale(1.6, 1.6);
   animation: glowPetal 3s ease-in-out infinite;
 }
 
 @keyframes glowPetal {
-  0%, 100% { box-shadow: 0 0 25px 0 #4a8ae0; }
-  50% { box-shadow: 0 0 55px 5px #6aaeee; }
+  0%, 100% { box-shadow: 0 0 25px 0 #e88442; }
+  50% { box-shadow: 0 0 55px 5px #ee9f6a; }
 }
 
-.petal2 { position: absolute; left: 85px; top: 185px; width: 25px; height: 30px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #1468c8; transform: rotate(35deg) scale(1.2, 1); box-shadow: 1px -1px 1px 0 #002060; opacity: 0.9; }
-.petal3 { position: absolute; left: 105px; top: 197px; width: 25px; height: 28px; border-radius: 50% 10% 10% 50% / 50% 10% 10% 50%; background-color: #0a5ab8; transform: rotate(25deg) scale(1, 1.05) skew(-8deg); box-shadow: 1px -1px 1px 0 #002060; opacity: 0.9; }
-.petal4 { position: absolute; left: 80px; top: 191px; width: 25px; height: 25px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #2878d8; transform: rotate(30deg) scale(1.1, 0.9) skew(10deg); box-shadow: 1px -1px 1px 0 #0038a0; opacity: 0.9; }
-.petal5 { position: absolute; left: 105px; top: 207px; width: 25px; height: 20px; border-radius: 50% 10% 10% 50% / 50% 10% 10% 50%; background-color: #2878d8; transform: rotate(28deg) scale(1, 1.05) skew(-18deg); box-shadow: 1px -1px 1px 0 #0038a0; opacity: 0.9; }
+.petal2 { position: absolute; left: 85px; top: 185px; width: 25px; height: 30px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #c85c14; transform: rotate(35deg) scale(1.2, 1); box-shadow: 1px -1px 1px 0 #602600; opacity: 0.9; }
+.petal3 { position: absolute; left: 105px; top: 197px; width: 25px; height: 28px; border-radius: 50% 10% 10% 50% / 50% 10% 10% 50%; background-color: #b8500a; transform: rotate(25deg) scale(1, 1.05) skew(-8deg); box-shadow: 1px -1px 1px 0 #602600; opacity: 0.9; }
+.petal4 { position: absolute; left: 80px; top: 191px; width: 25px; height: 25px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #e36c1d; transform: rotate(30deg) scale(1.1, 0.9) skew(10deg); box-shadow: 1px -1px 1px 0 #a04000; opacity: 0.9; }
+.petal5 { position: absolute; left: 105px; top: 207px; width: 25px; height: 20px; border-radius: 50% 10% 10% 50% / 50% 10% 10% 50%; background-color: #e36c1d; transform: rotate(28deg) scale(1, 1.05) skew(-18deg); box-shadow: 1px -1px 1px 0 #a04000; opacity: 0.9; }
 
 .fallingPetal {
   position: absolute;
@@ -267,9 +267,9 @@
   width: 22px;
   height: 18px;
   border-radius: 50% 10% 10% 50% / 50% 10% 10% 50%;
-  background-color: #4a90e2;
+  background-color: #e88644;
   transform: rotate(32deg) scale(0.9, 0.95) skew(-18deg);
-  box-shadow: 1px -1px 1px 0 #0038a0;
+  box-shadow: 1px -1px 1px 0 #a04000;
   opacity: 0.9;
   animation: petalFall 7s 4s ease-in-out infinite;
 }
@@ -279,8 +279,8 @@
   60%, 100% { top: 350px; transform: rotate(30deg) scale(0.9, 0.95) skew(-32deg); opacity: 0; }
 }
 
-.leaf1 { position: absolute; left: 75px; top: 225px; width: 13px; height: 20px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #3a7030; transform: rotate(5deg); }
-.leaf2 { position: absolute; left: 82px; top: 265px; width: 12px; height: 16px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #3a7030; transform: rotate(-97deg); }
+.leaf1 { position: absolute; left: 75px; top: 225px; width: 13px; height: 20px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #704e30; transform: rotate(5deg); }
+.leaf2 { position: absolute; left: 82px; top: 265px; width: 12px; height: 16px; border-radius: 50% 50% 50% 50% / 10% 50% 50% 10%; background-color: #704e30; transform: rotate(-97deg); }
 
 @media (max-width: 600px) {
   .section {

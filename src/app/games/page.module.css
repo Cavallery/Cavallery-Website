@@ -12,7 +12,7 @@
 .heroBg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at top, rgba(212,175,55,0.1) 0%, transparent 65%);
+  background: radial-gradient(ellipse at top, rgba(228, 115, 39, 0.1) 0%, transparent 65%);
   pointer-events: none;
 }
 .heroInner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }

@@ -20,18 +20,18 @@ export const metadata: Metadata = {
 
 export const revalidate = 60; // Cache homepage for 60 seconds
 
-
+/*
+ * Section notation follows one legal knight's journey down the page:
+ * e4 (hero) → f6 → d5 → c3 → e2 → g3 → h5 → g7 → endgame board in the footer.
+ */
 export default function HomePage() {
   return (
     <div className={styles.page}>
       <HeroSection />
-      <SectionDivider />
       <HomeInfoSection />
       <SectionDivider />
       <HomePortalSection />
-      <SectionDivider />
       <VideoSection />
-      <SectionDivider />
       <CalendarSection />
       <SectionDivider />
       <TicketingSection />
@@ -42,5 +42,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-

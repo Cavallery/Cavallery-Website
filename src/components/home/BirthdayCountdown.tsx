@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./BirthdayCountdown.module.css";
 
-const COLORS = ['#ff6b81', '#ffd93d', '#6bcbef', '#a685e2', '#7bed9f', '#ff9ff3', '#ffa502'];
+const COLORS = ['#ffa66b', '#ff8b3d', '#efa06b', '#eea879', '#eea87a', '#ffc59f', '#ff6702'];
 
 export default function BirthdayCountdown() {
   const [timeLeft, setTimeLeft] = useState({
@@ -161,13 +161,13 @@ export default function BirthdayCountdown() {
           <div className={styles.candles}>
             <div className={`${styles.digit} ${styles.digit1}`}>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <text x="62" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7B020B">1</text>
+                <text x="62" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7b3202">1</text>
               </svg>
               <div className={`${styles.flame} ${styles.digit1Flame}`}></div>
             </div>
             <div className={`${styles.digit} ${styles.digit9}`}>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <text x="38" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7B020B">9</text>
+                <text x="38" y="80" fontFamily="Arial, Helvetica, sans-serif" fontSize="80" fontWeight="900" textAnchor="middle" fill="#7b3202">9</text>
               </svg>
               <div className={`${styles.flame} ${styles.digit9Flame}`}></div>
             </div>

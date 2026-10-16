@@ -1,52 +1,75 @@
+/* ================================================================
+   SECTION DIVIDER — crossing Passion tapes
+   ================================================================ */
 .dividerWrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  opacity: 0.8;
-}
-
-.line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold, #d4af37), transparent);
   position: relative;
+  width: 100%;
+  height: clamp(96px, 11vw, 140px);
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
-.line::after {
-  content: "";
+.tape {
   position: absolute;
-  top: -2px;
-  width: 5px;
-  height: 5px;
-  background: var(--gold, #d4af37);
-  border-radius: 50%;
+  left: -6%;
+  right: -6%;
+  top: 50%;
+  overflow: hidden;
+  border-block: 1px solid var(--cv-orange-line);
 }
 
-.line:first-child::after {
-  right: 0;
+.front {
+  background: var(--cv-orange);
+  color: var(--cv-on-orange);
+  transform: translateY(-50%) rotate(-2.4deg);
+  box-shadow: var(--cv-shadow-heat);
+  z-index: 2;
 }
 
-.line:last-child::after {
-  left: 0;
+.back {
+  background: var(--cv-ink-2);
+  color: var(--cv-orange);
+  transform: translateY(-50%) rotate(2deg);
+  z-index: 1;
 }
 
-.icon {
-  margin: 0 24px;
-  font-size: 1.8rem;
-  color: var(--gold, #d4af37);
-  animation: pulse 3s infinite alternate;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+.track {
+  display: flex;
+  width: max-content;
+  animation: tape 46s linear infinite;
+  animation-direction: var(--dir, normal);
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  100% { transform: scale(1.15); opacity: 1; }
+.back .track {
+  animation-duration: 58s;
 }
 
-[data-theme="dark"] .line {
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent);
+.group {
+  display: flex;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  font-family: var(--cv-font-display);
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.knight {
+  flex: none;
+  opacity: 0.9;
+}
+
+@keyframes tape {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track { animation: none; }
 }

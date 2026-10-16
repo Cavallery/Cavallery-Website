@@ -1,8 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import styles from "./SplashScreen.module.css";
 import { VIDEO_URLS } from "@/lib/videoAssets";
+
+const COLUMNS = 8;
+const EXIT_MS = 1100;
+
+/** Tells the hero it can start its intro (under the lifting mask). */
+function announceDone() {
+  window.dispatchEvent(new Event("cv:splash-done"));
+}
 
 export default function SplashScreen() {
   const pathname = usePathname();
@@ -11,95 +19,103 @@ export default function SplashScreen() {
   const [visible, setVisible] = useState(!isAdmin);
   const [fadeOut, setFadeOut] = useState(false);
   const [desktopError, setDesktopError] = useState(false);
-  const [splashVideoSrc, setSplashVideoSrc] = useState<string>(VIDEO_URLS.splashLogo);
+  const [splashVideoSrc] = useState<string>(VIDEO_URLS.splashLogo);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const beginExit = () => {
+    setFadeOut(true);
+    announceDone();
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    exitTimer.current = setTimeout(() => {
+      setVisible(false);
+      try {
+        sessionStorage.setItem("splashShown", "1");
+      } catch {
+        /* private mode */
+      }
+    }, EXIT_MS);
+  };
 
   useEffect(() => {
-    // Don't run splash logic on admin routes
     if (isAdmin) return;
 
-    let mainTimer: NodeJS.Timeout;
-    let fadeTimer: NodeJS.Timeout;
+    let mainTimer: ReturnType<typeof setTimeout>;
 
     const startSplash = () => {
       setVisible(true);
       setFadeOut(false);
-      
       clearTimeout(mainTimer);
-      clearTimeout(fadeTimer);
-
-      mainTimer = setTimeout(() => {
-        setFadeOut(true);
-        fadeTimer = setTimeout(() => {
-          setVisible(false);
-          sessionStorage.setItem("splashShown", "1");
-        }, 600);
-      }, 1800);
+      if (exitTimer.current) clearTimeout(exitTimer.current);
+      mainTimer = setTimeout(beginExit, 1800);
     };
 
-    // Initial check
-    if (sessionStorage.getItem("splashShown")) {
+    let shown = false;
+    try {
+      shown = Boolean(sessionStorage.getItem("splashShown"));
+    } catch {
+      shown = true;
+    }
+
+    if (shown) {
       setVisible(false);
+      announceDone();
     } else {
       startSplash();
     }
 
-    const handleTrigger = () => {
-      startSplash();
-    };
-
-    window.addEventListener("trigger-splash", handleTrigger);
+    window.addEventListener("trigger-splash", startSplash);
 
     return () => {
       clearTimeout(mainTimer);
-      clearTimeout(fadeTimer);
-      window.removeEventListener("trigger-splash", handleTrigger);
+      if (exitTimer.current) clearTimeout(exitTimer.current);
+      window.removeEventListener("trigger-splash", startSplash);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin]);
 
-  // Don't render splash on admin routes
   if (isAdmin) return null;
-
   if (!visible) return null;
 
   return (
-    <div className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}>
-      {/* Keying logo video */}
-      {!desktopError ? (
-        <video
-          className={styles.video}
-          src={splashVideoSrc}
-          autoPlay
-          muted
-          playsInline
-          onError={() => {
-            setDesktopError(true);
-          }}
-        />
-      ) : (
-        <img
-          src="/images/cava-logo-round.png"
-          alt="Cavallery"
-          style={{
-            width: 120,
-            height: 120,
-            objectFit: "contain",
-            animation: "pulse 1.5s ease-in-out infinite",
-          }}
-        />
-      )}
+    <div
+      className={`${styles.splash} ${fadeOut ? styles.fadeOut : ""}`}
+      data-splash={fadeOut ? "exiting" : "active"}
+      data-motion
+    >
+      {/* 8 board columns form the mask; they lift away on exit */}
+      <div className={styles.columns} aria-hidden="true">
+        {Array.from({ length: COLUMNS }).map((_, i) => (
+          <span
+            key={i}
+            className={styles.col}
+            data-tone={i % 2 === 0 ? "a" : "b"}
+            style={{ transitionDelay: `${Math.abs(i - (COLUMNS - 1) / 2) * 55}ms` }}
+          />
+        ))}
+      </div>
 
-      {/* Skip button */}
-      <button
-        className={styles.skip}
-        onClick={() => {
-          setFadeOut(true);
-          setTimeout(() => {
-            setVisible(false);
-            sessionStorage.setItem("splashShown", "1");
-          }, 600);
-        }}
-      >
-        Skip <i className="bx bx-chevron-right" />
+      <div className={styles.content}>
+        {!desktopError ? (
+          <video
+            className={styles.video}
+            src={splashVideoSrc}
+            autoPlay
+            muted
+            playsInline
+            onError={() => {
+              setDesktopError(true);
+            }}
+          />
+        ) : (
+          <img src="/images/cava-logo-round.png" alt="Cavallery" className={styles.fallbackLogo} />
+        )}
+      </div>
+
+      <button className={styles.skip} onClick={beginExit}>
+        Skip
+        <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
+          <path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        </svg>
       </button>
     </div>
   );

@@ -1238,23 +1238,23 @@ export default function CavalleryKasPage() {
 
       // 2. Subtle warm glow in center
       const radialGlow = ctx.createRadialGradient(w / 2, 420, 40, w / 2, 420, 460);
-      radialGlow.addColorStop(0, "rgba(201, 168, 76, 0.12)");
+      radialGlow.addColorStop(0, "rgba(229, 120, 48, 0.12)");
       radialGlow.addColorStop(1, "transparent");
       ctx.fillStyle = radialGlow;
       ctx.fillRect(0, 0, w, h);
 
       // 3. Elegant Double Golden Border
-      ctx.strokeStyle = "#c9a84c";
+      ctx.strokeStyle = "#e57830";
       ctx.lineWidth = 4;
       ctx.strokeRect(36, 36, w - 72, h - 72);
 
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.35)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.35)";
       ctx.lineWidth = 1.5;
       ctx.strokeRect(46, 46, w - 92, h - 92);
 
       // Corner Accents (Decorative Golden Brackets)
       const drawCorner = (x: number, y: number, dx: number, dy: number) => {
-        ctx.fillStyle = "#c9a84c";
+        ctx.fillStyle = "#e57830";
         ctx.fillRect(x, y, dx * 26, dy * 4);
         ctx.fillRect(x, y, dx * 4, dy * 26);
       };
@@ -1266,7 +1266,7 @@ export default function CavalleryKasPage() {
       // 4. Header Top Badge
       ctx.textAlign = "center";
       ctx.font = "bold 13px sans-serif";
-      ctx.fillStyle = "#e2b857";
+      ctx.fillStyle = "#e98d50";
       ctx.fillText(
         (warEvent?.kategori_tiket || "OFFICIAL VIP EVENT PASS").replace(/★/g, "").replace(/🔥/g, "").trim(),
         w / 2,
@@ -1280,7 +1280,7 @@ export default function CavalleryKasPage() {
 
       // Project Title
       ctx.font = "bold 22px serif";
-      ctx.fillStyle = "#c9a84c";
+      ctx.fillStyle = "#e57830";
       ctx.fillText(
         (warEvent?.judul || "PROJECT STS ERINE 20TH BIRTHDAY")
           .replace(/19th/gi, "20th")
@@ -1295,7 +1295,7 @@ export default function CavalleryKasPage() {
       ctx.fillText(warEvent?.subjudul || "Team Passion • Exclusive Limited Entry Pass", w / 2, 200);
 
       // Thin separator
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.25)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.25)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(90, 224);
@@ -1308,14 +1308,14 @@ export default function CavalleryKasPage() {
       const badgeX = (w - badgeW) / 2;
       const badgeY = 248;
       const bGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeW, badgeY + badgeH);
-      bGrad.addColorStop(0, "#d4af37");
+      bGrad.addColorStop(0, "#e47327");
       bGrad.addColorStop(1, "#92400e");
 
       ctx.fillStyle = bGrad;
       ctx.beginPath();
       ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 20);
       ctx.fill();
-      ctx.strokeStyle = "#fef08a";
+      ctx.strokeStyle = "#feb88a";
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -1336,7 +1336,7 @@ export default function CavalleryKasPage() {
       ctx.beginPath();
       ctx.roundRect(cardX, cardY, cardW, cardH, 18);
       ctx.fill();
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.22)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.22)";
       ctx.stroke();
 
       // Member Name Label & Value
@@ -1352,31 +1352,31 @@ export default function CavalleryKasPage() {
 
       // No Anggota
       ctx.font = "14px sans-serif";
-      ctx.fillStyle = "#c9a84c";
+      ctx.fillStyle = "#e57830";
       const noAngg = userWarTicket.no_anggota || sessionUser?.noAnggota || "-";
       ctx.fillText(`NO. ANGGOTA: ${noAngg}`, w / 2, cardY + 120);
 
       // Access Level
       ctx.font = "bold 15px sans-serif";
-      ctx.fillStyle = "#fbbf24";
+      ctx.fillStyle = "#fb7a24";
       const accessLvl = warEvent?.kategori_tiket || "FULL ENTRY VIP PASS";
       ctx.fillText(`AKSES: ${accessLvl.toUpperCase()}`, w / 2, cardY + 160);
 
       // Verified Status Chip
-      ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
-      ctx.strokeStyle = "#10b981";
+      ctx.fillStyle = "rgba(185, 84, 16, 0.15)";
+      ctx.strokeStyle = "#b95410";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.roundRect(w / 2 - 125, cardY + 186, 250, 36, 18);
       ctx.fill();
       ctx.stroke();
       ctx.font = "bold 13px sans-serif";
-      ctx.fillStyle = "#34d399";
+      ctx.fillStyle = "#e47023";
       ctx.fillText("✓ TERVERIFIKASI RESMI", w / 2, cardY + 209);
 
       // Venue & Date Info
       ctx.font = "bold 13px sans-serif";
-      ctx.fillStyle = "#c9a84c";
+      ctx.fillStyle = "#e57830";
       const venueStr = `${warEvent?.lokasi_event || "Theater JKT48"} • ${warEvent?.tanggal_event || "September 2026"}`;
       ctx.fillText(venueStr, w / 2, cardY + 248);
 
@@ -1397,7 +1397,7 @@ export default function CavalleryKasPage() {
       // 7. Perforated Tear Line (Garis Potong Tiket)
       const tearY = 730;
       ctx.setLineDash([12, 8]);
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.5)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.5)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(70, tearY);
@@ -1410,7 +1410,7 @@ export default function CavalleryKasPage() {
       ctx.beginPath();
       ctx.arc(36, tearY, 26, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "#c9a84c";
+      ctx.strokeStyle = "#e57830";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(36, tearY, 26, -Math.PI / 2, Math.PI / 2);
@@ -1431,7 +1431,7 @@ export default function CavalleryKasPage() {
       ctx.beginPath();
       ctx.roundRect(qrX, qrY, qrSize, qrSize, 18);
       ctx.fill();
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.6)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.6)";
       ctx.lineWidth = 3;
       ctx.stroke();
 
@@ -1485,16 +1485,16 @@ export default function CavalleryKasPage() {
       const noticeW = w - 160;
       const noticeX = 80;
       const noticeH = 120;
-      ctx.fillStyle = "rgba(201, 168, 76, 0.08)";
+      ctx.fillStyle = "rgba(229, 120, 48, 0.08)";
       ctx.beginPath();
       ctx.roundRect(noticeX, noticeY, noticeW, noticeH, 16);
       ctx.fill();
-      ctx.strokeStyle = "rgba(201, 168, 76, 0.3)";
+      ctx.strokeStyle = "rgba(229, 120, 48, 0.3)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
       ctx.font = "bold 14px sans-serif";
-      ctx.fillStyle = "#fef08a";
+      ctx.fillStyle = "#feb88a";
       ctx.fillText("PETUNJUK KEDATANGAN DI VENUE ACARA:", w / 2, noticeY + 38);
 
       ctx.font = "13px sans-serif";
@@ -2695,9 +2695,9 @@ export default function CavalleryKasPage() {
             style={{
               padding: "10px 16px",
               borderRadius: 12,
-              background: "rgba(16, 185, 129, 0.15)",
-              border: "1px solid rgba(16, 185, 129, 0.3)",
-              color: "#10b981",
+              background: "rgba(185, 84, 16, 0.15)",
+              border: "1px solid rgba(185, 84, 16, 0.3)",
+              color: "#b95410",
               fontWeight: 700,
               fontSize: "0.88rem",
               display: "flex",
@@ -2743,7 +2743,7 @@ export default function CavalleryKasPage() {
             <span className={styles.memberStatusText}>
               {sessionUser.jabatan === "Admin Fanbase" ? (
                 <>
-                  <i className="bx bxs-crown" style={{ color: "#f59e0b" }} />{" "}
+                  <i className="bx bxs-crown" style={{ color: "#f5690b" }} />{" "}
                   Admin Fanbase{" "}
                   {sessionUser.divisi ? `(${sessionUser.divisi})` : ""}
                 </>
@@ -2884,7 +2884,7 @@ export default function CavalleryKasPage() {
                       style={{
                         background: "linear-gradient(135deg, #b45309 0%, #d97706 100%)",
                         color: "#ffffff",
-                        borderColor: "#f59e0b",
+                        borderColor: "#f5690b",
                         textDecoration: "none",
                         display: "inline-flex",
                         alignItems: "center",
@@ -2934,8 +2934,8 @@ export default function CavalleryKasPage() {
               marginTop: 16,
               padding: "14px 18px",
               borderRadius: 14,
-              background: "linear-gradient(135deg, rgba(201,168,76,0.18), rgba(201,168,76,0.06))",
-              border: "1.5px dashed rgba(201,168,76,0.5)",
+              background: "linear-gradient(135deg, rgba(229, 120, 48, 0.18), rgba(229, 120, 48, 0.06))",
+              border: "1.5px dashed rgba(229, 120, 48, 0.5)",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -2949,7 +2949,7 @@ export default function CavalleryKasPage() {
                   width: 40,
                   height: 40,
                   borderRadius: "50%",
-                  background: "rgba(201,168,76,0.2)",
+                  background: "rgba(229, 120, 48, 0.2)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -2979,7 +2979,7 @@ export default function CavalleryKasPage() {
               }}
               style={{
                 background: "var(--gold)",
-                color: "#000",
+                color: "var(--cv-on-orange)",
                 border: "none",
                 borderRadius: 10,
                 padding: "8px 16px",
@@ -2989,7 +2989,7 @@ export default function CavalleryKasPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                boxShadow: "0 4px 12px rgba(201,168,76,0.3)",
+                boxShadow: "0 4px 12px rgba(229, 120, 48, 0.3)",
               }}
             >
               <i className="bx bx-plus-circle" /> Buat PIN Sekarang
@@ -3357,14 +3357,14 @@ export default function CavalleryKasPage() {
                 width: 76,
                 height: 76,
                 borderRadius: "50%",
-                background: "rgba(16, 185, 129, 0.12)",
-                border: "2px solid #10b981",
+                background: "rgba(185, 84, 16, 0.12)",
+                border: "2px solid #b95410",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 margin: "0 auto 20px",
               }}>
-                <i className="bx bx-check-circle" style={{ fontSize: "3rem", color: "#10b981" }} />
+                <i className="bx bx-check-circle" style={{ fontSize: "3rem", color: "#b95410" }} />
               </div>
 
               <div className="badge" style={{ marginBottom: 14 }}>
@@ -3409,13 +3409,13 @@ export default function CavalleryKasPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", alignItems: "center" }}>
                   <span style={{ color: "var(--fg-muted)" }}>Status Verifikasi:</span>
                   <span style={{
-                    background: "rgba(245, 158, 11, 0.15)",
-                    color: "#f59e0b",
+                    background: "rgba(245, 105, 11, 0.15)",
+                    color: "#f5690b",
                     padding: "4px 12px",
                     borderRadius: 20,
                     fontSize: "0.8rem",
                     fontWeight: 700,
-                    border: "1px solid rgba(245, 158, 11, 0.3)",
+                    border: "1px solid rgba(245, 105, 11, 0.3)",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
@@ -3598,8 +3598,8 @@ export default function CavalleryKasPage() {
                       color: "var(--fg-muted)",
                       marginTop: 4,
                       lineHeight: 1.5,
-                      background: "rgba(201,168,76,0.06)",
-                      border: "1px solid rgba(201,168,76,0.15)",
+                      background: "rgba(229, 120, 48, 0.06)",
+                      border: "1px solid rgba(229, 120, 48, 0.15)",
                       borderRadius: 8,
                       padding: "8px 10px",
                     }}
@@ -3629,16 +3629,16 @@ export default function CavalleryKasPage() {
                     <div
                       style={{
                         fontSize: "0.82rem",
-                        color: "#10b981",
+                        color: "#b95410",
                         marginTop: 10,
                         fontWeight: 800,
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
-                        background: "rgba(16, 185, 129, 0.08)",
+                        background: "rgba(185, 84, 16, 0.08)",
                         padding: "8px 12px",
                         borderRadius: 10,
-                        border: "1px solid rgba(16, 185, 129, 0.25)",
+                        border: "1px solid rgba(185, 84, 16, 0.25)",
                       }}
                     >
                       <i
@@ -3698,7 +3698,7 @@ export default function CavalleryKasPage() {
                               background: isSelected
                                 ? "var(--gold)"
                                 : "var(--bg)",
-                              color: isSelected ? "#1a1612" : "var(--fg)",
+                              color: isSelected ? "var(--cv-on-orange)" : "var(--fg)",
                               border: isSelected
                                 ? "1px solid var(--gold)"
                                 : "1px solid var(--border)",
@@ -3743,7 +3743,7 @@ export default function CavalleryKasPage() {
                         fontSize: "0.68rem",
                         padding: "2px 8px",
                         borderRadius: 4,
-                        background: "rgba(201, 168, 76, 0.15)",
+                        background: "rgba(229, 120, 48, 0.15)",
                         color: "var(--gold)",
                         fontWeight: 700,
                       }}
@@ -3782,7 +3782,7 @@ export default function CavalleryKasPage() {
                                 padding: "5px 10px",
                                 borderRadius: 8,
                                 border: "1px dashed var(--gold)",
-                                background: "rgba(201, 168, 76, 0.08)",
+                                background: "rgba(229, 120, 48, 0.08)",
                                 color: "var(--gold)",
                                 fontSize: "0.75rem",
                                 fontWeight: 700,
@@ -3829,7 +3829,7 @@ export default function CavalleryKasPage() {
                           borderRadius: 10,
                           border: "none",
                           background: "var(--gold)",
-                          color: "#1a1612",
+                          color: "var(--cv-on-orange)",
                           fontWeight: 800,
                           fontSize: "0.85rem",
                           cursor:
@@ -3858,8 +3858,8 @@ export default function CavalleryKasPage() {
                       style={{
                         padding: "12px 16px",
                         borderRadius: 12,
-                        background: "rgba(16, 185, 129, 0.1)",
-                        border: "1.5px solid #10b981",
+                        background: "rgba(185, 84, 16, 0.1)",
+                        border: "1.5px solid #b95410",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -3879,7 +3879,7 @@ export default function CavalleryKasPage() {
                             width: 38,
                             height: 38,
                             borderRadius: 10,
-                            background: "#10b981",
+                            background: "#b95410",
                             color: "#fff",
                             display: "flex",
                             alignItems: "center",
@@ -3894,7 +3894,7 @@ export default function CavalleryKasPage() {
                             style={{
                               fontWeight: 800,
                               fontSize: "0.9rem",
-                              color: "#10b981",
+                              color: "#b95410",
                             }}
                           >
                             {appliedVoucher.judul}
@@ -3907,7 +3907,7 @@ export default function CavalleryKasPage() {
                           >
                             Kode: <strong>{appliedVoucher.kodeKupon}</strong> •
                             Potongan:{" "}
-                            <strong style={{ color: "#10b981" }}>
+                            <strong style={{ color: "#b95410" }}>
                               Rp{" "}
                               {appliedVoucher.nominalPotongan.toLocaleString(
                                 "id-ID",
@@ -3944,7 +3944,7 @@ export default function CavalleryKasPage() {
                         fontSize: "0.8rem",
                         fontWeight: 700,
                         color:
-                          voucherMsg.type === "success" ? "#10b981" : "#ef4444",
+                          voucherMsg.type === "success" ? "#b95410" : "#ef4444",
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
@@ -3963,7 +3963,7 @@ export default function CavalleryKasPage() {
                       style={{
                         marginTop: 12,
                         padding: "12px 16px",
-                        background: "rgba(0, 0, 0, 0.25)",
+                        background: "color-mix(in srgb, var(--cv-ink) 50%, transparent)",
                         border: "1px solid var(--border)",
                         borderRadius: 12,
                         fontSize: "0.82rem",
@@ -3990,7 +3990,7 @@ export default function CavalleryKasPage() {
                           display: "flex",
                           justifyContent: "space-between",
                           marginBottom: 8,
-                          color: "#10b981",
+                          color: "#b95410",
                         }}
                       >
                         <span>
@@ -4024,7 +4024,7 @@ export default function CavalleryKasPage() {
                                 cleanNominalKas -
                                   appliedVoucher.nominalPotongan,
                               ) === 0
-                                ? "#10b981"
+                                ? "#b95410"
                                 : "var(--gold)",
                           }}
                         >
@@ -4050,8 +4050,8 @@ export default function CavalleryKasPage() {
                     style={{
                       padding: "16px 20px",
                       borderRadius: 14,
-                      background: "rgba(16, 185, 129, 0.12)",
-                      border: "1.5px solid #10b981",
+                      background: "rgba(185, 84, 16, 0.12)",
+                      border: "1.5px solid #b95410",
                       marginTop: 10,
                       marginBottom: 10,
                     }}
@@ -4060,7 +4060,7 @@ export default function CavalleryKasPage() {
                       style={{
                         fontWeight: 800,
                         fontSize: "0.95rem",
-                        color: "#10b981",
+                        color: "#b95410",
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
@@ -4165,7 +4165,7 @@ export default function CavalleryKasPage() {
                         0,
                         cleanNominalKas - appliedVoucher.nominalPotongan,
                       ) === 0
-                        ? "#10b981"
+                        ? "#b95410"
                         : undefined,
                     color:
                       appliedVoucher &&
@@ -4238,11 +4238,11 @@ export default function CavalleryKasPage() {
                 <div
                   style={{
                     background: isFullyPaid
-                      ? "linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.05) 100%)"
-                      : "linear-gradient(135deg, rgba(201,168,76,0.12) 0%, rgba(139,92,246,0.06) 100%)",
+                      ? "linear-gradient(135deg, rgba(185, 84, 16, 0.12) 0%, rgba(185, 84, 16, 0.05) 100%)"
+                      : "linear-gradient(135deg, rgba(229, 120, 48, 0.12) 0%, rgba(246, 154, 92, 0.06) 100%)",
                     border: isFullyPaid
-                      ? "1.5px solid rgba(16,185,129,0.35)"
-                      : "1.5px solid var(--border-gold, #c9a84c)",
+                      ? "1.5px solid rgba(185, 84, 16, 0.35)"
+                      : "1.5px solid var(--border-gold)",
                     borderRadius: 14,
                     padding: "16px 20px",
                     marginBottom: 20,
@@ -4257,8 +4257,8 @@ export default function CavalleryKasPage() {
                       width: 44,
                       height: 44,
                       borderRadius: 12,
-                      background: isFullyPaid ? "#10b981" : "var(--gold)",
-                      color: "#1a1612",
+                      background: isFullyPaid ? "#b95410" : "var(--gold)",
+                      color: "var(--cv-on-orange)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -4289,13 +4289,13 @@ export default function CavalleryKasPage() {
                     >
                       <span style={{ fontSize: "0.8rem", color: "var(--fg-muted)" }}>
                         Bulan Lunas:{" "}
-                        <strong style={{ color: isFullyPaid ? "#10b981" : "var(--gold)" }}>
+                        <strong style={{ color: isFullyPaid ? "#b95410" : "var(--gold)" }}>
                           {totalLunas} Bulan
                         </strong>
                       </span>
                       <span style={{ fontSize: "0.8rem", color: "var(--fg-muted)" }}>
                         Total Dibayar:{" "}
-                        <strong style={{ color: isFullyPaid ? "#10b981" : "var(--gold)" }}>
+                        <strong style={{ color: isFullyPaid ? "#b95410" : "var(--gold)" }}>
                           Rp {totalNominal.toLocaleString("id-ID")}
                         </strong>
                       </span>
@@ -4303,11 +4303,11 @@ export default function CavalleryKasPage() {
                         <span
                           style={{
                             fontSize: "0.75rem",
-                            background: "rgba(139,92,246,0.15)",
-                            border: "1px solid rgba(139,92,246,0.3)",
+                            background: "rgba(246, 154, 92, 0.15)",
+                            border: "1px solid rgba(246, 154, 92, 0.3)",
                             borderRadius: 20,
                             padding: "2px 10px",
-                            color: "#a78bfa",
+                            color: "#fab78b",
                             fontWeight: 700,
                           }}
                         >
@@ -4324,7 +4324,7 @@ export default function CavalleryKasPage() {
             {/* ── TRACKER IURAN BULANAN MEMBER (2024 - 2029) ── */}
             <div
               style={{
-                background: "rgba(255, 255, 255, 0.03)",
+                background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
                 border: "1px solid var(--border)",
                 borderRadius: 16,
                 padding: "16px 20px",
@@ -4361,7 +4361,7 @@ export default function CavalleryKasPage() {
                   style={{
                     display: "flex",
                     gap: 4,
-                    background: "rgba(0,0,0,0.2)",
+                    background: "color-mix(in srgb, var(--cv-ink) 40%, transparent)",
                     borderRadius: 8,
                     padding: 3,
                     border: "1px solid var(--border)",
@@ -4379,7 +4379,7 @@ export default function CavalleryKasPage() {
                         background:
                           trackerYear === y ? "var(--gold)" : "transparent",
                         color:
-                          trackerYear === y ? "#1a1612" : "var(--fg-muted)",
+                          trackerYear === y ? "var(--cv-on-orange)" : "var(--fg-muted)",
                         fontWeight: trackerYear === y ? 800 : 600,
                         fontSize: "0.78rem",
                         cursor: "pointer",
@@ -4465,12 +4465,12 @@ export default function CavalleryKasPage() {
                               borderRadius: 10,
                               textAlign: "center",
                               background: isPaid
-                                ? "rgba(16, 185, 129, 0.12)"
+                                ? "rgba(185, 84, 16, 0.12)"
                                 : isBeforeJoined
-                                  ? "rgba(255, 255, 255, 0.01)"
-                                  : "rgba(255, 255, 255, 0.03)",
+                                  ? "color-mix(in srgb, var(--cv-bone) 1%, transparent)"
+                                  : "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
                               border: isPaid
-                                ? "1.5px solid rgba(16, 185, 129, 0.4)"
+                                ? "1.5px solid rgba(185, 84, 16, 0.4)"
                                 : "1px solid var(--border)",
                               opacity: isBeforeJoined && !isPaid ? 0.6 : 1,
                               transition: "all 0.2s",
@@ -4489,7 +4489,7 @@ export default function CavalleryKasPage() {
                             <div
                               style={{
                                 fontSize: "1.1rem",
-                                color: isPaid ? "#10b981" : "var(--fg-muted)",
+                                color: isPaid ? "#b95410" : "var(--fg-muted)",
                               }}
                             >
                               {isPaid ? (
@@ -4521,7 +4521,7 @@ export default function CavalleryKasPage() {
                                 fontSize: "0.65rem",
                                 fontWeight: 800,
                                 marginTop: 4,
-                                color: isPaid ? "#10b981" : "var(--fg-muted)",
+                                color: isPaid ? "#b95410" : "var(--fg-muted)",
                               }}
                             >
                               {isPaid
@@ -4549,7 +4549,7 @@ export default function CavalleryKasPage() {
                     >
                       <span>
                         Total Lunas {trackerYear}:{" "}
-                        <strong style={{ color: "#10b981" }}>
+                        <strong style={{ color: "#b95410" }}>
                           {totalPaidThisYear} dari {totalRequiredMonths} Bulan
                           Wajib
                         </strong>
@@ -4590,7 +4590,7 @@ export default function CavalleryKasPage() {
                   flexWrap: "wrap",
                   gap: 10,
                   padding: "12px 16px",
-                  background: "rgba(255, 255, 255, 0.03)",
+                  background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)",
                   border: "1px solid var(--border)",
                   borderRadius: 12,
                   marginBottom: 16,
@@ -4630,10 +4630,10 @@ export default function CavalleryKasPage() {
                       background:
                         filterTahunRiwayat === "semua"
                           ? "var(--gold)"
-                          : "rgba(255, 255, 255, 0.06)",
+                          : "color-mix(in srgb, var(--cv-bone) 6%, transparent)",
                       color:
                         filterTahunRiwayat === "semua"
-                          ? "#000"
+                          ? "var(--cv-on-orange)"
                           : "var(--fg-muted)",
                       fontWeight: 800,
                       fontSize: "0.78rem",
@@ -4663,10 +4663,10 @@ export default function CavalleryKasPage() {
                           background:
                             filterTahunRiwayat === yr
                               ? "var(--gold)"
-                              : "rgba(255, 255, 255, 0.06)",
+                              : "color-mix(in srgb, var(--cv-bone) 6%, transparent)",
                           color:
                             filterTahunRiwayat === yr
-                              ? "#000"
+                              ? "var(--cv-on-orange)"
                               : "var(--fg-muted)",
                           fontWeight: 800,
                           fontSize: "0.78rem",
@@ -4832,8 +4832,8 @@ export default function CavalleryKasPage() {
             <div
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(201, 168, 76, 0.15) 0%, rgba(139, 92, 246, 0.12) 100%)",
-                border: "1.5px solid var(--border-gold, #c9a84c)",
+                  "linear-gradient(135deg, rgba(229, 120, 48, 0.15) 0%, rgba(246, 154, 92, 0.12) 100%)",
+                border: "1.5px solid var(--border-gold)",
                 borderRadius: 14,
                 padding: "16px 20px",
                 display: "flex",
@@ -4851,7 +4851,7 @@ export default function CavalleryKasPage() {
                     height: 44,
                     borderRadius: 12,
                     background: "var(--gold)",
-                    color: "#1a1612",
+                    color: "var(--cv-on-orange)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -4927,7 +4927,7 @@ export default function CavalleryKasPage() {
                     width: 60,
                     height: 60,
                     borderRadius: "50%",
-                    background: "rgba(255, 255, 255, 0.05)",
+                    background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -4986,7 +4986,7 @@ export default function CavalleryKasPage() {
                     <div
                       key={k.kupon_anggota_id}
                       style={{
-                        background: "var(--card-bg, #1a1612)",
+                        background: "var(--card-bg, var(--cv-ink-1))",
                         border: isUsed
                           ? "1.5px solid var(--border)"
                           : "1.5px dashed var(--gold)",
@@ -5004,7 +5004,7 @@ export default function CavalleryKasPage() {
                           top: 0,
                           right: 0,
                           background: isUsed ? "#64748b" : "var(--gold)",
-                          color: "#1a1612",
+                          color: "var(--cv-on-orange)",
                           padding: "4px 12px",
                           borderBottomLeftRadius: 10,
                           fontSize: "0.72rem",
@@ -5059,7 +5059,7 @@ export default function CavalleryKasPage() {
                           justifyContent: "space-between",
                           padding: "10px 14px",
                           borderRadius: 10,
-                          background: "rgba(0, 0, 0, 0.3)",
+                          background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)",
                           border: "1px solid var(--border)",
                           marginBottom: 12,
                         }}
@@ -5080,7 +5080,7 @@ export default function CavalleryKasPage() {
                               fontSize: "1.1rem",
                               fontWeight: 900,
                               letterSpacing: "1px",
-                              color: "#fff",
+                              color: "var(--cv-text)",
                             }}
                           >
                             {k.kode_kupon}
@@ -5099,8 +5099,8 @@ export default function CavalleryKasPage() {
                             padding: "6px 12px",
                             borderRadius: 8,
                             border: "none",
-                            background: isCopied ? "#10b981" : "var(--gold)",
-                            color: isCopied ? "#fff" : "#1a1612",
+                            background: isCopied ? "#b95410" : "var(--gold)",
+                            color: isCopied ? "#fff" : "var(--cv-on-orange)",
                             fontWeight: 800,
                             fontSize: "0.78rem",
                             cursor: isUsed ? "not-allowed" : "pointer",
@@ -5127,7 +5127,7 @@ export default function CavalleryKasPage() {
                             padding: "8px 12px",
                             borderRadius: 8,
                             border: "1px solid var(--gold)",
-                            background: "rgba(201, 168, 76, 0.15)",
+                            background: "rgba(229, 120, 48, 0.15)",
                             color: "var(--gold)",
                             fontWeight: 800,
                             fontSize: "0.8rem",
@@ -5491,7 +5491,7 @@ export default function CavalleryKasPage() {
             <div className={styles.leaderboardCard}>
               <div className={styles.leaderboardHeader}>
                 <h3 className={styles.leaderboardTitle}>
-                  <i className="bx bxs-trophy" style={{ color: "#f59e0b" }} />
+                  <i className="bx bxs-trophy" style={{ color: "#f5690b" }} />
                   Leaderboard Donatur Cavallery
                 </h3>
                 <span
@@ -5569,12 +5569,12 @@ export default function CavalleryKasPage() {
                                 borderRadius: 4,
                                 background:
                                   item.donor_type === "Anggota"
-                                    ? "rgba(17, 85, 204, 0.12)"
-                                    : "rgba(245, 158, 11, 0.12)",
+                                    ? "rgba(204, 92, 17, 0.12)"
+                                    : "rgba(245, 105, 11, 0.12)",
                                 color:
                                   item.donor_type === "Anggota"
-                                    ? "#3b82f6"
-                                    : "#f59e0b",
+                                    ? "#f6863b"
+                                    : "#f5690b",
                                 fontWeight: 700,
                                 fontSize: "0.68rem",
                               }}
@@ -5647,9 +5647,9 @@ export default function CavalleryKasPage() {
                     <span
                       className={styles.warStatusBadge}
                       style={{
-                        background: "rgba(16, 185, 129, 0.15)",
-                        border: "1px solid #10b981",
-                        color: "#10b981",
+                        background: "rgba(185, 84, 16, 0.15)",
+                        border: "1px solid #b95410",
+                        color: "#b95410",
                       }}
                     >
                       <i className="bx bx-check-circle" /> TIKET KAMU TERKONFIRMASI
@@ -5689,10 +5689,10 @@ export default function CavalleryKasPage() {
                   borderRadius: 14,
                   background:
                     warAlert.type === "success"
-                      ? "rgba(16, 185, 129, 0.15)"
+                      ? "rgba(185, 84, 16, 0.15)"
                       : "rgba(239, 68, 68, 0.15)",
-                  border: `1px solid ${warAlert.type === "success" ? "#10b981" : "#ef4444"}`,
-                  color: warAlert.type === "success" ? "#10b981" : "#ef4444",
+                  border: `1px solid ${warAlert.type === "success" ? "#b95410" : "#ef4444"}`,
+                  color: warAlert.type === "success" ? "#b95410" : "#ef4444",
                   fontSize: "0.86rem",
                   fontWeight: 700,
                   display: "flex",
@@ -5765,7 +5765,7 @@ export default function CavalleryKasPage() {
                   <div className={styles.ticketQrBox}>
                     <div style={{ textAlign: "center" }}>
                       <i className="bx bx-qr-scan" style={{ fontSize: "4.2rem", color: "#1c1813" }} />
-                      <div style={{ fontSize: "0.68rem", color: "#64748b", fontWeight: 800, marginTop: 2 }}>
+                      <div style={{ fontSize: "0.68rem", color: "var(--cv-text-mute)", fontWeight: 800, marginTop: 2 }}>
                         {userWarTicket.nomor_tiket}
                       </div>
                     </div>
@@ -5871,7 +5871,7 @@ export default function CavalleryKasPage() {
                         <i className="bx bx-group" style={{ marginRight: 4 }} />
                         Kuota Terisi: <strong>{warEvent.kuota_terisi} / {warEvent.kuota_total} Tiket</strong>
                       </span>
-                      <span style={{ color: warEvent.sisa_kuota <= 5 ? "#ef4444" : "#10b981" }}>
+                      <span style={{ color: warEvent.sisa_kuota <= 5 ? "#ef4444" : "#b95410" }}>
                         <i className="bx bx-check-shield" style={{ marginRight: 4 }} />
                         Sisa Slot: <strong>{warEvent.sisa_kuota} Tiket</strong>
                       </span>
@@ -5949,7 +5949,7 @@ export default function CavalleryKasPage() {
             {/* Syarat & Ketentuan Card */}
             <div
               style={{
-                background: "rgba(255, 255, 255, 0.02)",
+                background: "color-mix(in srgb, var(--cv-bone) 2%, transparent)",
                 border: "1px solid var(--border)",
                 borderRadius: 16,
                 padding: "16px 20px",
@@ -6092,8 +6092,8 @@ export default function CavalleryKasPage() {
                 width: 60,
                 height: 60,
                 borderRadius: "50%",
-                background: "rgba(201, 168, 76, 0.15)",
-                border: "2px solid rgba(201, 168, 76, 0.4)",
+                background: "rgba(229, 120, 48, 0.15)",
+                border: "2px solid rgba(229, 120, 48, 0.4)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -6119,9 +6119,9 @@ export default function CavalleryKasPage() {
               <div style={{
                 padding: "10px 14px",
                 borderRadius: 10,
-                background: "rgba(16, 185, 129, 0.15)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                color: "#10b981",
+                background: "rgba(185, 84, 16, 0.15)",
+                border: "1px solid rgba(185, 84, 16, 0.3)",
+                color: "#b95410",
                 fontSize: "0.85rem",
                 fontWeight: 700,
                 textAlign: "center",
@@ -6177,8 +6177,8 @@ export default function CavalleryKasPage() {
                     flex: 1,
                     padding: "10px 14px",
                     borderRadius: 10,
-                    background: "rgba(255, 255, 255, 0.06)",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
+                    background: "color-mix(in srgb, var(--cv-bone) 6%, transparent)",
+                    border: "1px solid var(--cv-line)",
                     color: "var(--fg-muted)",
                     fontSize: "0.85rem",
                     fontWeight: 700,
@@ -6196,7 +6196,7 @@ export default function CavalleryKasPage() {
                     borderRadius: 10,
                     background: "var(--gold)",
                     border: "none",
-                    color: "#000",
+                    color: "var(--cv-on-orange)",
                     fontSize: "0.85rem",
                     fontWeight: 800,
                     cursor: promptPinLoading || promptPinInput.length < 4 ? "not-allowed" : "pointer",
@@ -6575,7 +6575,7 @@ export default function CavalleryKasPage() {
             )}
 
             {ttlSuccessMsg && (
-              <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(16, 185, 129, 0.15)", color: "#10b981", fontSize: "0.82rem", fontWeight: 700, margin: "10px 0" }}>
+              <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(185, 84, 16, 0.15)", color: "#b95410", fontSize: "0.82rem", fontWeight: 700, margin: "10px 0" }}>
                 <i className="bx bx-check-circle" /> {ttlSuccessMsg}
               </div>
             )}
@@ -6752,7 +6752,7 @@ export default function CavalleryKasPage() {
                                 return "Belum diisi";
                               })()}
                               {revealedPrivateFields && (
-                                <span style={{ fontSize: "0.62rem", color: "#f59e0b", marginLeft: 4, fontWeight: 700 }}>
+                                <span style={{ fontSize: "0.62rem", color: "#f5690b", marginLeft: 4, fontWeight: 700 }}>
                                   ({revealCountdown}s)
                                 </span>
                               )}
@@ -6787,7 +6787,7 @@ export default function CavalleryKasPage() {
                             <span className={styles.ktaBioValue}>
                               {(revealedPrivateFields ? revealedPrivateFields.domisili : sessionUser.domisili) || "Indonesia"}
                               {revealedPrivateFields && (
-                                <span style={{ fontSize: "0.62rem", color: "#f59e0b", marginLeft: 4, fontWeight: 700 }}>
+                                <span style={{ fontSize: "0.62rem", color: "#f5690b", marginLeft: 4, fontWeight: 700 }}>
                                   ({revealCountdown}s)
                                 </span>
                               )}
@@ -6997,7 +6997,7 @@ export default function CavalleryKasPage() {
                   checked={publicCardEnabled}
                   onChange={handleTogglePublicCard}
                   disabled={togglingPublic}
-                  style={{ width: 20, height: 20, accentColor: "#d4af37", cursor: "pointer" }}
+                  style={{ width: 20, height: 20, accentColor: "#e47327", cursor: "pointer" }}
                 />
               </div>
 
@@ -7140,7 +7140,7 @@ export default function CavalleryKasPage() {
                     justifyContent: "space-between",
                     marginTop: "auto",
                     paddingTop: 8,
-                    borderTop: "1px dashed rgba(212, 175, 55, 0.3)",
+                    borderTop: "1px dashed rgba(228, 115, 39, 0.3)",
                   }}
                 >
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>

@@ -9,10 +9,10 @@ import { DENGERINE_SONGS, type DengerineSong, type SongType } from "@/data/denge
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 const TYPE_COLORS: Record<SongType, string> = {
-  Cover:    "#1db954",
+  Cover:    "#be5a18",
   Original: "#b45309",
-  Acoustic: "#60a5fa",
-  Remix:    "#a78bfa",
+  Acoustic: "#fa9e60",
+  Remix:    "#fab78b",
 };
 
 function getInitials(name: string) {
@@ -214,7 +214,7 @@ export default function DengerinePage() {
           {/* Playlist art */}
           <div className={styles.heroArt}>
             <div className={styles.heroArtInner}>
-              <Music2 size={64} color="#1db954" strokeWidth={1.2} />
+              <Music2 size={64} color="#be5a18" strokeWidth={1.2} />
               <motion.div
                 className={styles.heroArtRing}
                 animate={{ rotate: 360 }}
@@ -363,7 +363,7 @@ export default function DengerinePage() {
               transition={{ duration: 0.4 }}
             >
               <div className={styles.fullEmbedHeader}>
-                <Music2 size={16} color="#1db954" />
+                <Music2 size={16} color="#be5a18" />
                 <span>Dengarkan di Spotify</span>
               </div>
               <SpotifyPlayer trackId={activeSong.spotifyTrackId} />
@@ -379,7 +379,7 @@ export default function DengerinePage() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <i className="bx bxs-music" style={{ fontSize: "2rem", color: "#1db954" }} />
+          <i className="bx bxs-music" style={{ fontSize: "2rem", color: "#be5a18" }} />
           <h3 className={styles.ctaTitle}>Punya lagu untuk Erine?</h3>
           <p className={styles.ctaSub}>Kirimkan karya cover atau lagu orisinalmu ke admin Cavallery untuk ditampilkan di sini.</p>
           <a href="https://twitter.com/cavallery_id" target="_blank" rel="noreferrer" className={styles.ctaBtn}>
