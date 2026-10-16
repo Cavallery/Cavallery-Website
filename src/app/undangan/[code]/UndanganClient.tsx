@@ -94,14 +94,14 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
-      ctx.strokeStyle = "rgba(240, 190, 83, 0.35)";
+      ctx.strokeStyle = "rgba(240, 146, 83, 0.35)";
       ctx.lineWidth = 3;
       ctx.strokeRect(30, 30, W - 60, H - 60);
 
       ctx.textAlign = "center";
 
       // Badge
-      ctx.fillStyle = "#f0be53";
+      ctx.fillStyle = "#f09253";
       ctx.font = "600 14px Montserrat, sans-serif";
       ctx.letterSpacing = "4px";
       ctx.fillText((cfg.badgeText || "SEITANSAI PROJECT").toUpperCase(), W / 2, 90);
@@ -125,7 +125,7 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.fillText((cfg.heroTitle || "SEITANSAI").toUpperCase(), W / 2, 255);
 
       // Divider
-      ctx.fillStyle = "#f0be53";
+      ctx.fillStyle = "#f09253";
       ctx.fillRect(W / 2 - 40, 280, 80, 2);
 
       // Invited Box
@@ -134,9 +134,9 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       const ibX = (W - ibW) / 2;
       const ibY = 305;
 
-      ctx.fillStyle = "rgba(240, 190, 83, 0.08)";
+      ctx.fillStyle = "rgba(240, 146, 83, 0.08)";
       ctx.fillRect(ibX, ibY, ibW, ibH);
-      ctx.strokeStyle = "rgba(240, 190, 83, 0.28)";
+      ctx.strokeStyle = "rgba(240, 146, 83, 0.28)";
       ctx.lineWidth = 1.5;
       ctx.strokeRect(ibX, ibY, ibW, ibH);
 
@@ -163,7 +163,7 @@ function DownloadCard({ fanbase, cfg }: { fanbase: string; cfg: WayfinderConfig 
       ctx.strokeRect(bx, by, bw, bh);
 
       // Details Header
-      ctx.fillStyle = "#f0be53";
+      ctx.fillStyle = "#f09253";
       ctx.font = "700 14px Montserrat, sans-serif";
       ctx.letterSpacing = "3px";
       ctx.fillText("DETAIL ACARA", W / 2, by + 45);

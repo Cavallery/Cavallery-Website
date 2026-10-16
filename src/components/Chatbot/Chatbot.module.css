@@ -109,9 +109,9 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #00e676;
+  background-color: #e65c00;
   border: 2.5px solid #ffffff;
-  box-shadow: 0 0 8px rgba(0, 230, 118, 0.9);
+  box-shadow: 0 0 8px rgba(230, 92, 0, 0.9);
   z-index: 2;
 }
 
@@ -212,8 +212,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #00e676;
-  box-shadow: 0 0 6px rgba(0, 230, 118, 0.9);
+  background-color: #e65c00;
+  box-shadow: 0 0 6px rgba(230, 92, 0, 0.9);
   display: inline-block;
 }
 
@@ -284,7 +284,7 @@
 }
 
 :global([data-theme="dark"]) .emptyTitle {
-  color: #f5f5dc;
+  color: #f5e6dc;
 }
 
 .emptyDesc {
@@ -326,7 +326,7 @@
 
 :global([data-theme="dark"]) .bot {
   background: #292524;
-  color: #f5f5dc;
+  color: #f5e6dc;
   border-color: rgba(180, 83, 9, 0.35);
 }
 
@@ -425,7 +425,7 @@
 }
 
 :global([data-theme="dark"]) .recommendTitle {
-  color: #f5f5dc;
+  color: #f5e6dc;
 }
 
 .slashBadge {
@@ -516,7 +516,7 @@
 }
 
 :global([data-theme="dark"]) .textInput {
-  color: #f5f5dc;
+  color: #f5e6dc;
 }
 
 .textInput::placeholder {

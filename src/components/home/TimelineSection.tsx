@@ -201,18 +201,18 @@ export default function TimelineSection() {
           <svg className={styles.svg} data-kp-svg aria-hidden="true">
             <defs>
               <linearGradient id="kp-trail" data-kp-grad gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1000">
-                <stop data-kp-stop="0" offset="0" stopColor="#6aa8ff" />
-                <stop data-kp-stop="1" offset="0.5" stopColor="#ff4f8b" />
-                <stop data-kp-stop="2" offset="0.55" stopColor="#d7301c" />
-                <stop data-kp-stop="3" offset="0.8" stopColor="#f26a1b" />
-                <stop data-kp-stop="4" offset="1" stopColor="#ffc14a" />
+                <stop data-kp-stop="0" offset="0" stopColor="#ff8f4d" />
+                <stop data-kp-stop="1" offset="0.5" stopColor="#ff8f4d" />
+                <stop data-kp-stop="2" offset="0.55" stopColor="#ff6b1a" />
+                <stop data-kp-stop="3" offset="0.8" stopColor="#ff6b1a" />
+                <stop data-kp-stop="4" offset="1" stopColor="#ff8f4d" />
               </linearGradient>
               {/* flowing embers: invisible in the cold era, heat in the Passion era */}
               <linearGradient id="kp-flow" data-kp-flowgrad gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1000">
-                <stop offset="0" stopColor="#ffe3a3" stopOpacity="0" />
-                <stop offset="0.5" stopColor="#ffe3a3" stopOpacity="0" />
-                <stop offset="0.52" stopColor="#ffe3a3" stopOpacity="1" />
-                <stop offset="1" stopColor="#ffc14a" stopOpacity="1" />
+                <stop offset="0" stopColor="#ffc7a1" stopOpacity="0" />
+                <stop offset="0.5" stopColor="#ffc7a1" stopOpacity="0" />
+                <stop offset="0.52" stopColor="#ffc7a1" stopOpacity="1" />
+                <stop offset="1" stopColor="#ff8f4d" stopOpacity="1" />
               </linearGradient>
               <mask id="kp-travelled" data-kp-mask maskUnits="userSpaceOnUse">
                 <path data-kp-maskpath d="" fill="none" stroke="#fff" strokeWidth="14" strokeLinecap="round" />

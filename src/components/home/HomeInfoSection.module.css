@@ -76,8 +76,8 @@
   top: -1px;
   width: 22px;
   height: 22px;
-  border-top: 2px solid var(--cv-pink);
-  border-left: 2px solid var(--cv-pink);
+  border-top: 2px solid var(--cv-orange);
+  border-left: 2px solid var(--cv-orange);
 }
 
 .card:hover {
@@ -115,11 +115,11 @@
   text-transform: uppercase;
 }
 
-.badgeGold { color: var(--cv-heat); }
-.badgeBlue { color: var(--cv-blue); }
-.badgeGreen { color: var(--cv-green); }
-.badgePink { color: var(--cv-pink); }
-.badgeRed { color: #ff6a4d; }
+.badgeGold { color: var(--cv-orange-hi); }
+.badgeBlue { color: var(--cv-orange-hi); }
+.badgeGreen { color: var(--cv-orange-pale); }
+.badgePink { color: var(--cv-orange); }
+.badgeRed { color: #ff944d; }
 
 .priority {
   margin-left: auto;
@@ -127,7 +127,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cv-flame);
+  color: var(--cv-orange);
 }
 
 .priority::before {
@@ -136,7 +136,7 @@
   width: 7px;
   height: 7px;
   margin-right: 6px;
-  background: var(--cv-flame);
+  background: var(--cv-orange);
   vertical-align: 1px;
 }
 
@@ -224,7 +224,7 @@
 }
 
 .metaItem i {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .sessionsTableWrap {
@@ -265,15 +265,15 @@
 }
 
 .sessionsTable tbody tr:nth-child(odd) {
-  background: rgba(243, 237, 228, 0.03);
+  background: color-mix(in srgb, var(--cv-bone) 3%, transparent);
 }
 
 .sessionTag {
   border-radius: var(--cv-radius-pill);
   display: inline-block;
   padding: 2px 8px;
-  background: var(--cv-pink-soft);
-  color: var(--cv-pink);
+  background: var(--cv-orange-soft);
+  color: var(--cv-orange);
   font-weight: 700;
   font-size: 0.74rem;
 }
@@ -310,7 +310,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   transform: scaleY(0);
   transform-origin: bottom;
   transition: transform 0.4s var(--cv-ease-out);

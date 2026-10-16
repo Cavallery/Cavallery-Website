@@ -421,7 +421,7 @@ export default function CalendarSection() {
                           {show.isLiveHistory && (
                             <span style={{
                               fontSize: "0.7rem",
-                              background: "var(--cv-pink)",
+                              background: "var(--cv-orange)",
                               color: "var(--cv-ink)",
                               borderRadius: 0,
                               padding: "2px 8px",
@@ -435,7 +435,7 @@ export default function CalendarSection() {
                           {show.isManual && (
                             <span style={{
                               fontSize: "0.7rem",
-                              background: "var(--cv-flame)",
+                              background: "var(--cv-orange)",
                               color: "var(--cv-ink)",
                               borderRadius: 0,
                               padding: "2px 8px",

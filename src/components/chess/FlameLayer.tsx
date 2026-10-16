@@ -110,29 +110,29 @@ export default function FlameLayer({ className, density = 9, intensity = 1, id, 
       <svg viewBox="0 0 400 200" preserveAspectRatio="none" className={styles.svg}>
         <defs>
           <linearGradient id={`${id}-back`} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#8f1a0c" stopOpacity="0.9" />
-            <stop offset="0.5" stopColor="#c8281a" stopOpacity="0.6" />
-            <stop offset="1" stopColor="#e2541b" stopOpacity="0" />
+            <stop offset="0" stopColor="#9c3a0c" stopOpacity="0.9" />
+            <stop offset="0.5" stopColor="#d9500b" stopOpacity="0.6" />
+            <stop offset="1" stopColor="#ff6b1a" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`${id}-mid`} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#e2401b" stopOpacity="0.95" />
-            <stop offset="0.55" stopColor="#f26a1b" stopOpacity="0.7" />
-            <stop offset="1" stopColor="#ff9a3c" stopOpacity="0" />
+            <stop offset="0" stopColor="#d9500b" stopOpacity="0.95" />
+            <stop offset="0.55" stopColor="#ff6b1a" stopOpacity="0.7" />
+            <stop offset="1" stopColor="#ff8f4d" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`${id}-front`} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#ff8a2a" stopOpacity="0.95" />
-            <stop offset="0.5" stopColor="#ffc14a" stopOpacity="0.7" />
-            <stop offset="1" stopColor="#ffe3a3" stopOpacity="0" />
+            <stop offset="0" stopColor="#ff6b1a" stopOpacity="0.95" />
+            <stop offset="0.5" stopColor="#ff8f4d" stopOpacity="0.7" />
+            <stop offset="1" stopColor="#ffc7a1" stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`${id}-core`} x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0" stopColor="#fff6dc" stopOpacity="0.95" />
-            <stop offset="0.45" stopColor="#ffe3a3" stopOpacity="0.75" />
-            <stop offset="1" stopColor="#ffc14a" stopOpacity="0" />
+            <stop offset="0" stopColor="#ffe6d4" stopOpacity="0.95" />
+            <stop offset="0.45" stopColor="#ffc7a1" stopOpacity="0.75" />
+            <stop offset="1" stopColor="#ff8f4d" stopOpacity="0" />
           </linearGradient>
           <radialGradient id={`${id}-bed`} cx="0.5" cy="1" r="0.75">
-            <stop offset="0" stopColor="#ff8a2a" stopOpacity="0.55" />
-            <stop offset="0.6" stopColor="#c8281a" stopOpacity="0.2" />
-            <stop offset="1" stopColor="#c8281a" stopOpacity="0" />
+            <stop offset="0" stopColor="#ff6b1a" stopOpacity="0.55" />
+            <stop offset="0.6" stopColor="#d9500b" stopOpacity="0.2" />
+            <stop offset="1" stopColor="#d9500b" stopOpacity="0" />
           </radialGradient>
         </defs>
 

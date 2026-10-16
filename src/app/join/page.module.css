@@ -101,7 +101,7 @@
 :global([data-theme="dark"]) .roleCard,
 :global(.dark) .roleCard {
   background: rgba(26, 26, 26, 0.85);
-  border: 1px solid rgba(201, 168, 76, 0.25);
+  border: 1px solid rgba(229, 120, 48, 0.25);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
 }
 
@@ -113,7 +113,7 @@
 
 :global([data-theme="dark"]) .roleCard:hover,
 :global(.dark) .roleCard:hover {
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(229, 120, 48, 0.2);
 }
 
 .cardHeader {
@@ -143,9 +143,9 @@
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 20px;
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background: #fdf3ec;
+  color: #5f2a06;
+  border: 1px solid #f4c5a6;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -155,24 +155,24 @@
 
 :global([data-theme="dark"]) .badgeOpen,
 :global(.dark) .badgeOpen {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(185, 84, 16, 0.15);
+  color: #e47023;
+  border-color: rgba(185, 84, 16, 0.4);
 }
 
 .pulseDot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  background: #b95410;
+  box-shadow: 0 0 0 0 rgba(185, 84, 16, 0.7);
   animation: pulse 1.6s infinite;
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(185, 84, 16, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(185, 84, 16, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(185, 84, 16, 0); }
 }
 
 .badgeClosed {
@@ -222,8 +222,8 @@
 
 :global([data-theme="dark"]) .perksList,
 :global(.dark) .perksList {
-  background: rgba(201, 168, 76, 0.06);
-  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(229, 120, 48, 0.06);
+  border-color: rgba(229, 120, 48, 0.25);
 }
 
 .perksHeading {
@@ -245,7 +245,7 @@
 }
 
 .perkItem i {
-  color: #10b981;
+  color: #b95410;
   font-size: 1.05rem;
   flex-shrink: 0;
   margin-top: 1px;
@@ -278,15 +278,15 @@
 
 :global([data-theme="dark"]) .applyBtn,
 :global(.dark) .applyBtn {
-  background: linear-gradient(135deg, #c9a84c 0%, #dfc377 100%);
+  background: linear-gradient(135deg, #e57830 0%, #ed9e69 100%);
   color: #111111;
-  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 4px 14px rgba(229, 120, 48, 0.2);
 }
 
 :global([data-theme="dark"]) .applyBtn:hover:not(:disabled),
 :global(.dark) .applyBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dfc377 0%, #f3e5ab 100%);
-  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.3);
+  background: linear-gradient(135deg, #ed9e69 0%, #f3e5ab 100%);
+  box-shadow: 0 6px 18px rgba(229, 120, 48, 0.3);
 }
 
 .btnDisabled {
@@ -339,8 +339,8 @@
 :global([data-theme="dark"]) .modalContent,
 :global(.dark) .modalContent {
   background: #1b1b1b;
-  border: 1.5px solid rgba(201, 168, 76, 0.35);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(201, 168, 76, 0.12);
+  border: 1.5px solid rgba(229, 120, 48, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(229, 120, 48, 0.12);
 }
 
 @keyframes modalIn {
@@ -413,7 +413,7 @@
 :global([data-theme="dark"]) .closeBtn:hover,
 :global(.dark) .closeBtn:hover {
   color: #ffffff;
-  background: rgba(201, 168, 76, 0.25);
+  background: rgba(229, 120, 48, 0.25);
 }
 
 .form {
@@ -494,8 +494,8 @@
 
 :global([data-theme="dark"]) .stepperContainer,
 :global(.dark) .stepperContainer {
-  background: rgba(201, 168, 76, 0.08);
-  border-color: rgba(201, 168, 76, 0.25);
+  background: rgba(229, 120, 48, 0.08);
+  border-color: rgba(229, 120, 48, 0.25);
 }
 
 .stepperBar {
@@ -550,8 +550,8 @@
 }
 
 .stepperStepDone .stepperNumber {
-  background: #10b981;
-  border-color: #10b981;
+  background: #b95410;
+  border-color: #b95410;
   color: #ffffff;
 }
 
@@ -626,8 +626,8 @@
 :global([data-theme="dark"]) .positionCardActive,
 :global(.dark) .positionCardActive {
   background: #222222 !important;
-  border-color: var(--gold, #dfc377) !important;
-  outline-color: var(--gold, #dfc377);
+  border-color: var(--gold, #ed9e69) !important;
+  outline-color: var(--gold, #ed9e69);
 }
 
 .positionIcon {
@@ -790,9 +790,9 @@
 
 :global([data-theme="dark"]) .nextBtn,
 :global(.dark) .nextBtn {
-  background: linear-gradient(135deg, #c9a84c 0%, #dfc377 100%);
+  background: linear-gradient(135deg, #e57830 0%, #ed9e69 100%);
   color: #111111;
-  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 4px 14px rgba(229, 120, 48, 0.2);
 }
 
 /* ─── CLOSING BOX ────────────────────────────────────────────── */
@@ -809,8 +809,8 @@
 
 :global([data-theme="dark"]) .closingBox,
 :global(.dark) .closingBox {
-  background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(30, 25, 20, 0.6) 100%);
-  border-color: rgba(201, 168, 76, 0.35);
+  background: linear-gradient(135deg, rgba(229, 120, 48, 0.12) 0%, rgba(30, 25, 20, 0.6) 100%);
+  border-color: rgba(229, 120, 48, 0.35);
 }
 
 .closingIcon {
@@ -887,8 +887,8 @@
 }
 
 .reminderBox {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: #fdf5f0;
+  border: 1px solid #f7d3bb;
   border-radius: 10px;
   padding: 0.9rem 1.1rem;
   display: flex;
@@ -898,12 +898,12 @@
 
 :global([data-theme="dark"]) .reminderBox,
 :global(.dark) .reminderBox {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(185, 84, 16, 0.1);
+  border-color: rgba(185, 84, 16, 0.3);
 }
 
 .reminderBox i {
-  color: #10b981;
+  color: #b95410;
   font-size: 1.3rem;
   flex-shrink: 0;
   margin-top: 2px;
@@ -912,13 +912,13 @@
 .reminderTitle {
   font-size: 0.86rem;
   font-weight: 800;
-  color: #15803d;
+  color: #853f10;
   margin-bottom: 2px;
 }
 
 :global([data-theme="dark"]) .reminderTitle,
 :global(.dark) .reminderTitle {
-  color: #34d399;
+  color: #e47023;
 }
 
 .reminderText {
@@ -954,15 +954,15 @@
 
 :global([data-theme="dark"]) .submitBtn,
 :global(.dark) .submitBtn {
-  background: linear-gradient(135deg, #c9a84c 0%, #dfc377 100%);
+  background: linear-gradient(135deg, #e57830 0%, #ed9e69 100%);
   color: #111111;
-  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 4px 14px rgba(229, 120, 48, 0.2);
 }
 
 :global([data-theme="dark"]) .submitBtn:hover:not(:disabled),
 :global(.dark) .submitBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dfc377 0%, #f3e5ab 100%);
-  box-shadow: 0 6px 18px rgba(201, 168, 76, 0.3);
+  background: linear-gradient(135deg, #ed9e69 0%, #f3e5ab 100%);
+  box-shadow: 0 6px 18px rgba(229, 120, 48, 0.3);
 }
 
 .submitBtn:disabled {
@@ -977,7 +977,7 @@
 
 .successIcon {
   font-size: 3.5rem;
-  color: #10b981;
+  color: #b95410;
   margin-bottom: 1rem;
 }
 

@@ -160,8 +160,8 @@ export default function MobileInstallPrompt() {
           background: "linear-gradient(135deg, rgba(20, 18, 14, 0.96), rgba(10, 10, 10, 0.98))",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          border: "1.5px solid rgba(201, 168, 76, 0.45)",
-          boxShadow: "0 14px 34px rgba(0, 0, 0, 0.85), 0 0 20px rgba(201, 168, 76, 0.2)",
+          border: "1.5px solid rgba(229, 120, 48, 0.45)",
+          boxShadow: "0 14px 34px rgba(0, 0, 0, 0.85), 0 0 20px rgba(229, 120, 48, 0.2)",
           borderRadius: "18px",
           padding: "14px 16px",
           animation: "cavalleryBannerSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
@@ -179,8 +179,8 @@ export default function MobileInstallPrompt() {
               flexShrink: 0,
               borderRadius: "12px",
               overflow: "hidden",
-              border: "1.5px solid #c9a84c",
-              boxShadow: "0 4px 12px rgba(201, 168, 76, 0.3)",
+              border: "1.5px solid #e57830",
+              boxShadow: "0 4px 12px rgba(229, 120, 48, 0.3)",
               background: "#0a0a0a",
             }}
           >
@@ -210,7 +210,7 @@ export default function MobileInstallPrompt() {
                 style={{
                   fontSize: "0.62rem",
                   fontWeight: 800,
-                  background: "linear-gradient(135deg, #c9a84c, #e5c158)",
+                  background: "linear-gradient(135deg, #e57830, #ea8f53)",
                   color: "#0a0a0a",
                   padding: "1.5px 6px",
                   borderRadius: "4px",
@@ -268,7 +268,7 @@ export default function MobileInstallPrompt() {
             onClick={handleInstallClick}
             style={{
               flex: 1,
-              background: "linear-gradient(135deg, #c9a84c 0%, #b8933b 100%)",
+              background: "linear-gradient(135deg, #e57830 0%, #d8671b 100%)",
               color: "#0a0a0a",
               border: "none",
               borderRadius: "10px",
@@ -280,7 +280,7 @@ export default function MobileInstallPrompt() {
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
-              boxShadow: "0 4px 14px rgba(201, 168, 76, 0.35)",
+              boxShadow: "0 4px 14px rgba(229, 120, 48, 0.35)",
             }}
           >
             <i className="bx bx-download" style={{ fontSize: "1.05rem" }} />
@@ -333,11 +333,11 @@ export default function MobileInstallPrompt() {
               maxWidth: "420px",
               boxSizing: "border-box",
               background: "#161513",
-              border: "1.5px solid #c9a84c",
+              border: "1.5px solid #e57830",
               borderRadius: "20px",
               padding: "20px 18px",
               color: "#fff",
-              boxShadow: "0 24px 48px rgba(0, 0, 0, 0.95), 0 0 25px rgba(201, 168, 76, 0.25)",
+              boxShadow: "0 24px 48px rgba(0, 0, 0, 0.95), 0 0 25px rgba(229, 120, 48, 0.25)",
               animation: "cavalleryModalZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
               margin: "0 auto",
             }}
@@ -354,7 +354,7 @@ export default function MobileInstallPrompt() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <i className="bx bxl-apple" style={{ fontSize: "1.5rem", color: "#c9a84c" }} />
+                <i className="bx bxl-apple" style={{ fontSize: "1.5rem", color: "#e57830" }} />
                 <h3 style={{ margin: 0, fontSize: "1.02rem", fontWeight: 800 }}>Pasang di iPhone / iPad</h3>
               </div>
               <button
@@ -404,7 +404,7 @@ export default function MobileInstallPrompt() {
                     width: "28px",
                     height: "28px",
                     borderRadius: "50%",
-                    background: "#c9a84c",
+                    background: "#e57830",
                     color: "#0a0a0a",
                     fontWeight: 800,
                     display: "flex",
@@ -420,11 +420,11 @@ export default function MobileInstallPrompt() {
                 <div style={{ fontSize: "0.82rem", lineHeight: 1.4, flex: 1 }}>
                   {isChromeIOS ? (
                     <>
-                      Tekan ikon <strong>Bagikan / Share</strong> (<i className="bx bx-export" style={{ color: "#38bdf8", fontSize: "1rem" }} />) di sebelah alamat web, ATAU tekan menu titik tiga (<strong>...</strong>) di pojok kanan bawah.
+                      Tekan ikon <strong>Bagikan / Share</strong> (<i className="bx bx-export" style={{ color: "#f88538", fontSize: "1rem" }} />) di sebelah alamat web, ATAU tekan menu titik tiga (<strong>...</strong>) di pojok kanan bawah.
                     </>
                   ) : (
                     <>
-                      Tekan tombol <strong>Bagikan / Share</strong> (<i className="bx bx-export" style={{ color: "#38bdf8", fontSize: "1rem" }} />) di bilah navigasi bawah Safari.
+                      Tekan tombol <strong>Bagikan / Share</strong> (<i className="bx bx-export" style={{ color: "#f88538", fontSize: "1rem" }} />) di bilah navigasi bawah Safari.
                     </>
                   )}
                 </div>
@@ -448,7 +448,7 @@ export default function MobileInstallPrompt() {
                     width: "28px",
                     height: "28px",
                     borderRadius: "50%",
-                    background: "#c9a84c",
+                    background: "#e57830",
                     color: "#0a0a0a",
                     fontWeight: 800,
                     display: "flex",
@@ -469,8 +469,8 @@ export default function MobileInstallPrompt() {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "6px",
-                      background: "rgba(201, 168, 76, 0.15)",
-                      color: "var(--gold, #c9a84c)",
+                      background: "rgba(229, 120, 48, 0.15)",
+                      color: "var(--gold, #e57830)",
                       padding: "3px 8px",
                       borderRadius: "6px",
                       fontWeight: 700,
@@ -500,7 +500,7 @@ export default function MobileInstallPrompt() {
                     width: "28px",
                     height: "28px",
                     borderRadius: "50%",
-                    background: "#c9a84c",
+                    background: "#e57830",
                     color: "#0a0a0a",
                     fontWeight: 800,
                     display: "flex",
@@ -527,7 +527,7 @@ export default function MobileInstallPrompt() {
               }}
               style={{
                 width: "100%",
-                background: "linear-gradient(135deg, #c9a84c, #b8933b)",
+                background: "linear-gradient(135deg, #e57830, #d8671b)",
                 color: "#0a0a0a",
                 border: "none",
                 borderRadius: "12px",
@@ -535,7 +535,7 @@ export default function MobileInstallPrompt() {
                 fontSize: "0.86rem",
                 fontWeight: 800,
                 cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(201, 168, 76, 0.35)",
+                boxShadow: "0 4px 14px rgba(229, 120, 48, 0.35)",
               }}
             >
               Saya Mengerti

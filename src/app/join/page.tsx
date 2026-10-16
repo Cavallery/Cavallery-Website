@@ -21,8 +21,8 @@ const ROLES_INFO: Record<
 > = {
   member: {
     icon: "bx-user-pin",
-    iconBg: "rgba(37, 99, 235, 0.12)",
-    color: "#2563eb",
+    iconBg: "rgba(235, 116, 37, 0.12)",
+    color: "#eb7425",
     perks: [
       "Akses grup koordinasi LINE resmi",
       "Prioritas proyek ulang tahun & Request Hour",
@@ -41,8 +41,8 @@ const ROLES_INFO: Record<
   },
   volunteer: {
     icon: "bx-donate-heart",
-    iconBg: "rgba(219, 39, 119, 0.12)",
-    color: "#db2777",
+    iconBg: "rgba(227, 109, 31, 0.12)",
+    color: "#e36d1f",
     perks: [
       "Display Project STS Erine di Sport Bar CGV fX Sudirman",
       "Persiapan, pengaturan area, & pendampingan project",
@@ -2501,7 +2501,7 @@ export default function JoinPage() {
                     <div
                       className={styles.disclaimerBox}
                       style={{
-                        background: "rgba(201, 168, 76, 0.08)",
+                        background: "rgba(229, 120, 48, 0.08)",
                         borderColor: "var(--gold)",
                       }}
                     >
@@ -2590,7 +2590,7 @@ export default function JoinPage() {
                             target="_blank"
                             rel="noreferrer"
                             style={{
-                              color: "#25d366",
+                              color: "#dd691b",
                               fontWeight: 700,
                               textDecoration: "none",
                               display: "inline-flex",
@@ -2605,7 +2605,7 @@ export default function JoinPage() {
                             target="_blank"
                             rel="noreferrer"
                             style={{
-                              color: "#25d366",
+                              color: "#dd691b",
                               fontWeight: 700,
                               textDecoration: "none",
                               display: "inline-flex",

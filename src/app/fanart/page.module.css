@@ -69,15 +69,15 @@
 
 :global([data-theme="dark"]) .heroCtaBtn,
 :global(.dark) .heroCtaBtn {
-  background: linear-gradient(135deg, #c9a84c 0%, #dfc377 100%);
+  background: linear-gradient(135deg, #e57830 0%, #ed9e69 100%);
   color: #111111;
-  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 4px 16px rgba(229, 120, 48, 0.2);
 }
 
 :global([data-theme="dark"]) .heroCtaBtn:hover,
 :global(.dark) .heroCtaBtn:hover {
-  background: linear-gradient(135deg, #dfc377 0%, #f3e5ab 100%);
-  box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3);
+  background: linear-gradient(135deg, #ed9e69 0%, #f3e5ab 100%);
+  box-shadow: 0 6px 20px rgba(229, 120, 48, 0.3);
 }
 
 /* ─── CONTAINER ──────────────────────────────────────────────── */
@@ -112,7 +112,7 @@
 :global([data-theme="dark"]) .filterTabs,
 :global(.dark) .filterTabs {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(201, 168, 76, 0.2);
+  border-color: rgba(229, 120, 48, 0.2);
 }
 
 .filterBtn {
@@ -139,8 +139,8 @@
 
 :global([data-theme="dark"]) .filterBtnActive,
 :global(.dark) .filterBtnActive {
-  background: rgba(201, 168, 76, 0.2);
-  color: #dfc377;
+  background: rgba(229, 120, 48, 0.2);
+  color: #ed9e69;
 }
 
 .searchWrap {
@@ -208,7 +208,7 @@
 :global([data-theme="dark"]) .card,
 :global(.dark) .card {
   background: rgba(26, 26, 26, 0.85);
-  border-color: rgba(201, 168, 76, 0.25);
+  border-color: rgba(229, 120, 48, 0.25);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
@@ -321,7 +321,7 @@
 
 :global([data-theme="dark"]) .cardFooter,
 :global(.dark) .cardFooter {
-  border-top-color: rgba(201, 168, 76, 0.2);
+  border-top-color: rgba(229, 120, 48, 0.2);
 }
 
 .likeBtn {
@@ -400,7 +400,7 @@
 :global([data-theme="dark"]) .modalCard,
 :global(.dark) .modalCard {
   background: #1b1b1b;
-  border-color: rgba(201, 168, 76, 0.35);
+  border-color: rgba(229, 120, 48, 0.35);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
 }
 
@@ -450,7 +450,7 @@
 :global([data-theme="dark"]) .closeBtn:hover,
 :global(.dark) .closeBtn:hover {
   color: #ffffff;
-  background: rgba(201, 168, 76, 0.25);
+  background: rgba(229, 120, 48, 0.25);
 }
 
 .form {
@@ -612,7 +612,7 @@
 
 :global([data-theme="dark"]) .submitBtn,
 :global(.dark) .submitBtn {
-  background: linear-gradient(135deg, #c9a84c 0%, #dfc377 100%);
+  background: linear-gradient(135deg, #e57830 0%, #ed9e69 100%);
   color: #111111;
 }
 
@@ -638,7 +638,7 @@
   background: #1a1a1a;
   border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  border: 1px solid rgba(229, 120, 48, 0.3);
 }
 
 .lightboxImgWrap {
@@ -676,7 +676,7 @@
 .lightboxTitle {
   font-size: 1.2rem;
   font-weight: 800;
-  color: #dfc377;
+  color: #ed9e69;
   margin: 0;
 }
 
@@ -717,8 +717,8 @@
 }
 
 .actionPill:hover {
-  background: rgba(201, 168, 76, 0.25);
-  color: #dfc377;
+  background: rgba(229, 120, 48, 0.25);
+  color: #ed9e69;
 }
 
 .successBox {
@@ -728,7 +728,7 @@
 
 .successIcon {
   font-size: 3.5rem;
-  color: #10b981;
+  color: #b95410;
   margin-bottom: 1rem;
 }
 
