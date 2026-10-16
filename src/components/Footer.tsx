@@ -14,7 +14,6 @@ interface FooterLink {
   label: string;
   href: string;
   external?: boolean;
-  preview?: string;
 }
 
 interface FooterCol {
@@ -28,41 +27,41 @@ const COLUMNS: FooterCol[] = [
     square: "a1",
     title: "About",
     links: [
-      { label: "About Erine", href: "/about/erine", preview: "/images/erine2.jpg" },
-      { label: "About Cavallery", href: "/about/cavallery", preview: "/images/about/cava-group-1.jpeg" },
+      { label: "About Erine", href: "/about/erine" },
+      { label: "About Cavallery", href: "/about/cavallery" },
     ],
   },
   {
     square: "c3",
     title: "Info",
     links: [
-      { label: "Show Theater", href: "/show-theater", preview: "/images/about/timeline-2024-1.jpeg" },
-      { label: "Live Status", href: "https://www.showroom-live.com/r/JKT48_Erine", external: true, preview: "/images/showroom.png" },
-      { label: "News JKT48", href: "/news", preview: "/images/about/timeline-2024-3.jpeg" },
-      { label: "News Cavallery", href: "/news/cavallery-statement", preview: "/images/about/filosofi-emblem.jpg" },
+      { label: "Show Theater", href: "/show-theater" },
+      { label: "Live Status", href: "https://www.showroom-live.com/r/JKT48_Erine", external: true },
+      { label: "News JKT48", href: "/news" },
+      { label: "News Cavallery", href: "/news/cavallery-statement" },
     ],
   },
   {
     square: "e5",
     title: "Project",
     links: [
-      { label: "Request Hour 2026", href: "/request-hour-2026", preview: "/images/rkj.jpg" },
-      { label: "#CatErine17th", href: "/caterine17th", preview: "/images/caterine17th-poster.jpg" },
-      { label: "Erine in Etherland", href: "/erine-in-etherland", preview: "/images/about/timeline-other-6.jpeg" },
-      { label: "Erine 100 Show", href: "/erine100show", preview: "/images/passion.jpg" },
-      { label: "SSK JKT48 2024", href: "/ssk", preview: "/images/chapter.jpg" },
+      { label: "Request Hour 2026", href: "/request-hour-2026" },
+      { label: "#CatErine17th", href: "/caterine17th" },
+      { label: "Erine in Etherland", href: "/erine-in-etherland" },
+      { label: "Erine 100 Show", href: "/erine100show" },
+      { label: "SSK JKT48 2024", href: "/ssk" },
     ],
   },
   {
     square: "g7",
     title: "#GameRine",
     links: [
-      { label: "Kuda Api Erine", href: "/games/knight-passion", preview: "/images/about/timeline-passion.jpg" },
-      { label: "Game Bibir Yang Telah Dicuri", href: "/games/jumping-adventure", preview: "/images/about/timeline-other-4.jpeg" },
-      { label: "Game Erine In Etherland", href: "/games/zombie-escape", preview: "/images/about/timeline-other-9.jpeg" },
-      { label: "Game Belalang Yang Membangkang", href: "/games/grasshopper-collector", preview: "/images/about/timeline-2024-7.jpeg" },
-      { label: "Love Erine Meter", href: "/games/love-erine-meter", preview: "/images/pajama.jpg" },
-      { label: "Dressup Erine", href: "/games/dress-up", preview: "/images/kkg.jpg" },
+      { label: "Kuda Api Erine", href: "/games/knight-passion" },
+      { label: "Game Bibir Yang Telah Dicuri", href: "/games/jumping-adventure" },
+      { label: "Game Erine In Etherland", href: "/games/zombie-escape" },
+      { label: "Game Belalang Yang Membangkang", href: "/games/grasshopper-collector" },
+      { label: "Love Erine Meter", href: "/games/love-erine-meter" },
+      { label: "Dressup Erine", href: "/games/dress-up" },
     ],
   },
 ];
@@ -196,41 +195,7 @@ export default function Footer() {
     { scope: rootRef, dependencies: [hidden], revertOnUpdate: true }
   );
 
-  // Cursor-following image preview (desktop, fine pointer only)
-  const xTo = useRef<((v: number) => void) | null>(null);
-  const yTo = useRef<((v: number) => void) | null>(null);
-
-  const canPreview = () =>
-    typeof window !== "undefined" &&
-    window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 900px)").matches;
-
-  // contextSafe is applied inside the handlers (not during render) so tweens
-  // created on hover/click are still reverted with the component.
   const safe = (fn: () => void) => (contextSafe ? contextSafe(fn)() : fn());
-
-  const showPreview = (src?: string) => safe(() => {
-    const el = rootRef.current?.querySelector<HTMLElement>("[data-preview]");
-    const img = el?.querySelector("img");
-    if (!el || !img || !src || !canPreview()) return;
-    if (img.getAttribute("src") !== src) img.setAttribute("src", src);
-    if (!xTo.current) {
-      xTo.current = gsap.quickTo(el, "x", { duration: 0.45, ease: "power3" });
-      yTo.current = gsap.quickTo(el, "y", { duration: 0.45, ease: "power3" });
-    }
-    gsap.to(el, { autoAlpha: 1, scale: 1, duration: prefersReducedMotion() ? 0 : 0.3, overwrite: "auto" });
-  });
-
-  const hidePreview = () =>
-    safe(() => {
-      const el = rootRef.current?.querySelector<HTMLElement>("[data-preview]");
-      if (el) gsap.to(el, { autoAlpha: 0, scale: 0.92, duration: 0.25, overwrite: "auto" });
-    });
-
-  const movePreview = (e: React.MouseEvent) => {
-    if (!xTo.current || !yTo.current) return;
-    xTo.current(e.clientX + 22);
-    yTo.current(e.clientY - 70);
-  };
 
   const backToTop = () => safe(() => {
     const k = rootRef.current?.querySelector<HTMLElement>("[data-top-knight]");
@@ -326,8 +291,6 @@ export default function Footer() {
           <nav
             className={styles.cols}
             aria-label="Tautan footer"
-            onMouseMove={movePreview}
-            onMouseLeave={hidePreview}
           >
             {COLUMNS.map((col) => {
               const open = openCol === col.title;
@@ -350,13 +313,11 @@ export default function Footer() {
                             href={l.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onMouseEnter={() => showPreview(l.preview)}
-                            onMouseLeave={hidePreview}
                           >
                             {l.label}
                           </a>
                         ) : (
-                          <Link href={l.href} onMouseEnter={() => showPreview(l.preview)} onMouseLeave={hidePreview}>
+                          <Link href={l.href}>
                             {l.label}
                           </Link>
                         )}
@@ -411,9 +372,6 @@ export default function Footer() {
         <span key={i} className={styles.mateSpark} data-mate-spark aria-hidden="true" />
       ))}
 
-      <div className={styles.preview} data-preview aria-hidden="true">
-        <img alt="" />
-      </div>
     </footer>
   );
 }

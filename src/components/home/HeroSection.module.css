@@ -52,7 +52,7 @@
   position: relative;
   z-index: 3;
   font-size: min(17vw, 128px);
-  margin-bottom: -6vw;
+  margin-bottom: -10vw;
   color: var(--cv-text);
 }
 
@@ -62,7 +62,7 @@
 
 .cav {
   position: absolute;
-  top: 62%;
+  top: 48%;
   left: calc(var(--cv-gutter) - (100vw - var(--cv-gutter) - var(--fw)));
   font-size: min(16.6vw, 128px);
 }
@@ -596,7 +596,7 @@
   }
 
   .cav {
-    top: 56%;
+    top: 40%;
     left: calc(var(--cv-gutter) - var(--fx));
     font-size: min(14.6vw, 21svh);
   }

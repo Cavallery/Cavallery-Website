@@ -188,11 +188,10 @@ export default function HomePortalSection() {
               </span>
 
               <span className={styles.media}>
-                <img src={item.image} alt="" loading="lazy" decoding="async" />
-                <span className={styles.mediaHeat} aria-hidden="true" />
-                <span className={styles.icon} aria-hidden="true">
+                <span className={styles.iconBox} aria-hidden="true">
                   <i className={`bx ${item.icon}`} />
                 </span>
+                <span className={styles.mediaHeat} aria-hidden="true" />
               </span>
 
               <span className={styles.panelBottom}>

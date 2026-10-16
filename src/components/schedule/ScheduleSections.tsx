@@ -35,6 +35,7 @@ export function TheaterSection() {
   const [error, setError] = useState("");
   const [filterErine, setFilterErine] = useState(true);
   const [selectedYear, setSelectedYear] = useState<string>("2026");
+  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "next_week" | "month" | "all">("week");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,18 +60,80 @@ export function TheaterSection() {
   const displayed = useMemo(() => {
     let list = shows;
 
-    // 1. Filter Berdasarkan Tahun (2026, 2024, 2025, atau Semua)
-    if (selectedYear !== "all") {
-      const yNum = parseInt(selectedYear, 10);
+    // 1. Filter Berdasarkan Tahun (2026, 2024, 2025, atau Semua) jika bukan periode mingguan
+    if (selectedPeriod === "all" || selectedPeriod === "month") {
+      if (selectedYear !== "all") {
+        const yNum = parseInt(selectedYear, 10);
+        list = list.filter((s) => {
+          const dateStr = s.date ?? s.showDate ?? "";
+          if (!dateStr) return false;
+          const d = new Date(dateStr);
+          return d.getFullYear() === yNum;
+        });
+      }
+    }
+
+    // 2. Filter Berdasarkan Periode (Minggu Ini, Minggu Depan, Bulan Ini)
+    if (selectedPeriod === "week" || selectedPeriod === "next_week") {
+      const now = new Date();
+      // Hitung awal minggu berjalan (Senin)
+      const day = now.getDay();
+      const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1);
+      const startOfCurrentWeek = new Date(now.getFullYear(), now.getMonth(), diffToMonday);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+
+      const targetStart = new Date(startOfCurrentWeek);
+      if (selectedPeriod === "next_week") {
+        targetStart.setDate(targetStart.getDate() + 7);
+      }
+      const targetEnd = new Date(targetStart);
+      targetEnd.setDate(targetEnd.getDate() + 7);
+
+      const inWeek = list.filter((s) => {
+        const dateStr = s.date ?? s.showDate ?? "";
+        if (!dateStr) return false;
+        const d = new Date(dateStr).getTime();
+        return d >= targetStart.getTime() && d < targetEnd.getTime();
+      });
+
+      // Fallback: jika minggu ini belum ada jadwal terbaru, tampilkan 7 hari jadwal terdekat
+      if (inWeek.length > 0) {
+        list = inWeek;
+      } else if (selectedPeriod === "week") {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const upcoming = list
+          .filter((s) => {
+            const dateStr = s.date ?? s.showDate ?? "";
+            if (!dateStr) return false;
+            return new Date(dateStr).getTime() >= today;
+          })
+          .sort((a, b) => new Date(a.date ?? a.showDate ?? "").getTime() - new Date(b.date ?? b.showDate ?? "").getTime());
+
+        if (upcoming.length > 0) {
+          // Ambil jadwal rentang 7 hari sejak show pertama yang terdekat
+          const firstShowTime = new Date(upcoming[0].date ?? upcoming[0].showDate ?? "").getTime();
+          list = upcoming.filter((s) => {
+            const t = new Date(s.date ?? s.showDate ?? "").getTime();
+            return t >= firstShowTime && t <= firstShowTime + 7 * 86400000;
+          });
+        } else {
+          // Jika tidak ada show mendatang sama sekali, ambil 7 show terakhir
+          list = list.slice(0, 7);
+        }
+      } else {
+        list = [];
+      }
+    } else if (selectedPeriod === "month") {
+      const now = new Date();
       list = list.filter((s) => {
         const dateStr = s.date ?? s.showDate ?? "";
         if (!dateStr) return false;
         const d = new Date(dateStr);
-        return d.getFullYear() === yNum;
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
     }
 
-    // 2. Filter Khusus Erine
+    // 3. Filter Khusus Erine
     if (filterErine) {
       list = list.filter((s) => {
         const members: ShowMember[] = s.members ?? s.member ?? s.lineup ?? [];
@@ -78,13 +141,13 @@ export function TheaterSection() {
       });
     }
 
-    // 3. Urutkan tanggal terbaru di atas
+    // 4. Urutkan tanggal
     return list.sort((a, b) => {
       const da = new Date(a.date ?? a.showDate ?? "").getTime();
       const db = new Date(b.date ?? b.showDate ?? "").getTime();
       return db - da;
     });
-  }, [shows, selectedYear, filterErine]);
+  }, [shows, selectedYear, selectedPeriod, filterErine]);
 
   return (
     <section className={styles.section} id="theater">
@@ -92,47 +155,85 @@ export function TheaterSection() {
         <div>
           <div className="badge"><i className="bx bx-calendar" /> Theater Schedule</div>
           <p style={{ fontSize: "0.85rem", color: "#aaa", marginTop: "4px" }}>
-            {selectedYear === "2024"
-              ? "Arsip Show Erine saat masa Trainee JKT48 (2024)"
-              : selectedYear === "2026"
-              ? "Jadwal & Riwayat Show Erine Tahun 2026 (Januari - Sekarang)"
-              : "Jadwal Lengkap Show Theater JKT48"}
-            {displayed.length > 0 && ` • (${displayed.length} show ditemukan)`}
+            {selectedPeriod === "week"
+              ? "Jadwal Show Teater Minggu Ini (7 Hari)"
+              : selectedPeriod === "next_week"
+              ? "Jadwal Show Teater Minggu Depan"
+              : selectedPeriod === "month"
+              ? "Jadwal Show Teater Bulan Ini"
+              : selectedYear === "2024"
+              ? "Arsip Show Erine masa Trainee (2024)"
+              : `Semua Jadwal Show Teater (${selectedYear})`}
+            {displayed.length > 0 && ` • (${displayed.length} show)`}
           </p>
         </div>
 
         <div className={styles.controls}>
-          {/* Filter Pilihan Tahun */}
+          {/* Filter Tab Periode (Mingguan / Bulanan / Semua) */}
           <div className={styles.yearTabs}>
             <button
               type="button"
-              className={`${styles.yearBtn} ${selectedYear === "2026" ? styles.yearActive : ""}`}
-              onClick={() => setSelectedYear("2026")}
+              className={`${styles.yearBtn} ${selectedPeriod === "week" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedPeriod("week")}
             >
-              2026
+              Minggu Ini
             </button>
             <button
               type="button"
-              className={`${styles.yearBtn} ${selectedYear === "2024" ? styles.yearActive : ""}`}
-              onClick={() => setSelectedYear("2024")}
+              className={`${styles.yearBtn} ${selectedPeriod === "next_week" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedPeriod("next_week")}
             >
-              2024 (Trainee)
+              Minggu Depan
             </button>
             <button
               type="button"
-              className={`${styles.yearBtn} ${selectedYear === "2025" ? styles.yearActive : ""}`}
-              onClick={() => setSelectedYear("2025")}
+              className={`${styles.yearBtn} ${selectedPeriod === "month" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedPeriod("month")}
             >
-              2025
+              Bulan Ini
             </button>
             <button
               type="button"
-              className={`${styles.yearBtn} ${selectedYear === "all" ? styles.yearActive : ""}`}
-              onClick={() => setSelectedYear("all")}
+              className={`${styles.yearBtn} ${selectedPeriod === "all" ? styles.yearActive : ""}`}
+              onClick={() => setSelectedPeriod("all")}
             >
               Semua
             </button>
           </div>
+
+          {/* Filter Pilihan Tahun (hanya saat tab Semua aktif) */}
+          {selectedPeriod === "all" && (
+            <div className={styles.yearTabs}>
+              <button
+                type="button"
+                className={`${styles.yearBtn} ${selectedYear === "2026" ? styles.yearActive : ""}`}
+                onClick={() => setSelectedYear("2026")}
+              >
+                2026
+              </button>
+              <button
+                type="button"
+                className={`${styles.yearBtn} ${selectedYear === "2025" ? styles.yearActive : ""}`}
+                onClick={() => setSelectedYear("2025")}
+              >
+                2025
+              </button>
+              <button
+                type="button"
+                className={`${styles.yearBtn} ${selectedYear === "2024" ? styles.yearActive : ""}`}
+                onClick={() => setSelectedYear("2024")}
+              >
+                2024
+              </button>
+              <button
+                type="button"
+                className={`${styles.yearBtn} ${selectedYear === "all" ? styles.yearActive : ""}`}
+                onClick={() => setSelectedYear("all")}
+              >
+                Semua Thn
+              </button>
+            </div>
+          )}
 
           {/* Toggle Khusus Erine */}
           <button

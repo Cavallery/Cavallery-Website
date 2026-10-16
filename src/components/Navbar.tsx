@@ -108,29 +108,29 @@ const navLinks: NavLink[] = [
   },
 ];
 
-/** Mega-menu thumbnails — existing assets in /public/images only. */
-const THUMBS: Record<string, string> = {
-  "/news": "/images/about/timeline-2024-3.jpeg",
-  "/news/cavallery-statement": "/images/about/filosofi-emblem.jpg",
-  "/about/erine": "/images/erine2.jpg",
-  "/about/cavallery": "/images/about/cava-group-1.jpeg",
-  "/gallery": "/images/gallery/erine-gallery-1.jpg",
-  "/cavallery-kas": "/images/about/cava-group-4.jpeg",
-  "/join": "/images/about/cava-group-2.jpeg",
-  "/esport": "/images/about/cava-group-6.jpeg",
-  "/2s-with-erine": "/images/about/timeline-2024-5.jpeg",
-  "/#tickets": "/images/about/cava-group-8.jpeg",
-  "/journal": "/images/about/timeline-other-3.jpeg",
-  "/2026/sts-19-erine": "/images/about/timeline-other-7.jpeg",
-  "/request-hour-2026": "/images/rkj.jpg",
-  "/erine100show": "/images/passion.jpg",
-  "/erine-in-etherland": "/images/about/timeline-other-6.jpeg",
-  "/kaleidoskop": "/images/about/timeline-other-8.jpeg",
-  "/ssk": "/images/chapter.jpg",
-  "/caterine17th": "/images/caterine17th-poster.jpg",
-  "/games": "/images/about/timeline-other-4.jpeg",
-  "/fanart": "/images/cerine%202.jpg",
-  "/dengerine": "/images/hesitate-bundle.jpg",
+/** Mega-menu icons — Boxicons class per page. */
+const ICONS: Record<string, string> = {
+  "/news": "bx-news",
+  "/news/cavallery-statement": "bx-megaphone",
+  "/about/erine": "bx-user",
+  "/about/cavallery": "bx-group",
+  "/gallery": "bx-image-alt",
+  "/cavallery-kas": "bx-wallet",
+  "/join": "bx-user-plus",
+  "/esport": "bx-joystick",
+  "/2s-with-erine": "bx-camera",
+  "/#tickets": "bx-message-square-dots",
+  "/journal": "bx-book-heart",
+  "/2026/sts-19-erine": "bx-star",
+  "/request-hour-2026": "bx-music",
+  "/erine100show": "bx-trophy",
+  "/erine-in-etherland": "bx-planet",
+  "/kaleidoskop": "bx-slideshow",
+  "/ssk": "bx-bar-chart-alt-2",
+  "/caterine17th": "bx-cake",
+  "/games": "bx-game",
+  "/fanart": "bx-palette",
+  "/dengerine": "bx-headphone",
 };
 
 const isParent = (l: NavLink): l is NavParent => "children" in l;
@@ -425,7 +425,7 @@ export default function Navbar() {
                           <li key={child.href} style={{ "--i": ci } as React.CSSProperties}>
                             <Link href={child.href} className={styles.megaRow} tabIndex={mega ? 0 : -1}>
                               <span className={styles.megaRowThumb}>
-                                {THUMBS[child.href] && <img src={THUMBS[child.href]} alt="" loading="lazy" decoding="async" />}
+                                {ICONS[child.href] && <i className={`bx ${ICONS[child.href]}`} />}
                               </span>
                               <span className={styles.megaRowText}>
                                 <span className={styles.megaTileLabel}>{child.label}</span>
@@ -444,7 +444,7 @@ export default function Navbar() {
                     <li key={child.href} style={{ "--i": ci } as React.CSSProperties}>
                       <Link href={child.href} className={styles.megaTile} tabIndex={mega ? 0 : -1}>
                         <span className={styles.megaThumb}>
-                          {THUMBS[child.href] && <img src={THUMBS[child.href]} alt="" loading="lazy" decoding="async" />}
+                          {ICONS[child.href] && <i className={`bx ${ICONS[child.href]}`} />}
                         </span>
                         <span className={styles.megaTileLabel}>{child.label}</span>
                         <span className={styles.megaTileDesc}>{child.desc}</span>
