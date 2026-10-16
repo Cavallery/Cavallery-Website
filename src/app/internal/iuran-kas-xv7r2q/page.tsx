@@ -142,10 +142,10 @@ export default function PublicKasMatrixPage() {
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
                 color: "var(--gold)",
-                background: "rgba(201, 168, 76, 0.12)",
+                background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
                 padding: "4px 12px",
                 borderRadius: 8,
-                border: "1px solid var(--border-gold, rgba(201, 168, 76, 0.3))",
+                border: "1px solid var(--border-gold)",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
@@ -177,7 +177,7 @@ export default function PublicKasMatrixPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "8px 14px", background: "var(--surface)", borderRadius: 12, border: "1px solid var(--border)" }}>
               <i className="bx bx-pie-chart-alt-2" style={{ color: "var(--gold)", fontSize: "1.1rem" }} />
               <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--primary)" }}>Ringkasan Keuangan Kas — Keseluruhan</span>
-              <span style={{ marginLeft: "auto", fontSize: "0.74rem", color: "var(--gold)", background: "rgba(201,168,76,0.1)", padding: "4px 10px", borderRadius: 20, border: "1px solid rgba(201,168,76,0.25)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <span style={{ marginLeft: "auto", fontSize: "0.74rem", color: "var(--gold)", background: "color-mix(in srgb, var(--cv-orange) 10%, transparent)", padding: "4px 10px", borderRadius: 20, border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)", display: "inline-flex", alignItems: "center", gap: 4 }}>
                 <i className="bx bx-infinite" /> Akumulasi Semua Tahun
               </span>
             </div>
@@ -187,7 +187,7 @@ export default function PublicKasMatrixPage() {
 
               {/* 1. Anggota Aktif */}
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "18px 20px" }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#1155cc", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--cv-orange)", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-user-check" style={{ fontSize: "1.1rem" }} />
                   Total Anggota Aktif
                 </div>
@@ -214,35 +214,35 @@ export default function PublicKasMatrixPage() {
               {/* 3. Pemasukan Eksternal */}
               <div
                 onClick={() => { setActiveTab("pemasukan"); setSearch(""); }}
-                style={{ background: "rgba(6,182,212,0.08)", border: "1.5px solid rgba(6,182,212,0.3)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
+                style={{ background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
                 title="Klik untuk melihat rincian pemasukan eksternal"
               >
-                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#06b6d4", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--cv-orange)", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-log-in-circle" style={{ fontSize: "1.1rem" }} />
                   Pemasukan Eksternal
                 </div>
-                <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#06b6d4" }}>{formatRupiah(allTimePemasukanEksternal)}</div>
+                <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "var(--cv-orange)" }}>{formatRupiah(allTimePemasukanEksternal)}</div>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Donasi, sponsorship, penjualan merchandise ↗</div>
               </div>
 
               {/* 4. Total Pengeluaran */}
               <div
                 onClick={() => { setActiveTab("pengeluaran"); setSearch(""); }}
-                style={{ background: "rgba(225,29,72,0.08)", border: "1.5px solid rgba(225,29,72,0.3)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
+                style={{ background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)", borderRadius: 16, padding: "18px 20px", cursor: "pointer", transition: "all 0.2s" }}
                 title="Klik untuk melihat rincian pengeluaran kas"
               >
-                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#e11d48", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--cv-orange)", textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="bx bx-receipt" style={{ fontSize: "1.1rem" }} />
                   Total Pengeluaran Kas
                 </div>
-                <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "#e11d48" }}>{formatRupiah(allTimePengeluaran)}</div>
+                <div style={{ fontSize: "1.7rem", fontWeight: 900, color: "var(--cv-orange)" }}>{formatRupiah(allTimePengeluaran)}</div>
                 <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)", marginTop: 4 }}>Total belanja operasional &amp; proyek fanbase ↗</div>
               </div>
 
               {/* 5. Saldo Kas Saat Ini */}
               <div style={{
-                background: saldoKasSaatIni >= 0 ? "rgba(201,168,76,0.1)" : "rgba(239,68,68,0.1)",
-                border: saldoKasSaatIni >= 0 ? "1.5px solid var(--border-gold, #c9a84c)" : "1.5px solid #ef4444",
+                background: saldoKasSaatIni >= 0 ? "color-mix(in srgb, var(--cv-orange) 10%, transparent)" : "rgba(239,68,68,0.1)",
+                border: saldoKasSaatIni >= 0 ? "1.5px solid var(--border-gold)" : "1.5px solid #ef4444",
                 borderRadius: 16,
                 padding: "18px 20px",
               }}>
@@ -293,9 +293,9 @@ export default function PublicKasMatrixPage() {
             style={{
               padding: "10px 18px",
               border: "none",
-              borderBottom: activeTab === "pemasukan" ? "3px solid #06b6d4" : "3px solid transparent",
+              borderBottom: activeTab === "pemasukan" ? "3px solid var(--cv-orange)" : "3px solid transparent",
               background: "transparent",
-              color: activeTab === "pemasukan" ? "#06b6d4" : "var(--fg-muted)",
+              color: activeTab === "pemasukan" ? "var(--cv-orange)" : "var(--fg-muted)",
               fontWeight: activeTab === "pemasukan" ? 800 : 600,
               fontSize: "0.9rem",
               cursor: "pointer",
@@ -317,9 +317,9 @@ export default function PublicKasMatrixPage() {
             style={{
               padding: "10px 18px",
               border: "none",
-              borderBottom: activeTab === "pengeluaran" ? "3px solid #e11d48" : "3px solid transparent",
+              borderBottom: activeTab === "pengeluaran" ? "3px solid var(--cv-orange)" : "3px solid transparent",
               background: "transparent",
-              color: activeTab === "pengeluaran" ? "#e11d48" : "var(--fg-muted)",
+              color: activeTab === "pengeluaran" ? "var(--cv-orange)" : "var(--fg-muted)",
               fontWeight: activeTab === "pengeluaran" ? 800 : 600,
               fontSize: "0.9rem",
               cursor: "pointer",
@@ -380,7 +380,7 @@ export default function PublicKasMatrixPage() {
                         borderRadius: 8,
                         border: "none",
                         background: tahun === y ? "var(--gold)" : "transparent",
-                        color: tahun === y ? "#1a1612" : "var(--fg-muted)",
+                        color: tahun === y ? "var(--cv-on-orange)" : "var(--fg-muted)",
                         fontWeight: tahun === y ? 900 : 600,
                         fontSize: "0.85rem",
                         cursor: "pointer",
@@ -452,10 +452,10 @@ export default function PublicKasMatrixPage() {
                         padding: "8px 4px",
                         borderRadius: 8,
                         background: isCurrentMonth
-                          ? "rgba(201, 168, 76, 0.15)"
+                          ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)"
                           : "var(--surface)",
                         border: isCurrentMonth
-                          ? "1.5px solid var(--border-gold, #c9a84c)"
+                          ? "1.5px solid var(--border-gold)"
                           : "1px solid var(--border)",
                         textAlign: "center",
                         minWidth: 50,
@@ -513,9 +513,9 @@ export default function PublicKasMatrixPage() {
                 <table className={styles.matrixTable}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <tr>
-                      <th className={styles.colStickyNo} style={{ width: 44, textAlign: "center", background: "var(--surface, #1e1e24)", color: "var(--primary)" }}>No</th>
-                      <th className={styles.colStickyNoAnggota} style={{ width: 100, background: "var(--surface, #1e1e24)", color: "var(--primary)" }}>No. Anggota</th>
-                      <th className={styles.colStickyNama} style={{ minWidth: 160, background: "var(--surface, #1e1e24)", color: "var(--primary)", borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>Nama Anggota</th>
+                      <th className={styles.colStickyNo} style={{ width: 44, textAlign: "center", background: "var(--surface)", color: "var(--primary)" }}>No</th>
+                      <th className={styles.colStickyNoAnggota} style={{ width: 100, background: "var(--surface)", color: "var(--primary)" }}>No. Anggota</th>
+                      <th className={styles.colStickyNama} style={{ minWidth: 160, background: "var(--surface)", color: "var(--primary)", borderRight: "2px solid var(--border)" }}>Nama Anggota</th>
                       {MONTH_NAMES.map((m, idx) => {
                         const mNum = idx + 1;
                         const isCurrentMonth = mNum === new Date().getMonth() + 1 && tahun === new Date().getFullYear();
@@ -526,7 +526,7 @@ export default function PublicKasMatrixPage() {
                               textAlign: "center",
                               width: 48,
                               minWidth: 46,
-                              background: isCurrentMonth ? "rgba(201, 168, 76, 0.15)" : undefined,
+                              background: isCurrentMonth ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)" : undefined,
                               color: isCurrentMonth ? "var(--gold)" : undefined,
                               fontWeight: 800,
                             }}
@@ -550,7 +550,7 @@ export default function PublicKasMatrixPage() {
                               {r.noAnggota}
                             </span>
                           </td>
-                          <td className={`${styles.nameCol} ${styles.colStickyNama}`} style={{ borderRight: "2px solid var(--border, rgba(201,168,76,0.15))" }}>
+                          <td className={`${styles.nameCol} ${styles.colStickyNama}`} style={{ borderRight: "2px solid var(--border)" }}>
                             <div style={{ fontWeight: 700, fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 6 }}>
                               <span>{r.nama}</span>
                               {r.isAdminRole && (
@@ -560,9 +560,9 @@ export default function PublicKasMatrixPage() {
                                     fontWeight: 800,
                                     padding: "2px 6px",
                                     borderRadius: 4,
-                                    background: "rgba(99, 102, 241, 0.12)",
-                                    color: "#6366f1",
-                                    border: "1px solid rgba(99, 102, 241, 0.25)",
+                                    background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                                    color: "var(--cv-orange-hi)",
+                                    border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)",
                                   }}
                                 >
                                   {r.jabatan}
@@ -580,7 +580,7 @@ export default function PublicKasMatrixPage() {
                                 style={{
                                   textAlign: "center",
                                   padding: "6px 2px",
-                                  background: isCurrentMonth ? "rgba(201, 168, 76, 0.04)" : undefined,
+                                  background: isCurrentMonth ? "color-mix(in srgb, var(--cv-orange) 4%, transparent)" : undefined,
                                 }}
                               >
                                 {status === "not_joined" ? (
@@ -600,13 +600,13 @@ export default function PublicKasMatrixPage() {
                                       width: 22,
                                       height: 22,
                                       borderRadius: 6,
-                                      background: "#1155cc",
+                                      background: "#10b981",
                                       color: "#fff",
                                       display: "inline-flex",
                                       alignItems: "center",
                                       justifyContent: "center",
                                       fontSize: "0.85rem",
-                                      boxShadow: "0 2px 4px rgba(17, 85, 204, 0.3)",
+                                      boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
                                     }}
                                     title={`Lunas (${MONTH_NAMES_FULL[m - 1]} ${tahun})`}
                                   >
@@ -659,7 +659,7 @@ export default function PublicKasMatrixPage() {
                   style={{
                     width: 18,
                     height: 18,
-                    background: "#1155cc",
+                    background: "#10b981",
                     borderRadius: 4,
                     display: "inline-flex",
                     alignItems: "center",
@@ -700,9 +700,9 @@ export default function PublicKasMatrixPage() {
             <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
               <div>
                 <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <i className="bx bx-log-in-circle" style={{ color: "#06b6d4", fontSize: "1.4rem" }} />
+                  <i className="bx bx-log-in-circle" style={{ color: "var(--cv-orange)", fontSize: "1.4rem" }} />
                   Laporan Pemasukan Eksternal &amp; Sponsorship Fanbase
-                  <span className={styles.countBadge} style={{ background: "rgba(6, 182, 212, 0.15)", color: "#06b6d4" }}>
+                  <span className={styles.countBadge} style={{ background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--cv-orange)" }}>
                     {filteredPemasukan.length} Transaksi
                   </span>
                 </h2>
@@ -713,7 +713,7 @@ export default function PublicKasMatrixPage() {
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>Total Pemasukan Eksternal {tahun}:</div>
-                <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#06b6d4" }}>
+                <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--cv-orange)" }}>
                   {formatRupiah(totalPemasukanEksternalTercatat)}
                 </div>
               </div>
@@ -753,8 +753,8 @@ export default function PublicKasMatrixPage() {
                           padding: "5px 12px",
                           borderRadius: 8,
                           border: "none",
-                          background: tahun === y ? "#06b6d4" : "transparent",
-                          color: tahun === y ? "#fff" : "var(--fg-muted)",
+                          background: tahun === y ? "var(--cv-orange)" : "transparent",
+                          color: tahun === y ? "var(--cv-on-orange)" : "var(--fg-muted)",
                           fontWeight: tahun === y ? 900 : 600,
                           fontSize: "0.82rem",
                           cursor: "pointer",
@@ -884,9 +884,9 @@ export default function PublicKasMatrixPage() {
                               style={{
                                 padding: "3px 8px",
                                 borderRadius: 6,
-                                background: "rgba(6, 182, 212, 0.12)",
-                                color: "#06b6d4",
-                                border: "1px solid rgba(6, 182, 212, 0.25)",
+                                background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                                color: "var(--cv-orange)",
+                                border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)",
                                 fontSize: "0.74rem",
                                 fontWeight: 700,
                                 display: "inline-block",
@@ -929,8 +929,8 @@ export default function PublicKasMatrixPage() {
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 4,
-                                    color: "#06b6d4",
-                                    borderColor: "rgba(6, 182, 212, 0.4)",
+                                    color: "var(--cv-orange)",
+                                    borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)",
                                     borderRadius: 8,
                                   }}
                                   title="Lihat foto bukti nota / mutasi / kuitansi"
@@ -960,9 +960,9 @@ export default function PublicKasMatrixPage() {
             <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
               <div>
                 <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <i className="bx bx-receipt" style={{ color: "#e11d48", fontSize: "1.4rem" }} />
+                  <i className="bx bx-receipt" style={{ color: "var(--cv-orange)", fontSize: "1.4rem" }} />
                   Laporan Pengeluaran &amp; Penggunaan Kas Fanbase
-                  <span className={styles.countBadge} style={{ background: "rgba(225, 29, 72, 0.15)", color: "#e11d48" }}>
+                  <span className={styles.countBadge} style={{ background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--cv-orange)" }}>
                     {filteredPengeluaran.length} Transaksi
                   </span>
                 </h2>
@@ -973,7 +973,7 @@ export default function PublicKasMatrixPage() {
 
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>Total Pengeluaran {tahun}:</div>
-                <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#e11d48" }}>
+                <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--cv-orange)" }}>
                   {formatRupiah(totalPengeluaranTercatat)}
                 </div>
               </div>
@@ -1013,8 +1013,8 @@ export default function PublicKasMatrixPage() {
                           padding: "5px 12px",
                           borderRadius: 8,
                           border: "none",
-                          background: tahun === y ? "#e11d48" : "transparent",
-                          color: tahun === y ? "#fff" : "var(--fg-muted)",
+                          background: tahun === y ? "var(--cv-orange)" : "transparent",
+                          color: tahun === y ? "var(--cv-on-orange)" : "var(--fg-muted)",
                           fontWeight: tahun === y ? 900 : 600,
                           fontSize: "0.82rem",
                           cursor: "pointer",
@@ -1092,7 +1092,7 @@ export default function PublicKasMatrixPage() {
             {/* Tabel Rincian Pengeluaran */}
             {loading ? (
               <div className={styles.emptyBox}>
-                <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", color: "#e11d48" }} />
+                <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", color: "var(--cv-orange)" }} />
                 <p>Memuat catatan pengeluaran kas...</p>
               </div>
             ) : filteredPengeluaran.length === 0 ? (
@@ -1138,9 +1138,9 @@ export default function PublicKasMatrixPage() {
                               style={{
                                 padding: "3px 8px",
                                 borderRadius: 6,
-                                background: "rgba(201, 168, 76, 0.12)",
+                                background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
                                 color: "var(--gold)",
-                                border: "1px solid rgba(201, 168, 76, 0.25)",
+                                border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)",
                                 fontSize: "0.74rem",
                                 fontWeight: 700,
                                 display: "inline-block",
@@ -1161,7 +1161,7 @@ export default function PublicKasMatrixPage() {
                               </div>
                             )}
                           </td>
-                          <td style={{ textAlign: "right", fontWeight: 900, color: "#e11d48", fontSize: "0.92rem", whiteSpace: "nowrap" }}>
+                          <td style={{ textAlign: "right", fontWeight: 900, color: "var(--cv-orange)", fontSize: "0.92rem", whiteSpace: "nowrap" }}>
                             {formatRupiah(p.nominal)}
                           </td>
                           <td style={{ fontSize: "0.82rem", color: "var(--fg-muted)", whiteSpace: "nowrap" }}>
@@ -1184,7 +1184,7 @@ export default function PublicKasMatrixPage() {
                                     alignItems: "center",
                                     gap: 4,
                                     color: "var(--gold)",
-                                    borderColor: "var(--border-gold, #c9a84c)",
+                                    borderColor: "var(--border-gold)",
                                     borderRadius: 8,
                                   }}
                                   title="Lihat foto bukti nota / kuitansi"
@@ -1248,7 +1248,7 @@ export default function PublicKasMatrixPage() {
               position: "relative",
               maxWidth: 640,
               width: "100%",
-              background: "var(--surface, #1e1e24)",
+              background: "var(--surface)",
               borderRadius: 16,
               border: "1px solid var(--border)",
               padding: 20,
@@ -1292,7 +1292,7 @@ export default function PublicKasMatrixPage() {
                 maxHeight: "70vh",
                 overflow: "auto",
                 borderRadius: 10,
-                background: "rgba(0, 0, 0, 0.3)",
+                background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1328,7 +1328,7 @@ export default function PublicKasMatrixPage() {
                       const prev = idx > 0 ? idx - 1 : selectedNotaList.length - 1;
                       setSelectedNotaUrl(normalizeProofUrl(selectedNotaList[prev]));
                     }}
-                    style={{ background: "rgba(255,255,255,0.1)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
+                    style={{ background: "color-mix(in srgb, var(--cv-bone) 10%, transparent)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
                   >
                     <i className="bx bx-chevron-left" /> Sebelumnya
                   </button>
@@ -1342,7 +1342,7 @@ export default function PublicKasMatrixPage() {
                       const next = idx < selectedNotaList.length - 1 ? idx + 1 : 0;
                       setSelectedNotaUrl(normalizeProofUrl(selectedNotaList[next]));
                     }}
-                    style={{ background: "rgba(255,255,255,0.1)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
+                    style={{ background: "color-mix(in srgb, var(--cv-bone) 10%, transparent)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 14px", color: "var(--fg)", cursor: "pointer", fontSize: "0.85rem" }}
                   >
                     Selanjutnya <i className="bx bx-chevron-right" />
                   </button>
@@ -1357,7 +1357,7 @@ export default function PublicKasMatrixPage() {
                         width: 48, height: 48, borderRadius: 6, overflow: "hidden", cursor: "pointer",
                         border: normalizeProofUrl(url) === selectedNotaUrl ? "2px solid var(--gold)" : "1px solid var(--border)",
                         opacity: normalizeProofUrl(url) === selectedNotaUrl ? 1 : 0.6,
-                        background: "rgba(0,0,0,0.3)", padding: 0,
+                        background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)", padding: 0,
                       }}
                     >
                       <img src={normalizeProofUrl(url)} alt={`Nota ${ti + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />

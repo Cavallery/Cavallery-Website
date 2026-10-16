@@ -1035,7 +1035,7 @@ function MediaManager() {
           <div className={styles.formModal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <div className={styles.formModalHeader}>
               <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="bx bx-image" style={{ color: "#c9a84c" }} /> Tampilkan Foto ke Gallery Web
+                <i className="bx bx-image" style={{ color: "var(--cv-orange)" }} /> Tampilkan Foto ke Gallery Web
               </h3>
               <button className={styles.closeX} onClick={() => setPublishModal(null)}>
                 <i className="bx bx-x" />
@@ -1084,7 +1084,7 @@ function MediaManager() {
                   </label>
                 </div>
                 {!pubActive && (
-                  <small style={{ color: "#888", display: "block", marginTop: -4 }}>
+                  <small style={{ color: "var(--cv-text-mute)", display: "block", marginTop: -4 }}>
                     Jika tidak dicentang, foto tersimpan sebagai draft dan belum terlihat oleh publik.
                   </small>
                 )}
@@ -1149,18 +1149,18 @@ function MediaManager() {
       </div>
 
       <div style={{
-        background: "rgba(201, 168, 76, 0.08)",
-        border: "1px solid rgba(201, 168, 76, 0.25)",
+        background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)",
+        border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)",
         borderRadius: 8,
         padding: "10px 14px",
         marginBottom: 16,
         fontSize: "0.85rem",
-        color: "#d6cebf",
+        color: "var(--cv-text-dim)",
         display: "flex",
         alignItems: "center",
         gap: 10,
       }}>
-        <i className="bx bx-shield-quarter" style={{ fontSize: "1.3rem", color: "#c9a84c", flexShrink: 0 }} />
+        <i className="bx bx-shield-quarter" style={{ fontSize: "1.3rem", color: "var(--cv-orange)", flexShrink: 0 }} />
         <span>
           <strong>Kontrol Publikasi Media:</strong> Klik ikon mata <i className="bx bx-show" style={{ color: "#10b981" }} /> / <i className="bx bx-hide" /> pada tiap kartu untuk <strong>menerbitkan atau menyembunyikan</strong> file dari halaman About Cavallery.
         </span>
@@ -1229,15 +1229,15 @@ function MediaManager() {
 
                 {item.type === "video" ? (
                   item.thumbnail_url ? (
-                    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden", background: "#111" }}>
+                    <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden", background: "var(--cv-ink-1)" }}>
                       <img
                         src={item.thumbnail_url}
                         alt={item.original_name}
                         className={styles.mediaCardImg}
                         loading="lazy"
                       />
-                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.3)" }}>
-                        <i className="bx bx-play-circle" style={{ fontSize: "2.6rem", color: "#c9a84c", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.7))" }} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb, var(--cv-ink) 60%, transparent)" }}>
+                        <i className="bx bx-play-circle" style={{ fontSize: "2.6rem", color: "var(--cv-orange)", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.7))" }} />
                       </div>
                     </div>
                   ) : (
@@ -1278,9 +1278,9 @@ function MediaManager() {
                         fontWeight: 700,
                         padding: "2px 8px",
                         borderRadius: 10,
-                        background: isPub ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.06)",
-                        color: isPub ? "#10b981" : "#888",
-                        border: `1px solid ${isPub ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`,
+                        background: isPub ? "rgba(16, 185, 129, 0.15)" : "color-mix(in srgb, var(--cv-bone) 6%, transparent)",
+                        color: isPub ? "#10b981" : "var(--cv-text-mute)",
+                        border: `1px solid ${isPub ? "rgba(16, 185, 129, 0.3)" : "var(--cv-line)"}`,
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 4,
@@ -1315,7 +1315,7 @@ function MediaManager() {
                     title={isPub ? "Sembunyikan dari About Cavallery" : "Terbitkan ke About Cavallery"}
                     onClick={() => togglePublish(item)}
                     className={styles.btnEdit}
-                    style={{ color: isPub ? "#10b981" : "#aaa" }}
+                    style={{ color: isPub ? "#10b981" : "var(--cv-text-mute)" }}
                   >
                     <i className={`bx ${isPub ? "bx-show" : "bx-hide"}`} />
                   </button>
@@ -1324,7 +1324,7 @@ function MediaManager() {
                       title="Terbitkan ke Gallery Web"
                       onClick={() => openPublish(item)}
                       className={styles.btnEdit}
-                      style={{ color: "#c9a84c" }}
+                      style={{ color: "var(--cv-orange)" }}
                     >
                       <i className="bx bx-image-add" />
                     </button>
@@ -1552,7 +1552,7 @@ function DiscordManager() {
 
   const clearLogs = () => { saveLogs([]); setConfirmClear(false); showToast("Semua riwayat log dihapus", "success"); };
 
-  const embedColor = mention === "@everyone" ? "#e05252" : mention === "@here" ? "#d97706" : "#5865f2";
+  const embedColor = mention === "@everyone" ? "#e05252" : mention === "@here" ? "var(--cv-orange)" : "#5865f2";
 
   // Filter logs berdasarkan keyword pencarian
   const filteredLogs = logs.filter(l => {
@@ -1576,35 +1576,35 @@ function DiscordManager() {
       {/* Modal Detail Log (Read/Preview CRUD) */}
       {viewLog && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          <div style={{ background: "#1e1e1e", border: "1px solid #333", borderRadius: 16, width: "100%", maxWidth: 520, padding: 24, display: "flex", flexDirection: "column", gap: 16, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #333", paddingBottom: 12 }}>
+          <div style={{ background: "var(--cv-ink-2)", border: "1px solid var(--cv-line-strong)", borderRadius: 16, width: "100%", maxWidth: 520, padding: 24, display: "flex", flexDirection: "column", gap: 16, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--cv-line-strong)", paddingBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="bxl-discord-alt" style={{ color: "#5865f2", fontSize: "1.3rem" }} />
-                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#f0f0f0" }}>Detail Log Discord</h3>
+                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--cv-text)" }}>Detail Log Discord</h3>
               </div>
               <button className={styles.btnDel} style={{ width: 32, height: 32 }} onClick={() => setViewLog(null)}><i className="bx bx-x" /></button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
-                <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Waktu & Status</span>
+                <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Waktu & Status</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  <span style={{ fontSize: 13, color: "#ccc" }}>🕒 {viewLog.time}</span>
-                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: viewLog.status === "failed" ? "#3a1a1a" : "#1a3a1a", color: viewLog.status === "failed" ? "#e07070" : "#6dbf6d", fontWeight: 700 }}>
+                  <span style={{ fontSize: 13, color: "var(--cv-text-dim)" }}>🕒 {viewLog.time}</span>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 4, background: viewLog.status === "failed" ? "color-mix(in srgb, #ef4444 14%, transparent)" : "color-mix(in srgb, #10b981 14%, transparent)", color: viewLog.status === "failed" ? "#e07070" : "#6dbf6d", fontWeight: 700 }}>
                     {viewLog.status === "failed" ? "Gagal" : "Terkirim"}
                   </span>
                 </div>
               </div>
 
               <div>
-                <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Judul</span>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginTop: 4 }}>{viewLog.title}</div>
+                <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Judul</span>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--cv-text)", marginTop: 4 }}>{viewLog.title}</div>
               </div>
 
               {viewLog.description && (
                 <div>
-                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Deskripsi</span>
-                  <div style={{ fontSize: 13, color: "#ddd", background: "#141414", padding: 12, borderRadius: 8, marginTop: 4, whiteSpace: "pre-wrap", lineHeight: 1.6, border: "1px solid #282828" }}>
+                  <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Deskripsi</span>
+                  <div style={{ fontSize: 13, color: "var(--cv-text-dim)", background: "var(--cv-ink-1)", padding: 12, borderRadius: 8, marginTop: 4, whiteSpace: "pre-wrap", lineHeight: 1.6, border: "1px solid var(--cv-line)" }}>
                     {viewLog.description}
                   </div>
                 </div>
@@ -1612,12 +1612,12 @@ function DiscordManager() {
 
               <div style={{ display: "flex", gap: 16 }}>
                 <div>
-                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Mention</span>
-                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>{viewLog.mention || "—"}</div>
+                  <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Mention</span>
+                  <div style={{ fontSize: 12, color: "var(--cv-text-mute)", marginTop: 4 }}>{viewLog.mention || "—"}</div>
                 </div>
                 {viewLog.url && (
                   <div>
-                    <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Link URL</span>
+                    <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Link URL</span>
                     <div style={{ fontSize: 12, color: "#5865f2", marginTop: 4 }}>{viewLog.url}</div>
                   </div>
                 )}
@@ -1625,13 +1625,13 @@ function DiscordManager() {
 
               {viewLog.image && (
                 <div>
-                  <span style={{ fontSize: 11, color: "#888", textTransform: "uppercase", fontWeight: 700 }}>Lampiran Gambar</span>
-                  <img src={viewLog.image} alt="preview" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 8, marginTop: 4, border: "1px solid #333" }} />
+                  <span style={{ fontSize: 11, color: "var(--cv-text-mute)", textTransform: "uppercase", fontWeight: 700 }}>Lampiran Gambar</span>
+                  <img src={viewLog.image} alt="preview" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 8, marginTop: 4, border: "1px solid var(--cv-line-strong)" }} />
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 8, borderTop: "1px solid #333", paddingTop: 14 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, borderTop: "1px solid var(--cv-line-strong)", paddingTop: 14 }}>
               <button className={styles.btnPrimary} style={{ flex: 1, justifyContent: "center", fontSize: 13 }} onClick={() => loadLogToForm(viewLog)}>
                 <i className="bx bx-edit" /> Muat ke Form & Edit
               </button>
@@ -1675,7 +1675,7 @@ function DiscordManager() {
             <div className={styles.field}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <label>Judul Update <span style={{ color: "#e05252" }}>*</span></label>
-                <span style={{ fontSize: 11, color: title.length > 240 ? "#e05252" : "#777" }}>{title.length}/256</span>
+                <span style={{ fontSize: 11, color: title.length > 240 ? "#e05252" : "var(--cv-text-mute)" }}>{title.length}/256</span>
               </div>
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Masukkan judul pengumuman..." maxLength={256} />
             </div>
@@ -1683,7 +1683,7 @@ function DiscordManager() {
             <div className={styles.field}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <label>Deskripsi <span style={{ color: "#e05252" }}>*</span></label>
-                <span style={{ fontSize: 11, color: desc.length > 1700 ? "#e05252" : desc.length > 1400 ? "#f59e0b" : "#777", fontWeight: 700 }}>
+                <span style={{ fontSize: 11, color: desc.length > 1700 ? "#e05252" : desc.length > 1400 ? "var(--cv-orange)" : "var(--cv-text-mute)", fontWeight: 700 }}>
                   {desc.length}/1800 {desc.length > 1800 && "(Maksimal tercapai)"}
                 </span>
               </div>
@@ -1694,7 +1694,7 @@ function DiscordManager() {
                 placeholder="Tulis detail pengumuman di sini (maks. 1.800 karakter agar pengiriman Discord selalu lancar)..."
                 maxLength={1800}
               />
-              <span style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
+              <span style={{ fontSize: 11, color: "var(--cv-text-mute)", marginTop: 2 }}>
                 💡 Tip: Teks dibatasi maks. 1.800 karakter agar sesuai batas pesan Discord dan tidak terjadi error server.
               </span>
             </div>
@@ -1705,7 +1705,7 @@ function DiscordManager() {
             </div>
 
             <div className={styles.field}>
-              <label>Gambar <span style={{ color: "#777", fontWeight: 400 }}>(opsional)</span></label>
+              <label>Gambar <span style={{ color: "var(--cv-text-mute)", fontWeight: 400 }}>(opsional)</span></label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input type="text" value={image} onChange={e => setImage(e.target.value)} placeholder="URL gambar atau pilih dari media..." style={{ flex: 1 }} />
                 <button className={styles.btnGhost} style={{ whiteSpace: "nowrap", fontSize: 13 }} onClick={() => setShowPicker(true)}><i className="bx bx-folder-open" /> Pilih</button>
@@ -1718,7 +1718,7 @@ function DiscordManager() {
               <label>Mention</label>
               <div style={{ display: "flex", gap: 8 }}>
                 {["", "@everyone", "@here"].map(m => (
-                  <button key={m} onClick={() => setMention(m)} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: "1px solid", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s", borderColor: mention === m ? (m === "@everyone" ? "#e05252" : m === "@here" ? "#d97706" : "#5865f2") : "#333", background: mention === m ? (m === "@everyone" ? "#3a1a1a" : m === "@here" ? "#2a1e10" : "#1a1d3a") : "transparent", color: mention === m ? (m === "@everyone" ? "#e05252" : m === "@here" ? "#f59e0b" : "#7289da") : "#777" }}>
+                  <button key={m} onClick={() => setMention(m)} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, border: "1px solid", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s", borderColor: mention === m ? (m === "@everyone" ? "#e05252" : m === "@here" ? "var(--cv-orange)" : "#5865f2") : "var(--cv-line-strong)", background: mention === m ? (m === "@everyone" ? "color-mix(in srgb, #ef4444 14%, transparent)" : m === "@here" ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "rgba(88, 101, 242, 0.15)") : "transparent", color: mention === m ? (m === "@everyone" ? "#e05252" : m === "@here" ? "var(--cv-orange)" : "#7289da") : "var(--cv-text-mute)" }}>
                     {m || "Tanpa Mention"}
                   </button>
                 ))}
@@ -1730,7 +1730,7 @@ function DiscordManager() {
                 className={styles.btnPrimary}
                 onClick={send}
                 disabled={sending || !title.trim() || !desc.trim()}
-                style={{ flex: 2, justifyContent: "center", padding: "0.65rem", fontSize: "0.9rem", background: sending ? "#333" : "linear-gradient(135deg, #5865f2, #7289da)", color: "#fff" }}
+                style={{ flex: 2, justifyContent: "center", padding: "0.65rem", fontSize: "0.9rem", background: sending ? "var(--cv-ink-3)" : "#5865f2", color: sending ? "var(--cv-text-mute)" : "#fff" }}
               >
                 {sending ? <><i className="bx bx-loader-alt bx-spin" /> Mengirim ke Discord...</> : <><i className="bx bxl-discord-alt" /> Kirim Sekarang</>}
               </button>
@@ -1751,7 +1751,7 @@ function DiscordManager() {
           <div className={styles.discordPreviewCard}>
             <p className={styles.discordPreviewLabel}><i className="bx bx-show" /> Preview Embed</p>
             <div className={styles.discordEmbed} style={{ borderLeftColor: embedColor }}>
-              {mention && <div className={styles.discordMention} style={{ color: mention === "@everyone" ? "#e05252" : "#f59e0b", background: mention === "@everyone" ? "#3a1a1a" : "#2a1e10" }}>{mention}</div>}
+              {mention && <div className={styles.discordMention} style={{ color: mention === "@everyone" ? "#e05252" : "var(--cv-orange)", background: mention === "@everyone" ? "color-mix(in srgb, #ef4444 14%, transparent)" : "color-mix(in srgb, var(--cv-orange) 14%, transparent)" }}>{mention}</div>}
               <div className={styles.discordEmbedTitle}>{title ? "📌 " + title : <span style={{ opacity: 0.3 }}>Judul pengumuman...</span>}</div>
               <div className={styles.discordEmbedDesc}>
                 {desc ? desc.split("\n").map((line, i) => <span key={i}>{line}<br /></span>) : <span style={{ opacity: 0.3 }}>Deskripsi pengumuman...</span>}
@@ -1786,11 +1786,11 @@ function DiscordManager() {
                   value={searchLog}
                   onChange={e => setSearchLog(e.target.value)}
                   placeholder="Cari riwayat pengumuman..."
-                  style={{ width: "100%", padding: "6px 10px 6px 30px", fontSize: 12, background: "#141414", border: "1px solid #333", borderRadius: 8, color: "#fff" }}
+                  style={{ width: "100%", padding: "6px 10px 6px 30px", fontSize: 12, background: "var(--cv-ink-1)", border: "1px solid var(--cv-line-strong)", borderRadius: 8, color: "var(--cv-text)" }}
                 />
-                <i className="bx bx-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#666", fontSize: 14 }} />
+                <i className="bx bx-search" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--cv-text-mute)", fontSize: 14 }} />
                 {searchLog && (
-                  <button onClick={() => setSearchLog("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}>
+                  <button onClick={() => setSearchLog("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--cv-text-mute)", cursor: "pointer", fontSize: 14 }}>
                     <i className="bx bx-x" />
                   </button>
                 )}
@@ -1812,10 +1812,10 @@ function DiscordManager() {
                         style={{ cursor: "pointer", flex: 1, minWidth: 0 }}
                         title="Klik untuk melihat detail log"
                       >
-                        <div className={styles.discordLogTitle} style={{ fontWeight: 600, color: "#f0f0f0" }}>{log.title}</div>
+                        <div className={styles.discordLogTitle} style={{ fontWeight: 600, color: "var(--cv-text)" }}>{log.title}</div>
                         <div className={styles.discordLogMeta} style={{ marginTop: 2 }}>
                           <span>{log.time}</span>
-                          {log.mention && log.mention !== "—" && <span style={{ background: log.mention === "@everyone" ? "#3a1a1a" : "#2a1e10", color: log.mention === "@everyone" ? "#e05252" : "#f59e0b", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{log.mention}</span>}
+                          {log.mention && log.mention !== "—" && <span style={{ background: log.mention === "@everyone" ? "color-mix(in srgb, #ef4444 14%, transparent)" : "color-mix(in srgb, var(--cv-orange) 14%, transparent)", color: log.mention === "@everyone" ? "#e05252" : "var(--cv-orange)", padding: "1px 6px", borderRadius: 4, fontSize: 10 }}>{log.mention}</span>}
                           {log.hasImage && <span style={{ color: "#5865f2", fontSize: 10 }}><i className="bx bx-image" /> gambar</span>}
                           {log.status === "failed" && <span style={{ color: "#e05252", fontSize: 10, fontWeight: 700 }}>⚠️ Gagal</span>}
                         </div>
@@ -1826,21 +1826,21 @@ function DiscordManager() {
                         <button
                           onClick={() => setViewLog(log)}
                           title="Lihat Detail (Read)"
-                          style={{ background: "#252525", border: "1px solid #3a3a3a", borderRadius: 6, color: "#aaa", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                          style={{ background: "var(--cv-ink-3)", border: "1px solid var(--cv-line-strong)", borderRadius: 6, color: "var(--cv-text-mute)", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
                         >
                           <i className="bx bx-show" />
                         </button>
                         <button
                           onClick={() => loadLogToForm(log)}
                           title="Muat ke Form & Edit (Update)"
-                          style={{ background: "#1a2a3a", border: "1px solid #2a4a6a", borderRadius: 6, color: "#60a5fa", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                          style={{ background: "color-mix(in srgb, var(--cv-orange) 14%, transparent)", border: "1px solid var(--cv-orange-deep)", borderRadius: 6, color: "var(--cv-orange-hi)", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
                         >
                           <i className="bx bx-edit-alt" />
                         </button>
                         <button
                           onClick={() => setDeleteLogId(log.id)}
                           title="Hapus Log Ini (Delete)"
-                          style={{ background: "#3a1a1a", border: "1px solid #5a2a2a", borderRadius: 6, color: "#f87171", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+                          style={{ background: "color-mix(in srgb, #ef4444 14%, transparent)", border: "1px solid #5a2a2a", borderRadius: 6, color: "#f87171", width: 26, height: 26, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
                         >
                           <i className="bx bx-trash" />
                         </button>
@@ -2094,7 +2094,7 @@ function JournalManager() {
       )}
 
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}><i className="bx bx-book-open" style={{ color: "#db2777" }} /> Journal MemoRine<span className={styles.count}>{messages.length} pesan</span></h2>
+        <h2 className={styles.sectionTitle}><i className="bx bx-book-open" style={{ color: "var(--cv-orange)" }} /> Journal MemoRine<span className={styles.count}>{messages.length} pesan</span></h2>
         <div style={{ display: "flex", gap: 8 }}>
           <button className={styles.btnGhost} onClick={exportCSV} disabled={messages.length === 0}><i className="bx bx-export" /> Ekspor CSV</button>
           <button className={styles.btnPrimary} onClick={() => setShowAddModal(true)}><i className="bx bx-plus" /> Tambah Pesan</button>
@@ -2117,7 +2117,7 @@ function JournalManager() {
                 <tr key={m.id}>
                   <td>{filtered.length - i}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{m.date}</td>
-                  <td style={{ fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</td>
+                  <td style={{ fontWeight: 600, color: "var(--cv-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</td>
                   <td style={{ whiteSpace: "normal", wordBreak: "break-word", maxWidth: "500px", lineHeight: "1.4" }}>{m.msg}</td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
@@ -2409,7 +2409,7 @@ function BotManager() {
       {/* INTERACTIVE TEST CONSOLE (PLAYGROUND) */}
       <div style={{ background: "var(--adm-surface)", border: "1px solid rgba(34, 197, 94, 0.3)", borderRadius: 8, padding: 18, marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <h4 style={{ margin: 0, fontSize: "0.95rem", color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
+          <h4 style={{ margin: 0, fontSize: "0.95rem", color: "var(--cv-text)", display: "flex", alignItems: "center", gap: 6 }}>
             <i className="bx bx-play-circle" style={{ color: "#22c55e" }} /> Uji Coba Pertanyaan Bot Langsung
           </h4>
           <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>Cek respon AI & Knowledge Base</span>
@@ -2422,7 +2422,7 @@ function BotManager() {
             onChange={e => setTestQuery(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleTestBot()}
             placeholder="Ketik pertanyaan untuk bot, misal: Siapa Erine? / Apa projek Blue Rose?"
-            style={{ flex: 1, background: "#111", color: "#fff", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px", fontSize: "0.88rem" }}
+            style={{ flex: 1, background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px", fontSize: "0.88rem" }}
           />
           <button
             type="button"
@@ -2443,12 +2443,12 @@ function BotManager() {
               type="button"
               onClick={() => { setTestQuery(chip); handleTestBot(chip); }}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
+                border: "1px solid var(--cv-line)",
                 borderRadius: 14,
                 padding: "3px 10px",
                 fontSize: "0.75rem",
-                color: "#c9d1d9",
+                color: "var(--cv-text-dim)",
                 cursor: "pointer"
               }}
             >
@@ -2459,7 +2459,7 @@ function BotManager() {
 
         {testReply && (
           <div style={{
-            background: "#111827",
+            background: "var(--cv-ink-1)",
             border: "1px solid rgba(34, 197, 94, 0.3)",
             borderRadius: 6,
             padding: "12px 14px",
@@ -2467,9 +2467,9 @@ function BotManager() {
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: "0.75rem" }}>
               <span style={{ color: "#22c55e", fontWeight: 600 }}>Respon Bot Jenderal:</span>
-              <span style={{ color: "#9ca3af" }}>Sumber: {testSource}</span>
+              <span style={{ color: "var(--cv-text-mute)" }}>Sumber: {testSource}</span>
             </div>
-            <div style={{ fontSize: "0.88rem", color: "#e5e7eb", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+            <div style={{ fontSize: "0.88rem", color: "var(--cv-text)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
               {testReply}
             </div>
           </div>
@@ -2478,21 +2478,21 @@ function BotManager() {
 
       {config && (
         <form onSubmit={handleSaveGeneral} style={{ background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: 20, marginBottom: 24 }}>
-          <h3 style={{ fontSize: "1.1rem", marginBottom: 16, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}><i className="bx bx-cog" /> Pengaturan Umum Bot</h3>
+          <h3 style={{ fontSize: "1.1rem", marginBottom: 16, color: "var(--cv-text)", display: "flex", alignItems: "center", gap: 8 }}><i className="bx bx-cog" /> Pengaturan Umum Bot</h3>
           <div className={styles.field} style={{ marginBottom: 16 }}>
             <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span>Gemini API Key</span><span style={{ fontSize: "0.75rem", opacity: 0.6 }}>Kosongkan untuk mode fallback</span></label>
-            <input type="password" value={config.apiKey} onChange={e => setConfig({ ...config, apiKey: e.target.value })} placeholder="Masukkan Gemini API Key..." style={{ width: "100%", background: "#111", color: "#fff", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px", fontSize: "0.9rem" }} />
+            <input type="password" value={config.apiKey} onChange={e => setConfig({ ...config, apiKey: e.target.value })} placeholder="Masukkan Gemini API Key..." style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px", fontSize: "0.9rem" }} />
           </div>
           <div className={styles.field} style={{ marginBottom: 20 }}>
             <label>Pesan Default (Jika tidak ada kecocokan & Gemini offline)</label>
-            <textarea rows={3} value={config.fallbackResponse} onChange={e => setConfig({ ...config, fallbackResponse: e.target.value })} placeholder="Masukkan balasan default..." required style={{ width: "100%", background: "#111", color: "#fff", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px", fontSize: "0.9rem", resize: "vertical" }} />
+            <textarea rows={3} value={config.fallbackResponse} onChange={e => setConfig({ ...config, fallbackResponse: e.target.value })} placeholder="Masukkan balasan default..." required style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px", fontSize: "0.9rem", resize: "vertical" }} />
           </div>
           <button type="submit" className={styles.btnPrimary} disabled={saving}>{saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> Simpan Pengaturan Umum</>}</button>
         </form>
       )}
 
       <div className={styles.sectionHeader} style={{ marginTop: 24 }}>
-        <h3 style={{ fontSize: "1.1rem", margin: 0, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}><i className="bx bx-list-ul" /> Aturan Respon Kustom ({config?.rules.length || 0})</h3>
+        <h3 style={{ fontSize: "1.1rem", margin: 0, color: "var(--cv-text)", display: "flex", alignItems: "center", gap: 8 }}><i className="bx bx-list-ul" /> Aturan Respon Kustom ({config?.rules.length || 0})</h3>
         <button className={styles.btnPrimary} onClick={openAddRule}><i className="bx bx-plus" /> Tambah Aturan</button>
       </div>
 
@@ -2514,8 +2514,8 @@ function BotManager() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {rule.triggers.map((group, idx) => (
                         <div key={idx} style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
-                          {idx > 0 && <span style={{ fontSize: "0.7rem", color: "#db2777", fontWeight: 600, marginRight: 4 }}>AND</span>}
-                          {group.map((t, tid) => <span key={tid} style={{ background: "rgba(219,39,119,0.1)", color: "#db2777", border: "1px solid rgba(219,39,119,0.2)", borderRadius: 4, padding: "2px 6px", fontSize: "0.75rem", fontWeight: 500 }}>{t}</span>)}
+                          {idx > 0 && <span style={{ fontSize: "0.7rem", color: "var(--cv-orange)", fontWeight: 600, marginRight: 4 }}>AND</span>}
+                          {group.map((t, tid) => <span key={tid} style={{ background: "color-mix(in srgb, var(--cv-orange) 10%, transparent)", color: "var(--cv-orange)", border: "1px solid color-mix(in srgb, var(--cv-orange) 20%, transparent)", borderRadius: 4, padding: "2px 6px", fontSize: "0.75rem", fontWeight: 500 }}>{t}</span>)}
                         </div>
                       ))}
                     </div>
@@ -2548,7 +2548,7 @@ function MerchandiseManager() {
     <div className={styles.sectionWrap}>
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-store" style={{ color: "#f59e0b" }} /> Merchandise
+          <i className="bx bx-store" style={{ color: "var(--cv-orange)" }} /> Merchandise
         </h2>
       </div>
 
@@ -2564,8 +2564,8 @@ function MerchandiseManager() {
             onClick={() => setTab(key)}
             className={styles.btnGhost}
             style={{
-              borderColor: tab === key ? "#f59e0b" : "var(--adm-border)",
-              color: tab === key ? "#f59e0b" : "var(--adm-text)",
+              borderColor: tab === key ? "var(--cv-orange)" : "var(--adm-border)",
+              color: tab === key ? "var(--cv-orange)" : "var(--adm-text)",
               fontWeight: tab === key ? 700 : 500,
             }}
           >
@@ -3365,13 +3365,13 @@ function MerchOrdersTab() {
   );
 
   const statusColor = (s: string) => ({
-    pending:   { bg: "rgba(156,163,175,0.2)", fg: "#9ca3af" },
-    paid:      { bg: "rgba(59,130,246,0.2)",  fg: "#3b82f6" },
-    processing:{ bg: "rgba(245,158,11,0.2)",  fg: "#f59e0b" },
-    shipped:   { bg: "rgba(139,92,246,0.2)",  fg: "#8b5cf6" },
+    pending:   { bg: "rgba(156,163,175,0.2)", fg: "var(--cv-text-mute)" },
+    paid:      { bg: "color-mix(in srgb, var(--cv-orange-hi) 16%, transparent)",  fg: "var(--cv-orange-hi)" },
+    processing:{ bg: "color-mix(in srgb, var(--cv-orange) 22%, transparent)",  fg: "var(--cv-orange)" },
+    shipped:   { bg: "color-mix(in srgb, var(--cv-orange-deep) 26%, transparent)",  fg: "var(--cv-orange-deep)" },
     completed: { bg: "rgba(16,185,129,0.2)",  fg: "#10b981" },
     cancelled: { bg: "rgba(239,68,68,0.2)",   fg: "#ef4444" },
-  }[s] || { bg: "rgba(156,163,175,0.2)", fg: "#9ca3af" });
+  }[s] || { bg: "rgba(156,163,175,0.2)", fg: "var(--cv-text-mute)" });
 
   return (
     <div>
@@ -3439,7 +3439,7 @@ function MerchOrdersTab() {
                         onChange={e => updateStatus(o, e.target.value)}
                         style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600, border: "none", outline: "none", background: sc.bg, color: sc.fg }}
                       >
-                        {["pending","paid","processing","shipped","completed","cancelled"].map(s => <option key={s} value={s} style={{ background: "#242424", color: "#fff" }}>{s}</option>)}
+                        {["pending","paid","processing","shipped","completed","cancelled"].map(s => <option key={s} value={s} style={{ background: "var(--cv-ink-3)", color: "var(--cv-text)" }}>{s}</option>)}
                       </select>
                     </td>
                     <td data-label="Aksi" style={{ textAlign: "center" }}>
@@ -3640,13 +3640,13 @@ function SectionManager({ section }: { section: Section }) {
 
       {section === "setlists" && (
         <div style={{ background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 12, padding: "1rem 1.25rem", marginBottom: "1.25rem" }}>
-          <h3 style={{ fontSize: "0.9rem", color: "#f0f0f0", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: 6 }}><i className="bx bx-bar-chart-alt-2" style={{ color: "var(--adm-accent)", fontSize: "1.1rem" }} />Edit Statistik</h3>
-          {statsLoading ? <div style={{ color: "#888", fontSize: 13, padding: "5px 0" }}><i className="bx bx-loader-alt bx-spin" /> Memuat statistik...</div> : (
+          <h3 style={{ fontSize: "0.9rem", color: "var(--cv-text)", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: 6 }}><i className="bx bx-bar-chart-alt-2" style={{ color: "var(--adm-accent)", fontSize: "1.1rem" }} />Edit Statistik</h3>
+          {statsLoading ? <div style={{ color: "var(--cv-text-mute)", fontSize: 13, padding: "5px 0" }}><i className="bx bx-loader-alt bx-spin" /> Memuat statistik...</div> : (
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
               {[["total_shows", "Total Shows"], ["setlists", "Setlists"], ["unit_songs", "Unit Songs"]].map(([key, label]) => (
                 <div key={key} className={styles.field} style={{ flex: 1, minWidth: 120 }}>
                   <label>{label}</label>
-                  <input type="number" value={stats[key]?.value ?? ""} onChange={e => handleStatChange(key, e.target.value)} style={{ background: "#141414" }} />
+                  <input type="number" value={stats[key]?.value ?? ""} onChange={e => handleStatChange(key, e.target.value)} style={{ background: "var(--cv-ink-1)" }} />
                 </div>
               ))}
               <button className={styles.btnPrimary} onClick={saveStats} disabled={statsSaving} style={{ height: 36, padding: "0 1.25rem", fontSize: "0.85rem" }}>
@@ -3800,14 +3800,14 @@ function TicketsManager() {
                   <td data-label="Pengirim"><div style={{ fontWeight: 600 }}>{t.name}</div><div style={{ fontSize: "0.75rem", opacity: 0.7 }}>No. Anggota: {t.no_anggota}</div></td>
                   <td data-label="Kategori"><span style={{ background: "rgba(16,185,129,0.1)", color: "#10b981", padding: "2px 6px", borderRadius: 4, fontSize: "0.75rem", whiteSpace: "nowrap" }}>{t.kategori}</span></td>
                   <td data-label="Pesan" style={{ whiteSpace: "normal", wordBreak: "break-word", fontSize: "0.85rem" }}>{t.pesan}</td>
-                  <td data-label="Divisi" style={{ fontSize: "0.8rem", color: "#f0f0f0", opacity: t.divisi === "-" ? 0.4 : 1 }}>
-                    <select value={t.divisi} onChange={e => handleUpdate(t.id, "divisi", e.target.value)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "inherit", borderRadius: 4, padding: "2px 4px", fontSize: "0.75rem", cursor: "pointer", width: "100%" }}>
-                      {["-","Divisi Humas","Divisi Desain","Divisi IT","Divisi Medsos","Divisi Esports","Divisi Sekretaris","Divisi Girl","Divisi Video Editor","All Divisi"].map(d => <option key={d} value={d} style={{ background: "#242424", color: "#fff" }}>{d}</option>)}
+                  <td data-label="Divisi" style={{ fontSize: "0.8rem", color: "var(--cv-text)", opacity: t.divisi === "-" ? 0.4 : 1 }}>
+                    <select value={t.divisi} onChange={e => handleUpdate(t.id, "divisi", e.target.value)} style={{ background: "transparent", border: "1px solid var(--cv-line)", color: "inherit", borderRadius: 4, padding: "2px 4px", fontSize: "0.75rem", cursor: "pointer", width: "100%" }}>
+                      {["-","Divisi Humas","Divisi Desain","Divisi IT","Divisi Medsos","Divisi Esports","Divisi Sekretaris","Divisi Girl","Divisi Video Editor","All Divisi"].map(d => <option key={d} value={d} style={{ background: "var(--cv-ink-3)", color: "var(--cv-text)" }}>{d}</option>)}
                     </select>
                   </td>
                   <td data-label="Status" style={{ textAlign: "center" }}>
-                    <select value={t.status} onChange={e => handleUpdate(t.id, "status", e.target.value)} style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", border: "none", outline: "none", appearance: "none", textAlign: "center", width: "100%", background: t.status === "Completed" ? "rgba(16,185,129,0.2)" : t.status === "Progress" ? "rgba(245,158,11,0.2)" : t.status === "Rejected" ? "rgba(239,68,68,0.2)" : "rgba(156,163,175,0.2)", color: t.status === "Completed" ? "#10b981" : t.status === "Progress" ? "#f59e0b" : t.status === "Rejected" ? "#ef4444" : "#9ca3af" }}>
-                      {["Pending","Progress","Completed","Rejected"].map(s => <option key={s} value={s} style={{ background: "#242424", color: "#fff" }}>{s}</option>)}
+                    <select value={t.status} onChange={e => handleUpdate(t.id, "status", e.target.value)} style={{ padding: "3px 8px", borderRadius: 12, fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", border: "none", outline: "none", appearance: "none", textAlign: "center", width: "100%", background: t.status === "Completed" ? "rgba(16,185,129,0.2)" : t.status === "Progress" ? "color-mix(in srgb, var(--cv-orange) 20%, transparent)" : t.status === "Rejected" ? "rgba(239,68,68,0.2)" : "rgba(156,163,175,0.2)", color: t.status === "Completed" ? "#10b981" : t.status === "Progress" ? "var(--cv-orange)" : t.status === "Rejected" ? "#ef4444" : "var(--cv-text-mute)" }}>
+                      {["Pending","Progress","Completed","Rejected"].map(s => <option key={s} value={s} style={{ background: "var(--cv-ink-3)", color: "var(--cv-text)" }}>{s}</option>)}
                     </select>
                   </td>
                   <td data-label="Aksi" style={{ textAlign: "center" }}>
@@ -3920,7 +3920,7 @@ function CalendarManager() {
         </div>
       )}
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}><i className="bx bx-calendar" style={{ color: "#3b82f6" }} /> Kalender Manual<span className={styles.count}>{events.length} jadwal</span></h2>
+        <h2 className={styles.sectionTitle}><i className="bx bx-calendar" style={{ color: "var(--cv-orange)" }} /> Kalender Manual<span className={styles.count}>{events.length} jadwal</span></h2>
         <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah Jadwal</button>
       </div>
       {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat jadwal...</div> : events.length === 0 ? (
@@ -3933,7 +3933,7 @@ function CalendarManager() {
               {events.map(ev => (
                 <tr key={ev.id}>
                   <td>{ev.date}</td><td>{ev.startTime} WIB</td><td style={{ fontWeight: 600 }}>{ev.title}</td>
-                  <td>{ev.url ? <a href={ev.url} target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>{ev.url.length > 40 ? ev.url.slice(0, 40) + "…" : ev.url}</a> : "-"}</td>
+                  <td>{ev.url ? <a href={ev.url} target="_blank" rel="noreferrer" style={{ color: "var(--cv-orange)" }}>{ev.url.length > 40 ? ev.url.slice(0, 40) + "…" : ev.url}</a> : "-"}</td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
                       <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(ev)} title="Edit"><i className="bx bx-edit" /></button>
@@ -4112,7 +4112,7 @@ function UpdatesManager() {
               {updates.map(item => (
                 <tr key={item.id}>
                   <td style={{ textTransform: "capitalize" }}>{item.platform}</td>
-                  <td><a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#3b82f6" }}>{item.url.length > 50 ? item.url.slice(0, 50) + "..." : item.url}</a></td>
+                  <td><a href={item.url} target="_blank" rel="noreferrer" style={{ color: "var(--cv-orange)" }}>{item.url.length > 50 ? item.url.slice(0, 50) + "..." : item.url}</a></td>
                   <td style={{ textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
                       <button className={styles.btnGhost} style={{ padding: "4px 8px" }} onClick={() => openEdit(item)}><i className="bx bx-edit" /></button>
@@ -4189,7 +4189,7 @@ function VcScheduleManager() {
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-video" style={{ color: "#ec4899" }} /> Jadwal Video Call</h2></div>
+      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-video" style={{ color: "var(--cv-orange)" }} /> Jadwal Video Call</h2></div>
       {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div> : (
         <div className={styles.formModal} style={{ position: "relative", maxWidth: 600 }}>
           <form onSubmit={handleSave}>
@@ -4297,7 +4297,7 @@ function AboutErineManager() {
 
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-image" style={{ color: "#ec4899" }} /> About Erine Hero Photos
+          <i className="bx bx-image" style={{ color: "var(--cv-orange)" }} /> About Erine Hero Photos
         </h2>
         <p style={{ color: "var(--adm-muted)", fontSize: 13, marginTop: 4 }}>
           Kelola foto yang tampil di slider hero halaman About Erine. Foto pertama adalah foto utama yang paling besar.
@@ -4368,8 +4368,8 @@ function AboutErineManager() {
               <div style={{
                 marginTop: 16,
                 padding: "12px 16px",
-                background: "rgba(236, 72, 153, 0.08)",
-                border: "1px dashed rgba(236, 72, 153, 0.3)",
+                background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)",
+                border: "1px dashed color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                 borderRadius: 8,
                 fontSize: 13,
                 color: "var(--adm-muted)",
@@ -4377,7 +4377,7 @@ function AboutErineManager() {
                 gap: 8,
                 alignItems: "flex-start",
               }}>
-                <i className="bx bx-info-circle" style={{ color: "#ec4899", flexShrink: 0, marginTop: 2 }} />
+                <i className="bx bx-info-circle" style={{ color: "var(--cv-orange)", flexShrink: 0, marginTop: 2 }} />
                 <span>
                   Total <strong>{slides.filter(s => s.trim()).length} foto</strong>. Foto 1 jadi foto utama besar, foto ke-2, 3, 4 tampil di thumbnail bawah.
                   Perubahan disimpan ke database dan langsung aktif di website.
@@ -4451,7 +4451,7 @@ function AnggotaKotaManager() {
   return (
     <div className={styles.sectionWrap}>
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
-      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-map" style={{ color: "#3b82f6" }} /> Anggota Kota ({Object.keys(cityData).length} Kota)</h2></div>
+      <div className={styles.sectionHeader}><h2 className={styles.sectionTitle}><i className="bx bx-map" style={{ color: "var(--cv-orange)" }} /> Anggota Kota ({Object.keys(cityData).length} Kota)</h2></div>
       {loading ? <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat data...</div> : (
         <div className={styles.formModal} style={{ position: "relative", maxWidth: 800 }}>
           <form onSubmit={handleSave}>
@@ -4919,7 +4919,7 @@ function InvitationsManager() {
                         style={{
                           background: "none",
                           border: "none",
-                          color: "#c9a84c",
+                          color: "var(--cv-orange)",
                           fontSize: 12,
                           cursor: "pointer",
                           textDecoration: "underline",
@@ -4938,8 +4938,8 @@ function InvitationsManager() {
                     required
                     placeholder="Contoh: Nabil-Rasyaaa"
                   />
-                  <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>
-                    URL: <span style={{ color: "#c9a84c" }}>/undangan/{slug || "slug-url"}</span>
+                  <div style={{ fontSize: 12, color: "var(--cv-text-mute)", marginTop: 4 }}>
+                    URL: <span style={{ color: "var(--cv-orange)" }}>/undangan/{slug || "slug-url"}</span>
                   </div>
                 </div>
               </div>
@@ -4968,7 +4968,7 @@ function InvitationsManager() {
       {/* Header Section with Subtabs */}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-envelope" style={{ color: "#c9a84c" }} /> Undangan Fanbase
+          <i className="bx bx-envelope" style={{ color: "var(--cv-orange)" }} /> Undangan Fanbase
           <span className={styles.count}>{invitations.length} Undangan</span>
         </h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -5006,8 +5006,8 @@ function InvitationsManager() {
             padding: "8px 16px",
             borderRadius: 8,
             border: "none",
-            background: activeTab === "list" ? "#2a2410" : "transparent",
-            color: activeTab === "list" ? "#c9a84c" : "var(--adm-muted)",
+            background: activeTab === "list" ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "transparent",
+            color: activeTab === "list" ? "var(--cv-orange)" : "var(--adm-muted)",
             fontWeight: 600,
             cursor: "pointer",
             display: "inline-flex",
@@ -5023,8 +5023,8 @@ function InvitationsManager() {
             padding: "8px 16px",
             borderRadius: 8,
             border: "none",
-            background: activeTab === "config" ? "#2a2410" : "transparent",
-            color: activeTab === "config" ? "#c9a84c" : "var(--adm-muted)",
+            background: activeTab === "config" ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "transparent",
+            color: activeTab === "config" ? "var(--cv-orange)" : "var(--adm-muted)",
             fontWeight: 600,
             cursor: "pointer",
             display: "inline-flex",
@@ -5050,7 +5050,7 @@ function InvitationsManager() {
                     left: 12,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#777",
+                    color: "var(--cv-text-mute)",
                     fontSize: "1.1rem",
                   }}
                 />
@@ -5079,7 +5079,7 @@ function InvitationsManager() {
                       transform: "translateY(-50%)",
                       background: "none",
                       border: "none",
-                      color: "#999",
+                      color: "var(--cv-text-mute)",
                       cursor: "pointer",
                     }}
                   >
@@ -5100,9 +5100,9 @@ function InvitationsManager() {
                   fontSize: "0.82rem",
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: filterCheckin === "all" ? "1px solid #c9a84c" : "1px solid var(--adm-border)",
-                  background: filterCheckin === "all" ? "rgba(201,168,76,0.18)" : "var(--adm-surface)",
-                  color: filterCheckin === "all" ? "#c9a84c" : "var(--adm-text)",
+                  border: filterCheckin === "all" ? "1px solid var(--cv-orange)" : "1px solid var(--adm-border)",
+                  background: filterCheckin === "all" ? "color-mix(in srgb, var(--cv-orange) 18%, transparent)" : "var(--adm-surface)",
+                  color: filterCheckin === "all" ? "var(--cv-orange)" : "var(--adm-text)",
                   transition: "all 0.15s ease",
                 }}
               >
@@ -5134,9 +5134,9 @@ function InvitationsManager() {
                   fontSize: "0.82rem",
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: filterCheckin === "belum" ? "1px solid #f59e0b" : "1px solid var(--adm-border)",
-                  background: filterCheckin === "belum" ? "rgba(245,158,11,0.18)" : "var(--adm-surface)",
-                  color: filterCheckin === "belum" ? "#f59e0b" : "var(--adm-text)",
+                  border: filterCheckin === "belum" ? "1px solid var(--cv-orange)" : "1px solid var(--adm-border)",
+                  background: filterCheckin === "belum" ? "color-mix(in srgb, var(--cv-orange) 18%, transparent)" : "var(--adm-surface)",
+                  color: filterCheckin === "belum" ? "var(--cv-orange)" : "var(--adm-text)",
                   transition: "all 0.15s ease",
                 }}
               >
@@ -5170,18 +5170,18 @@ function InvitationsManager() {
                 <tbody>
                   {filtered.map((item, idx) => (
                     <tr key={item.id || item.slug || idx}>
-                      <td style={{ textAlign: "center", color: "#888", fontVariantNumeric: "tabular-nums" }}>
+                      <td style={{ textAlign: "center", color: "var(--cv-text-mute)", fontVariantNumeric: "tabular-nums" }}>
                         {idx + 1}
                       </td>
-                      <td style={{ fontWeight: 600, color: "#f0f0f0" }}>
+                      <td style={{ fontWeight: 600, color: "var(--cv-text)" }}>
                         {item.name}
                       </td>
                       <td>
                         <code
                           style={{
                             fontSize: 12,
-                            color: "#c9a84c",
-                            background: "rgba(201,168,76,0.09)",
+                            color: "var(--cv-orange)",
+                            background: "color-mix(in srgb, var(--cv-orange) 9%, transparent)",
                             padding: "3px 8px",
                             borderRadius: 4,
                           }}
@@ -5208,11 +5208,11 @@ function InvitationsManager() {
                             transition: "all 0.2s ease",
                             border: item.checked_in
                               ? "1px solid rgba(16,185,129,0.5)"
-                              : "1px dashed rgba(255,255,255,0.22)",
+                              : "1px dashed var(--cv-line-strong)",
                             background: item.checked_in
                               ? "rgba(16,185,129,0.16)"
-                              : "rgba(255,255,255,0.04)",
-                            color: item.checked_in ? "#10b981" : "#9ca3af",
+                              : "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
+                            color: item.checked_in ? "#10b981" : "var(--cv-text-mute)",
                           }}
                         >
                           {togglingSlug === item.slug ? (
@@ -5230,7 +5230,7 @@ function InvitationsManager() {
                           )}
                         </button>
                         {item.checked_in && item.checked_in_at && (
-                          <div style={{ fontSize: 10, color: "#6b7280", marginTop: 4 }}>
+                          <div style={{ fontSize: 10, color: "var(--cv-text-mute)", marginTop: 4 }}>
                             {new Date(item.checked_in_at).toLocaleString("id-ID", {
                               day: "numeric",
                               month: "short",
@@ -5248,10 +5248,10 @@ function InvitationsManager() {
                             disabled={togglingSlug === item.slug}
                             style={{
                               padding: "5px 9px",
-                              color: item.checked_in ? "#f59e0b" : "#10b981",
+                              color: item.checked_in ? "var(--cv-orange)" : "#10b981",
                               fontSize: 13,
-                              borderColor: item.checked_in ? "rgba(245,158,11,0.3)" : "rgba(16,185,129,0.3)",
-                              background: item.checked_in ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.08)",
+                              borderColor: item.checked_in ? "color-mix(in srgb, var(--cv-orange) 30%, transparent)" : "rgba(16,185,129,0.3)",
+                              background: item.checked_in ? "color-mix(in srgb, var(--cv-orange) 8%, transparent)" : "rgba(16,185,129,0.08)",
                             }}
                             onClick={() => handleToggleCheckin(item)}
                             title={item.checked_in ? "Reset Kehadiran (Ubah ke Belum Hadir)" : "Tandai Hadir Manual"}
@@ -5279,7 +5279,7 @@ function InvitationsManager() {
                             target="_blank"
                             rel="noreferrer"
                             className={styles.btnGhost}
-                            style={{ padding: "5px 9px", color: "#3b82f6", textDecoration: "none", fontSize: 13 }}
+                            style={{ padding: "5px 9px", color: "var(--cv-orange)", textDecoration: "none", fontSize: 13 }}
                             title="Buka Halaman Undangan"
                           >
                             <i className="bx bx-link-external" />
@@ -5320,7 +5320,7 @@ function InvitationsManager() {
         <div style={{ display: "grid", gridTemplateColumns: "minmax(300px, 640px) 1fr", gap: 24, alignItems: "start" }}>
           {/* Form Settings */}
           <div className={styles.formModal} style={{ position: "relative", maxWidth: "100%", padding: "20px 24px" }}>
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.05rem", color: "#c9a84c", display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ margin: "0 0 16px 0", fontSize: "1.05rem", color: "var(--cv-orange)", display: "flex", alignItems: "center", gap: 8 }}>
               <i className="bx bx-palette" /> Edit Teks & Background Kartu
             </h3>
             <form onSubmit={handleSaveCardConfig}>
@@ -5334,7 +5334,7 @@ function InvitationsManager() {
                     onChange={(e) => handleConfigChange("bgImage", e.target.value)}
                     placeholder="/images/wayfinder-bg.png atau https://..."
                   />
-                  <small style={{ color: "#888" }}>
+                  <small style={{ color: "var(--cv-text-mute)" }}>
                     Bisa berupa path lokal e.g. <code>/images/wayfinder-bg.png</code> atau link URL gambar online.
                   </small>
                 </div>
@@ -5389,7 +5389,7 @@ function InvitationsManager() {
 
                 {/* Event Details */}
                 <div style={{ borderTop: "1px solid var(--adm-border)", paddingTop: 16, marginTop: 4 }}>
-                  <div style={{ fontWeight: 600, color: "#c9a84c", marginBottom: 12, fontSize: "0.9rem" }}>
+                  <div style={{ fontWeight: 600, color: "var(--cv-orange)", marginBottom: 12, fontSize: "0.9rem" }}>
                     <i className="bx bx-calendar" /> Detail Jadwal & Lokasi Acara
                   </div>
 
@@ -5505,7 +5505,7 @@ function InvitationsManager() {
           {/* Live Preview Box */}
           <div
             style={{
-              background: "#111",
+              background: "var(--cv-ink-1)",
               border: "1px solid var(--adm-border)",
               borderRadius: 12,
               padding: 20,
@@ -5516,25 +5516,26 @@ function InvitationsManager() {
               top: 20,
             }}
           >
-            <div style={{ fontSize: "0.85rem", color: "#c9a84c", fontWeight: 600, marginBottom: 14, alignSelf: "flex-start" }}>
+            <div style={{ fontSize: "0.85rem", color: "var(--cv-orange)", fontWeight: 600, marginBottom: 14, alignSelf: "flex-start" }}>
               <i className="bx bx-show" /> Live Preview Card
             </div>
 
             <div
+              className="cv-dark"
               style={{
                 width: "100%",
                 maxWidth: 320,
                 borderRadius: 14,
-                border: "2px solid rgba(240,190,83,0.4)",
+                border: "2px solid color-mix(in srgb, var(--cv-orange) 40%, transparent)",
                 padding: "24px 18px",
                 position: "relative",
                 overflow: "hidden",
-                background: "#0b0f0d",
+                background: "var(--cv-ink)",
                 backgroundImage: `linear-gradient(rgba(10,15,12,0.82), rgba(10,15,12,0.98)), url(${cardConfig.bgImage || DEFAULT_CARD_CONFIG.bgImage})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 textAlign: "center",
-                color: "#ece3d0",
+                color: "var(--cv-text-dim)",
                 boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
               }}
             >
@@ -5544,9 +5545,9 @@ function InvitationsManager() {
                   display: "inline-block",
                   padding: "4px 12px",
                   borderRadius: 12,
-                  border: "1px solid rgba(240,190,83,0.35)",
+                  border: "1px solid color-mix(in srgb, var(--cv-orange) 35%, transparent)",
                   background: "rgba(0,0,0,0.6)",
-                  color: "#f0be53",
+                  color: "var(--cv-orange-hi)",
                   fontSize: 10,
                   fontWeight: 700,
                   letterSpacing: "0.08em",
@@ -5557,7 +5558,7 @@ function InvitationsManager() {
               </div>
 
               {/* Eyebrow */}
-              <div style={{ fontSize: 11, color: "#d6cebf", fontWeight: 600, letterSpacing: "0.06em" }}>
+              <div style={{ fontSize: 11, color: "var(--cv-text-dim)", fontWeight: 600, letterSpacing: "0.06em" }}>
                 {(cardConfig.eyebrow || "CATHERINA VALLENCIA").toUpperCase()}
               </div>
 
@@ -5568,7 +5569,7 @@ function InvitationsManager() {
                   fontFamily: "Playfair Display, Georgia, serif",
                   fontStyle: "italic",
                   fontWeight: 700,
-                  color: "#fff",
+                  color: "var(--cv-text)",
                   margin: "4px 0 0 0",
                 }}
               >
@@ -5579,7 +5580,7 @@ function InvitationsManager() {
               <div
                 style={{
                   fontSize: 11,
-                  color: "#ffd778",
+                  color: "var(--cv-orange-hi)",
                   fontWeight: 700,
                   letterSpacing: "0.2em",
                   marginBottom: 12,
@@ -5591,14 +5592,14 @@ function InvitationsManager() {
               {/* Mengundang Box */}
               <div
                 style={{
-                  background: "rgba(240,190,83,0.09)",
-                  border: "1px solid rgba(240,190,83,0.35)",
+                  background: "color-mix(in srgb, var(--cv-orange) 9%, transparent)",
+                  border: "1px solid color-mix(in srgb, var(--cv-orange) 35%, transparent)",
                   borderRadius: 8,
                   padding: "8px 10px",
                   marginBottom: 14,
                 }}
               >
-                <div style={{ fontSize: 9, color: "#d6cebf", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 9, color: "var(--cv-text-dim)", letterSpacing: "0.15em", textTransform: "uppercase" }}>
                   {cardConfig.invitedLabel || "MENGUNDANG"}
                 </div>
                 <div
@@ -5607,7 +5608,7 @@ function InvitationsManager() {
                     fontFamily: "Playfair Display, Georgia, serif",
                     fontStyle: "italic",
                     fontWeight: 700,
-                    color: "#ffd778",
+                    color: "var(--cv-orange-hi)",
                     marginTop: 2,
                   }}
                 >
@@ -5627,26 +5628,26 @@ function InvitationsManager() {
                   marginBottom: 14,
                 }}
               >
-                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 11 }}>
+                <div style={{ color: "var(--cv-orange-hi)", fontWeight: 700, fontSize: 11 }}>
                   {cardConfig.dateTitle || "Sabtu, 22 Agustus 2026"}
                 </div>
-                <div style={{ color: "#d6cebf", fontSize: 10, marginBottom: 8 }}>
+                <div style={{ color: "var(--cv-text-dim)", fontSize: 10, marginBottom: 8 }}>
                   {cardConfig.dateSub || "Pukul 15.00 — 20.30 WIB"}
                 </div>
 
-                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 11 }}>
+                <div style={{ color: "var(--cv-orange-hi)", fontWeight: 700, fontSize: 11 }}>
                   {cardConfig.locationTitle || "CGV FX Sudirman — Lantai F7"}
                 </div>
-                <div style={{ color: "#d6cebf", fontSize: 10, marginBottom: 8 }}>
+                <div style={{ color: "var(--cv-text-dim)", fontSize: 10, marginBottom: 8 }}>
                   {cardConfig.locationSub || "Jl. Jend. Sudirman, Jakarta Selatan"}
                 </div>
 
-                <div style={{ color: "#ffd778", fontWeight: 700, fontSize: 10 }}>
+                <div style={{ color: "var(--cv-orange-hi)", fontWeight: 700, fontSize: 10 }}>
                   {cardConfig.dressCodeTitle || "Dress Code: Birthday T-shirt Erine"}
                 </div>
               </div>
 
-              <div style={{ fontSize: 10, color: "#a09882", fontWeight: 600 }}>
+              <div style={{ fontSize: 10, color: "var(--cv-text-mute)", fontWeight: 600 }}>
                 {cardConfig.footerText || "CAVALLERY ©2026"}
               </div>
             </div>
@@ -5974,9 +5975,9 @@ function RecruitmentManager() {
       {/* 3 Role Switch Cards */}
       <div className={styles.recruitRolesGrid}>
         {[
-          { id: "member", title: "Join Member", icon: "bx-user-pin", color: "#3b82f6" },
-          { id: "admin", title: "Join Admin", icon: "bx-shield-quarter", color: "#c9a84c" },
-          { id: "volunteer", title: "Join Volunteer", icon: "bx-donate-heart", color: "#ec4899" },
+          { id: "member", title: "Join Member", icon: "bx-user-pin", color: "var(--cv-orange)" },
+          { id: "admin", title: "Join Admin", icon: "bx-shield-quarter", color: "var(--cv-orange)" },
+          { id: "volunteer", title: "Join Volunteer", icon: "bx-donate-heart", color: "var(--cv-orange)" },
         ].map((item) => {
           const roleData = roles.find((r) => r.id === item.id);
           const isOpen = Boolean(roleData?.is_open);
@@ -6009,7 +6010,7 @@ function RecruitmentManager() {
               </div>
 
               <div className={styles.switchWrap}>
-                <span className={styles.switchLabel} style={{ color: isOpen ? "#34d399" : "#aaa" }}>
+                <span className={styles.switchLabel} style={{ color: isOpen ? "#34d399" : "var(--cv-text-mute)" }}>
                   {isOpen ? "Status: Form Terbuka" : "Status: Form Ditutup"}
                 </span>
                 <button
@@ -6109,16 +6110,16 @@ function RecruitmentManager() {
                         textTransform: "uppercase",
                         background:
                           s.role_id === "admin"
-                            ? "rgba(201, 168, 76, 0.2)"
+                            ? "color-mix(in srgb, var(--cv-orange) 20%, transparent)"
                             : s.role_id === "volunteer"
-                            ? "rgba(236, 72, 153, 0.2)"
-                            : "rgba(59, 130, 246, 0.2)",
+                            ? "color-mix(in srgb, var(--cv-orange) 20%, transparent)"
+                            : "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
                         color:
                           s.role_id === "admin"
-                            ? "#ffd778"
+                            ? "var(--cv-orange-hi)"
                             : s.role_id === "volunteer"
-                            ? "#f472b6"
-                            : "#60a5fa",
+                            ? "var(--cv-orange-hi)"
+                            : "var(--cv-orange-hi)",
                       }}
                     >
                       {s.role_id === "member" ? "Member" : s.role_id === "admin" ? "Admin" : "Volunteer"}
@@ -6154,8 +6155,8 @@ function RecruitmentManager() {
                             ? "#065f46"
                             : s.status === "rejected"
                             ? "#7f1d1d"
-                            : "#78350f",
-                        color: "#fff",
+                            : "var(--cv-orange-deep)",
+                        color: s.status === "approved" || s.status === "rejected" ? "#fff" : "var(--cv-on-orange)",
                         border: "none",
                         borderRadius: 4,
                         padding: "3px 6px",
@@ -6219,7 +6220,7 @@ function RecruitmentManager() {
                 {detailModal.email && (
                   <>
                     <span style={{ color: "var(--adm-muted)" }}>Email:</span>
-                    <a href={`mailto:${detailModal.email}`} style={{ color: "#38bdf8" }}>{detailModal.email}</a>
+                    <a href={`mailto:${detailModal.email}`} style={{ color: "var(--cv-orange)" }}>{detailModal.email}</a>
                   </>
                 )}
 
@@ -6875,7 +6876,7 @@ function EsportManager() {
             fontWeight: 700,
             cursor: "pointer",
             border: activeTab === "roster" ? "1px solid var(--gold)" : "1px solid var(--adm-border)",
-            background: activeTab === "roster" ? "rgba(201, 168, 76, 0.15)" : "var(--adm-surface)",
+            background: activeTab === "roster" ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)" : "var(--adm-surface)",
             color: activeTab === "roster" ? "var(--gold)" : "var(--adm-text)",
             display: "flex",
             alignItems: "center",
@@ -6894,7 +6895,7 @@ function EsportManager() {
             fontWeight: 700,
             cursor: "pointer",
             border: activeTab === "matches" ? "1px solid var(--gold)" : "1px solid var(--adm-border)",
-            background: activeTab === "matches" ? "rgba(201, 168, 76, 0.15)" : "var(--adm-surface)",
+            background: activeTab === "matches" ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)" : "var(--adm-surface)",
             color: activeTab === "matches" ? "var(--gold)" : "var(--adm-text)",
             display: "flex",
             alignItems: "center",
@@ -6923,12 +6924,12 @@ function EsportManager() {
                     overflow: "hidden",
                     display: "flex",
                     flexDirection: "column",
-                    boxShadow: isSelected ? "0 0 20px rgba(201, 168, 76, 0.2)" : "none",
+                    boxShadow: isSelected ? "0 0 20px color-mix(in srgb, var(--cv-orange) 20%, transparent)" : "none",
                     transition: "all 0.2s ease",
                   }}
                 >
                   {/* Cover preview */}
-                  <div style={{ position: "relative", height: 130, background: "#111", overflow: "hidden" }}>
+                  <div style={{ position: "relative", height: 130, background: "var(--cv-ink-1)", overflow: "hidden" }}>
                     <img
                       src={div.cover_url}
                       alt={div.name}
@@ -6958,7 +6959,7 @@ function EsportManager() {
                         fontWeight: 700,
                         padding: "3px 8px",
                         borderRadius: 12,
-                        border: "1px solid rgba(255,255,255,0.15)",
+                        border: "1px solid rgba(255,255,255,0.25)",
                       }}
                     >
                       {div.roster_count || 0} Roster
@@ -6996,7 +6997,7 @@ function EsportManager() {
                           fontWeight: 700,
                           border: "none",
                           cursor: "pointer",
-                          background: isActive ? "#065f46" : "rgba(239,68,68,0.15)",
+                          background: isActive ? "color-mix(in srgb, #10b981 14%, transparent)" : "rgba(239,68,68,0.15)",
                           color: isActive ? "#34d399" : "#f87171",
                         }}
                       >
@@ -7077,7 +7078,7 @@ function EsportManager() {
                           {p.avatar_url ? (
                             <img src={p.avatar_url} alt="" className={styles.thumb} style={{ borderRadius: "50%" }} />
                           ) : (
-                            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(201,168,76,0.15)", color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>
+                            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>
                               <i className="bx bx-user" />
                             </div>
                           )}
@@ -7089,13 +7090,13 @@ function EsportManager() {
                           {p.game_id || "-"}
                         </td>
                         <td data-label="Role">
-                          <span style={{ padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: 6, fontSize: "0.8rem" }}>
+                          <span style={{ padding: "3px 8px", background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)", borderRadius: 6, fontSize: "0.8rem" }}>
                             {p.role || "Player"}
                           </span>
                         </td>
                         <td data-label="Status">
                           {Boolean(p.is_captain) ? (
-                            <span style={{ background: "rgba(201,168,76,0.2)", color: "#ffd37c", border: "1px solid rgba(201,168,76,0.4)", padding: "2px 8px", borderRadius: 10, fontSize: "0.75rem", fontWeight: 700 }}>
+                            <span style={{ background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)", color: "var(--cv-orange-hi)", border: "1px solid color-mix(in srgb, var(--cv-orange) 40%, transparent)", padding: "2px 8px", borderRadius: 10, fontSize: "0.75rem", fontWeight: 700 }}>
                               👑 CAPTAIN
                             </span>
                           ) : (
@@ -7214,11 +7215,11 @@ function EsportManager() {
                               🔴 LIVE STREAM
                             </span>
                           ) : m.status === "completed" ? (
-                            <span style={{ background: "rgba(255,255,255,0.08)", color: "var(--adm-muted)", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
+                            <span style={{ background: "color-mix(in srgb, var(--cv-bone) 8%, transparent)", color: "var(--adm-muted)", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
                               SELESAI
                             </span>
                           ) : (
-                            <span style={{ background: "rgba(201,168,76,0.2)", color: "#ffd37c", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
+                            <span style={{ background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)", color: "var(--cv-orange-hi)", padding: "2px 8px", borderRadius: 10, fontSize: "0.72rem", fontWeight: 700 }}>
                               UPCOMING
                             </span>
                           )}
@@ -7235,8 +7236,8 @@ function EsportManager() {
                                   borderRadius: 4,
                                   fontSize: "0.7rem",
                                   fontWeight: 800,
-                                  background: isWin ? "#065f46" : isLose ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.1)",
-                                  color: isWin ? "#34d399" : isLose ? "#f87171" : "#e5e7eb",
+                                  background: isWin ? "color-mix(in srgb, #10b981 14%, transparent)" : isLose ? "rgba(239,68,68,0.2)" : "color-mix(in srgb, var(--cv-bone) 10%, transparent)",
+                                  color: isWin ? "#34d399" : isLose ? "#f87171" : "var(--cv-text)",
                                 }}
                               >
                                 {isWin ? "WIN" : isLose ? "LOSE" : "DRAW"}
@@ -7250,7 +7251,7 @@ function EsportManager() {
                           <div className={styles.actionBtns}>
                             <button
                               className={styles.btnGhost}
-                              style={{ padding: "4px 8px", fontSize: 12, color: "var(--gold)", borderColor: "rgba(201,168,76,0.4)" }}
+                              style={{ padding: "4px 8px", fontSize: 12, color: "var(--gold)", borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)" }}
                               onClick={() => openScoreModal(m)}
                               title="Input skor & hasil"
                             >
@@ -7316,7 +7317,7 @@ function EsportManager() {
               {divCover && (
                 <div style={{ marginTop: 8 }}>
                   <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>Preview Cover:</label>
-                  <div style={{ width: "100%", height: 140, borderRadius: 8, overflow: "hidden", background: "#000", border: "1px solid var(--adm-border)" }}>
+                  <div style={{ width: "100%", height: 140, borderRadius: 8, overflow: "hidden", background: "var(--cv-ink)", border: "1px solid var(--adm-border)" }}>
                     <img src={divCover} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 </div>
@@ -7475,9 +7476,9 @@ function EsportManager() {
                 <label>Hasil Akhir Cavallery</label>
                 <div style={{ display: "flex", gap: 10 }}>
                   {[
-                    { id: "win", label: "MENANG (WIN)", bg: "#065f46", color: "#34d399" },
+                    { id: "win", label: "MENANG (WIN)", bg: "color-mix(in srgb, #10b981 14%, transparent)", color: "#34d399" },
                     { id: "lose", label: "KALAH (LOSE)", bg: "rgba(239,68,68,0.2)", color: "#f87171" },
-                    { id: "draw", label: "SERI (DRAW)", bg: "rgba(255,255,255,0.1)", color: "#e5e7eb" },
+                    { id: "draw", label: "SERI (DRAW)", bg: "color-mix(in srgb, var(--cv-bone) 10%, transparent)", color: "var(--cv-text)" },
                   ].map(opt => (
                     <button
                       key={opt.id}
@@ -7575,7 +7576,7 @@ function EsportManager() {
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, padding: "8px 12px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6, padding: "8px 12px", background: "color-mix(in srgb, var(--cv-bone) 3%, transparent)", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
                 <input
                   type="checkbox"
                   id="isCaptainCheck"
@@ -7670,14 +7671,15 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     {
       groupTitle: "Keuangan & Keanggotaan Utama",
       groupIcon: "bx-wallet",
-      groupColor: "#c9a84c",
+      groupColor: "var(--cv-orange)",
       cards: [
-        { key: "keanggotaan" as any, icon: "bx-user-check", label: "Keanggotaan", color: "#10b981", desc: "Verifikasi & Direktori" },
-        { key: "adminkas" as any, icon: "bx-wallet", label: "Kas Anggota", color: "#f59e0b", desc: "Matriks & Pengeluaran" },
-        { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "#e11d48", desc: "Verifikasi Donasi" },
-        { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "#6366f1", desc: "Data Donatur Publik" },
-        { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "#8b5cf6", desc: "Banner Home & Opsi" },
-        { key: "adminwartiket" as any, icon: "bx-flame", label: "War Tiket STS", color: "#c9a84c", desc: "Live Antrean War" },
+        { key: "keanggotaan" as any, icon: "bx-user-check", label: "Keanggotaan", color: "var(--cv-orange)", desc: "Verifikasi & Direktori" },
+        { key: "adminkas" as any, icon: "bx-wallet", label: "Kas Anggota", color: "var(--cv-orange)", desc: "Matriks & Pengeluaran" },
+        { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "var(--cv-orange)", desc: "Verifikasi Donasi" },
+        { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "var(--cv-orange)", desc: "Data Donatur Publik" },
+        { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "var(--cv-orange)", desc: "Banner Home & Opsi" },
+        { key: "adminstruktur" as any, icon: "bx-sitemap", label: "Struktur Admin", color: "var(--cv-orange)", desc: "Bagan Pengurus Cavallery" },
+        { key: "adminwartiket" as any, icon: "bx-flame", label: "War Tiket STS", color: "var(--cv-orange)", desc: "Live Antrean War" },
         { key: "adminspreadsheet" as any, icon: "bx-table", label: "Live Spreadsheet", color: "#10b981", desc: "Google Sheets Backup" },
         { key: "adminexcel" as any, icon: "bxs-file-export", label: "Download Excel", color: "#059669", desc: "Export Matriks Kas" },
       ],
@@ -7685,46 +7687,46 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
     {
       groupTitle: "Rekrutmen & Interaksi Komunitas",
       groupIcon: "bx-conversation",
-      groupColor: "#3b82f6",
+      groupColor: "var(--cv-orange)",
       cards: [
-        { key: "recruitment", icon: "bx-group", label: "Recruitment", color: "#3b82f6", desc: "Pendaftar Masuk" },
-        { key: "invitations", icon: "bx-envelope", label: "Undangan", color: "#c9a84c", desc: "RSVP Acara" },
-        { key: "journal", icon: "bx-book-open", label: "MemoRine", color: "#db2777", desc: "Pesan & Doa Fans" },
-        { key: "fanart", icon: "bx-palette", label: "Fanart Erine", color: "#ec4899", desc: "Karya Seni Fans" },
-        { key: "twoshot", icon: "bx-camera", label: "2S with Erine", color: "#f43f5e", desc: "Mading Foto 2-Shot" },
-        { key: "dengerine", icon: "bx-headphone", label: "Dengerine", color: "#10b981", desc: "Playlist Lagu Fans" },
-        { key: "esport", icon: "bx-trophy", label: "Esport", color: "#f59e0b", desc: "Turnamen & Game" },
-        { key: "tickets", icon: "bx-receipt", label: "Tickets", color: "#14b8a6", desc: "Kritik & Saran Fans" },
-        { key: "anggotakota", icon: "bx-map", label: "Anggota Kota", color: "#0284c7", desc: "Sebaran Domisili" },
+        { key: "recruitment", icon: "bx-group", label: "Recruitment", color: "var(--cv-orange)", desc: "Pendaftar Masuk" },
+        { key: "invitations", icon: "bx-envelope", label: "Undangan", color: "var(--cv-orange)", desc: "RSVP Acara" },
+        { key: "journal", icon: "bx-book-open", label: "MemoRine", color: "var(--cv-orange)", desc: "Pesan & Doa Fans" },
+        { key: "fanart", icon: "bx-palette", label: "Fanart Erine", color: "var(--cv-orange)", desc: "Karya Seni Fans" },
+        { key: "twoshot", icon: "bx-camera", label: "2S with Erine", color: "var(--cv-orange)", desc: "Mading Foto 2-Shot" },
+        { key: "dengerine", icon: "bx-headphone", label: "Dengerine", color: "var(--cv-orange)", desc: "Playlist Lagu Fans" },
+        { key: "esport", icon: "bx-trophy", label: "Esport", color: "var(--cv-orange)", desc: "Turnamen & Game" },
+        { key: "tickets", icon: "bx-receipt", label: "Tickets", color: "var(--cv-orange)", desc: "Kritik & Saran Fans" },
+        { key: "anggotakota", icon: "bx-map", label: "Anggota Kota", color: "var(--cv-orange)", desc: "Sebaran Domisili" },
         { key: "bot", icon: "bx-bot", label: "Bot LINE", color: "#22c55e", desc: "Webhook & Trigger" },
       ],
     },
     {
       groupTitle: "Publikasi Konten & Media",
       groupIcon: "bx-layer",
-      groupColor: "#8b5cf6",
+      groupColor: "var(--cv-orange-hi)",
       cards: [
-        { key: "news", icon: "bx-news", label: "News", color: "#b45309", desc: "Cavallery Statement" },
-        { key: "timeline", icon: "bx-map-pin", label: "Milestone", color: "#047857", desc: "Linimasa Perjalanan" },
-        { key: "gallery", icon: "bx-image-alt", label: "Gallery", color: "#7c3aed", desc: "Galeri Dokumentasi" },
-        { key: "media", icon: "bx-folder-open", label: "Media Vault", color: "#0891b2", desc: "Penyimpanan File" },
+        { key: "news", icon: "bx-news", label: "News", color: "var(--cv-orange)", desc: "Cavallery Statement" },
+        { key: "timeline", icon: "bx-map-pin", label: "Milestone", color: "var(--cv-orange)", desc: "Linimasa Perjalanan" },
+        { key: "gallery", icon: "bx-image-alt", label: "Gallery", color: "var(--cv-orange)", desc: "Galeri Dokumentasi" },
+        { key: "media", icon: "bx-folder-open", label: "Media Vault", color: "var(--cv-orange)", desc: "Penyimpanan File" },
         { key: "youtube", icon: "bxl-youtube", label: "YouTube", color: "#dc2626", desc: "Video Komunitas" },
-        { key: "updates", icon: "bx-refresh", label: "Updates", color: "#10b981", desc: "Log Perubahan" },
+        { key: "updates", icon: "bx-refresh", label: "Updates", color: "var(--cv-orange)", desc: "Log Perubahan" },
       ],
     },
     {
       groupTitle: "Erine & Show Tracker",
       groupIcon: "bx-star",
-      groupColor: "#ec4899",
+      groupColor: "var(--cv-orange)",
       cards: [
-        { key: "abouterine", icon: "bx-image", label: "About Erine", color: "#ec4899", desc: "Biodata & Profil" },
-        { key: "setlists", icon: "bx-music", label: "Setlists", color: "#0369a1", desc: "Show Theater JKT48" },
-        { key: "kabesha", icon: "bx-star", label: "Kabesha", color: "#d97706", desc: "Foto Resmi Member" },
-        { key: "vcschedule", icon: "bx-video", label: "Video Call", color: "#f43f5e", desc: "Jadwal Video Call" },
-        { key: "calendar", icon: "bx-calendar", label: "Calendar", color: "#3b82f6", desc: "Agenda Bulanan" },
-        { key: "stats", icon: "bx-bar-chart", label: "Stats", color: "#9333ea", desc: "Statistik Pertunjukan" },
-        { key: "funfacts", icon: "bx-laugh", label: "Funfacts", color: "#059669", desc: "Fakta Menarik" },
-        { key: "merch", icon: "bx-store", label: "Merchandise", color: "#f59e0b", desc: "Katalog Merchandise" },
+        { key: "abouterine", icon: "bx-image", label: "About Erine", color: "var(--cv-orange)", desc: "Biodata & Profil" },
+        { key: "setlists", icon: "bx-music", label: "Setlists", color: "var(--cv-orange)", desc: "Show Theater JKT48" },
+        { key: "kabesha", icon: "bx-star", label: "Kabesha", color: "var(--cv-orange)", desc: "Foto Resmi Member" },
+        { key: "vcschedule", icon: "bx-video", label: "Video Call", color: "var(--cv-orange)", desc: "Jadwal Video Call" },
+        { key: "calendar", icon: "bx-calendar", label: "Calendar", color: "var(--cv-orange)", desc: "Agenda Bulanan" },
+        { key: "stats", icon: "bx-bar-chart", label: "Stats", color: "var(--cv-orange)", desc: "Statistik Pertunjukan" },
+        { key: "funfacts", icon: "bx-laugh", label: "Funfacts", color: "var(--cv-orange)", desc: "Fakta Menarik" },
+        { key: "merch", icon: "bx-store", label: "Merchandise", color: "var(--cv-orange)", desc: "Katalog Merchandise" },
       ],
     },
   ];
@@ -7735,8 +7737,8 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       <div
         className={styles.welcomeBanner}
         style={{
-          background: "linear-gradient(135deg, rgba(36, 36, 36, 0.95) 0%, rgba(20, 24, 33, 0.95) 100%)",
-          border: "1px solid rgba(201, 168, 76, 0.3)",
+          background: "var(--cv-ink-2)",
+          border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
           display: "flex",
           justifyContent: "space-between",
@@ -7748,13 +7750,13 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
         }}
       >
         <div>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 12, background: "rgba(201, 168, 76, 0.15)", color: "var(--gold)", fontSize: "0.74rem", fontWeight: 800, marginBottom: 8 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 12, background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--gold)", fontSize: "0.74rem", fontWeight: 800, marginBottom: 8 }}>
             <i className="bx bxs-shield-alt-2" /> CAVALLERY ADMIN PANEL
           </div>
-          <h2 style={{ margin: "0 0 4px", fontSize: "1.4rem", color: "#f0f0f0", fontWeight: 800 }}>
+          <h2 style={{ margin: "0 0 4px", fontSize: "1.4rem", color: "var(--cv-text)", fontWeight: 800 }}>
             Selamat datang di Dashboard Admin!
           </h2>
-          <p style={{ margin: 0, color: "var(--fg-dim, #999)", fontSize: "0.86rem" }}>
+          <p style={{ margin: 0, color: "var(--fg-dim)", fontSize: "0.86rem" }}>
             Pusat kendali seluruh fitur, data anggota, keuangan kas, dan konten website resmi Cavallery.
           </p>
         </div>
@@ -7770,9 +7772,9 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
               gap: 6,
               padding: "8px 14px",
               borderRadius: 10,
-              background: "rgba(255,255,255,0.06)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.15)",
+              background: "color-mix(in srgb, var(--cv-bone) 6%, transparent)",
+              color: "var(--cv-text)",
+              border: "1px solid var(--cv-line-strong)",
               textDecoration: "none",
               fontSize: "0.82rem",
               fontWeight: 600,
@@ -7814,11 +7816,11 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
                 gap: 8,
                 marginBottom: 12,
                 paddingBottom: 8,
-                borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+                borderBottom: "1px solid var(--cv-line)",
               }}
             >
               <i className={`bx ${group.groupIcon}`} style={{ color: group.groupColor, fontSize: "1.2rem" }} />
-              <h3 style={{ margin: 0, fontSize: "1rem", color: "#f0f0f0", fontWeight: 700 }}>
+              <h3 style={{ margin: 0, fontSize: "1rem", color: "var(--cv-text)", fontWeight: 700 }}>
                 {group.groupTitle}
               </h3>
             </div>
@@ -7849,11 +7851,11 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
                   <div className={styles.dashCardCount} style={{ fontSize: "1.3rem" }}>
                     {counts[card.key] ?? "—"}
                   </div>
-                  <div className={styles.dashCardLabel} style={{ fontWeight: 700, color: "#eee" }}>
+                  <div className={styles.dashCardLabel} style={{ fontWeight: 700, color: "var(--cv-text)" }}>
                     {card.label}
                   </div>
                   {card.desc && (
-                    <div style={{ fontSize: "0.68rem", color: "var(--fg-dim, #777)", marginTop: -2 }}>
+                    <div style={{ fontSize: "0.68rem", color: "var(--fg-dim)", marginTop: -2 }}>
                       {card.desc}
                     </div>
                   )}
@@ -8059,14 +8061,14 @@ function FanartManager() {
         <div
           onClick={() => setTab("pending")}
           style={{
-            background: tab === "pending" ? "rgba(245, 158, 11, 0.25)" : "var(--adm-surface)",
-            border: "1px solid " + (tab === "pending" ? "#f59e0b" : "var(--adm-border)"),
+            background: tab === "pending" ? "color-mix(in srgb, var(--cv-orange) 25%, transparent)" : "var(--adm-surface)",
+            border: "1px solid " + (tab === "pending" ? "var(--cv-orange)" : "var(--adm-border)"),
             borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
           }}
         >
-          <i className="bx bx-time" style={{ fontSize: "1.8rem", color: "#f59e0b" }} />
+          <i className="bx bx-time" style={{ fontSize: "1.8rem", color: "var(--cv-orange)" }} />
           <div>
-            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "#f59e0b" }}>{pendingCount}</div>
+            <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--cv-orange)" }}>{pendingCount}</div>
             <div style={{ fontSize: "0.8rem", color: "var(--adm-muted)" }}>Menunggu Review</div>
           </div>
         </div>
@@ -8104,7 +8106,7 @@ function FanartManager() {
         <div
           onClick={() => setTab("all")}
           style={{
-            background: tab === "all" ? "rgba(201, 168, 76, 0.25)" : "var(--adm-surface)",
+            background: tab === "all" ? "color-mix(in srgb, var(--cv-orange) 25%, transparent)" : "var(--adm-surface)",
             border: "1px solid " + (tab === "all" ? "var(--gold)" : "var(--adm-border)"),
             borderRadius: 10, padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
           }}
@@ -8173,7 +8175,7 @@ function FanartManager() {
                     <div
                       style={{
                         width: 60, height: 60, borderRadius: 8, overflow: "hidden",
-                        background: "#000", cursor: "pointer", border: "1px solid var(--adm-border)",
+                        background: "var(--cv-ink)", cursor: "pointer", border: "1px solid var(--adm-border)",
                       }}
                       onClick={() => setPreviewModal(item)}
                     >
@@ -8219,7 +8221,7 @@ function FanartManager() {
                         <i className="bx bx-check" /> Tayang
                       </span>
                     ) : item.status === "pending" ? (
-                      <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: "0.75rem", background: "rgba(245,158,11,0.2)", color: "#f59e0b", fontWeight: 700 }}>
+                      <span style={{ padding: "3px 8px", borderRadius: 6, fontSize: "0.75rem", background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)", color: "var(--cv-orange)", fontWeight: 700 }}>
                         <i className="bx bx-time" /> Pending
                       </span>
                     ) : (
@@ -8284,7 +8286,7 @@ function FanartManager() {
               <button className={styles.closeX} onClick={() => setPreviewModal(null)}><i className="bx bx-x" /></button>
             </div>
             <div className={styles.formBody}>
-              <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "100%", maxHeight: 380, background: "var(--cv-ink)", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <img
                   src={previewModal.image_url && !previewModal.image_url.endsWith("/") ? previewModal.image_url : "/images/erine1.jpg"}
                   alt={previewModal.title}
@@ -8680,7 +8682,7 @@ function TwoShotManager() {
                 <tr key={item.id}>
                   <td>
                     <div
-                      style={{ width: 64, height: 64, borderRadius: 8, overflow: "hidden", background: "#000", cursor: "pointer", border: "1px solid var(--adm-border)" }}
+                      style={{ width: 64, height: 64, borderRadius: 8, overflow: "hidden", background: "var(--cv-ink)", cursor: "pointer", border: "1px solid var(--adm-border)" }}
                       onClick={() => setPreviewModal(item)}
                       title="Klik untuk pratinjau"
                     >
@@ -8716,7 +8718,7 @@ function TwoShotManager() {
                     </div>
                   </td>
                   <td>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.85rem", color: "#e11d48" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.85rem", color: "var(--cv-orange)" }}>
                       <i className="bx bxs-heart" /> {item.likes || 0}
                     </span>
                   </td>
@@ -8734,13 +8736,13 @@ function TwoShotManager() {
                             ? "rgba(16, 185, 129, 0.15)"
                             : item.status === "rejected"
                             ? "rgba(239, 68, 68, 0.15)"
-                            : "rgba(245, 158, 11, 0.15)",
+                            : "color-mix(in srgb, var(--cv-orange) 15%, transparent)",
                         color:
                           item.status === "approved"
                             ? "#10b981"
                             : item.status === "rejected"
                             ? "#ef4444"
-                            : "#f59e0b",
+                            : "var(--cv-orange)",
                       }}
                     >
                       {item.status === "approved" ? "Disetujui" : item.status === "rejected" ? "Ditolak" : "Pending"}
@@ -8807,7 +8809,7 @@ function TwoShotManager() {
               <button className={styles.closeX} onClick={() => setPreviewModal(null)}><i className="bx bx-x" /></button>
             </div>
             <div className={styles.formBody}>
-              <div style={{ width: "100%", maxHeight: 380, background: "#000", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "100%", maxHeight: 380, background: "var(--cv-ink)", borderRadius: 10, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <img
                   src={previewModal.image_url && !previewModal.image_url.endsWith("/") ? previewModal.image_url : "/images/erine3.jpg"}
                   alt={previewModal.user_name}
@@ -8828,7 +8830,7 @@ function TwoShotManager() {
                 <div style={{ fontSize: "0.82rem", color: "var(--adm-muted)", marginTop: 4 }}>
                   Event: {previewModal.event_name || "-"} | Tanggal: {previewModal.event_date || "-"}
                 </div>
-                <div style={{ background: "rgba(225, 29, 72, 0.08)", borderLeft: "3px solid #e11d48", padding: "10px 14px", borderRadius: "0 8px 8px 0", marginTop: 10, fontSize: "0.9rem", color: "var(--adm-text)", fontStyle: "italic" }}>
+                <div style={{ background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", borderLeft: "3px solid var(--cv-orange)", padding: "10px 14px", borderRadius: "0 8px 8px 0", marginTop: 10, fontSize: "0.9rem", color: "var(--adm-text)", fontStyle: "italic" }}>
                   "{previewModal.message}"
                 </div>
               </div>
@@ -9049,7 +9051,7 @@ function DengerineManager() {
       {deleteId && (
         <div className={styles.confirmOverlay}>
           <div className={styles.confirmBox}>
-            <i className="bx bx-trash" style={{ fontSize: "2rem", color: "#e11d48" }} />
+            <i className="bx bx-trash" style={{ fontSize: "2rem", color: "var(--cv-orange)" }} />
             <p>Hapus lagu ini dari Dengerine?</p>
             <div className={styles.confirmBtns}>
               <button className={styles.btnGhost} onClick={() => setDeleteId(null)}>Batal</button>
@@ -9106,8 +9108,8 @@ function DengerineManager() {
                   <td>
                     <span style={{
                       padding: "2px 8px", borderRadius: 6, fontSize: "0.72rem", fontWeight: 700,
-                      background: s.type === "Original" ? "rgba(180,83,9,0.12)" : "rgba(29,185,84,0.12)",
-                      color:      s.type === "Original" ? "#b45309" : "#1db954",
+                      background: s.type === "Original" ? "color-mix(in srgb, var(--cv-orange) 12%, transparent)" : "rgba(29,185,84,0.12)",
+                      color:      s.type === "Original" ? "var(--cv-orange)" : "#1db954",
                     }}>
                       {s.type}
                     </span>
@@ -9361,10 +9363,10 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
       <div className={styles.sectionHeader}>
         <div>
           <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="bx bx-user-pin" style={{ color: "#c9a84c" }} /> Manajemen Pengguna & Divisi
+            <i className="bx bx-user-pin" style={{ color: "var(--cv-orange)" }} /> Manajemen Pengguna & Divisi
             <span className={styles.count}>{users.length} Akun</span>
           </h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#888" }}>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--cv-text-mute)" }}>
             Kelola akun administrator Cavallery, pembagian divisi kerja, dan tingkatan role RBAC.
           </p>
         </div>
@@ -9383,7 +9385,7 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
           placeholder="Cari username, nama, divisi, atau role..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "var(--cv-text)", fontSize: 13 }}
         />
       </div>
 
@@ -9406,8 +9408,8 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
             <tbody>
               {filtered.map((u, i) => (
                 <tr key={u.id || u.username}>
-                  <td style={{ textAlign: "center", color: "#888" }}>{i + 1}</td>
-                  <td style={{ fontWeight: 600, color: u.role === "superadmin" ? "#c9a84c" : "#60a5fa" }}>
+                  <td style={{ textAlign: "center", color: "var(--cv-text-mute)" }}>{i + 1}</td>
+                  <td style={{ fontWeight: 600, color: u.role === "superadmin" ? "var(--cv-orange)" : "var(--cv-orange-hi)" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <i className={`bx ${u.role === "superadmin" ? "bxs-badge-check" : "bx-shield"}`} />
                       {u.username}
@@ -9417,9 +9419,9 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                   <td>
                     <span style={{
                       padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
-                      background: "rgba(201,168,76,0.12)",
-                      color: "#c9a84c",
-                      border: "1px solid rgba(201,168,76,0.3)",
+                      background: "color-mix(in srgb, var(--cv-orange) 12%, transparent)",
+                      color: "var(--cv-orange)",
+                      border: "1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 4,
@@ -9431,15 +9433,15 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                   <td>
                     <span style={{
                       padding: "3px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
-                      background: u.role === "superadmin" ? "rgba(201,168,76,0.2)" : "rgba(59,130,246,0.2)",
-                      color: u.role === "superadmin" ? "#c9a84c" : "#60a5fa",
-                      border: `1px solid ${u.role === "superadmin" ? "rgba(201,168,76,0.4)" : "rgba(59,130,246,0.4)"}`,
+                      background: u.role === "superadmin" ? "color-mix(in srgb, var(--cv-orange) 20%, transparent)" : "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
+                      color: u.role === "superadmin" ? "var(--cv-orange)" : "var(--cv-orange-hi)",
+                      border: `1px solid ${u.role === "superadmin" ? "color-mix(in srgb, var(--cv-orange) 40%, transparent)" : "color-mix(in srgb, var(--cv-orange) 40%, transparent)"}`,
                       textTransform: "uppercase",
                     }}>
                       {u.role || "admin"}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12, color: "#888" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)" }}>
                     {u.created_at ? new Date(u.created_at).toLocaleDateString("id-ID") : "—"}
                   </td>
                   <td style={{ textAlign: "center" }}>
@@ -9510,18 +9512,18 @@ function UsersManager({ currentRole, currentUsername }: { currentRole?: string; 
                     value={form.role}
                     onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
                     style={{
-                      background: "#141414",
-                      color: "#f0f0f0",
-                      border: "1px solid #333",
+                      background: "var(--cv-ink-1)",
+                      color: "var(--cv-text)",
+                      border: "1px solid var(--cv-line-strong)",
                       borderRadius: 8,
                       padding: "9px 12px",
                       cursor: "pointer",
                       width: "100%",
                     }}
                   >
-                    <option value="superadmin" style={{ background: "#1e1e1e", color: "#fff" }}>Superadmin (Pangkat Tertinggi / Akses Penuh)</option>
-                    <option value="admin" style={{ background: "#1e1e1e", color: "#fff" }}>Admin (Operasional & Kelola Konten)</option>
-                    <option value="editor" style={{ background: "#1e1e1e", color: "#fff" }}>Editor (Hanya Tulis & Edit Berita/Galeri)</option>
+                    <option value="superadmin" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Superadmin (Pangkat Tertinggi / Akses Penuh)</option>
+                    <option value="admin" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Admin (Operasional & Kelola Konten)</option>
+                    <option value="editor" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Editor (Hanya Tulis & Edit Berita/Galeri)</option>
                   </select>
                 </div>
                 <div className={styles.field}>
@@ -9663,7 +9665,7 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-history" style={{ color: "#c9a84c" }} /> Riwayat Aktivitas
+          <i className="bx bx-history" style={{ color: "var(--cv-orange)" }} /> Riwayat Aktivitas
           <span className={styles.count}>{logs.length} Log</span>
         </h2>
         <div style={{ display: "flex", gap: 8 }}>
@@ -9672,8 +9674,8 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleDeleteSelected}
             disabled={!isSuperadmin || selectedIds.size === 0}
             style={{
-              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
-              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-text-mute)",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-line-strong)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -9686,7 +9688,7 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleClearAll}
             disabled={!isSuperadmin}
             style={{
-              color: isSuperadmin ? "#f87171" : "#666",
+              color: isSuperadmin ? "#f87171" : "var(--cv-text-mute)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -9707,30 +9709,30 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
           placeholder="Cari aksi, detail, username..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "var(--cv-text)", fontSize: 13 }}
         />
         <select
           value={moduleFilter}
           onChange={e => setModuleFilter(e.target.value)}
           style={{
             padding: "8px 12px",
-            background: "#141414",
-            border: "1px solid #333",
+            background: "var(--cv-ink-1)",
+            border: "1px solid var(--cv-line-strong)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--cv-text)",
             fontSize: 13,
             cursor: "pointer",
           }}
         >
-          <option value="all" style={{ background: "#1e1e1e", color: "#fff" }}>Semua Modul</option>
+          <option value="all" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Semua Modul</option>
           {modules.map(m => (
-            <option key={m} value={m} style={{ background: "#1e1e1e", color: "#fff" }}>
+            <option key={m} value={m} style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>
               {m}
             </option>
           ))}
         </select>
         {selectedIds.size > 0 && (
-          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+          <span style={{ fontSize: 13, color: "var(--cv-orange)", fontWeight: 600 }}>
             {selectedIds.size} log terpilih
           </span>
         )}
@@ -9739,7 +9741,7 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
       {loading ? (
         <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat riwayat aktivitas...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>Tidak ada riwayat aktivitas</div>
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--cv-text-mute)" }}>Tidak ada riwayat aktivitas</div>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -9764,7 +9766,7 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
             </thead>
             <tbody>
               {filtered.map(l => (
-                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "rgba(201,168,76,0.08)" : undefined }}>
+                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "color-mix(in srgb, var(--cv-orange) 8%, transparent)" : undefined }}>
                   <td style={{ textAlign: "center" }}>
                     <input
                       type="checkbox"
@@ -9773,27 +9775,27 @@ function ActivityLogsManager({ currentRole }: { currentRole?: string }) {
                       style={{ cursor: "pointer" }}
                     />
                   </td>
-                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", whiteSpace: "nowrap" }}>
                     {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
                   </td>
                   <td style={{ fontWeight: 600 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                      <span style={{ color: "var(--cv-text)", fontWeight: 700, fontSize: 13 }}>
                         {l.name || l.real_name || l.nama || l.username || "Admin"}
                       </span>
                       {l.username && (l.name || l.real_name || l.nama) && (l.name || l.real_name || l.nama).toLowerCase() !== l.username.toLowerCase() && (
-                        <span style={{ fontSize: 11, color: "#c9a84c", fontFamily: "monospace" }}>@{l.username}</span>
+                        <span style={{ fontSize: 11, color: "var(--cv-orange)", fontFamily: "monospace" }}>@{l.username}</span>
                       )}
                     </div>
                   </td>
                   <td>
-                    <span style={{ background: "rgba(255,255,255,0.08)", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>
+                    <span style={{ background: "color-mix(in srgb, var(--cv-bone) 8%, transparent)", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>
                       {l.module}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600, color: "#f3f4f6" }}>{l.action}</td>
-                  <td style={{ fontSize: 12, color: "#9ca3af" }}>{l.details || "—"}</td>
-                  <td style={{ fontSize: 12, color: "#6b7280", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
+                  <td style={{ fontWeight: 600, color: "var(--cv-text)" }}>{l.action}</td>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)" }}>{l.details || "—"}</td>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -9914,7 +9916,7 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
       {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-log-in-circle" style={{ color: "#c9a84c" }} /> Riwayat Login
+          <i className="bx bx-log-in-circle" style={{ color: "var(--cv-orange)" }} /> Riwayat Login
           <span className={styles.count}>{logs.length} Percobaan</span>
         </h2>
         <div style={{ display: "flex", gap: 8 }}>
@@ -9923,8 +9925,8 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleDeleteSelected}
             disabled={!isSuperadmin || selectedIds.size === 0}
             style={{
-              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
-              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-text-mute)",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-line-strong)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -9937,7 +9939,7 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleClearAll}
             disabled={!isSuperadmin}
             style={{
-              color: isSuperadmin ? "#f87171" : "#666",
+              color: isSuperadmin ? "#f87171" : "var(--cv-text-mute)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -9958,27 +9960,27 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
           placeholder="Cari username atau IP..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{ maxWidth: 280, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "var(--cv-text)", fontSize: 13 }}
         />
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
           style={{
             padding: "8px 12px",
-            background: "#141414",
-            border: "1px solid #333",
+            background: "var(--cv-ink-1)",
+            border: "1px solid var(--cv-line-strong)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--cv-text)",
             fontSize: 13,
             cursor: "pointer",
           }}
         >
-          <option value="all" style={{ background: "#1e1e1e", color: "#fff" }}>Semua Status</option>
-          <option value="success" style={{ background: "#1e1e1e", color: "#fff" }}>Berhasil Saja</option>
-          <option value="failed" style={{ background: "#1e1e1e", color: "#fff" }}>Gagal Saja</option>
+          <option value="all" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Semua Status</option>
+          <option value="success" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Berhasil Saja</option>
+          <option value="failed" style={{ background: "var(--cv-ink-2)", color: "var(--cv-text)" }}>Gagal Saja</option>
         </select>
         {selectedIds.size > 0 && (
-          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+          <span style={{ fontSize: 13, color: "var(--cv-orange)", fontWeight: 600 }}>
             {selectedIds.size} log terpilih
           </span>
         )}
@@ -9987,7 +9989,7 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
       {loading ? (
         <div className={styles.loadingState}><i className="bx bx-loader-alt bx-spin" /> Memuat riwayat login...</div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>Tidak ada riwayat login</div>
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--cv-text-mute)" }}>Tidak ada riwayat login</div>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -10011,7 +10013,7 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
             </thead>
             <tbody>
               {filtered.map(l => (
-                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "rgba(201,168,76,0.08)" : undefined }}>
+                <tr key={l.id} style={{ background: selectedIds.has(l.id) ? "color-mix(in srgb, var(--cv-orange) 8%, transparent)" : undefined }}>
                   <td style={{ textAlign: "center" }}>
                     <input
                       type="checkbox"
@@ -10020,16 +10022,16 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
                       style={{ cursor: "pointer" }}
                     />
                   </td>
-                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", whiteSpace: "nowrap" }}>
                     {l.created_at ? new Date(l.created_at).toLocaleString("id-ID") : "—"}
                   </td>
                   <td style={{ fontWeight: 600 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                      <span style={{ color: "var(--cv-text)", fontWeight: 700, fontSize: 13 }}>
                         {l.name || l.real_name || l.nama || l.username || "Admin"}
                       </span>
                       {l.username && (l.name || l.real_name || l.nama) && (l.name || l.real_name || l.nama).toLowerCase() !== l.username.toLowerCase() && (
-                        <span style={{ fontSize: 11, color: "#aaa", fontFamily: "monospace" }}>@{l.username}</span>
+                        <span style={{ fontSize: 11, color: "var(--cv-text-mute)", fontFamily: "monospace" }}>@{l.username}</span>
                       )}
                     </div>
                   </td>
@@ -10044,8 +10046,8 @@ function LoginLogsManager({ currentRole }: { currentRole?: string }) {
                       </span>
                     )}
                   </td>
-                  <td style={{ fontSize: 12, color: "#9ca3af", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
-                  <td style={{ fontSize: 11, color: "#6b7280", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={l.user_agent}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", fontFamily: "monospace" }}>{l.ip_address || "—"}</td>
+                  <td style={{ fontSize: 11, color: "var(--cv-text-mute)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={l.user_agent}>
                     {l.user_agent || "—"}
                   </td>
                 </tr>
@@ -10186,7 +10188,7 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
       )}
       <div className={styles.sectionHeader}>
         <h2 className={styles.sectionTitle}>
-          <i className="bx bx-map-pin" style={{ color: "#c9a84c" }} /> Lokasi Pengunjung (GPS)
+          <i className="bx bx-map-pin" style={{ color: "var(--cv-orange)" }} /> Lokasi Pengunjung (GPS)
           <span className={styles.count}>{locations.length} Titik Tercatat</span>
         </h2>
         <div style={{ display: "flex", gap: 8 }}>
@@ -10195,8 +10197,8 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleDeleteSelected}
             disabled={!isSuperadmin || selectedIds.size === 0}
             style={{
-              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#666",
-              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "#444",
+              color: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-text-mute)",
+              borderColor: isSuperadmin && selectedIds.size > 0 ? "#ef4444" : "var(--cv-line-strong)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -10213,7 +10215,7 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
             onClick={handleClearAll}
             disabled={!isSuperadmin}
             style={{
-              color: isSuperadmin ? "#f87171" : "#666",
+              color: isSuperadmin ? "#f87171" : "var(--cv-text-mute)",
               opacity: !isSuperadmin ? 0.5 : 1,
               cursor: isSuperadmin ? "pointer" : "not-allowed",
             }}
@@ -10237,16 +10239,16 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
 
       {/* Summary Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
-        <div style={{ background: "rgba(201, 168, 76, 0.08)", border: "1px solid rgba(201, 168, 76, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
-          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Total Koordinat Diterima</span>
-          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#c9a84c" }}>{locations.length}</span>
+        <div style={{ background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)", borderRadius: 10, padding: "12px 16px" }}>
+          <span style={{ fontSize: "0.78rem", color: "var(--cv-text-mute)", display: "block" }}>Total Koordinat Diterima</span>
+          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--cv-orange)" }}>{locations.length}</span>
         </div>
-        <div style={{ background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
-          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Pengunjung / IP Unik</span>
-          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#60a5fa" }}>{uniqueIps}</span>
+        <div style={{ background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", border: "1px solid color-mix(in srgb, var(--cv-orange) 25%, transparent)", borderRadius: 10, padding: "12px 16px" }}>
+          <span style={{ fontSize: "0.78rem", color: "var(--cv-text-mute)", display: "block" }}>Pengunjung / IP Unik</span>
+          <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--cv-orange-hi)" }}>{uniqueIps}</span>
         </div>
         <div style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", borderRadius: 10, padding: "12px 16px" }}>
-          <span style={{ fontSize: "0.78rem", color: "#9ca3af", display: "block" }}>Status Izin Lokasi</span>
+          <span style={{ fontSize: "0.78rem", color: "var(--cv-text-mute)", display: "block" }}>Status Izin Lokasi</span>
           <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#34d399", marginTop: 4, display: "block" }}>Aktif (Sukarela)</span>
         </div>
       </div>
@@ -10258,10 +10260,10 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
           placeholder="Cari IP, halaman, perangkat, atau koordinat..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "#fff", fontSize: 13 }}
+          style={{ maxWidth: 360, padding: "8px 12px", background: "var(--adm-surface)", border: "1px solid var(--adm-border)", borderRadius: 8, color: "var(--cv-text)", fontSize: 13 }}
         />
         {selectedIds.size > 0 && (
-          <span style={{ fontSize: 13, color: "#c9a84c", fontWeight: 600 }}>
+          <span style={{ fontSize: 13, color: "var(--cv-orange)", fontWeight: 600 }}>
             {selectedIds.size} data terpilih
           </span>
         )}
@@ -10272,7 +10274,7 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
           <i className="bx bx-loader-alt bx-spin" /> Memuat data lokasi pengunjung...
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "#777" }}>
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--cv-text-mute)" }}>
           <i className="bx bx-map-pin" style={{ fontSize: "2.5rem", opacity: 0.4, display: "block", marginBottom: 8 }} />
           Belum ada data koordinat lokasi pengunjung yang masuk.
         </div>
@@ -10305,7 +10307,7 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
                   key={l.id}
                   style={{
                     background: selectedIds.has(l.id)
-                      ? "rgba(201,168,76,0.08)"
+                      ? "color-mix(in srgb, var(--cv-orange) 8%, transparent)"
                       : undefined,
                   }}
                 >
@@ -10317,17 +10319,17 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
                       style={{ cursor: "pointer" }}
                     />
                   </td>
-                  <td style={{ fontSize: 12, color: "#aaa", whiteSpace: "nowrap" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", whiteSpace: "nowrap" }}>
                     {l.visit_time
                       ? new Date(l.visit_time).toLocaleString("id-ID")
                       : l.created_at
                       ? new Date(l.created_at).toLocaleString("id-ID")
                       : "—"}
                   </td>
-                  <td style={{ fontSize: 12, color: "#9ca3af", fontFamily: "monospace" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text-mute)", fontFamily: "monospace" }}>
                     {l.ip_address || "—"}
                   </td>
-                  <td style={{ fontSize: 12, color: "#f3f4f6", fontFamily: "monospace" }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-text)", fontFamily: "monospace" }}>
                     {l.latitude}, {l.longitude}
                   </td>
                   <td>
@@ -10335,13 +10337,13 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
                       ±{Number(l.accuracy || 0).toFixed(0)}m
                     </span>
                   </td>
-                  <td style={{ fontSize: 12, color: "#c9a84c", fontWeight: 600 }}>
+                  <td style={{ fontSize: 12, color: "var(--cv-orange)", fontWeight: 600 }}>
                     {l.page_path || "/"}
                   </td>
                   <td
                     style={{
                       fontSize: 11,
-                      color: "#6b7280",
+                      color: "var(--cv-text-mute)",
                       maxWidth: 220,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -10362,9 +10364,9 @@ function VisitorLocationsManager({ currentRole }: { currentRole?: string }) {
                         gap: 4,
                         padding: "5px 10px",
                         borderRadius: 6,
-                        background: "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.1))",
-                        border: "1px solid rgba(201,168,76,0.4)",
-                        color: "#c9a84c",
+                        background: "color-mix(in srgb, var(--cv-orange) 20%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--cv-orange) 40%, transparent)",
+                        color: "var(--cv-orange)",
                         fontSize: 11,
                         fontWeight: 700,
                         textDecoration: "none",
@@ -10404,6 +10406,7 @@ const navGroups: NavGroup[] = [
       { key: "adminwartiket" as any,    icon: "bxs-flame",       label: "War Tiket STS" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
+      { key: "adminstruktur" as any,    icon: "bx-sitemap",      label: "Struktur Admin" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
       { key: "adminexcel" as any,        icon: "bxs-file-export", label: "Download Excel" },
     ],
@@ -10498,9 +10501,9 @@ export default function AdminPage() {
   if (checking) return (
     <AdminPortal>
       <div className={styles.adminRoot} style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
-        <div style={{ textAlign: "center", color: "#c9a84c" }}>
+        <div style={{ textAlign: "center", color: "var(--cv-orange)" }}>
           <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2.5rem", marginBottom: 12 }} />
-          <div style={{ fontSize: "0.9rem", color: "#aaa" }}>Memuat Cavallery Admin...</div>
+          <div style={{ fontSize: "0.9rem", color: "var(--cv-text-mute)" }}>Memuat Cavallery Admin...</div>
         </div>
       </div>
     </AdminPortal>
@@ -10522,6 +10525,10 @@ export default function AdminPage() {
     }
     if ((section as string) === "adminkontributor") {
       window.location.href = "/internal/dashboard-admin-xv7r2q/kontributor";
+      return;
+    }
+    if ((section as string) === "adminstruktur") {
+      window.location.href = "/internal/dashboard-admin-xv7r2q/struktur";
       return;
     }
     if ((section as string) === "adminkas") {
@@ -10605,12 +10612,12 @@ export default function AdminPage() {
     <AdminPortal>
       <style>{`
         .adm-root {
-          --adm-bg:      #1a1a1a;
-          --adm-surface: #242424;
-          --adm-border:  #333;
-          --adm-text:    #f0f0f0;
-          --adm-muted:   #999;
-          --adm-accent:  #c9a84c;
+          --adm-bg:      var(--cv-ink);
+          --adm-surface: var(--cv-ink-2);
+          --adm-border:  var(--cv-line-strong);
+          --adm-text:    var(--cv-text);
+          --adm-muted:   var(--cv-text-mute);
+          --adm-accent:  var(--cv-orange);
           --adm-danger:  #e05252;
           --adm-sidebar: 220px;
           --adm-topbar:  52px;
@@ -10660,9 +10667,9 @@ export default function AdminPage() {
                   gap: 6,
                   padding: "4px 12px",
                   borderRadius: 20,
-                  background: role === "superadmin" ? "rgba(201,168,76,0.15)" : "rgba(96,165,250,0.15)",
-                  border: `1px solid ${role === "superadmin" ? "rgba(201,168,76,0.4)" : "rgba(96,165,250,0.4)"}`,
-                  color: role === "superadmin" ? "#c9a84c" : "#60a5fa",
+                  background: role === "superadmin" ? "color-mix(in srgb, var(--cv-orange) 15%, transparent)" : "color-mix(in srgb, var(--cv-orange) 15%, transparent)",
+                  border: `1px solid ${role === "superadmin" ? "color-mix(in srgb, var(--cv-orange) 40%, transparent)" : "color-mix(in srgb, var(--cv-orange) 40%, transparent)"}`,
+                  color: role === "superadmin" ? "var(--cv-orange)" : "var(--cv-orange-hi)",
                   fontWeight: 700,
                   fontSize: 12,
                 }}
