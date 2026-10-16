@@ -130,12 +130,14 @@ body::before {
   background-color: var(--bg);
   background-image:
     var(--cv-grain),
+    radial-gradient(circle, var(--cv-dot) 1.1px, transparent 1.7px),
     var(--cv-contour),
-    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.11), transparent 70%),
-    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.08), transparent 70%);
-  background-size: 180px 180px, cover, 100% 100%, 100% 100%;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
-  background-position: 0 0, center, 0 0, 0 0;
+    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.16), transparent 70%),
+    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.12), transparent 70%),
+    radial-gradient(40vmax 30vmax at 55% 55%, rgba(255, 107, 26, 0.05), transparent 70%);
+  background-size: 180px 180px, 22px 22px, cover, 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-position: 0 0, 0 0, center, 0 0, 0 0, 0 0;
 }
 
 [data-theme="light"] html,
@@ -146,9 +148,11 @@ html[data-theme="light"] {
 [data-theme="light"] body::before {
   background-image:
     var(--cv-grain),
+    radial-gradient(circle, var(--cv-dot) 1.1px, transparent 1.7px),
     var(--cv-contour),
-    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.12), transparent 70%),
-    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.08), transparent 70%);
+    radial-gradient(55vmax 45vmax at 100% 0%, rgba(255, 107, 26, 0.18), transparent 70%),
+    radial-gradient(50vmax 40vmax at 0% 100%, rgba(255, 107, 26, 0.13), transparent 70%),
+    radial-gradient(40vmax 30vmax at 55% 55%, rgba(255, 107, 26, 0.06), transparent 70%);
 }
 
 ::selection {

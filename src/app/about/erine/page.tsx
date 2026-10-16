@@ -21,6 +21,7 @@ export default function AboutErinePage() {
       <AboutErineSection />
       <SectionDivider rank={6} />
       <YoutubeSection square="e6" />
+      <SectionDivider rank={7} />
       <TimelineSection />
     </div>
   );
