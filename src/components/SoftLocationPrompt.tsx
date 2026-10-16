@@ -183,9 +183,9 @@ export default function SoftLocationPrompt() {
             "linear-gradient(135deg, rgba(20, 18, 14, 0.96), rgba(10, 10, 10, 0.98))",
           backdropFilter: "blur(14px)",
           WebkitBackdropFilter: "blur(14px)",
-          border: "1.5px solid rgba(201, 168, 76, 0.35)",
+          border: "1.5px solid rgba(229, 120, 48, 0.35)",
           boxShadow:
-            "0 14px 34px rgba(0, 0, 0, 0.85), 0 0 16px rgba(201, 168, 76, 0.15)",
+            "0 14px 34px rgba(0, 0, 0, 0.85), 0 0 16px rgba(229, 120, 48, 0.15)",
           borderRadius: "16px",
           padding: "14px 16px",
           animation: fadingOut
@@ -209,13 +209,13 @@ export default function SoftLocationPrompt() {
               width: "38px",
               height: "38px",
               borderRadius: "10px",
-              background: "rgba(201, 168, 76, 0.12)",
-              border: "1px solid rgba(201, 168, 76, 0.25)",
+              background: "rgba(229, 120, 48, 0.12)",
+              border: "1px solid rgba(229, 120, 48, 0.25)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "1.15rem",
-              color: "#c9a84c",
+              color: "#e57830",
               flexShrink: 0,
             }}
           >
@@ -285,7 +285,7 @@ export default function SoftLocationPrompt() {
             onClick={handleAllow}
             style={{
               flex: 1,
-              background: "linear-gradient(135deg, #c9a84c 0%, #b8933b 100%)",
+              background: "linear-gradient(135deg, #e57830 0%, #d8671b 100%)",
               color: "#0a0a0a",
               border: "none",
               borderRadius: "8px",

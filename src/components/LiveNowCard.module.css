@@ -1,15 +1,15 @@
 /* CSS Variables & Design Tokens for LiveNowCard */
 .liveCardWrapper {
   --live-card-bg: linear-gradient(145deg, #28231e, #1a1613);
-  --live-card-border: rgba(212, 175, 55, 0.35);
-  --live-gold: #d4af37;
-  --live-gold-glow: rgba(212, 175, 55, 0.2);
-  --live-teal: #4cc9c0;
-  --live-teal-glow: rgba(76, 201, 192, 0.2);
+  --live-card-border: rgba(228, 115, 39, 0.35);
+  --live-gold: #e47327;
+  --live-gold-glow: rgba(228, 115, 39, 0.2);
+  --live-teal: #e57830;
+  --live-teal-glow: rgba(229, 120, 48, 0.2);
   --live-red: #ff4d4d;
   --live-red-glow: rgba(255, 77, 77, 0.25);
   --live-text-primary: #f6efe0;
-  --live-text-secondary: #b9a988;
+  --live-text-secondary: #b99f88;
   --live-text-muted: #8e806a;
   
   width: 100%;
@@ -24,14 +24,14 @@
   border: 1px solid var(--live-card-border);
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(255, 77, 77, 0.08), 0 0 15px rgba(212, 175, 55, 0.06);
+  box-shadow: 0 4px 24px rgba(255, 77, 77, 0.08), 0 0 15px rgba(228, 115, 39, 0.06);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   overflow: hidden;
 }
 
 .liveCard:hover {
-  border-color: rgba(212, 175, 55, 0.6);
-  box-shadow: 0 8px 32px rgba(255, 77, 77, 0.14), 0 0 20px rgba(212, 175, 55, 0.12);
+  border-color: rgba(228, 115, 39, 0.6);
+  box-shadow: 0 8px 32px rgba(255, 77, 77, 0.14), 0 0 20px rgba(228, 115, 39, 0.12);
 }
 
 /* Decorative ambient top glow */
@@ -41,7 +41,7 @@
   right: -50px;
   width: 160px;
   height: 160px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(228, 115, 39, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -68,7 +68,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--live-gold);
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px rgba(228, 115, 39, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4);
   background-color: #201a15;
   display: block;
 }
@@ -169,15 +169,15 @@
 }
 
 .platformChipIdn {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(228, 115, 39, 0.15);
   color: var(--live-gold);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  border: 1px solid rgba(228, 115, 39, 0.35);
 }
 
 .platformChipShowroom {
-  background: rgba(76, 201, 192, 0.15);
+  background: rgba(229, 120, 48, 0.15);
   color: var(--live-teal);
-  border: 1px solid rgba(76, 201, 192, 0.35);
+  border: 1px solid rgba(229, 120, 48, 0.35);
 }
 
 .redDotPulse {
@@ -247,28 +247,28 @@
 
 /* IDN Platform Style */
 .btnIdn {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.22), rgba(212, 175, 55, 0.1));
-  border: 1px solid rgba(212, 175, 55, 0.45);
+  background: linear-gradient(135deg, rgba(228, 115, 39, 0.22), rgba(228, 115, 39, 0.1));
+  border: 1px solid rgba(228, 115, 39, 0.45);
   color: var(--live-text-primary);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .btnIdn:hover {
   border-color: var(--live-gold);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 6px 20px rgba(228, 115, 39, 0.25);
 }
 
 /* Showroom Platform Style */
 .btnShowroom {
-  background: linear-gradient(135deg, rgba(76, 201, 192, 0.22), rgba(76, 201, 192, 0.1));
-  border: 1px solid rgba(76, 201, 192, 0.45);
+  background: linear-gradient(135deg, rgba(229, 120, 48, 0.22), rgba(229, 120, 48, 0.1));
+  border: 1px solid rgba(229, 120, 48, 0.45);
   color: var(--live-text-primary);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 .btnShowroom:hover {
   border-color: var(--live-teal);
-  box-shadow: 0 6px 20px rgba(76, 201, 192, 0.25);
+  box-shadow: 0 6px 20px rgba(229, 120, 48, 0.25);
 }
 
 .btnLeftInfo {
@@ -326,7 +326,7 @@
 .offlineCard {
   position: relative;
   background: var(--live-card-bg);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid rgba(228, 115, 39, 0.25);
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);

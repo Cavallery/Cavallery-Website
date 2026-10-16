@@ -180,7 +180,7 @@ export default function YoutubeSection({
           {/* Error state */}
           {!loading && error && (
             <div className={styles.stateWrapper}>
-              <i className="bx bx-error-circle" style={{ fontSize: 32, color: "#ff4444" }} />
+              <i className="bx bx-error-circle" style={{ fontSize: 32, color: "#ff8f44" }} />
               <p className={styles.stateText}>{error}</p>
               <button
                 className={styles.retryBtn}

@@ -19,16 +19,13 @@
 
 /* Accent words (SplitWords wraps each word; colour must reach the inner span) */
 .pink :global(.cv-word__in) {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .fire :global(.cv-word__in) {
-  background-image: var(--cv-fire-text);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: cv-fire-drift 7s linear infinite;
+  color: var(--cv-orange);
+  -webkit-text-fill-color: currentColor;
+  background: none;
 }
 
 .fuse {
@@ -38,7 +35,7 @@
   height: 3px;
   margin-top: -4px;
   border-radius: 99px;
-  background: rgba(243, 237, 228, 0.08);
+  background: color-mix(in srgb, var(--cv-bone) 8%, transparent);
   overflow: hidden;
 }
 
@@ -52,8 +49,6 @@
   display: block;
   border-radius: inherit;
   background: var(--cv-fire-text);
-  background-size: 300% 100%;
-  animation: cv-fire-drift 3.5s linear infinite;
 }
 
 .fuseSpark {
@@ -65,7 +60,7 @@
   margin-top: -4.5px;
   border-radius: 50%;
   background: #fff3cf;
-  box-shadow: 0 0 10px 4px rgba(255, 193, 74, 0.85), 0 0 22px 8px rgba(242, 106, 27, 0.55);
+  box-shadow: 0 0 10px 4px rgba(255, 146, 74, 0.85), 0 0 22px 8px rgba(242, 106, 27, 0.55);
   animation: spark 0.35s ease-in-out infinite alternate;
 }
 

@@ -23,14 +23,14 @@ const COMPETITIVE_GAMES = [
     title: "Game Belalang Yang Membangkang",
     icon: "bx-bug",
     tag: "Arcade",
-    color: "#4ade80",
+    color: "#e78341",
   },
   {
     slug: "jumping-adventure",
     title: "Game Bibir Yang Telah Dicuri",
     icon: "bx-up-arrow-circle",
     tag: "Adventure",
-    color: "#60a5fa",
+    color: "#fa9e60",
   },
 ];
 
@@ -244,7 +244,7 @@ export default function GameLeaderboard() {
 
         <div className={styles.submitBanner}>
           <span>
-            <i className="bx bx-info-circle" style={{ color: "#f59e0b" }} />
+            <i className="bx bx-info-circle" style={{ color: "#f5690b" }} />
             Skor kamu otomatis tersimpan dan masuk ke database saat permainan selesai.
           </span>
         </div>

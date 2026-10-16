@@ -181,7 +181,7 @@ export default function HomePortalSection() {
             <Link
               key={item.title}
               href={item.href}
-              className={`${styles.panel} ${i % 2 === 0 ? styles.dark : styles.light} ${item.passion ? styles.passion : ""} cv-flame-hover`}
+              className={`${styles.panel} ${i % 2 === 0 ? styles.dark : styles.light} ${item.passion ? `${styles.passion} cv-dark` : ""} cv-flame-hover`}
             >
               <span className={styles.panelTop}>
                 <span className={styles.sq}>

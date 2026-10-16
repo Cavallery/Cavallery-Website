@@ -37,7 +37,7 @@
 }
 
 .erineTitleAccent {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 /* ================================================================
@@ -101,7 +101,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   transform: scaleY(0);
   transform-origin: bottom;
   transition: transform 0.4s var(--cv-ease-out);
@@ -221,13 +221,13 @@
   color: var(--cv-ink);
   border: 0;
   font-size: 1.6rem;
-  box-shadow: inset 0 -3px 0 var(--cv-flame);
+  box-shadow: inset 0 -3px 0 var(--cv-orange);
   transition: background-color 0.25s ease;
 }
 
 .audioBtn:hover,
 .audioBtn[aria-pressed="true"] {
-  background: var(--cv-pink);
+  background: var(--cv-orange);
 }
 
 .jikoQuoteBox {
@@ -310,7 +310,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(0deg, rgba(215, 48, 28, 0.28) 0%, transparent 30%);
+  background: linear-gradient(0deg, rgba(216, 103, 27, 0.28) 0%, transparent 30%);
 }
 
 .photoSq {
@@ -321,7 +321,7 @@
   z-index: 2;
   padding: 6px 10px;
   background: var(--cv-ink);
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -376,7 +376,7 @@
 }
 
 .galleryLink a {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   border-bottom: 1px solid currentColor;
 }
 
@@ -407,7 +407,7 @@
 }
 
 .ewHighlight {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-weight: 700;
 }
 
@@ -442,7 +442,7 @@
 .ewBioHeader i,
 .ewHtHeader i {
   font-size: 1.1rem;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .ewBioGrid {
@@ -466,7 +466,7 @@
   width: 40px;
   height: 40px;
   background: var(--cv-ink-3);
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-size: 1.15rem;
 }
 
@@ -491,7 +491,7 @@
 }
 
 .ewBioLink {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   border-bottom: 1px solid currentColor;
 }
 
@@ -511,9 +511,10 @@
   margin-left: 4px;
 }
 
-.colorDotPink { background: var(--cv-pink); margin-left: 0; }
-.colorDotBlue { background: var(--cv-blue); }
-.colorDotGreen { background: var(--cv-green); }
+.colorDotPink { background: #ff7aa8; margin-left: 0; }
+/* real favourite colours (content, not theme) */
+.colorDotBlue { background: #6aa8ff; }
+.colorDotGreen { background: #5cd6a2; }
 
 .ewHtList {
   display: grid;
@@ -542,7 +543,7 @@
 }
 
 .tag:hover {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .ewPm {
@@ -595,7 +596,7 @@
 }
 
 .ffTitleAccent {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .ffSubtitle {
@@ -637,7 +638,7 @@
 }
 
 .ffStatValGold {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .ffResetGameBtn,
@@ -659,7 +660,7 @@
 
 .ffResetGameBtn:hover,
 .playAgainBtn:hover {
-  background: var(--cv-pink);
+  background: var(--cv-orange);
 }
 
 .gameCompletionBanner {
@@ -669,8 +670,8 @@
   gap: 16px;
   align-items: center;
   padding: 18px;
-  border: 1px solid var(--cv-flame);
-  background: linear-gradient(0deg, rgba(215, 48, 28, 0.14), rgba(10, 10, 10, 0) 70%), var(--cv-ink-2);
+  border: 1px solid var(--cv-orange);
+  background: linear-gradient(0deg, rgba(216, 103, 27, 0.14), transparent 70%), var(--cv-ink-2);
 }
 
 .gameCompletionEmoji {
@@ -680,8 +681,8 @@
   width: 64px;
   height: 64px;
   background: var(--cv-ink);
-  color: var(--cv-heat);
-  border: 1px solid var(--cv-flame);
+  color: var(--cv-orange-hi);
+  border: 1px solid var(--cv-orange);
 }
 
 .gameCompletionContent h4 {
@@ -719,11 +720,11 @@
 }
 
 .ffCardCorrect {
-  border-color: rgba(92, 214, 162, 0.55);
+  border-color: rgba(233, 137, 73, 0.55);
 }
 
 .ffCardWrong {
-  border-color: rgba(215, 48, 28, 0.55);
+  border-color: rgba(216, 103, 27, 0.55);
 }
 
 .ffQuestionRow {
@@ -746,7 +747,7 @@
   place-items: center;
   width: 34px;
   height: 34px;
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   color: var(--cv-ink);
   font-family: var(--cv-font-display);
   font-size: 0.95rem;
@@ -793,8 +794,8 @@
 }
 
 .triviaOptionBtn:not(:disabled):hover {
-  border-color: var(--cv-pink);
-  background: rgba(255, 79, 139, 0.06);
+  border-color: var(--cv-orange);
+  background: rgba(255, 149, 79, 0.06);
 }
 
 .triviaOptionBtn:disabled {
@@ -819,7 +820,7 @@
 
 .triviaOptionCorrect {
   border-color: var(--cv-green);
-  background: rgba(92, 214, 162, 0.08);
+  background: rgba(233, 137, 73, 0.08);
 }
 
 .triviaOptionCorrect .triviaLetter {
@@ -829,13 +830,13 @@
 }
 
 .triviaOptionWrong {
-  border-color: var(--cv-ember);
-  background: rgba(215, 48, 28, 0.1);
+  border-color: var(--cv-orange-deep);
+  background: rgba(216, 103, 27, 0.1);
 }
 
 .triviaOptionWrong .triviaLetter {
-  background: var(--cv-ember);
-  border-color: var(--cv-ember);
+  background: var(--cv-orange-deep);
+  border-color: var(--cv-orange-deep);
 }
 
 .triviaOptionDimmed {
@@ -847,7 +848,7 @@
 }
 
 .triviaOptionCorrect .optResultIcon { color: var(--cv-green); }
-.triviaOptionWrong .optResultIcon { color: #ff6a4d; }
+.triviaOptionWrong .optResultIcon { color: #ff944d; }
 
 .ffGuessPrompt {
   display: flex;
@@ -863,7 +864,7 @@
   gap: 8px;
   padding: 12px 14px;
   background: var(--cv-ink-2);
-  border-left: 2px solid var(--cv-pink);
+  border-left: 2px solid var(--cv-orange);
 }
 
 .ffAnswerHeader {
@@ -882,7 +883,7 @@
 }
 
 .ffAnswerBadgeCorrect { color: var(--cv-green); }
-.ffAnswerBadgeWrong { color: var(--cv-heat); }
+.ffAnswerBadgeWrong { color: var(--cv-orange-hi); }
 
 .ffAnswerText {
   font-size: 0.9rem;
@@ -968,7 +969,7 @@
   border-radius: 99px;
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, var(--cv-blue) 0%, var(--cv-pink) 45%, var(--cv-ember) 70%, var(--cv-flame) 85%, var(--cv-heat) 100%);
+  background: var(--cv-orange);
   transform-origin: top;
   will-change: transform;
 }
@@ -1031,13 +1032,13 @@
 }
 
 .kabeshaAlurStep:nth-child(3)[data-lit="true"] .titikNode {
-  background: var(--cv-pink);
-  border-color: var(--cv-pink);
+  background: var(--cv-orange);
+  border-color: var(--cv-orange);
 }
 
 .kabeshaAlurStep[data-passion="true"][data-lit="true"] .titikNode {
-  background: var(--cv-flame);
-  border-color: var(--cv-heat);
+  background: var(--cv-orange);
+  border-color: var(--cv-orange-hi);
   color: var(--cv-ink);
 }
 
@@ -1129,7 +1130,7 @@
   place-content: center;
   justify-items: center;
   gap: 6px;
-  background: rgba(10, 10, 10, 0.55);
+  background: color-mix(in srgb, var(--cv-ink) 55%, transparent);
   color: var(--cv-bone);
   font-size: 0.72rem;
   font-weight: 800;
@@ -1158,7 +1159,7 @@
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.18em;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .kabeshaEraTitle {
@@ -1184,8 +1185,8 @@
 }
 
 .kabeshaAlurStep[data-passion="true"] .kabeshaPinnedCard {
-  border-color: var(--cv-flame);
-  background: linear-gradient(0deg, rgba(215, 48, 28, 0.22), rgba(10, 10, 10, 0) 60%), #120806;
+  border-color: var(--cv-orange);
+  background: linear-gradient(0deg, rgba(216, 103, 27, 0.22), transparent 60%), #120806;
 }
 
 .kabeshaAlurStep[data-passion="true"] .kabeshaPinnedCard::before {
@@ -1206,7 +1207,7 @@
   z-index: 1;
   pointer-events: none;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 193, 74, 0.5),
+    inset 0 0 0 1px rgba(255, 146, 74, 0.5),
     inset 0 -60px 80px -40px rgba(242, 106, 27, 0.75);
   opacity: 0.35;
   transition: opacity 0.9s ease;
@@ -1220,15 +1221,15 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgba(215, 48, 28, 0.45) 0%, transparent 45%);
+  background: linear-gradient(0deg, rgba(216, 103, 27, 0.45) 0%, transparent 45%);
 }
 
 .kabeshaAlurStep[data-passion="true"] .kabeshaMarkerYear {
-  color: var(--cv-heat);
+  color: var(--cv-orange-hi);
 }
 
 .kabeshaAlurStep[data-passion="true"] .stickerLine2 {
-  color: var(--cv-flame);
+  color: var(--cv-orange);
 }
 
 /* ── Sousenkyo ────────────────────────────────────────────────── */
@@ -1255,7 +1256,7 @@
 }
 
 .electionItem:hover {
-  border-color: var(--cv-pink);
+  border-color: var(--cv-orange);
 }
 
 .electionImg {
@@ -1324,7 +1325,7 @@
 }
 
 .statIcon {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-size: 1.2rem;
 }
 
@@ -1460,7 +1461,7 @@
   display: inline-block;
   width: 26px;
   font-weight: 800;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 /* ── PM weekly stats ──────────────────────────────────────────── */
@@ -1528,13 +1529,13 @@
 
 .badgeActive {
   border-radius: var(--cv-radius-pill);
-  background: rgba(92, 214, 162, 0.14);
+  background: rgba(233, 137, 73, 0.14);
   color: var(--cv-green);
 }
 
 .badgePopular {
-  background: rgba(255, 193, 74, 0.14);
-  color: var(--cv-heat);
+  background: rgba(255, 146, 74, 0.14);
+  color: var(--cv-orange-hi);
 }
 
 .pmStatsGrid {
@@ -1556,7 +1557,7 @@
 }
 
 .pmStatBox i {
-  color: var(--cv-pink);
+  color: var(--cv-orange);
   font-size: 1.2rem;
 }
 
@@ -1598,7 +1599,7 @@
 .pmBarFill {
   width: 100%;
   height: 100%;
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   transform-origin: left;
 }
 
@@ -1676,7 +1677,7 @@
 }
 
 .closeBtn:hover {
-  background: var(--cv-pink);
+  background: var(--cv-orange);
   color: var(--cv-ink);
 }
 
@@ -1707,7 +1708,7 @@
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--cv-pink);
+  color: var(--cv-orange);
 }
 
 .modalDate {
@@ -1781,7 +1782,7 @@
   }
 
   .kabeshaSpineFill {
-    background: linear-gradient(90deg, var(--cv-blue) 0%, var(--cv-pink) 45%, var(--cv-ember) 72%, var(--cv-flame) 88%, var(--cv-heat) 100%);
+    background: var(--cv-orange);
     transform-origin: left;
   }
 

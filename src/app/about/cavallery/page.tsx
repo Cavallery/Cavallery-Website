@@ -176,7 +176,7 @@ export default function AboutCavalleryPage() {
             {/* 3. Warna Emas */}
             <div className={`glassCard ${styles.filosofiCard}`}>
               <div className={styles.filosofiCardHeader}>
-                <div className={styles.filosofiIconWrap} style={{ background: "rgba(212, 175, 55, 0.15)", color: "#d4af37" }}>
+                <div className={styles.filosofiIconWrap} style={{ background: "rgba(228, 115, 39, 0.15)", color: "#e47327" }}>
                   <i className="bx bxs-sun" />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function AboutCavalleryPage() {
               </p>
               <div className={styles.colorPreviewRow}>
                 <div className={`${styles.colorSwatch} ${styles.colorSwatchGold}`}>
-                  <span>Royal Gold (#D4AF37)</span>
+                  <span>Royal Gold (#e47327)</span>
                 </div>
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function AboutCavalleryPage() {
             {/* 4. Warna Biru */}
             <div className={`glassCard ${styles.filosofiCard}`}>
               <div className={styles.filosofiCardHeader}>
-                <div className={styles.filosofiIconWrap} style={{ background: "rgba(30, 58, 138, 0.15)", color: "#3b82f6" }}>
+                <div className={styles.filosofiIconWrap} style={{ background: "rgba(150, 71, 18, 0.15)", color: "#f6863b" }}>
                   <i className="bx bxs-droplet" />
                 </div>
                 <div>

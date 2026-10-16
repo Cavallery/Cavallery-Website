@@ -90,7 +90,7 @@ export default function VideoSection() {
   };
 
   return (
-    <section ref={rootRef} className={styles.section} id="erine-moments" data-motion aria-labelledby="moments-title">
+    <section ref={rootRef} className={`${styles.section} cv-dark`} id="erine-moments" data-motion aria-labelledby="moments-title">
       <div className={styles.mediaClip}>
         <div className={styles.media} data-media>
           {!videoError ? (

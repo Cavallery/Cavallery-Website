@@ -267,14 +267,14 @@ export default function KasPage() {
                 width: 76,
                 height: 76,
                 borderRadius: "50%",
-                background: "rgba(16, 185, 129, 0.12)",
-                border: "2px solid #10b981",
+                background: "rgba(185, 84, 16, 0.12)",
+                border: "2px solid #b95410",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 margin: "0 auto 20px",
               }}>
-                <i className="bx bx-check-circle" style={{ fontSize: "3rem", color: "#10b981" }} />
+                <i className="bx bx-check-circle" style={{ fontSize: "3rem", color: "#b95410" }} />
               </div>
 
               <div className="badge" style={{ marginBottom: 14 }}>
@@ -319,13 +319,13 @@ export default function KasPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", alignItems: "center" }}>
                   <span style={{ color: "var(--fg-muted)" }}>Status Verifikasi:</span>
                   <span style={{
-                    background: "rgba(245, 158, 11, 0.15)",
-                    color: "#f59e0b",
+                    background: "rgba(245, 105, 11, 0.15)",
+                    color: "#f5690b",
                     padding: "4px 12px",
                     borderRadius: 20,
                     fontSize: "0.8rem",
                     fontWeight: 700,
-                    border: "1px solid rgba(245, 158, 11, 0.3)",
+                    border: "1px solid rgba(245, 105, 11, 0.3)",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
@@ -434,8 +434,8 @@ export default function KasPage() {
                   marginTop: 8,
                   padding: "10px 14px",
                   borderRadius: 10,
-                  background: "rgba(201, 168, 76, 0.08)",
-                  border: "1px solid rgba(201, 168, 76, 0.25)",
+                  background: "rgba(229, 120, 48, 0.08)",
+                  border: "1px solid rgba(229, 120, 48, 0.25)",
                   fontSize: "0.82rem",
                   color: "var(--fg-dim, #ccc)",
                   display: "flex",
@@ -539,16 +539,16 @@ export default function KasPage() {
                 {parseInt(nominal || "0", 10) > 0 && (
                   <div style={{
                     fontSize: "0.82rem",
-                    color: "#10b981",
+                    color: "#b95410",
                     marginTop: 10,
                     fontWeight: 800,
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
-                    background: "rgba(16, 185, 129, 0.08)",
+                    background: "rgba(185, 84, 16, 0.08)",
                     padding: "8px 12px",
                     borderRadius: 10,
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
+                    border: "1px solid rgba(185, 84, 16, 0.25)",
                   }}>
                     <i className="bx bx-check-circle" style={{ fontSize: "1.15rem", flexShrink: 0 }} />
                     <span>
