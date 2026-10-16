@@ -741,7 +741,7 @@ export default function AboutErineSection() {
               <div className={styles.ffGameBadge}>
                 <ChessEyebrow square="c5" label="Mini Game Trivia" />
               </div>
-              <h3 className={styles.ffTitle}>
+              <h3 data-ghost="TRIVIA" className={styles.ffTitle}>
                 Tebak Trivia &amp; <span className={styles.ffTitleAccent}>Fakta Erine</span>
               </h3>
               <p className={styles.ffSubtitle}>
@@ -898,7 +898,7 @@ export default function AboutErineSection() {
           <div className={styles.nailedFrame}>
             <ChessEyebrow square="d7" label="Debut" />
           </div>
-          <h3 className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
+          <h3 data-ghost="DEBUT" className={styles.erineTitle}>{"Erine's Video Debut"}</h3>
           <div className={styles.videoFrameWrapper}>
             <div className={styles.responsiveVideo}>
               <iframe src={`https://www.youtube.com/embed/${debutVideoId}`} title="Debut" allowFullScreen />
@@ -912,7 +912,7 @@ export default function AboutErineSection() {
             <div className={styles.nailedFrame}>
               <ChessEyebrow square="e5" label="Kabesha Journey" />
             </div>
-            <h3 className={styles.erineTitle}>
+            <h3 data-ghost="KABESHA" className={styles.erineTitle}>
               {"Erine's Kabesha"} <span className={styles.erineTitleAccent}>Journey</span>
             </h3>
             <p className={styles.kabeshaSubtitle}>
@@ -1025,7 +1025,7 @@ export default function AboutErineSection() {
           <div className={styles.nailedFrame}>
             <ChessEyebrow square="f3" label="Sousenkyo" />
           </div>
-          <h3 className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
+          <h3 data-ghost="SENBATSU" className={styles.erineTitle}>7th JKT48 Senbatsu Election</h3>
           <div className={styles.frameCardWide}>
             <div className={styles.responsiveVideo}>
               <iframe
@@ -1065,7 +1065,7 @@ export default function AboutErineSection() {
       <div className={styles.journalWrapper}>
         <div className={styles.journalHead} data-reveal="up">
           <ChessEyebrow square="g5" label="Setlist & Statistik" />
-          <h3 className={styles.erineTitle}>
+          <h3 data-ghost="PANGGUNG" className={styles.erineTitle}>
             Jejak <span className={styles.erineTitleAccent}>Panggung</span>
           </h3>
         </div>
@@ -1118,7 +1118,7 @@ export default function AboutErineSection() {
         <div className={styles.nailedFrame}>
           <ChessEyebrow square="h3" label="Personal Message" />
         </div>
-        <h3 className={styles.erineTitle}>Statistik PM Mingguan</h3>
+        <h3 data-ghost="PESAN" className={styles.erineTitle}>Statistik PM Mingguan</h3>
         {pmLoading ? (
           <div className={styles.pmLoading}>
             <i className="bx bx-loader-alt bx-spin" /> Memuat data...
@@ -1177,7 +1177,7 @@ export default function AboutErineSection() {
         <div className={styles.nailedFrame} data-reveal="fade">
           <ChessEyebrow square="f4" label="Sosial Media" />
         </div>
-        <h3 className={styles.erineTitle} data-reveal="up">Latest Updates</h3>
+        <h3 data-ghost="UPDATES" className={styles.erineTitle} data-reveal="up">Latest Updates</h3>
         {updates.length === 0 ? (
           <div className={styles.loadingNote}>
             {updatesLoaded ? (

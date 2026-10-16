@@ -82,3 +82,70 @@
 :global([data-theme="light"]) .horizon {
   display: none;
 }
+
+/* ── Ambient layer (fixed, behind everything) ─────────────────── */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  user-select: none;
+}
+
+.bigKnight {
+  position: absolute;
+  right: -8vmax;
+  bottom: -6vmax;
+  width: 58vmax;
+  height: 58vmax;
+  color: var(--cv-orange);
+  opacity: 0.045;
+  transform: rotate(-8deg);
+}
+
+:global([data-theme="light"]) .bigKnight {
+  opacity: 0.06;
+}
+
+.ember {
+  position: absolute;
+  left: var(--x);
+  bottom: -20px;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--cv-orange-pale) 0%, var(--cv-orange) 45%, transparent 72%);
+  opacity: 0;
+  animation: emberRise var(--d) linear var(--dl) infinite;
+  will-change: transform, opacity;
+}
+
+:global([data-theme="light"]) .ember {
+  background: radial-gradient(circle, #ff8f4d 0%, #e2560d 45%, transparent 72%);
+}
+
+@keyframes emberRise {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0; }
+  10% { opacity: 0.85; }
+  60% { opacity: 0.55; }
+  100% { transform: translate3d(var(--sway), -105vh, 0) scale(0.4); opacity: 0; }
+}
+
+@media (max-width: 767px) {
+  .ember:nth-child(n + 11) {
+    display: none;
+  }
+  .bigKnight {
+    width: 90vw;
+    height: 90vw;
+    right: -22vw;
+    bottom: 4vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ember {
+    display: none;
+  }
+}

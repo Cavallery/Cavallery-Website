@@ -8,6 +8,13 @@ import type { HomeBannerItem } from "@/lib/settings";
 import SectionHead from "@/components/chess/SectionHead";
 import { useReveal } from "@/hooks/useReveal";
 
+const QUICK_LINKS = [
+  { sq: "a1", icon: "bx-id-card", label: "Daftar Member", desc: "Gabung keluarga Cavallery", href: "/join" },
+  { sq: "c3", icon: "bx-calendar-star", label: "Jadwal Erine", desc: "Theater, live & video call", href: "/schedule" },
+  { sq: "e5", icon: "bx-joystick", label: "Main GameRine", desc: "Mini game bertema Erine", href: "/games" },
+  { sq: "g7", icon: "bx-wallet", label: "Kas & Donasi", desc: "Transparansi kas fanbase", href: "/cavallery-kas" },
+];
+
 export default function HomeInfoSection() {
   const [banners, setBanners] = useState<HomeBannerItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +94,21 @@ export default function HomeInfoSection() {
                 <span>pengumuman aktif</span>
               </p>
             )}
+
+            {/* Quick moves — fills the sticky column with useful shortcuts */}
+            <nav className={styles.quick} aria-label="Pintasan cepat" data-reveal="stagger">
+              {QUICK_LINKS.map((q) => (
+                <a key={q.href} href={q.href} className={`${styles.quickLink} cv-flame-hover`} data-reveal-item>
+                  <span className={styles.quickSq}>{q.sq}</span>
+                  <i className={`bx ${q.icon}`} aria-hidden="true" />
+                  <span className={styles.quickText}>
+                    <strong>{q.label}</strong>
+                    <span>{q.desc}</span>
+                  </span>
+                  <span className={styles.quickArrow} aria-hidden="true">→</span>
+                </a>
+              ))}
+            </nav>
           </div>
         </div>
 
