@@ -46,7 +46,7 @@
   height: 86px;
   border-radius: 50%;
   padding: 3px;
-  background: linear-gradient(135deg, var(--gold, #b45309), #f59e0b);
+  background: linear-gradient(135deg, var(--gold, #b45309), #f5690b);
   box-shadow: 0 8px 24px var(--gold-glow);
   margin-bottom: 18px;
   display: flex;
@@ -175,7 +175,7 @@
 }
 
 .toggleBtnActive {
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, var(--primary, #b45309) 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, var(--primary, #b45309) 100%);
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(180, 83, 9, 0.35);
 }
@@ -255,7 +255,7 @@
 :global([data-theme="dark"]) .input,
 :global([data-theme="dark"]) .select {
   background: #141210;
-  border-color: rgba(201, 168, 76, 0.2);
+  border-color: rgba(229, 120, 48, 0.2);
   color: #f5f5f4;
 }
 
@@ -284,7 +284,7 @@
   padding: 14px 24px;
   border-radius: 50px;
   border: none;
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, var(--primary, #b45309) 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, var(--primary, #b45309) 100%);
   color: #ffffff;
   font-family: var(--sans);
   font-size: 1rem;
@@ -345,8 +345,8 @@
   width: 100%;
   padding: 24px 20px;
   border-radius: 16px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  background: rgba(185, 84, 16, 0.1);
+  border: 1.5px solid rgba(185, 84, 16, 0.3);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -356,14 +356,14 @@
 
 .successIcon {
   font-size: 3rem;
-  color: #10b981;
+  color: #b95410;
 }
 
 .successTitle {
   font-family: var(--serif);
   font-size: 1.3rem;
   font-weight: 800;
-  color: #10b981;
+  color: #b95410;
   margin: 0;
 }
 
@@ -380,11 +380,11 @@
   max-width: 100%;
   box-sizing: border-box;
   background: #111111;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border: 1px solid rgba(228, 115, 39, 0.4);
   border-radius: 22px;
   padding: 24px 26px;
   color: #ffffff;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 20px rgba(228, 115, 39, 0.12);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -407,7 +407,7 @@
   font-weight: 800;
   letter-spacing: 0.15em;
   color: #ffffff;
-  border: 1.5px solid rgba(212, 175, 55, 0.6);
+  border: 1.5px solid rgba(228, 115, 39, 0.6);
   padding: 4px 14px;
   border-radius: 50px;
   background: #1f1b15;
@@ -419,7 +419,7 @@
   font-family: var(--font-jakarta), sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #10b981;
+  color: #b95410;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -444,7 +444,7 @@
   height: 84px;
   min-width: 84px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+  background: linear-gradient(135deg, #f5690b 0%, #d97706 50%, #b45309 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -452,8 +452,8 @@
   font-family: var(--font-cinzel), var(--serif);
   font-size: 2.2rem;
   font-weight: 900;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
-  border: 2.5px solid #d4af37;
+  box-shadow: 0 4px 16px rgba(228, 115, 39, 0.25);
+  border: 2.5px solid #e47327;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
@@ -462,11 +462,11 @@
 
 .memberAvatarCircle:hover {
   transform: scale(1.04);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 6px 20px rgba(228, 115, 39, 0.4);
 }
 
 .memberAvatarCircle:focus-visible {
-  outline: 2px solid #d4af37;
+  outline: 2px solid #e47327;
   outline-offset: 2px;
 }
 
@@ -485,8 +485,8 @@
   height: 28px;
   border-radius: 50%;
   background: #181512;
-  border: 1.5px solid var(--gold, #d4af37);
-  color: var(--gold, #d4af37);
+  border: 1.5px solid var(--gold, #e47327);
+  color: var(--gold, #e47327);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -498,7 +498,7 @@
 }
 
 .avatarEditBadge:hover {
-  background: var(--gold, #d4af37);
+  background: var(--gold, #e47327);
   color: #181512;
   transform: scale(1.15);
 }
@@ -595,13 +595,13 @@
   font-family: var(--font-cinzel), monospace;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #f59e0b;
+  color: #f5690b;
   letter-spacing: 0.05em;
 }
 
 .memberCodeQr {
   font-size: 1.2rem;
-  color: #f59e0b;
+  color: #f5690b;
   opacity: 0.9;
   transition: transform 0.2s ease;
 }
@@ -621,7 +621,7 @@
 }
 
 .memberTtlRow i {
-  color: #d4af37;
+  color: #e47327;
   font-size: 0.95rem;
 }
 
@@ -633,7 +633,7 @@
 .memberTtlEditBtn {
   background: none;
   border: none;
-  color: #d4af37;
+  color: #e47327;
   cursor: pointer;
   font-size: 0.95rem;
   padding: 2px 4px;
@@ -661,7 +661,7 @@
   flex-wrap: wrap;
   margin-top: 10px;
   padding-top: 14px;
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  border-top: 1px solid rgba(228, 115, 39, 0.2);
 }
 
 .memberBadgePill {
@@ -710,7 +710,7 @@
   font-family: var(--font-jakarta), sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border: 1px solid rgba(228, 115, 39, 0.4);
   background: rgba(255, 255, 255, 0.06);
   color: #d8c9a8;
   cursor: pointer;
@@ -722,8 +722,8 @@
 }
 
 .memberPinSecondaryBtn:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: #d4af37;
+  background: rgba(228, 115, 39, 0.15);
+  border-color: #e47327;
   color: #ffffff;
 }
 
@@ -736,20 +736,20 @@
   font-size: 0.82rem;
   font-weight: 800;
   border: none;
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #ec8a48, #e36d1f);
   color: #ffffff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.35);
+  box-shadow: 0 4px 12px rgba(236, 138, 72, 0.35);
   box-sizing: border-box;
 }
 
 /* ── Admin Fanbase Exemption Card (Bebas Kas) ── */
 .adminExemptionCard {
-  background: radial-gradient(circle at 50% 0%, rgba(201, 168, 76, 0.12) 0%, rgba(26, 23, 20, 0.95) 75%);
-  border: 1.5px solid var(--border-gold, #c9a84c);
+  background: radial-gradient(circle at 50% 0%, rgba(229, 120, 48, 0.12) 0%, rgba(26, 23, 20, 0.95) 75%);
+  border: 1.5px solid var(--border-gold, #e57830);
   border-radius: 28px;
   padding: 38px 28px;
   text-align: center;
@@ -757,7 +757,7 @@
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(229, 120, 48, 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -766,20 +766,20 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  background: linear-gradient(135deg, #f5690b 0%, #b45309 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 8px 24px rgba(245, 105, 11, 0.4);
   border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
 .adminExemptionBadge {
-  background: rgba(201, 168, 76, 0.15);
-  color: var(--gold, #c9a84c);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: rgba(229, 120, 48, 0.15);
+  color: var(--gold, #e57830);
+  border: 1px solid rgba(229, 120, 48, 0.4);
   padding: 4px 18px;
   border-radius: 50px;
   font-size: 0.85rem;
@@ -798,9 +798,9 @@
 }
 
 .adminDivisiBadge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(180, 83, 9, 0.2));
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(245, 105, 11, 0.2), rgba(180, 83, 9, 0.2));
+  color: #fb7a24;
+  border: 1px solid rgba(245, 105, 11, 0.4);
   padding: 6px 20px;
   border-radius: 50px;
   font-size: 0.95rem;
@@ -817,8 +817,8 @@
   line-height: 1.7;
   font-style: italic;
   margin: 4px 0;
-  border-top: 1px dashed rgba(201, 168, 76, 0.25);
-  border-bottom: 1px dashed rgba(201, 168, 76, 0.25);
+  border-top: 1px dashed rgba(229, 120, 48, 0.25);
+  border-bottom: 1px dashed rgba(229, 120, 48, 0.25);
   padding: 14px 10px;
 }
 
@@ -831,7 +831,7 @@
   max-width: 360px;
   padding: 14px 28px;
   border-radius: 50px;
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, var(--primary, #b45309) 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, var(--primary, #b45309) 100%);
   color: #ffffff;
   font-weight: 800;
   font-size: 0.95rem;
@@ -860,7 +860,7 @@
 }
 
 .adminDonasiLink:hover {
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
 }
 
 /* ── Bottom Navigation Card (Horizontal Scroll Tabs + Keluar Outline) ── */
@@ -879,7 +879,7 @@
 
 :global([data-theme="dark"]) .navPillsCard {
   background: #171513;
-  border-color: rgba(212, 175, 55, 0.3);
+  border-color: rgba(228, 115, 39, 0.3);
 }
 
 /* Horizontal scrollable track with hidden scrollbar */
@@ -983,13 +983,13 @@
 
 .verifyModalCard {
   background: var(--surface, #ffffff);
-  border: 1.5px solid var(--border-gold, #c9a84c);
+  border: 1.5px solid var(--border-gold, #e57830);
   border-radius: 32px;
   padding: 38px 28px 32px;
   width: 100%;
   max-width: 380px;
   text-align: center;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 0 30px rgba(201, 168, 76, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35), 0 0 30px rgba(229, 120, 48, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1046,20 +1046,20 @@
 .verifySubtitleLine {
   height: 1.5px;
   width: 32px;
-  background: var(--gold, #c9a84c);
+  background: var(--gold, #e57830);
 }
 
 .verifySubtitleText {
   font-family: var(--serif);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
 }
 
 .verifyStatusBadge {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(185, 84, 16, 0.15);
+  color: #b95410;
+  border: 1px solid rgba(185, 84, 16, 0.4);
   font-size: 0.85rem;
   font-weight: 800;
   padding: 4px 18px;
@@ -1070,7 +1070,7 @@
   font-family: var(--serif);
   font-size: 1.6rem;
   font-weight: 900;
-  color: var(--fg, #1f2937);
+  color: var(--fg, #372a1f);
   margin: 4px 0 0;
 }
 
@@ -1078,7 +1078,7 @@
   font-family: var(--mono, monospace);
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
   letter-spacing: 0.15em;
   margin: 0;
 }
@@ -1380,9 +1380,9 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(185, 84, 16, 0.12);
+  color: #b95410;
+  border: 1px solid rgba(185, 84, 16, 0.3);
   padding: 3px 10px;
   border-radius: 50px;
 }
@@ -1435,9 +1435,9 @@
 }
 
 .alertSuccess {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: rgba(185, 84, 16, 0.1);
+  border: 1px solid rgba(185, 84, 16, 0.3);
+  color: #b95410;
 }
 
 .alertError {
@@ -1488,7 +1488,7 @@
   font-family: var(--serif);
   font-size: 1.15rem;
   font-weight: 900;
-  color: #10b981;
+  color: #b95410;
 }
 
 .donasiDate {
@@ -1502,8 +1502,8 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 50px;
-  border: 1px solid var(--border-gold, #c9a84c);
-  color: var(--gold, #c9a84c);
+  border: 1px solid var(--border-gold, #e57830);
+  color: var(--gold, #e57830);
   font-size: 0.75rem;
   font-weight: 700;
   text-decoration: none;
@@ -1521,7 +1521,7 @@
 .leaderboardCard {
   margin-top: 24px;
   background: var(--surface);
-  border: 1.5px solid var(--border-gold, #c9a84c);
+  border: 1.5px solid var(--border-gold, #e57830);
   border-radius: 24px;
   padding: 24px 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
@@ -1566,8 +1566,8 @@
 }
 
 .leaderboardItemTop1 {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(245, 105, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%);
+  border-color: rgba(245, 105, 11, 0.4);
 }
 
 .leaderboardItemTop2 {
@@ -1596,9 +1596,9 @@
 }
 
 .rankBadge1 {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: linear-gradient(135deg, #f5690b, #d97706);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 12px rgba(245, 105, 11, 0.4);
   border: none;
 }
 
@@ -1643,7 +1643,7 @@
   font-family: var(--serif);
   font-weight: 900;
   font-size: 1rem;
-  color: #10b981;
+  color: #b95410;
   text-align: right;
   white-space: nowrap;
 }
@@ -1657,7 +1657,7 @@
   border: 1.5px solid rgba(239, 68, 68, 0.4);
   border-radius: 24px;
   padding: 28px 24px;
-  box-shadow: 0 10px 36px rgba(239, 68, 68, 0.08), 0 0 24px rgba(245, 158, 11, 0.05);
+  box-shadow: 0 10px 36px rgba(239, 68, 68, 0.08), 0 0 24px rgba(245, 105, 11, 0.05);
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -1667,7 +1667,7 @@
 
 [data-theme="dark"] .warCard {
   background: radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.12) 0%, rgba(26, 23, 20, 0.98) 75%);
-  border-color: rgba(245, 158, 11, 0.45);
+  border-color: rgba(245, 105, 11, 0.45);
 }
 
 .warCardHeader {
@@ -1719,16 +1719,16 @@
 }
 
 .warStatusOpen {
-  background: rgba(201, 168, 76, 0.15);
-  border: 1px solid var(--gold, #c9a84c);
-  color: var(--gold, #c9a84c);
+  background: rgba(229, 120, 48, 0.15);
+  border: 1px solid var(--gold, #e57830);
+  color: var(--gold, #e57830);
   animation: warPulse 2s infinite alternate;
 }
 
 .warStatusWaiting {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
+  background: rgba(245, 105, 11, 0.12);
+  border: 1px solid rgba(245, 105, 11, 0.4);
+  color: #f5690b;
 }
 
 .warStatusClosed {
@@ -1738,9 +1738,9 @@
 }
 
 @keyframes warPulse {
-  0% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
-  70% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(229, 120, 48, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(229, 120, 48, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(229, 120, 48, 0); }
 }
 
 /* Countdown Wrap */
@@ -1763,7 +1763,7 @@
 .countdownHeading {
   font-size: 0.88rem;
   font-weight: 800;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   display: flex;
@@ -1783,7 +1783,7 @@
   padding: 12px 10px;
   border-radius: 14px;
   background: var(--surface, #ffffff);
-  border: 1.5px solid rgba(201, 168, 76, 0.35);
+  border: 1.5px solid rgba(229, 120, 48, 0.35);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1799,7 +1799,7 @@
   font-family: var(--serif);
   font-size: 1.8rem;
   font-weight: 900;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
   line-height: 1;
 }
 
@@ -1838,8 +1838,8 @@
 .quotaBarFill {
   height: 100%;
   border-radius: 50px;
-  background: linear-gradient(90deg, var(--gold, #c9a84c) 0%, #b45309 100%);
-  box-shadow: 0 0 12px rgba(201, 168, 76, 0.4);
+  background: linear-gradient(90deg, var(--gold, #e57830) 0%, #b45309 100%);
+  box-shadow: 0 0 12px rgba(229, 120, 48, 0.4);
   transition: width 0.4s ease;
 }
 
@@ -1848,7 +1848,7 @@
   width: 100%;
   padding: 18px 24px;
   border-radius: 50px;
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, #b45309 100%);
   color: #ffffff;
   font-family: var(--sans);
   font-size: 1.15rem;
@@ -1856,7 +1856,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   border: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 28px rgba(180, 83, 9, 0.35), 0 0 20px rgba(201, 168, 76, 0.3);
+  box-shadow: 0 8px 28px rgba(180, 83, 9, 0.35), 0 0 20px rgba(229, 120, 48, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1867,7 +1867,7 @@
 
 .warFlameBtn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 14px 38px rgba(180, 83, 9, 0.45), 0 0 30px rgba(201, 168, 76, 0.4);
+  box-shadow: 0 14px 38px rgba(180, 83, 9, 0.45), 0 0 30px rgba(229, 120, 48, 0.4);
 }
 
 .warFlameBtn:disabled {
@@ -1880,7 +1880,7 @@
 /* E-Ticket Pass Card (VIP Concert Stub Look) */
 .warTicketPass {
   background: linear-gradient(145deg, rgba(32, 27, 23, 0.95) 0%, rgba(18, 15, 13, 0.98) 100%);
-  border: 2px solid var(--gold, #c9a84c);
+  border: 2px solid var(--gold, #e57830);
   border-radius: 28px;
   padding: 32px 24px 28px;
   display: flex;
@@ -1889,7 +1889,7 @@
   text-align: center;
   gap: 16px;
   position: relative;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(201, 168, 76, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 24px rgba(229, 120, 48, 0.15);
   overflow: hidden;
   max-width: 520px;
   margin: 0 auto;
@@ -1899,18 +1899,18 @@
 
 [data-theme="dark"] .warTicketPass {
   background: linear-gradient(145deg, #181512 0%, #0d0b0a 100%);
-  border-color: rgba(201, 168, 76, 0.6);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(201, 168, 76, 0.12);
+  border-color: rgba(229, 120, 48, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(229, 120, 48, 0.12);
 }
 
 .ticketTopBadge {
   font-size: 0.76rem;
   font-weight: 800;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: rgba(201, 168, 76, 0.12);
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: rgba(229, 120, 48, 0.12);
+  border: 1px solid rgba(229, 120, 48, 0.3);
   padding: 6px 16px;
   border-radius: 50px;
 }
@@ -1933,21 +1933,21 @@
 .ticketNumberBadge {
   padding: 8px 28px;
   border-radius: 50px;
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, #b45309 100%);
   color: #ffffff;
   font-family: var(--serif);
   font-size: 1.6rem;
   font-weight: 900;
   letter-spacing: 0.06em;
   box-shadow: 0 6px 20px rgba(180, 83, 9, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  border: 1.5px solid rgba(254, 240, 138, 0.6);
+  border: 1.5px solid rgba(254, 184, 138, 0.6);
   margin: 4px 0;
 }
 
 .ticketOwnerCard {
   width: 100%;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(201, 168, 76, 0.18);
+  border: 1px solid rgba(229, 120, 48, 0.18);
   border-radius: 18px;
   padding: 16px 14px;
   display: flex;
@@ -1980,9 +1980,9 @@
   gap: 5px;
   padding: 4px 12px;
   border-radius: 50px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: rgba(185, 84, 16, 0.12);
+  border: 1px solid rgba(185, 84, 16, 0.35);
+  color: #e47023;
   font-size: 0.76rem;
   font-weight: 700;
 }
@@ -2004,7 +2004,7 @@
   height: 24px;
   background: var(--bg, #161311);
   border-radius: 50%;
-  border: 2px solid var(--gold, #c9a84c);
+  border: 2px solid var(--gold, #e57830);
   z-index: 2;
 }
 
@@ -2018,7 +2018,7 @@
 
 .ticketPerforationDash {
   width: 100%;
-  border-top: 2px dashed rgba(201, 168, 76, 0.4);
+  border-top: 2px dashed rgba(229, 120, 48, 0.4);
 }
 
 /* Stub QR & Barcode Section */
@@ -2040,7 +2040,7 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  border: 2px solid var(--gold, #c9a84c);
+  border: 2px solid var(--gold, #e57830);
   box-sizing: border-box;
 }
 
@@ -2069,8 +2069,8 @@
 /* Event Notice Box */
 .ticketNoticeBox {
   width: 100%;
-  background: rgba(201, 168, 76, 0.08);
-  border: 1px solid rgba(201, 168, 76, 0.28);
+  background: rgba(229, 120, 48, 0.08);
+  border: 1px solid rgba(229, 120, 48, 0.28);
   border-radius: 16px;
   padding: 14px 16px;
   text-align: left;
@@ -2085,7 +2085,7 @@
 
 .ticketNoticeIcon {
   font-size: 1.35rem;
-  color: var(--gold, #c9a84c);
+  color: var(--gold, #e57830);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -2094,14 +2094,14 @@
   width: 100%;
   padding: 16px 24px;
   border-radius: 50px;
-  background: linear-gradient(135deg, var(--gold, #c9a84c) 0%, #b45309 100%);
+  background: linear-gradient(135deg, var(--gold, #e57830) 0%, #b45309 100%);
   color: #ffffff;
   font-family: var(--sans);
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   border: 1.5px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.35), 0 0 16px rgba(201, 168, 76, 0.25);
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.35), 0 0 16px rgba(229, 120, 48, 0.25);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2113,7 +2113,7 @@
 
 .ticketDownloadBtn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(180, 83, 9, 0.5), 0 0 24px rgba(201, 168, 76, 0.4);
+  box-shadow: 0 12px 30px rgba(180, 83, 9, 0.5), 0 0 24px rgba(229, 120, 48, 0.4);
 }
 
 .ticketDownloadBtn:disabled {
@@ -2267,8 +2267,8 @@
   font-weight: 700;
   color: var(--gold, #b45309);
   text-decoration: none;
-  background: rgba(201, 168, 76, 0.12);
-  border: 1px solid rgba(201, 168, 76, 0.3);
+  background: rgba(229, 120, 48, 0.12);
+  border: 1px solid rgba(229, 120, 48, 0.3);
   padding: 4px 10px;
   border-radius: 20px;
   transition: all 0.2s ease;
@@ -2313,8 +2313,8 @@
 }
 
 .statIconWrapGreen {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: rgba(185, 84, 16, 0.15);
+  color: #b95410;
 }
 
 .statIconWrapRed {
@@ -2323,7 +2323,7 @@
 }
 
 .statIconWrapGold {
-  background: rgba(201, 168, 76, 0.18);
+  background: rgba(229, 120, 48, 0.18);
   color: var(--gold, #b45309);
 }
 
@@ -2345,7 +2345,7 @@
 .statValueGreen {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #10b981;
+  color: #b95410;
 }
 
 .statValueRed {
@@ -2403,21 +2403,21 @@
 }
 
 .trackerStatusSuccess {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
-  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(185, 84, 16, 0.15);
+  color: #b95410;
+  border-color: rgba(185, 84, 16, 0.35);
 }
 
 .trackerStatusWarning {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 105, 11, 0.15);
+  color: #f5690b;
+  border-color: rgba(245, 105, 11, 0.35);
 }
 
 .trackerStatusInfo {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.35);
+  background: rgba(246, 134, 59, 0.15);
+  color: #f6863b;
+  border-color: rgba(246, 134, 59, 0.35);
 }
 
 .trackerYearPills {
@@ -2485,7 +2485,7 @@
 .trackerProgressBarFill {
   height: 100%;
   border-radius: 10px;
-  background: linear-gradient(90deg, #10b981 0%, var(--gold, #b45309) 100%);
+  background: linear-gradient(90deg, #b95410 0%, var(--gold, #b45309) 100%);
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 0 10px var(--gold-glow);
 }
@@ -2513,15 +2513,15 @@
 }
 
 .trackerMonthItemPaid {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #10b981;
+  background: rgba(185, 84, 16, 0.12);
+  border-color: rgba(185, 84, 16, 0.4);
+  color: #b95410;
 }
 
 .trackerMonthItemPending {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #f59e0b;
+  background: rgba(245, 105, 11, 0.12);
+  border-color: rgba(245, 105, 11, 0.4);
+  color: #f5690b;
 }
 
 .trackerMonthItemUnpaid {
@@ -2553,8 +2553,8 @@
 
 /* ── 3. TOMBOL & MODAL E-KWITANSI DIGITAL ── */
 .receiptBtn {
-  background: rgba(201, 168, 76, 0.15);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: rgba(229, 120, 48, 0.15);
+  border: 1px solid rgba(229, 120, 48, 0.4);
   color: var(--gold, #b45309);
   padding: 4px 10px;
   border-radius: 8px;
@@ -2594,7 +2594,7 @@
   width: 100%;
   padding: 28px 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  border: 2px solid var(--border-gold, #c9a84c);
+  border: 2px solid var(--border-gold, #e57830);
   position: relative;
   animation: modalScaleIn 0.25s ease-out;
 }
@@ -2628,7 +2628,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1.5px solid #c9a84c;
+  border: 1.5px solid #e57830;
   object-fit: cover;
 }
 
@@ -2648,7 +2648,7 @@
 
 .receiptInvoiceBadge {
   background: #faf6eb;
-  border: 1px dashed #c9a84c;
+  border: 1px dashed #e57830;
   border-radius: 8px;
   padding: 6px 12px;
   text-align: right;
@@ -2670,7 +2670,7 @@
 
 .receiptDivider {
   height: 1.5px;
-  background: linear-gradient(90deg, transparent, #c9a84c, transparent);
+  background: linear-gradient(90deg, transparent, #e57830, transparent);
   margin: 16px 0;
 }
 
@@ -2696,18 +2696,18 @@
 }
 
 .receiptStamp {
-  border: 2px dashed #10b981;
+  border: 2px dashed #b95410;
   border-radius: 10px;
   padding: 4px 8px;
   transform: rotate(-4deg);
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(185, 84, 16, 0.08);
 }
 
 .stampInner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #10b981;
+  color: #b95410;
   font-size: 0.75rem;
 }
 
@@ -2759,7 +2759,7 @@
 
 .receiptAmountBox {
   background: linear-gradient(135deg, #f7efe1 0%, #ebd9b7 100%);
-  border: 1.5px solid #c9a84c;
+  border: 1.5px solid #e57830;
   border-radius: 12px;
   padding: 14px 18px;
   display: flex;
@@ -2786,7 +2786,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #10b981;
+  background: #b95410;
   color: #fff;
   padding: 4px 10px;
   border-radius: 20px;
@@ -2919,8 +2919,8 @@
 
 /* ── BANNER FESTIF ULANG TAHUN ── */
 .birthdayBannerAlert {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.22) 0%, rgba(212, 175, 55, 0.2) 100%);
-  border: 1.5px solid rgba(236, 72, 153, 0.5);
+  background: linear-gradient(135deg, rgba(236, 138, 72, 0.22) 0%, rgba(228, 115, 39, 0.2) 100%);
+  border: 1.5px solid rgba(236, 138, 72, 0.5);
   border-radius: 18px;
   padding: 16px 20px;
   display: flex;
@@ -2928,13 +2928,13 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.15), 0 0 20px rgba(212, 175, 55, 0.1);
+  box-shadow: 0 8px 30px rgba(236, 138, 72, 0.15), 0 0 20px rgba(228, 115, 39, 0.1);
   animation: pulseGlow 2.5s infinite alternate;
 }
 
 @keyframes pulseGlow {
-  0% { box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15); }
-  100% { box-shadow: 0 8px 35px rgba(236, 72, 153, 0.35); }
+  0% { box-shadow: 0 4px 20px rgba(236, 138, 72, 0.15); }
+  100% { box-shadow: 0 8px 35px rgba(236, 138, 72, 0.35); }
 }
 
 .birthdayBannerLeft {
@@ -2949,21 +2949,21 @@
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #ec8a48, #e36d1f);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-size: 1.5rem;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 14px rgba(236, 138, 72, 0.4);
 }
 
 .birthdayBannerTitle {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 900;
-  color: #ec4899;
+  color: #ec8a48;
 }
 
 .birthdayBannerDesc {
@@ -2974,7 +2974,7 @@
 }
 
 .birthdayBannerBtn {
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #ec8a48, #e36d1f);
   color: #fff;
   border: none;
   padding: 10px 18px;
@@ -2985,14 +2985,14 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 14px rgba(236, 138, 72, 0.4);
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .birthdayBannerBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 6px 18px rgba(236, 138, 72, 0.6);
 }
 
 /* ── KTA DIGITAL MODAL & CARD ── */
@@ -3016,7 +3016,7 @@
 
 .ktaModalCard {
   background: var(--surface);
-  border: 1.5px solid var(--border-gold, #c9a84c);
+  border: 1.5px solid var(--border-gold, #e57830);
   border-radius: 24px;
   max-width: 620px;
   width: 100%;
@@ -3047,8 +3047,8 @@
 }
 
 .ktaToolbarBtn {
-  background: rgba(201, 168, 76, 0.15);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: rgba(229, 120, 48, 0.15);
+  border: 1px solid rgba(229, 120, 48, 0.4);
   color: var(--gold);
   padding: 6px 12px;
   border-radius: 8px;
@@ -3261,9 +3261,9 @@
 }
 
 .ktaPrivacyToggleBtnActive {
-  background: rgba(212, 175, 55, 0.15) !important;
-  border-color: rgba(212, 175, 55, 0.5) !important;
-  color: #d4af37 !important;
+  background: rgba(228, 115, 39, 0.15) !important;
+  border-color: rgba(228, 115, 39, 0.5) !important;
+  color: #e47327 !important;
 }
 
 /* Share Card Toolbar Button */
@@ -3274,9 +3274,9 @@
   font-size: 0.78rem;
   font-weight: 800;
   border-radius: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(180, 83, 15, 0.18));
-  color: #f59e0b;
+  border: 1px solid rgba(228, 115, 39, 0.45);
+  background: linear-gradient(135deg, rgba(228, 115, 39, 0.18), rgba(180, 83, 15, 0.18));
+  color: #f5690b;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -3285,7 +3285,7 @@
 }
 
 .ktaShareToolbarBtn:hover {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(180, 83, 15, 0.3));
+  background: linear-gradient(135deg, rgba(228, 115, 39, 0.3), rgba(180, 83, 15, 0.3));
   color: #ffffff;
 }
 
@@ -3297,8 +3297,8 @@
   font-size: 0.74rem;
   font-weight: 700;
   border-radius: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(228, 115, 39, 0.4);
+  background: rgba(228, 115, 39, 0.1);
   color: #f6e7bf;
   cursor: pointer;
   display: inline-flex;
@@ -3308,7 +3308,7 @@
 }
 
 .ktaIosSensorBtn:hover {
-  background: rgba(212, 175, 55, 0.25);
+  background: rgba(228, 115, 39, 0.25);
   color: #ffffff;
 }
 
@@ -3330,7 +3330,7 @@
 .ktaRevealBtn {
   background: none;
   border: none;
-  color: #d4af37;
+  color: #e47327;
   font-family: var(--font-jakarta), sans-serif;
   font-size: 0.65rem;
   font-weight: 800;
@@ -3341,7 +3341,7 @@
 }
 
 .ktaRevealBtn:hover {
-  color: #f59e0b;
+  color: #f5690b;
 }
 
 .ktaPrivacyToast {
@@ -3349,8 +3349,8 @@
   margin: 0 auto 12px;
   padding: 7px 14px;
   border-radius: 8px;
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(228, 115, 39, 0.12);
+  border: 1px solid rgba(228, 115, 39, 0.35);
   color: #f6e7bf;
   font-size: 0.72rem;
   font-weight: 700;
@@ -3376,7 +3376,7 @@
 }
 
 .ktaFlipHint i {
-  color: #d4af37;
+  color: #e47327;
   font-size: 0.95rem;
 }
 
@@ -3493,8 +3493,8 @@
   opacity: 0.44;
   background:
     radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.6) 0%, rgba(246, 231, 191, 0.22) 25%, transparent 60%),
-    linear-gradient(calc(var(--angle, 135deg)), transparent 0%, rgba(246, 231, 191, 0.12) 30%, rgba(217, 180, 90, 0.4) 50%, rgba(246, 231, 191, 0.12) 70%, transparent 100%),
-    repeating-linear-gradient(45deg, transparent 0, transparent 3px, rgba(217, 180, 90, 0.05) 3px, rgba(217, 180, 90, 0.05) 4px);
+    linear-gradient(calc(var(--angle, 135deg)), transparent 0%, rgba(246, 231, 191, 0.12) 30%, rgba(233, 138, 74, 0.4) 50%, rgba(246, 231, 191, 0.12) 70%, transparent 100%),
+    repeating-linear-gradient(45deg, transparent 0, transparent 3px, rgba(233, 138, 74, 0.05) 3px, rgba(233, 138, 74, 0.05) 4px);
   transition: opacity 0.3s ease;
 }
 
@@ -3581,17 +3581,17 @@
 /* ── THEME LUXURY (Pure Black-Gold, ZERO BLUE) ── */
 .ktaThemeLuxury {
   background: linear-gradient(155deg, #181715 0%, #0c0b0a 100%);
-  border: 1.5px solid rgba(212, 175, 55, 0.45);
+  border: 1.5px solid rgba(228, 115, 39, 0.45);
   color: #f6e7bf;
 }
 
 .ktaThemeLuxury .ktaFrontHeaderSub {
-  color: #d4af37;
+  color: #e47327;
 }
 
 .ktaThemeLuxury .ktaMemberName {
   color: #fff3d0;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+  text-shadow: 0 0 12px rgba(228, 115, 39, 0.3);
 }
 
 .ktaThemeLuxury .ktaBioLabel {
@@ -3607,22 +3607,22 @@
 }
 
 .ktaThemeLuxury .ktaTermsNumber {
-  background: rgba(212, 175, 55, 0.15);
-  color: #d4af37;
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(228, 115, 39, 0.15);
+  color: #e47327;
+  border: 1px solid rgba(228, 115, 39, 0.35);
 }
 
 .ktaThemeLuxury .ktaPhotoFrame {
-  border-color: #d4af37;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(212, 175, 55, 0.25);
+  border-color: #e47327;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(228, 115, 39, 0.25);
 }
 
 .ktaThemeLuxury .ktaCardNoValue {
-  color: #f59e0b;
+  color: #f5690b;
 }
 
 .ktaThemeLuxury .ktaCardDashedLine {
-  border-top-color: rgba(212, 175, 55, 0.25);
+  border-top-color: rgba(228, 115, 39, 0.25);
 }
 
 /* Watermark Horse Emblem (~6% Opacity) */
@@ -3642,7 +3642,7 @@
 
 .ktaThemeLuxury .ktaWatermarkChess,
 .ktaThemeLuxury .ktaWatermarkHorse {
-  color: #d4af37;
+  color: #e47327;
   opacity: 0.06;
 }
 
@@ -3663,7 +3663,7 @@
   justify-content: space-between;
   gap: 10px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: 1px solid rgba(228, 115, 39, 0.2);
 }
 
 .ktaHeaderBrand {
@@ -3677,7 +3677,7 @@
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid #d4af37;
+  border: 1.5px solid #e47327;
 }
 
 .ktaHeaderText {
@@ -3710,11 +3710,11 @@
   font-family: var(--font-cinzel), serif;
   font-size: 0.7rem;
   font-weight: 800;
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.12);
+  color: #e47327;
+  background: rgba(228, 115, 39, 0.12);
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 1px solid rgba(228, 115, 39, 0.3);
 }
 
 /* Top Row: Photo + Card No & Status */
@@ -3729,7 +3729,7 @@
   width: 82px;
   height: 104px;
   border-radius: 14px;
-  border: 2px solid #d4af37;
+  border: 2px solid #e47327;
   overflow: hidden;
   flex-shrink: 0;
   background: #111111;
@@ -3802,9 +3802,9 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #10b981;
+  background: rgba(185, 84, 16, 0.15);
+  border: 1px solid rgba(185, 84, 16, 0.4);
+  color: #b95410;
   font-family: var(--font-jakarta), sans-serif;
   font-size: 0.68rem;
   font-weight: 800;
@@ -3871,7 +3871,7 @@
 .ktaFrontFooter {
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px dashed rgba(212, 175, 55, 0.3);
+  border-top: 1px dashed rgba(228, 115, 39, 0.3);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3888,7 +3888,7 @@
 }
 
 .ktaFrontSecurityTag i {
-  color: #d4af37;
+  color: #e47327;
   font-size: 0.85rem;
 }
 
@@ -3896,7 +3896,7 @@
   width: 28px;
   height: 20px;
   border-radius: 4px;
-  background: linear-gradient(135deg, #d4af37 0%, #fff3d0 35%, #926a1b 70%, #f59e0b 100%);
+  background: linear-gradient(135deg, #e47327 0%, #fff3d0 35%, #9a4913 70%, #f5690b 100%);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
@@ -3907,7 +3907,7 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: 1px solid rgba(228, 115, 39, 0.2);
 }
 
 .ktaBackHeaderTitle {
@@ -3991,7 +3991,7 @@
   justify-content: space-between;
   margin-top: 6px;
   padding-top: 8px;
-  border-top: 1px dashed rgba(212, 175, 55, 0.25);
+  border-top: 1px dashed rgba(228, 115, 39, 0.25);
 }
 
 .ktaDecorativeBarcode {
@@ -4037,7 +4037,7 @@
 .ktaSignatureImg {
   font-family: 'Brush Script MT', 'Dancing Script', cursive;
   font-size: 1.15rem;
-  color: #d4af37;
+  color: #e47327;
   font-weight: 700;
   line-height: 1;
 }
@@ -4087,7 +4087,7 @@
   width: 100%;
   max-width: 440px;
   background: #151311;
-  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  border: 1.5px solid rgba(228, 115, 39, 0.4);
   border-radius: 24px;
   padding: 22px 20px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
@@ -4120,7 +4120,7 @@
   background: rgba(0, 0, 0, 0.35);
   border-radius: 10px;
   padding: 3px;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid rgba(228, 115, 39, 0.25);
   align-self: center;
 }
 
@@ -4149,7 +4149,7 @@
   flex-direction: column;
   gap: 10px;
   background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(228, 115, 39, 0.2);
   border-radius: 14px;
   padding: 12px 14px;
 }
@@ -4178,7 +4178,7 @@
   align-items: center;
   gap: 8px;
   background: #0d0c0a;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid rgba(228, 115, 39, 0.25);
   border-radius: 10px;
   padding: 6px 10px;
   margin-top: 4px;
@@ -4187,7 +4187,7 @@
 .ktaShareUrlText {
   flex: 1;
   font-size: 0.72rem;
-  color: #f59e0b;
+  color: #f5690b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4198,8 +4198,8 @@
   min-height: 30px;
   padding: 2px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(228, 115, 39, 0.4);
+  background: rgba(228, 115, 39, 0.15);
   color: #f6e7bf;
   font-size: 0.72rem;
   font-weight: 700;
@@ -4209,14 +4209,14 @@
 }
 
 .ktaShareCopyBtn:hover {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(228, 115, 39, 0.3);
   color: #ffffff;
 }
 
 .ktaShareRegenBtn {
   background: none;
   border: none;
-  color: #d4af37;
+  color: #e47327;
   font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
@@ -4293,7 +4293,7 @@
   min-height: 44px;
   padding: 10px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border: 1px solid rgba(228, 115, 39, 0.4);
   background: rgba(255, 255, 255, 0.05);
   color: #f6e7bf;
   font-family: var(--font-jakarta), sans-serif;
@@ -4308,7 +4308,7 @@
 }
 
 .ktaShareSecondaryActionBtn:hover {
-  background: rgba(212, 175, 55, 0.15);
+  background: rgba(228, 115, 39, 0.15);
   color: #ffffff;
 }
 
@@ -4328,12 +4328,12 @@
 
 .birthdayModalCard {
   background: var(--surface);
-  border: 2px solid #ec4899;
+  border: 2px solid #ec8a48;
   border-radius: 28px;
   max-width: 540px;
   width: 100%;
   padding: 28px 24px;
-  box-shadow: 0 25px 70px rgba(236, 72, 153, 0.35);
+  box-shadow: 0 25px 70px rgba(236, 138, 72, 0.35);
   position: relative;
   animation: modalScaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -4344,7 +4344,7 @@
 }
 
 .birthdayPartyBadge {
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #ec8a48, #e36d1f);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 900;
@@ -4354,7 +4354,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 12px rgba(236, 138, 72, 0.4);
   margin-bottom: 10px;
 }
 
@@ -4374,7 +4374,7 @@
 .birthdayMediaCard {
   border-radius: 18px;
   overflow: hidden;
-  border: 2px solid rgba(212, 175, 55, 0.4);
+  border: 2px solid rgba(228, 115, 39, 0.4);
   margin-bottom: 18px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   background: #000;
@@ -4409,7 +4409,7 @@
 .birthdayErineBadge {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(6px);
-  border: 1px solid rgba(212, 175, 55, 0.5);
+  border: 1px solid rgba(228, 115, 39, 0.5);
   color: #f7d57f;
   padding: 4px 10px;
   border-radius: 20px;
@@ -4423,7 +4423,7 @@
 
 .birthdayPlayBtn {
   align-self: center;
-  background: linear-gradient(135deg, #d4af37, #b45309);
+  background: linear-gradient(135deg, #e47327, #b45309);
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -4434,18 +4434,18 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 4px 18px rgba(228, 115, 39, 0.5);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .birthdayPlayBtn:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(212, 175, 55, 0.7);
+  box-shadow: 0 6px 24px rgba(228, 115, 39, 0.7);
 }
 
 .birthdayLetterBox {
-  background: rgba(236, 72, 153, 0.06);
-  border: 1px dashed rgba(236, 72, 153, 0.4);
+  background: rgba(236, 138, 72, 0.06);
+  border: 1px dashed rgba(236, 138, 72, 0.4);
   border-radius: 16px;
   padding: 16px 18px;
   margin-bottom: 20px;
@@ -4457,7 +4457,7 @@
   gap: 6px;
   font-size: 0.85rem;
   font-weight: 800;
-  color: #ec4899;
+  color: #ec8a48;
   margin-bottom: 8px;
 }
 
@@ -4472,7 +4472,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border-top: 1px solid rgba(236, 72, 153, 0.2);
+  border-top: 1px solid rgba(236, 138, 72, 0.2);
   padding-top: 8px;
 }
 
@@ -4495,8 +4495,8 @@
 }
 
 .birthdayMusicBtn {
-  background: rgba(201, 168, 76, 0.15);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+  background: rgba(229, 120, 48, 0.15);
+  border: 1px solid rgba(229, 120, 48, 0.4);
   color: var(--gold);
   padding: 10px 18px;
   border-radius: 12px;
@@ -4509,7 +4509,7 @@
 }
 
 .birthdayCloseBtn {
-  background: linear-gradient(135deg, #ec4899, #db2777);
+  background: linear-gradient(135deg, #ec8a48, #e36d1f);
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -4517,13 +4517,13 @@
   font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.4);
+  box-shadow: 0 4px 14px rgba(236, 138, 72, 0.4);
   transition: all 0.2s ease;
 }
 
 .birthdayCloseBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 6px 18px rgba(236, 138, 72, 0.6);
 }
 
 /* ── RESPONSIVE MOBILE KTA MODAL ── */

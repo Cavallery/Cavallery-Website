@@ -5,12 +5,20 @@ import styles from "./GameRineSection.module.css";
 
 const games = [
   {
+    title: "Kuda Api Erine — Knight's Passion",
+    desc: "Game terbaru! Lompatkan kuda dengan langkah L dan tangkap api Passion sebelum waktu habis.",
+    href: "/games/knight-passion",
+    icon: "bxs-chess",
+    tag: "Puzzle · Baru",
+    color: "var(--cv-orange)",
+  },
+  {
     title: "Game Belalang Yang Membangkang",
     desc: "Bantu Erine mengumpulkan belalang sebanyak mungkin sebelum waktu habis! Game pertama dari seri GameRine.",
     href: "/games/grasshopper-collector",
     icon: "bx-bug",
     tag: "Arcade",
-    color: "#4ade80",
+    color: "var(--cv-orange)",
   },
   {
     title: "Game Erine In Etherland",
@@ -18,7 +26,7 @@ const games = [
     href: "/games/zombie-escape",
     icon: "bx-run",
     tag: "Survival",
-    color: "#f87171",
+    color: "var(--cv-orange)",
   },
   {
     title: "Game Bibir Yang Telah Dicuri",
@@ -26,7 +34,7 @@ const games = [
     href: "/games/jumping-adventure",
     icon: "bx-up-arrow-circle",
     tag: "Adventure",
-    color: "#60a5fa",
+    color: "var(--cv-orange)",
   },
   {
     title: "Love Erine Meter",
@@ -34,7 +42,7 @@ const games = [
     href: "/games/love-erine-meter",
     icon: "bxs-heart",
     tag: "Fun",
-    color: "#f472b6",
+    color: "var(--cv-orange)",
   },
 ];
 

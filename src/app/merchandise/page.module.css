@@ -53,7 +53,7 @@
 
 .imageCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 30px 60px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 30px 60px rgba(228, 115, 39, 0.15);
 }
 
 .bundleImg {

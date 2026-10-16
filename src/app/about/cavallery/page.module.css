@@ -13,7 +13,7 @@
 .heroBg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at top center, rgba(212,175,55,0.1) 0%, transparent 65%);
+  background: radial-gradient(ellipse at top center, rgba(228, 115, 39, 0.1) 0%, transparent 65%);
   pointer-events: none;
 }
 
@@ -323,7 +323,7 @@
   font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
-  background: var(--surface-2, rgba(212, 175, 55, 0.05));
+  background: var(--surface-2, rgba(228, 115, 39, 0.05));
   border: 1px solid var(--border);
   color: var(--fg-muted);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -336,7 +336,7 @@
 }
 
 .filterTabActive {
-  background: linear-gradient(135deg, var(--gold, #d4af37), var(--gold-dark, #b45309));
+  background: linear-gradient(135deg, var(--gold, #e47327), var(--gold-dark, #b45309));
   color: #fff !important;
   border-color: transparent;
   box-shadow: 0 4px 16px rgba(180, 83, 9, 0.25);
@@ -365,7 +365,7 @@
 .galleryGridCard:hover {
   transform: translateY(-6px);
   border-color: var(--gold);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), 0 0 24px rgba(212, 175, 55, 0.18);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15), 0 0 24px rgba(228, 115, 39, 0.18);
 }
 
 .galleryGridImage {
@@ -454,7 +454,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--gold, #d4af37);
+  background: var(--gold, #e47327);
   color: #fff;
   display: flex;
   align-items: center;
@@ -467,7 +467,7 @@
 
 .galleryGridCard:hover .playIconCircle {
   transform: scale(1.15);
-  background: #f59e0b;
+  background: #f5690b;
 }
 
 .videoLabel {
@@ -760,7 +760,7 @@
 }
 
 :global([data-theme="dark"]) .filosofiEmblemHighlight {
-  background: rgba(201, 168, 76, 0.1);
+  background: rgba(229, 120, 48, 0.1);
 }
 
 .filosofiGrid {
@@ -843,15 +843,15 @@
 }
 
 .colorSwatchGold {
-  background: linear-gradient(135deg, #d4af37 0%, #b45309 100%);
+  background: linear-gradient(135deg, #e47327 0%, #b45309 100%);
 }
 
 .colorSwatchBlueDark {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #964712 0%, #b65717 100%);
 }
 
 .colorSwatchBlueLight {
-  background: linear-gradient(135deg, #4b88b7 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #b77d4b 0%, #f6863b 100%);
 }
 
 /* ── RESPONSIVE ────────────────────────────────────────────── */

@@ -379,7 +379,7 @@ export default function EsportPage() {
           {completedMatches.length > 0 && (
             <div>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1rem", color: "var(--fg)", display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="bx bx-select-multiple" style={{ color: "#34d399" }} /> Hasil Pertandingan Terakhir
+                <i className="bx bx-select-multiple" style={{ color: "#e47023" }} /> Hasil Pertandingan Terakhir
               </h3>
               <div className={styles.matchesGrid}>
                 {completedMatches.map((m) => {

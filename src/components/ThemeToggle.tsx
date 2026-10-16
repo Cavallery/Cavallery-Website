@@ -4,19 +4,16 @@ import { useEffect, useState } from "react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import styles from "./ThemeToggle.module.css";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ className }: { className?: string }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-
-    // Sync data-theme → class "dark" agar AnimatedThemeToggler bisa deteksi
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = savedTheme ? savedTheme === "dark" : prefersDark;
-
+    // The theme itself is applied before paint by the inline script in
+    // app/layout.tsx; here we only make sure class + data-theme agree.
+    const isDark = document.documentElement.classList.contains("dark");
     document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", isDark);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
   // Observe perubahan class "dark" → sync balik ke data-theme
@@ -37,7 +34,9 @@ export default function ThemeToggle() {
 
   return (
     <AnimatedThemeToggler
-      className={styles.toggle}
+      className={`${styles.toggle} ${className || ""}`}
+      aria-label="Ganti mode terang / gelap"
+      title="Ganti mode terang / gelap"
       variant="circle"
       duration={500}
     />

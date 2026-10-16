@@ -28,7 +28,7 @@ export default function LinksPage() {
             fontSize: 16,
             letterSpacing: "0.2em",
             textTransform: "uppercase" as const,
-            color: "#c9a84c",
+            color: "#e57830",
             margin: 0,
           }}
         >
@@ -37,7 +37,7 @@ export default function LinksPage() {
         <a
           href="/undangan/scan"
           style={{
-            background: "#10b981",
+            background: "#b95410",
             color: "#fff",
             padding: "8px 14px",
             borderRadius: 8,
@@ -62,7 +62,7 @@ export default function LinksPage() {
         <thead>
           <tr
             style={{
-              borderBottom: "1px solid rgba(236,227,208,0.15)",
+              borderBottom: "1px solid rgba(236, 227, 208, 0.15)",
               textAlign: "left",
             }}
           >
@@ -76,7 +76,7 @@ export default function LinksPage() {
             <tr
               key={f.slug}
               style={{
-                borderBottom: "1px solid rgba(236,227,208,0.06)",
+                borderBottom: "1px solid rgba(236, 227, 208, 0.06)",
               }}
             >
               <td style={{ padding: "12px 8px", opacity: 0.4 }}>{i + 1}</td>
@@ -87,7 +87,7 @@ export default function LinksPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    color: "#f0be53",
+                    color: "#f09253",
                     textDecoration: "none",
                     wordBreak: "break-all",
                   }}
