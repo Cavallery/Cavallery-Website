@@ -1,0 +1,62 @@
+[
+  {
+    "id": "media_hbd",
+    "title": "Video Ulang Tahun Erine (HBD)",
+    "type": "video",
+    "triggers": ["hbd", "!hbd", "/hbd", "#hbd", "selamat ulang tahun", "happy birthday", "ultah", "met ultah"],
+    "mediaUrl": "https://cavallery.id/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  },
+  {
+    "id": "media_waduh",
+    "title": "Video Reaksi Waduh",
+    "type": "video",
+    "triggers": ["waduh"],
+    "mediaUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/e081981a87a74168.mp4",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/9153cfedf5554c61.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  },
+  {
+    "id": "media_niterine",
+    "title": "Video Selamat Tidur (NiteRine)",
+    "type": "video",
+    "triggers": ["niterine", "nite rine", "night erine", "selamat tidur"],
+    "mediaUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/dc59a25de53f490b.mp4",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/3f23f73dd88f4364.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  },
+  {
+    "id": "media_ngasal",
+    "title": "Video Ngasal Erine",
+    "type": "video",
+    "triggers": ["ngasal"],
+    "mediaUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/978ce9ed7e85445f.mp4",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/3a037f2ce2e14a38.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  },
+  {
+    "id": "media_diesvenerine",
+    "title": "Video Happy DiesVenErine",
+    "type": "video",
+    "triggers": ["happy diesvenerine", "diesvenerine", "dies ven erine"],
+    "mediaUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/a5dfa966ca6c4636.mp4",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  },
+  {
+    "id": "media_gas",
+    "title": "Foto Gas Jiko Oline",
+    "type": "image",
+    "triggers": ["gas", "jiko oline", "jikoline"],
+    "mediaUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
+    "previewUrl": "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
+    "isActive": true,
+    "createdAt": "2026-10-17T06:00:00.000Z"
+  }
+]
