@@ -15,15 +15,15 @@ import { gsap, ScrollTrigger, useGSAP, MQ, refreshOnImages } from "@/lib/gsap";
  *   [data-kp-knight]                      the ♞ (absolute, top/left 0)
  *   [data-kp-ember]                       pooled ember / spark particles
  *   [data-kp-item]                        one milestone row
- *     [data-kp-lane]                      the column the path winds through
- *       [data-kp-node][data-year]         node marker (NOT inside the card)
+ *     [data-kp-node][data-year]         node marker (NOT inside the card)
  *         [data-kp-tile] [data-kp-core]
  *     [data-kp-card]                      revealed when the knight lands
  *       [data-kp-photo] img / [data-kp-text] > *
  *   [data-kp-year-rail] [data-kp-year]    sticky "rank" labels per year
  *
- * The path is a smooth Catmull-Rom spline that winds left/right across the
- * lane between nodes. The master timeline is split per segment with a
+ * The path is a smooth Catmull-Rom spline that meanders across the whole
+ * field ([data-kp-field]) between nodes — wide sweeps of varied amplitude
+ * and an occasional loop, passing behind the cards. The master timeline is split per segment with a
  * duration equal to the segment's *vertical* distance, so the knight reaches
  * each node exactly when that node crosses the arrival line on screen.
  * One master ScrollTrigger; no React state; transforms/opacity/dashoffset only.
@@ -68,6 +68,66 @@ function splineD(pts: Pt[], upTo = pts.length - 1): string {
     d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
   }
   return d;
+}
+
+/** Deterministic pseudo-random in [0, 1) — stable between rebuilds. */
+const rnd = (seed: number) => {
+  const v = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return v - Math.floor(v);
+};
+
+/** Swing amplitudes (fraction of the half-width) — varied so no two bends match. */
+const AMPS = [0.96, 0.55, 0.85, 0.7, 0.4, 0.92, 0.62];
+
+/**
+ * Build a river-like route through every node: between two nodes the path
+ * sweeps across the whole field (behind the cards) with varied amplitude,
+ * and every few segments it curls into a small loop before moving on.
+ */
+function windPoints(nodes: NodePoint[], L: number, R: number): { pts: Pt[]; nodeAt: number[] } {
+  const pts: Pt[] = [];
+  const nodeAt: number[] = [];
+  const cx = (L + R) / 2;
+  const half = Math.max(40, (R - L) / 2);
+  const clampX = (x: number, pad = 10) => Math.min(R - pad, Math.max(L + pad, x));
+
+  nodes.forEach((n, i) => {
+    nodeAt.push(pts.length);
+    pts.push({ x: n.x, y: n.y });
+    const b = nodes[i + 1];
+    if (!b) return;
+    const dy = b.y - n.y;
+    const k = Math.max(1, Math.min(4, Math.round(dy / 210)));
+    // swing away from the side the current node sits on
+    let side = n.x < cx ? 1 : -1;
+    const loopAt = i % 3 === 1 && dy > 240 ? Math.ceil(k / 2) : -1;
+
+    for (let j = 1; j <= k; j++) {
+      const t = j / (k + 1) + (rnd(i * 31 + j) - 0.5) * 0.1;
+      const amp = AMPS[(i * 3 + j) % AMPS.length];
+      const x = clampX(cx + side * amp * half * 0.95 + (rnd(i * 17 + j * 5) - 0.5) * half * 0.1);
+      const y = n.y + dy * Math.min(0.9, Math.max(0.1, t));
+
+      if (j === loopAt) {
+        // a curl: go round a small circle (crossing itself) then carry on down
+        const r = Math.min(64, Math.max(34, half * 0.11));
+        const lx = clampX(x, r + 12);
+        const d = side; // turning direction alternates with the sweep
+        // evenly sampled circle (enter at the top, go all the way round) so the
+        // spline draws a round loop instead of a kink
+        const steps = 8;
+        for (let a = 0; a <= steps; a++) {
+          const ang = -Math.PI / 2 + d * (a / steps) * Math.PI * 2;
+          pts.push({ x: lx + Math.cos(ang) * r, y: y + Math.sin(ang) * r });
+        }
+        pts.push({ x: lx + d * r * 0.6, y: y + r * 2.1 });
+      } else {
+        pts.push({ x, y });
+      }
+      side = -side as 1 | -1;
+    }
+  });
+  return { pts, nodeAt };
 }
 
 export function useKnightPath({ container, fireFromYear = 2025, dependencies = [] }: Options) {
@@ -199,45 +259,27 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         lastWidth = W;
         lastHeight = H;
 
+        // The route may wander across the whole field (the list column).
+        const field = (root.querySelector("[data-kp-field]") as HTMLElement | null)?.getBoundingClientRect() || rect;
+        const fieldL = field.left - rect.left;
+        const fieldR = field.right - rect.left;
+
         const nodes: NodePoint[] = Array.from(root.querySelectorAll<HTMLElement>("[data-kp-node]")).map((el) => {
           const r = el.getBoundingClientRect();
-          const lane = (el.closest("[data-kp-lane]") as HTMLElement) || el;
-          const lr = lane.getBoundingClientRect();
           return {
             x: r.left + r.width / 2 - rect.left,
             y: r.top + r.height / 2 - rect.top,
             year: Number(el.dataset.year || 0),
             el,
             item: (el.closest("[data-kp-item]") as HTMLElement) || el,
-            laneLeft: lr.left - rect.left,
-            laneRight: lr.right - rect.left,
+            laneLeft: fieldL,
+            laneRight: fieldR,
           };
         });
         if (nodes.length < 1) return;
 
-        // Waypoints: nodes + alternating swings across the lane in between.
-        const pts: Pt[] = [];
-        const nodeAt: number[] = [];
-        nodes.forEach((n, i) => {
-          nodeAt.push(pts.length);
-          pts.push({ x: n.x, y: n.y });
-          const b = nodes[i + 1];
-          if (!b) return;
-          const dy = b.y - n.y;
-          const span = Math.max(24, n.laneRight - n.laneLeft);
-          const inset = span * 0.1;
-          const k = Math.max(1, Math.min(3, Math.round(dy / 230)));
-          // start swinging away from the side the current node sits on
-          let side = n.x - n.laneLeft < span / 2 ? 1 : -1;
-          for (let j = 1; j <= k; j++) {
-            const t = j / (k + 1);
-            const x = side > 0 ? n.laneRight - inset : n.laneLeft + inset;
-            // deterministic jitter so the river looks hand-drawn but stays stable
-            const jit = Math.abs((Math.sin((i * 7 + j) * 12.9898) * 43758.5453) % 1) - 0.5;
-            pts.push({ x: x + jit * inset * 0.8, y: n.y + dy * t });
-            side = -side;
-          }
-        });
+        // Waypoints: nodes + wide, varied sweeps (and the odd curl) in between.
+        const { pts, nodeAt } = windPoints(nodes, fieldL, fieldR);
 
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
         svg.setAttribute("width", String(W));
