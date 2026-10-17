@@ -73,6 +73,7 @@ function buildSmoothPath(pts: Pt[], upTo = pts.length - 1): string {
     const c2y = p2.y - dy * 0.5;
     d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
   }
+  return d;
 }
 
 export function useKnightPath({ container, fireFromYear = 2025, dependencies = [] }: Options) {

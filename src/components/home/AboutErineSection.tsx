@@ -55,6 +55,49 @@ interface SetlistData {
   songs: string[];
 }
 
+function SafetyPin() {
+  return (
+    <div className={styles.safetyPin} aria-hidden="true">
+      <svg
+        viewBox="0 0 32 60"
+        className={styles.safetyPinSvg}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="cavaPinMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" />
+            <stop offset="25%" stopColor="#eab308" />
+            <stop offset="60%" stopColor="#ca8a04" />
+            <stop offset="100%" stopColor="#713f12" />
+          </linearGradient>
+          <linearGradient id="cavaPinCap" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fef9c3" />
+            <stop offset="40%" stopColor="#eab308" />
+            <stop offset="100%" stopColor="#a16207" />
+          </linearGradient>
+        </defs>
+        {/* Spring loop at the bottom */}
+        <circle cx="16" cy="48" r="5.5" stroke="url(#cavaPinMetal)" strokeWidth="2.4" />
+        <circle cx="16" cy="48" r="2.8" stroke="#854d0e" strokeWidth="1" fill="#1c1917" />
+
+        {/* Back arm wire */}
+        <path d="M20 18 L20 45" stroke="url(#cavaPinMetal)" strokeWidth="2.5" strokeLinecap="round" />
+
+        {/* Front pin / needle piercing through poster */}
+        <path d="M12 18 L12 45" stroke="url(#cavaPinMetal)" strokeWidth="2.2" strokeLinecap="round" />
+
+        {/* Head / clasp sheath at top */}
+        <rect x="8" y="4" width="16" height="16" rx="4" fill="url(#cavaPinCap)" stroke="#78350f" strokeWidth="0.8" />
+        {/* Head slot cutout */}
+        <path d="M12 8 L12 16" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
+        {/* Metallic highlight bevel */}
+        <path d="M10 6 L22 6" stroke="#ffffff" strokeWidth="1" strokeLinecap="round" opacity="0.75" />
+      </svg>
+    </div>
+  );
+}
+
 function FlipCard({ set }: { set: SetlistData; idx: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -77,7 +120,7 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
     >
       <div className={styles.flipInner}>
         <div className={styles.flipFront}>
-          <div className={styles.tapeStrip} />
+          <SafetyPin />
           <div className={styles.polaroidFrame}>
             <img src={set.img} alt={set.title} />
           </div>
@@ -87,7 +130,7 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
         </div>
 
         <div className={styles.flipBack}>
-          <div className={styles.tapeStrip} style={{ top: "-15px" }} />
+          <SafetyPin />
           <div className={styles.cardTitle} style={{ marginBottom: "15px", fontSize: "1.2rem" }}>
             Unit Songs
           </div>

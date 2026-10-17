@@ -1347,7 +1347,8 @@
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
-  gap: 18px;
+  gap: 24px 18px;
+  padding-top: 16px;
 }
 
 /* Flip card (CSS 3D, transform only) */
@@ -1358,6 +1359,23 @@
   min-height: 340px;
   perspective: 1200px;
   cursor: pointer;
+  transition: transform 0.3s var(--cv-ease-out);
+}
+
+.stickyCard:nth-child(3n + 1) {
+  transform: rotate(-0.9deg);
+}
+
+.stickyCard:nth-child(3n + 2) {
+  transform: rotate(0.9deg);
+}
+
+.stickyCard:nth-child(3n) {
+  transform: rotate(-0.4deg);
+}
+
+.stickyCard:hover {
+  transform: scale(1.025) rotate(0deg);
 }
 
 .flipInner {
@@ -1381,7 +1399,7 @@
   flex-direction: column;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .flipFront {
@@ -1398,6 +1416,27 @@
   color: var(--cv-text);
   border: 1px solid var(--cv-line-strong);
   transform: rotateY(180deg);
+}
+
+.safetyPin {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-6deg);
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stickyCard:hover .safetyPin {
+  transform: translateX(-50%) rotate(2deg) scale(1.08);
+}
+
+.safetyPinSvg {
+  width: 28px;
+  height: 52px;
+  display: block;
 }
 
 .tapeStrip {
