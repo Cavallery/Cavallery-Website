@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import styles from "./AboutErineSection.module.css";
 import { VIDEO_URLS } from "@/lib/videoAssets";
 import ChessEyebrow from "@/components/chess/ChessEyebrow";
@@ -150,10 +150,19 @@ function FlipCard({ set }: { set: SetlistData; idx: number }) {
   );
 }
 
-const DEFAULT_TRIVIA_LIST = [
+interface TriviaItem {
+  id: number;
+  q: string;
+  options: string[];
+  correctIndex: number;
+  a: string;
+  tag: string;
+}
+
+const DEFAULT_TRIVIA_LIST: TriviaItem[] = [
   {
     id: 1,
-    q: "Kapan penampilan pertama Erine di panggung theater JKT48?",
+    q: "Kapan penampilan pertama Erine sebagai penari latar (zenza girl) di panggung theater JKT48?",
     options: [
       "1 Februari 2025 (Zenza Girl - Glory Days)",
       "18 November 2023 (Trainee Debut)",
@@ -165,7 +174,7 @@ const DEFAULT_TRIVIA_LIST = [
   },
   {
     id: 2,
-    q: "Siapa grup dan idol K-Pop favorit Erine?",
+    q: "Siapa girlgroup dan idol K-Pop yang paling diidolakan oleh Erine?",
     options: [
       "NewJeans — Haerin",
       "aespa — Ningning",
@@ -177,19 +186,19 @@ const DEFAULT_TRIVIA_LIST = [
   },
   {
     id: 3,
-    q: "Apa cita-cita unik Erine semasa upacara sekolah?",
+    q: "Apa cita-cita unik yang pernah diimpikan Erine semasa upacara bendera di sekolah?",
     options: [
-      "Petugas pembawa bendera upacara",
       "Pemimpin paduan suara (Dirigen)",
+      "Petugas pembawa bendera upacara",
       "Pembaca naskah Pembukaan UUD 1945"
     ],
-    correctIndex: 0,
+    correctIndex: 1,
     a: "Erine punya cita-cita unik ingin menjadi petugas pembawa bendera saat Erine upacara bendera di sekolah.",
     tag: "Masa Sekolah",
   },
   {
     id: 4,
-    q: "Waktu SMA, Erine memilih jurusan apa?",
+    q: "Saat menempuh pendidikan di bangku SMA, jurusan apa yang dipilih oleh Erine?",
     options: [
       "IPA (Ilmu Pengetahuan Alam)",
       "Bahasa dan Budaya",
@@ -201,53 +210,132 @@ const DEFAULT_TRIVIA_LIST = [
   },
   {
     id: 5,
-    q: "Alat musik apa yang bisa dimainkan oleh Erine?",
+    q: "Alat musik petik khas apa yang mahir dimainkan oleh Erine?",
     options: [
       "Kalimba (alat musik petik jempol)",
       "Ukulele akustik",
-      "Biola elektrik"
+      "Harpa mini"
     ],
     correctIndex: 0,
-    a: "Erine mahir memainkan alat musik Kalimba (alat musik petik jempol).",
+    a: "Erine mahir memainkan alat musik Kalimba (alat musik petik jempol khas Afrika).",
     tag: "Bakat Musik",
   },
   {
     id: 6,
-    q: "Bagaimana kondisi kesehatan mata Erine?",
+    q: "Bagaimana kondisi kesehatan mata Erine yang sering dipuji sangat jernih?",
     options: [
-      "Minus 1.5 mata kiri",
-      "Mata sangat sehat, tanpa minus maupun silinder",
-      "Silinder ringan 0.75"
+      "Minus 1.5 pada mata kiri",
+      "Silinder ringan 0.75",
+      "Mata sangat sehat, tanpa minus maupun silinder"
     ],
-    correctIndex: 1,
-    a: "Mata Erine sangat sehat dan jernih, Erine sama sekali tidak memiliki silinder ataupun minus.",
-    tag: "Fisik & Kesehatan",
+    correctIndex: 2,
+    a: "Mata Erine sangat sehat dan jernih, Erine sama sekali tidak memiliki kelainan minus ataupun silinder.",
+    tag: "Kesehatan",
   },
   {
     id: 7,
-    q: "Kapan Erine mengirimkan formulir pendaftaran audisi JKT48?",
+    q: "Kapan Erine resmi mengirimkan formulir pendaftaran audisi JKT48 Generasi 12?",
     options: [
-      "Hari pertama pembukaan audisi",
-      "1 minggu sebelum batas waktu",
-      "Tepat di hari terakhir penutupan pendaftaran!"
+      "Hari pertama pembukaan pendaftaran",
+      "Tepat di hari terakhir penutupan pendaftaran!",
+      "Satu minggu sebelum batas waktu"
     ],
-    correctIndex: 2,
+    correctIndex: 1,
     a: "Erine mendaftarkan diri pada audisi JKT48 tepat di hari terakhir penutupan pendaftaran!",
     tag: "Audisi JKT48",
   },
   {
     id: 8,
-    q: "Apakah Erine benar-benar jago bermain catur?",
+    q: "Apakah Erine benar-benar jago bermain catur sesuai jikoshoukai 'Checkmate' miliknya?",
     options: [
       "Sebenarnya tidak bisa, jiko Checkmate murni ide spontan!",
       "Juara catur tingkat sekolah",
-      "Menguasai taktik grandmaster catur"
+      "Menguasai taktik pembuka grandmaster catur"
     ],
     correctIndex: 0,
     a: "Sebenarnya Erine tidak bisa main catur! Jikoshoukai 'Checkmate' Erine itu murni ide spontan yang terlintas begitu saja di pikiran Erine.",
     tag: "Jikoshoukai",
   },
+  {
+    id: 9,
+    q: "Di team manakah Erine resmi dipromosikan sebagai member inti JKT48?",
+    options: [
+      "Team Blossom",
+      "Team Passion",
+      "Team Fire"
+    ],
+    correctIndex: 1,
+    a: "Erine resmi dipromosikan ke Team Passion JKT48 dan membakar panggung bersama semangat Cavallery.",
+    tag: "Team JKT48",
+  },
+  {
+    id: 10,
+    q: "Berapa nomor generasi (Gen) Erine saat pertama kali diperkenalkan di JKT48?",
+    options: [
+      "Generasi 11",
+      "Generasi 12",
+      "Generasi 13"
+    ],
+    correctIndex: 1,
+    a: "Catherina Vallencia (Erine) diperkenalkan secara resmi sebagai member JKT48 Generasi ke-12 pada November 2023.",
+    tag: "Generasi",
+  },
+  {
+    id: 11,
+    q: "Bagaimana bunyi salam perkenalan (Jikoshoukai) khas Erine yang selalu diteriakkan fans?",
+    options: [
+      "Hadir dengan seribu kejutan, Checkmate!",
+      "Langkah kuda tak tertebak, Skakmat!",
+      "Membakar panggung dengan senyuman, Halo semuanya!"
+    ],
+    correctIndex: 0,
+    a: "Jikoshoukai khas Erine adalah 'Hadir dengan seribu kejutan, Checkmate!' yang selalu membakar semangat panggung.",
+    tag: "Jikoshoukai",
+  },
+  {
+    id: 12,
+    q: "Apa filosofi di balik nama fanbase resmi pendukung Erine, 'Cavallery'?",
+    options: [
+      "Singkatan dari Catherina dan kota kelahirannya",
+      "Nama judul lagu teater favorit Erine",
+      "Perpaduan ksatria berkuda (Cavalry/Knight) dan nama Catherina Vallencia"
+    ],
+    correctIndex: 2,
+    a: "Cavallery terinspirasi dari ksatria berkuda (Cavalry/Knight) dan nama Catherina Vallencia, melambangkan pelindung setia yang mendampingi langkah Erine.",
+    tag: "Fanbase",
+  },
 ];
+
+function buildTriviaList(apiFunfacts: any[]): TriviaItem[] {
+  if (!apiFunfacts || apiFunfacts.length === 0) {
+    return DEFAULT_TRIVIA_LIST;
+  }
+
+  return DEFAULT_TRIVIA_LIST.map((defItem) => {
+    const dbMatch = apiFunfacts.find((f: any) => {
+      if (f.id === defItem.id) return true;
+      const txt = (f.fact || f.content || "").toLowerCase();
+      if (defItem.id === 1 && (txt.includes("glory days") || txt.includes("penari latar") || txt.includes("zenza"))) return true;
+      if (defItem.id === 2 && (txt.includes("aespa") || txt.includes("ningning"))) return true;
+      if (defItem.id === 3 && (txt.includes("bendera") || txt.includes("upacara"))) return true;
+      if (defItem.id === 4 && (txt.includes("ips") || txt.includes("sma") || txt.includes("jurusan"))) return true;
+      if (defItem.id === 5 && (txt.includes("kalimba") || txt.includes("alat musik"))) return true;
+      if (defItem.id === 6 && (txt.includes("mata") || txt.includes("silinder") || txt.includes("minus"))) return true;
+      if (defItem.id === 7 && (txt.includes("daftar") || txt.includes("audisi") || txt.includes("terakhir"))) return true;
+      if (defItem.id === 8 && (txt.includes("catur") || txt.includes("checkmate"))) return true;
+      return false;
+    });
+
+    if (dbMatch) {
+      return {
+        ...defItem,
+        a: dbMatch.fact || dbMatch.content || defItem.a,
+        tag: dbMatch.category && dbMatch.category !== "General" ? dbMatch.category : defItem.tag,
+      };
+    }
+    return defItem;
+  });
+}
 
 export default function AboutErineSection() {
   const age = calculateAge();
@@ -468,31 +556,9 @@ export default function AboutErineSection() {
     setTriviaGuesses({});
   };
 
-  const triviaList = funfacts.length > 0
-    ? funfacts.map((f: any, i: number) => {
-        const raw = f.fact || f.content || "";
-        let q = `Trivia #${i + 1}: Tahukah kamu tentang hal ini?`;
-        let a = raw;
-        if (raw.includes("?") || raw.includes("—") || raw.includes(":")) {
-          const parts = raw.split(/[?|—|:]/);
-          if (parts.length >= 2 && parts[0].trim().length > 5) {
-            q = parts[0].trim() + (raw.includes("?") ? "?" : "");
-            a = parts.slice(1).join(" ").trim();
-          }
-        }
-        if (!a.toLowerCase().includes("erine")) {
-          a = `Fakta Erine: ${a}`;
-        }
-        return {
-          id: f.id || i + 1,
-          q,
-          options: ["Fakta Asli Erine (Benar)", "Mitos Belaka (Salah)"],
-          correctIndex: 0,
-          a,
-          tag: f.category || "Fun Fact"
-        };
-      })
-    : DEFAULT_TRIVIA_LIST;
+  const triviaList = useMemo(() => {
+    return buildTriviaList(funfacts);
+  }, [funfacts]);
 
   useReveal(rootRef, [kabeshas.length, setlists.length, statsData.length, updates.length, pmLoading]);
 
