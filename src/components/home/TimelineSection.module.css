@@ -77,16 +77,23 @@
   top: 0;
   left: 0;
   z-index: 5;
-  width: 34px;
-  height: 34px;
-  padding: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 2px;
   background: var(--cv-ink);
-  border: 1.5px solid var(--cv-orange-hi);
-  border-radius: 12px;
-  color: var(--cv-bone);
+  border: 2px solid var(--cv-orange-hi);
+  border-radius: 50%;
   pointer-events: none;
   will-change: transform;
-  box-shadow: 0 0 0 4px rgba(255, 166, 106, 0.12);
+  box-shadow: 0 0 0 4px rgba(255, 166, 106, 0.16), 0 0 16px rgba(242, 106, 27, 0.4);
+}
+
+.knightAvatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* flame aura around the knight in the Team Passion era */
@@ -95,7 +102,7 @@
   position: absolute;
   inset: -55% -45% -20%;
   z-index: -1;
-  border-radius: 50% 50% 40% 40%;
+  border-radius: 50%;
   background: radial-gradient(50% 60% at 50% 70%, rgba(255, 146, 74, 0.75) 0%, rgba(242, 106, 27, 0.55) 40%, rgba(216, 103, 27, 0.2) 65%, transparent 75%);
   opacity: 0;
   transform-origin: 50% 90%;
@@ -112,16 +119,9 @@
   to   { transform: scale(1.06, 1.14); }
 }
 
-.knight svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
 .board[data-kp-era="fire"] .knight {
   border-color: var(--cv-orange);
-  color: var(--cv-orange-hi);
-  box-shadow: 0 0 0 4px rgba(242, 106, 27, 0.16), 0 0 24px rgba(242, 106, 27, 0.35);
+  box-shadow: 0 0 0 4px rgba(242, 106, 27, 0.2), 0 0 24px rgba(242, 106, 27, 0.6);
 }
 
 .ember {
@@ -669,7 +669,7 @@
   .knight {
     width: 44px;
     height: 44px;
-    padding: 7px;
+    padding: 2.5px;
   }
 
   .card {

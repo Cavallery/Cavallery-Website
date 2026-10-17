@@ -51,83 +51,28 @@ interface NodePoint extends Pt {
 
 const LINE = 0.7; // arrival line, fraction of the viewport height
 
-/** Catmull-Rom → cubic Bézier through every point (smooth, no overshoot loops). */
-function splineD(pts: Pt[], upTo = pts.length - 1): string {
+/**
+ * Clean, smooth S-curve through milestone nodes.
+ * Strictly monotonic vertically, strictly bounded horizontally within node positions.
+ * Never loops, never overshoots, passes exactly through every milestone node.
+ */
+function buildSmoothPath(pts: Pt[], upTo = pts.length - 1): string {
   if (!pts.length) return "";
-  const p = (i: number) => pts[Math.max(0, Math.min(pts.length - 1, i))];
-  let d = `M ${p(0).x.toFixed(1)} ${p(0).y.toFixed(1)}`;
-  for (let i = 0; i < Math.min(upTo, pts.length - 1); i++) {
-    const p0 = p(i - 1);
-    const p1 = p(i);
-    const p2 = p(i + 1);
-    const p3 = p(i + 2);
-    const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
-    const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
+  if (pts.length === 1 || upTo === 0) {
+    return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} l 0 1`;
+  }
+  const maxIdx = Math.min(upTo, pts.length - 1);
+  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < maxIdx; i++) {
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const dy = p2.y - p1.y;
+    const c1x = p1.x;
+    const c1y = p1.y + dy * 0.5;
+    const c2x = p2.x;
+    const c2y = p2.y - dy * 0.5;
     d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
   }
-  return d;
-}
-
-/** Deterministic pseudo-random in [0, 1) — stable between rebuilds. */
-const rnd = (seed: number) => {
-  const v = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
-  return v - Math.floor(v);
-};
-
-/** Swing amplitudes (fraction of the half-width) — varied so no two bends match. */
-const AMPS = [0.96, 0.55, 0.85, 0.7, 0.4, 0.92, 0.62];
-
-/**
- * Build a river-like route through every node: between two nodes the path
- * sweeps across the whole field (behind the cards) with varied amplitude,
- * and every few segments it curls into a small loop before moving on.
- */
-function windPoints(nodes: NodePoint[], L: number, R: number): { pts: Pt[]; nodeAt: number[] } {
-  const pts: Pt[] = [];
-  const nodeAt: number[] = [];
-  const cx = (L + R) / 2;
-  const half = Math.max(40, (R - L) / 2);
-  const clampX = (x: number, pad = 10) => Math.min(R - pad, Math.max(L + pad, x));
-
-  nodes.forEach((n, i) => {
-    nodeAt.push(pts.length);
-    pts.push({ x: n.x, y: n.y });
-    const b = nodes[i + 1];
-    if (!b) return;
-    const dy = b.y - n.y;
-    const k = Math.max(1, Math.min(4, Math.round(dy / 210)));
-    // swing away from the side the current node sits on
-    let side = n.x < cx ? 1 : -1;
-    const loopAt = i % 3 === 1 && dy > 240 ? Math.ceil(k / 2) : -1;
-
-    for (let j = 1; j <= k; j++) {
-      const t = j / (k + 1) + (rnd(i * 31 + j) - 0.5) * 0.1;
-      const amp = AMPS[(i * 3 + j) % AMPS.length];
-      const x = clampX(cx + side * amp * half * 0.95 + (rnd(i * 17 + j * 5) - 0.5) * half * 0.1);
-      const y = n.y + dy * Math.min(0.9, Math.max(0.1, t));
-
-      if (j === loopAt) {
-        // a curl: go round a small circle (crossing itself) then carry on down
-        const r = Math.min(64, Math.max(34, half * 0.11));
-        const lx = clampX(x, r + 12);
-        const d = side; // turning direction alternates with the sweep
-        // evenly sampled circle (enter at the top, go all the way round) so the
-        // spline draws a round loop instead of a kink
-        const steps = 8;
-        for (let a = 0; a <= steps; a++) {
-          const ang = -Math.PI / 2 + d * (a / steps) * Math.PI * 2;
-          pts.push({ x: lx + Math.cos(ang) * r, y: y + Math.sin(ang) * r });
-        }
-        pts.push({ x: lx + d * r * 0.6, y: y + r * 2.1 });
-      } else {
-        pts.push({ x, y });
-      }
-      side = -side as 1 | -1;
-    }
-  });
-  return { pts, nodeAt };
 }
 
 export function useKnightPath({ container, fireFromYear = 2025, dependencies = [] }: Options) {
@@ -278,8 +223,8 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         });
         if (nodes.length < 1) return;
 
-        // Waypoints: nodes + wide, varied sweeps (and the odd curl) in between.
-        const { pts, nodeAt } = windPoints(nodes, fieldL, fieldR);
+        // Clean path directly connecting milestone nodes
+        const pts: Pt[] = nodes.map((n) => ({ x: n.x, y: n.y }));
 
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
         svg.setAttribute("width", String(W));
@@ -294,15 +239,15 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         // Cumulative path length at every node.
         const fractions: number[] = [];
         const lens: number[] = [];
-        nodeAt.forEach((w) => {
-          if (w === 0) {
+        for (let i = 0; i < pts.length; i++) {
+          if (i === 0) {
             lens.push(0);
-            return;
+          } else {
+            base.setAttribute("d", buildSmoothPath(pts, i));
+            lens.push(base.getTotalLength());
           }
-          base.setAttribute("d", splineD(pts, w));
-          lens.push(base.getTotalLength());
-        });
-        const d = pts.length > 1 ? splineD(pts) : `M ${pts[0].x} ${pts[0].y} l 0 1`;
+        }
+        const d = buildSmoothPath(pts);
         [base, glow, lit, maskPath, flow].forEach((p) => p?.setAttribute("d", d));
         total = Math.max(1, lit.getTotalLength());
         lens.forEach((l) => fractions.push(l / total));

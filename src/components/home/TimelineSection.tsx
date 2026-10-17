@@ -226,7 +226,14 @@ export default function TimelineSection() {
           </svg>
 
           <div className={styles.knight} data-kp-knight aria-hidden="true">
-            <KnightSvg size="100%" />
+            <img
+              src="/uploads/cavallery/images/2026/10/1792205817069_cava-logo.webp"
+              alt="Cavallery"
+              className={styles.knightAvatar}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = "/images/cava-logo-round.png";
+              }}
+            />
           </div>
           {Array.from({ length: EMBER_POOL }).map((_, i) => (
             <span key={i} className={styles.ember} data-kp-ember aria-hidden="true" />
