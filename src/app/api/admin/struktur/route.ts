@@ -1,71 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { createPengurus, deletePengurus, listPengurus, parsePengurusInput, updatePengurus } from "@/lib/struktur";
+import {
+  createStructureNode,
+  deleteStructureNode,
+  getAllNodes,
+  getFullStructure,
+  updateStructureNode,
+} from "@/lib/structure";
 
 export const dynamic = "force-dynamic";
 
-const denied = () => NextResponse.json({ status: false, message: "Akses ditolak. Silakan login sebagai admin." }, { status: 401 });
+const denied = () =>
+  NextResponse.json(
+    { status: false, message: "Akses ditolak. Silakan login sebagai admin." },
+    { status: 401 }
+  );
 
-function parseId(v: unknown): number | null {
-  const n = Number(v);
-  return Number.isInteger(n) && n > 0 ? n : null;
-}
-
-// ── GET: seluruh pengurus (termasuk nonaktif) ──
+// GET: ambil struktur lengkap
 export async function GET(req: NextRequest) {
   if (!getAdminSessionFromReq(req)) return denied();
   try {
-    const data = await listPengurus({ includeInactive: true });
-    return NextResponse.json({ status: true, data });
-  } catch (error: unknown) {
-    console.error("Admin get struktur error:", error);
-    return NextResponse.json({ status: false, message: "Gagal memuat struktur" }, { status: 500 });
+    const full = await getFullStructure(false);
+    return NextResponse.json({
+      status: true,
+      data: full.nodes,
+      tree: full.tree,
+      settings: full.settings,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal memuat struktur" },
+      { status: 500 }
+    );
   }
 }
 
-// ── POST: tambah pengurus ──
+// POST: tambah node
 export async function POST(req: NextRequest) {
   if (!getAdminSessionFromReq(req)) return denied();
   try {
-    const parsed = parsePengurusInput(await req.json());
-    if ("error" in parsed) return NextResponse.json({ status: false, message: parsed.error }, { status: 400 });
-    const data = await createPengurus(parsed.value);
-    return NextResponse.json({ status: true, message: `${data.nama} ditambahkan ke struktur.`, data });
-  } catch (error: unknown) {
-    console.error("Admin create struktur error:", error);
-    return NextResponse.json({ status: false, message: (error instanceof Error && error.message) || "Gagal menambah pengurus" }, { status: 500 });
+    const body = await req.json();
+    const data = await createStructureNode(body);
+    return NextResponse.json({
+      status: true,
+      message: `${data.role_label} ditambahkan ke struktur.`,
+      data,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal menambah pengurus" },
+      { status: 400 }
+    );
   }
 }
 
-// ── PUT: ubah pengurus (body berisi id) ──
+// PUT / PATCH: update node
 export async function PUT(req: NextRequest) {
   if (!getAdminSessionFromReq(req)) return denied();
   try {
     const body = await req.json();
-    const id = parseId(body?.id);
+    const id = Number(body?.id);
     if (!id) return NextResponse.json({ status: false, message: "ID tidak valid" }, { status: 400 });
-    const parsed = parsePengurusInput(body);
-    if ("error" in parsed) return NextResponse.json({ status: false, message: parsed.error }, { status: 400 });
-    const ok = await updatePengurus(id, parsed.value);
-    if (!ok) return NextResponse.json({ status: false, message: "Data tidak ditemukan atau gagal disimpan" }, { status: 404 });
-    return NextResponse.json({ status: true, message: "Data pengurus diperbarui." });
-  } catch (error: unknown) {
-    console.error("Admin update struktur error:", error);
-    return NextResponse.json({ status: false, message: "Gagal memperbarui pengurus" }, { status: 500 });
+    const data = await updateStructureNode(id, body);
+    return NextResponse.json({ status: true, message: "Data pengurus diperbarui.", data });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal memperbarui pengurus" },
+      { status: 400 }
+    );
   }
 }
 
-// ── DELETE: hapus pengurus (?id=) ──
+// DELETE: hapus node
 export async function DELETE(req: NextRequest) {
   if (!getAdminSessionFromReq(req)) return denied();
   try {
-    const id = parseId(new URL(req.url).searchParams.get("id"));
+    const id = Number(new URL(req.url).searchParams.get("id"));
     if (!id) return NextResponse.json({ status: false, message: "ID tidak valid" }, { status: 400 });
-    const ok = await deletePengurus(id);
-    if (!ok) return NextResponse.json({ status: false, message: "Data tidak ditemukan atau gagal dihapus" }, { status: 404 });
-    return NextResponse.json({ status: true, message: "Pengurus dihapus dari struktur." });
-  } catch (error: unknown) {
-    console.error("Admin delete struktur error:", error);
-    return NextResponse.json({ status: false, message: "Gagal menghapus pengurus" }, { status: 500 });
+    const res = await deleteStructureNode(id);
+    return NextResponse.json({
+      status: true,
+      message: `Node berhasil dihapus (${res.affectedCount} node terhapus).`,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: false, message: error?.message || "Gagal menghapus pengurus" },
+      { status: 400 }
+    );
   }
 }

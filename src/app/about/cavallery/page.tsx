@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
 import PetaDomisili from "@/components/PetaDomisili/PetaDomisili";
-import StrukturOrganisasi from "@/components/about/StrukturOrganisasi";
+import OrgChart from "@/components/structure/OrgChart";
 import SectionDivider from "@/components/SectionDivider";
 import CavalleryGallery from "@/components/about/CavalleryGallery";
 
@@ -286,21 +286,8 @@ export default function AboutCavalleryPage() {
           <p style={{ color: "var(--fg-dim)", marginBottom: 32, maxWidth: 600, marginInline: "auto", textAlign: "center" }}>
             Struktur kepengurusan resmi, program kerja, dan peta strategis Cavallery.id dalam mengorganisasi dukungan bagi Erine JKT48 secara berkelanjutan.
           </p>
-          {/* Bagan dari data (Dashboard Admin › Struktur Admin); embed Canva lama
-              hanya tampil selama data struktur masih kosong. */}
-          <StrukturOrganisasi
-            fallback={
-              <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", borderRadius: 20, overflow: "hidden", border: "1px solid var(--border)" }}>
-                <iframe
-                  src="https://www.canva.com/design/DAGphhh5yG4/PQzSLf0zIpCM_G3-KeHVEA/view?embed"
-                  title="Struktur Kepengurusan Cavallery"
-                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
-                  loading="lazy"
-                  allowFullScreen
-                />
-              </div>
-            }
-          />
+          {/* Bagan struktur dinamis berbasis kode dari MySQL (menggantikan embed Canva) */}
+          <OrgChart />
         </div>
 
       </div>
