@@ -374,65 +374,88 @@ export async function PUT(req: NextRequest) {
       anggotaSejak,
     } = body;
 
-    if (!id || !namaLengkap || !idLine) {
-      return NextResponse.json({ status: false, message: "ID, Nama Lengkap, dan ID LINE wajib diisi" }, { status: 400 });
+    const cleanNama = (namaLengkap || "").trim();
+    const cleanIdLine = (idLine || kontakId || "-").trim();
+
+    if (!id || !cleanNama) {
+      return NextResponse.json({ status: false, message: "ID dan Nama Lengkap wajib diisi" }, { status: 400 });
     }
 
-    const joinDate = anggotaSejak ? new Date(anggotaSejak) : new Date();
+    let joinDate: Date = new Date();
+    if (anggotaSejak) {
+      const parsedDate = new Date(anggotaSejak);
+      if (!isNaN(parsedDate.getTime())) {
+        joinDate = parsedDate;
+      }
+    }
 
-    try {
-      await query(
+    const cleanNoAnggota = noAnggota && noAnggota !== "-" ? noAnggota.trim().toUpperCase() : null;
+
+    let updateRes = await query(
+      `UPDATE anggota 
+       SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
+       WHERE id = ?`,
+      [
+        cleanNoAnggota,
+        cleanNama,
+        cleanIdLine,
+        pin !== undefined ? (pin?.trim() || null) : null,
+        displayLine?.trim() || null,
+        discord?.trim() || null,
+        gender || "Laki-laki",
+        domisili?.trim() || "-",
+        kontakPlatform || "X (Twitter)",
+        kontakId?.trim() || cleanIdLine,
+        status || "aktif",
+        jabatan || "Anggota",
+        divisi?.trim() || null,
+        badge || "squire",
+        fotoProfil !== undefined ? (fotoProfil?.trim() || null) : null,
+        joinDate,
+        id,
+      ]
+    );
+
+    if (!updateRes) {
+      // Coba fallback tanpa kolom divisi / badge jika skema lama
+      updateRes = await query(
         `UPDATE anggota 
-         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
+         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, foto_profil = ?, anggota_sejak = ? 
          WHERE id = ?`,
         [
-          noAnggota?.trim().toUpperCase() || null,
-          namaLengkap.trim(),
-          idLine.trim(),
+          cleanNoAnggota,
+          cleanNama,
+          cleanIdLine,
           pin !== undefined ? (pin?.trim() || null) : null,
           displayLine?.trim() || null,
           discord?.trim() || null,
           gender || "Laki-laki",
           domisili?.trim() || "-",
           kontakPlatform || "X (Twitter)",
-          kontakId?.trim() || idLine.trim(),
+          kontakId?.trim() || cleanIdLine,
           status || "aktif",
           jabatan || "Anggota",
-          divisi?.trim() || null,
-          badge || "squire",
           fotoProfil !== undefined ? (fotoProfil?.trim() || null) : null,
           joinDate,
           id,
         ]
       );
-    } catch {
-      await query(
-        `UPDATE anggota 
-         SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, foto_profil = ?, anggota_sejak = ? 
-         WHERE id = ?`,
-        [
-          noAnggota?.trim().toUpperCase() || null,
-          namaLengkap.trim(),
-          idLine.trim(),
-          pin !== undefined ? (pin?.trim() || null) : null,
-          displayLine?.trim() || null,
-          discord?.trim() || null,
-          gender || "Laki-laki",
-          domisili?.trim() || "-",
-          kontakPlatform || "X (Twitter)",
-          kontakId?.trim() || idLine.trim(),
-          status || "aktif",
-          jabatan || "Anggota",
-          fotoProfil !== undefined ? (fotoProfil?.trim() || null) : null,
-          joinDate,
-          id,
-        ]
+    }
+
+    if (!updateRes) {
+      return NextResponse.json(
+        {
+          status: false,
+          message:
+            "Gagal menyimpan ke database. Pastikan Nomor Anggota atau ID LINE tidak duplikat dengan anggota lain.",
+        },
+        { status: 400 }
       );
     }
 
     return NextResponse.json({
       status: true,
-      message: `Data anggota ${namaLengkap} berhasil diperbarui!`,
+      message: `Data anggota ${cleanNama} berhasil diperbarui!`,
     });
   } catch (error: any) {
     console.error("Edit anggota error:", error);

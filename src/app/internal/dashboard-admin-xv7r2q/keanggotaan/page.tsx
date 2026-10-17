@@ -75,6 +75,7 @@ export default function AdminKeanggotaanPage() {
   const [newFotoProfil, setNewFotoProfil] = useState("");
   const [uploadingCreateFoto, setUploadingCreateFoto] = useState(false);
   const [uploadingEditFoto, setUploadingEditFoto] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const fetchSettings = async () => {
     try {
@@ -262,6 +263,7 @@ export default function AdminKeanggotaanPage() {
     if (!editMember) return;
 
     try {
+      setSavingEdit(true);
       const res = await fetch("/api/admin/keanggotaan", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -270,6 +272,10 @@ export default function AdminKeanggotaanPage() {
       const json = await res.json();
       if (json.status) {
         setMsg(json.message);
+        // Jika status diubah dari nonaktif menjadi aktif, reset filter status ke "semua" agar data tidak hilang dari pandangan admin
+        if (filterStatus === "nonaktif" && editMember.status === "aktif") {
+          setFilterStatus("semua");
+        }
         setEditMember(null);
         fetchData();
       } else {
@@ -277,6 +283,8 @@ export default function AdminKeanggotaanPage() {
       }
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -462,6 +470,13 @@ export default function AdminKeanggotaanPage() {
                         </td>
                         <td>
                           <div className={styles.actionsCell}>
+                            <button
+                              className={styles.btnActionEdit}
+                              onClick={() => setEditMember(p)}
+                              title="Edit Data Pendaftar"
+                            >
+                              <i className="bx bx-edit" /> Edit
+                            </button>
                             <button
                               className={styles.btnAccept}
                               disabled={actionLoading === p.id}
@@ -1460,11 +1475,11 @@ export default function AdminKeanggotaanPage() {
                       setEditMember({ ...editMember, kontakPlatform: e.target.value })
                     }
                   >
-                    <option value="X (Twitter)">X (Twitter)</option>
-                    <option value="WhatsApp">WhatsApp</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Discord">Discord</option>
-                    <option value="Telegram">Telegram</option>
+                    {platformOptions.map((plat) => (
+                      <option key={plat} value={plat}>
+                        {plat}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className={styles.modalField}>
@@ -1517,12 +1532,21 @@ export default function AdminKeanggotaanPage() {
                 <button
                   type="button"
                   className={styles.backBtn}
+                  disabled={savingEdit}
                   onClick={() => setEditMember(null)}
                 >
                   Batal
                 </button>
-                <button type="submit" className={styles.btnCreate}>
-                  <i className="bx bx-check" /> Simpan Perubahan
+                <button type="submit" className={styles.btnCreate} disabled={savingEdit}>
+                  {savingEdit ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-check" /> Simpan Perubahan
+                    </>
+                  )}
                 </button>
               </div>
             </form>

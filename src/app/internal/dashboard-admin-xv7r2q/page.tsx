@@ -2899,7 +2899,7 @@ function BotMediaManager({ onNavigate }: { onNavigate?: (s: Section) => void }) 
                     </div>
 
                     <input
-                      type="url"
+                      type="text"
                       value={formMediaUrl}
                       onChange={e => setFormMediaUrl(e.target.value)}
                       placeholder={formType === "video" ? "https://cavallery.id/uploads/.../video.mp4" : "https://cavallery.id/uploads/.../foto.jpg"}
@@ -2966,7 +2966,7 @@ function BotMediaManager({ onNavigate }: { onNavigate?: (s: Section) => void }) 
                       </div>
 
                       <input
-                        type="url"
+                        type="text"
                         value={formPreviewUrl}
                         onChange={e => setFormPreviewUrl(e.target.value)}
                         placeholder="https://images.jkt48connect.com/cavallery/.../thumb.jpg"
@@ -8518,6 +8518,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "abouterine",  path: "/api/about-erine"  },
       { key: "invitations", path: "/api/invitations" },
       { key: "vcschedule",  path: "/api/vcschedule"  },
+      { key: "adminstruktur", path: "/api/structure" },
     ] as { key: string; path: string }[]).forEach(async ({ key, path }) => {
       try {
         const res = await fetch(path, { cache: "no-store" });
@@ -8545,7 +8546,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
         { key: "admindonasi" as any, icon: "bx-donate-heart", label: "Donasi Proyek", color: "var(--cv-orange)", desc: "Verifikasi Donasi" },
         { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor", color: "var(--cv-orange)", desc: "Data Donatur Publik" },
         { key: "adminmasterdata" as any, icon: "bx-slider-alt", label: "Master Data", color: "var(--cv-orange)", desc: "Banner Home & Opsi" },
-        { key: "adminstruktur" as any, icon: "bx-sitemap", label: "Struktur Admin", color: "var(--cv-orange)", desc: "Bagan Pengurus Cavallery" },
+        { key: "adminstruktur" as any, icon: "bx-sitemap", label: "Struktur Organisasi", color: "var(--cv-orange)", desc: "Bagan Castle Structure" },
         { key: "adminwartiket" as any, icon: "bx-flame", label: "War Tiket STS", color: "var(--cv-orange)", desc: "Live Antrean War" },
         { key: "adminspreadsheet" as any, icon: "bx-table", label: "Live Spreadsheet", color: "#10b981", desc: "Google Sheets Backup" },
         { key: "adminexcel" as any, icon: "bxs-file-export", label: "Download Excel", color: "#059669", desc: "Export Matriks Kas" },
@@ -11274,7 +11275,7 @@ const navGroups: NavGroup[] = [
       { key: "adminwartiket" as any,    icon: "bxs-flame",       label: "War Tiket STS" },
       { key: "admindonasi" as any,      icon: "bx-donate-heart", label: "Verifikasi Donasi" },
       { key: "adminmasterdata" as any,  icon: "bx-slider-alt",   label: "Master Data" },
-      { key: "adminstruktur" as any,    icon: "bx-sitemap",      label: "Struktur Admin" },
+      { key: "adminstruktur" as any,    icon: "bx-sitemap",      label: "Struktur Organisasi" },
       { key: "adminspreadsheet" as any, icon: "bx-table",        label: "Live Spreadsheet" },
       { key: "adminexcel" as any,        icon: "bxs-file-export", label: "Download Excel" },
     ],

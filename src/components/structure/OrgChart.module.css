@@ -1,0 +1,196 @@
+/* OrgChart.module.css */
+.container {
+  --chart-bg: #f7f1ea;
+  --chart-card-bg: #fffdfa;
+  --chart-border: #e6d8ca;
+  --chart-text: #2a1f19;
+  --chart-muted: #8a7364;
+  --chart-dot: #d8c8b6;
+  --chart-title: #7a4a35;
+
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--chart-bg);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--chart-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  user-select: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+:global([data-theme="dark"]) .container,
+@media (prefers-color-scheme: dark) {
+  .container {
+    --chart-bg: #151419;
+    --chart-card-bg: #1e1d24;
+    --chart-border: #35323d;
+    --chart-text: #f0edf5;
+    --chart-muted: #9e9aa8;
+    --chart-dot: #2a2833;
+    --chart-title: #e09f7d;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 16px;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.logoWrapper {
+  margin-bottom: 12px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImg {
+  height: 140px;
+  max-height: 140px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 640px) {
+  .logoImg {
+    height: 80px;
+    max-height: 80px;
+  }
+}
+
+.title {
+  font-family: var(--font-cormorant), "Playfair Display", "Georgia", serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--chart-title);
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.5rem;
+  }
+}
+
+.chartViewport {
+  position: relative;
+  width: 100%;
+  height: 720px;
+  cursor: grab;
+  overflow: hidden;
+  background-color: var(--chart-bg);
+}
+
+.chartViewport:active {
+  cursor: grabbing;
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--chart-card-bg) 85%, transparent);
+  backdrop-filter: blur(8px);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--chart-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--chart-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.toolBtn:hover {
+  background: color-mix(in srgb, var(--chart-text) 10%, transparent);
+}
+
+.toolBtn:active {
+  transform: scale(0.95);
+}
+
+.fitBtn {
+  width: auto;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: color-mix(in srgb, var(--chart-text) 8%, transparent);
+  color: var(--chart-text);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.fitBtn:hover {
+  background: color-mix(in srgb, var(--chart-text) 16%, transparent);
+}
+
+.loadingOverlay,
+.errorOverlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  width: 100%;
+  gap: 16px;
+  color: var(--chart-muted);
+  font-family: var(--font-dm-sans), "Plus Jakarta Sans", sans-serif;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid color-mix(in srgb, var(--chart-muted) 20%, transparent);
+  border-top-color: var(--chart-title);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .container *,
+  .container *::before,
+  .container *::after {
+    animation-duration: 0.001s !important;
+    transition-duration: 0.001s !important;
+  }
+}
