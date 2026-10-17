@@ -111,7 +111,7 @@ const navLinks: NavLink[] = [
 /** Mega-menu icons — Boxicons class per page. */
 const ICONS: Record<string, string> = {
   "/news": "bx-news",
-  "/news/cavallery-statement": "bx-megaphone",
+  "/news/cavallery-statement": "bxs-chess",
   "/about/erine": "bx-user",
   "/about/cavallery": "bx-group",
   "/gallery": "bx-image-alt",
@@ -508,12 +508,14 @@ export default function Navbar() {
                               <span className={styles.ovSubRank}>{c.label}</span>
                               {c.children.map((s) => (
                                 <Link key={s.href} href={s.href} className={styles.ovSubLink} tabIndex={expanded ? 0 : -1}>
+                                  {ICONS[s.href] && <i className={`bx ${ICONS[s.href]}`} style={{ marginRight: "8px", opacity: 0.8 }} />}
                                   {s.label}
                                 </Link>
                               ))}
                             </div>
                           ) : (
                             <Link key={c.href} href={c.href} className={styles.ovSubLink} tabIndex={expanded ? 0 : -1}>
+                              {ICONS[c.href] && <i className={`bx ${ICONS[c.href]}`} style={{ marginRight: "8px", opacity: 0.8 }} />}
                               {c.label}
                             </Link>
                           )
