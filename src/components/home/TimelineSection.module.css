@@ -819,3 +819,106 @@
     animation: none;
   }
 }
+
+/* ================================================================
+   SCATTER LAYOUT — cards sit left / centre / right and the path
+   meanders across the whole field behind them (useKnightPath).
+   ================================================================ */
+.item {
+  display: block;
+  padding: 0;
+  margin: 0 0 104px;
+}
+
+.lane {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* phones: cards step left/right so the river shows in the wider gutter */
+.node {
+  top: 34px;
+  left: 7%;
+}
+
+.item[data-side="right"] .node {
+  left: 93%;
+}
+
+.card {
+  width: 80%;
+  margin-left: 16%;
+}
+
+.item[data-side="right"] .card {
+  margin-left: 4%;
+}
+
+.yearMark {
+  padding-left: 0;
+  justify-content: center;
+}
+
+@media (min-width: 1000px) {
+  .item,
+  .item + .item {
+    margin: 0 0 80px;
+  }
+
+  .card {
+    width: 54%;
+    margin: 0;
+  }
+
+  .item[data-pos="c"] .card {
+    margin-left: 23%;
+  }
+
+  .item[data-pos="r"] .card {
+    margin-left: 46%;
+  }
+
+  .node {
+    top: 50px;
+  }
+
+  .item[data-pos="l"] .node {
+    left: 61%;
+  }
+
+  .item[data-pos="r"] .node {
+    left: 39%;
+  }
+
+  .item[data-pos="c"][data-side="left"] .node {
+    left: 16%;
+  }
+
+  .item[data-pos="c"][data-side="right"] .node {
+    left: 84%;
+  }
+
+  /* polaroid faces outward, towards the open side of the field */
+  .item[data-pos="r"] .card,
+  .item[data-pos="c"][data-side="right"] .card {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+
+  .item[data-pos="r"] .polaroidWrap,
+  .item[data-pos="c"][data-side="right"] .polaroidWrap {
+    order: 0;
+  }
+
+  .item[data-pos="l"] .card,
+  .item[data-pos="c"][data-side="left"] .card {
+    grid-template-columns: minmax(0, 1fr) 170px;
+  }
+
+  .item[data-pos="l"] .polaroidWrap,
+  .item[data-pos="c"][data-side="left"] .polaroidWrap {
+    order: 2;
+  }
+}

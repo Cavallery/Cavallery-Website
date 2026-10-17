@@ -27,6 +27,8 @@ interface TimelineData {
 }
 
 const ROTATIONS = [-2.4, 1.8, -1.6, 2.5, -2.8, 1.4, -2.1, 2.2];
+/** Card placement across the field (left / centre / right) — varied, never a plain zig-zag. */
+const POSITIONS = ["l", "r", "c", "r", "l", "c", "l", "r"] as const;
 /** Team Passion era — the path "ignites" from this year onward. */
 const FIRE_FROM_YEAR = 2025;
 const PASSION_RE = /passion|promosi|promoted|dipromosikan|200%/i;
@@ -230,7 +232,7 @@ export default function TimelineSection() {
             <span key={i} className={styles.ember} data-kp-ember aria-hidden="true" />
           ))}
 
-          <ol className={styles.list}>
+          <ol className={styles.list} data-kp-field>
             {yearGroups.map((group, gIdx) => (
               <li key={group.year} className={styles.yearGroup}>
                 <div
@@ -246,6 +248,7 @@ export default function TimelineSection() {
                     const rotation = ROTATIONS[idx % ROTATIONS.length];
                     globalItemIndex++;
                     const side = idx % 2 === 0 ? "left" : "right";
+                    const pos = POSITIONS[idx % POSITIONS.length];
                     const isFireEra = Number(group.year) >= FIRE_FROM_YEAR;
                     const isPassion = PASSION_RE.test(`${event.title} ${event.description}`);
                     const isLast = idx === totalEvents - 1;
@@ -257,6 +260,7 @@ export default function TimelineSection() {
                         className={styles.item}
                         data-kp-item
                         data-side={side}
+                        data-pos={pos}
                         data-era={isFireEra ? "fire" : "cold"}
                         data-passion={isPassion ? "true" : "false"}
                         data-state="idle"
