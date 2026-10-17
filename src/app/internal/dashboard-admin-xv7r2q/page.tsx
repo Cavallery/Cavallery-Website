@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import styles from "./page.module.css";
+import type { BotMediaItem } from "@/app/api/bot-media/route";
 
 const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 
@@ -19,7 +20,7 @@ type Section =
   | "dashboard" | "recruitment" | "esport"    | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
-  | "bot"       | "tickets"     | "calendar" | "updates" 
+  | "bot"       | "botmedia"    | "tickets"  | "calendar" | "updates" 
   | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine"
   | "users"     | "activitylogs"| "loginlogs"   | "visitorlocations";
 
@@ -2168,7 +2169,7 @@ const DEFAULT_BOT_CONFIG: BotConfig = {
   ]
 };
 
-function BotManager() {
+function BotManager({ onNavigate }: { onNavigate?: (s: Section) => void }) {
   const [config, setConfig] = useState<BotConfig>(DEFAULT_BOT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -2403,6 +2404,16 @@ function BotManager() {
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
+          {onNavigate && (
+            <button
+              type="button"
+              className={styles.btnGhost}
+              onClick={() => onNavigate("botmedia")}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.85rem", padding: "6px 12px", border: "1px solid var(--cv-orange)", color: "var(--cv-orange)" }}
+            >
+              <i className="bx bx-video-recording" /> Kelola Video & Foto Bot LINE
+            </button>
+          )}
         </div>
       </div>
 
@@ -2531,6 +2542,861 @@ function BotManager() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── BOT LINE MEDIA MANAGER (FOTO & VIDEO) ──────────────────────
+function BotMediaManager({ onNavigate }: { onNavigate?: (s: Section) => void }) {
+  const [mediaList, setMediaList] = useState<BotMediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "video" | "image">("all");
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  // Modal State
+  const [showModal, setShowModal] = useState<"add" | "edit" | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formType, setFormType] = useState<"video" | "image">("video");
+  const [formTriggers, setFormTriggers] = useState("");
+  const [formMediaUrl, setFormMediaUrl] = useState("");
+  const [formPreviewUrl, setFormPreviewUrl] = useState("");
+  const [formIsActive, setFormIsActive] = useState(true);
+
+  // Uploading state
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [uploadingPreview, setUploadingPreview] = useState(false);
+
+  // Keyword Playground
+  const [testKeyword, setTestKeyword] = useState("");
+  const [testResult, setTestResult] = useState<BotMediaItem | null>(null);
+  const [hasTested, setHasTested] = useState(false);
+
+  // Delete modal
+  const [deleteTarget, setDeleteTarget] = useState<BotMediaItem | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
+
+  const loadMedia = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/bot-media", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status && Array.isArray(json.data)) {
+          setMediaList(json.data);
+        }
+      }
+    } catch {
+      showToast("Gagal memuat media bot LINE", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMedia();
+  }, [loadMedia]);
+
+  const handleFileUpload = async (file: File, target: "media" | "preview") => {
+    if (target === "media") setUploadingMedia(true);
+    else setUploadingPreview(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "cavallery/bot");
+
+      const res = await fetch("/api/media/upload", {
+        method: "POST",
+        body: fd
+      });
+      const data = await res.json();
+      if (data.status && data.url) {
+        if (target === "media") {
+          setFormMediaUrl(data.url);
+          showToast("File media berhasil diunggah!", "success");
+        } else {
+          setFormPreviewUrl(data.url);
+          showToast("Thumbnail preview berhasil diunggah!", "success");
+        }
+      } else {
+        showToast(data.message || "Gagal mengunggah file", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan saat mengunggah", "error");
+    } finally {
+      if (target === "media") setUploadingMedia(false);
+      else setUploadingPreview(false);
+    }
+  };
+
+  const openAdd = () => {
+    setSelectedId(null);
+    setFormTitle("");
+    setFormType("video");
+    setFormTriggers("");
+    setFormMediaUrl("");
+    setFormPreviewUrl("");
+    setFormIsActive(true);
+    setShowModal("add");
+  };
+
+  const openEdit = (item: BotMediaItem) => {
+    setSelectedId(item.id);
+    setFormTitle(item.title);
+    setFormType(item.type);
+    setFormTriggers(item.triggers.join(", "));
+    setFormMediaUrl(item.mediaUrl);
+    setFormPreviewUrl(item.previewUrl || "");
+    setFormIsActive(item.isActive !== false);
+    setShowModal("edit");
+  };
+
+  const handleSaveMedia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim()) {
+      showToast("Judul media wajib diisi", "error");
+      return;
+    }
+    const triggers = formTriggers.split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
+    if (triggers.length === 0) {
+      showToast("Minimal masukkan 1 kata kunci trigger", "error");
+      return;
+    }
+    if (!formMediaUrl.trim()) {
+      showToast("File atau URL media wajib diisi", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        id: selectedId,
+        title: formTitle.trim(),
+        type: formType,
+        triggers,
+        mediaUrl: formMediaUrl.trim(),
+        previewUrl: formPreviewUrl.trim() || (formType === "video" ? "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg" : formMediaUrl.trim()),
+        isActive: formIsActive
+      };
+
+      const method = showModal === "add" ? "POST" : "PUT";
+      const res = await fetch("/api/bot-media", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status) {
+        showToast(showModal === "add" ? "Media berhasil ditambahkan!" : "Media berhasil diperbarui!", "success");
+        setShowModal(null);
+        loadMedia();
+      } else {
+        showToast(data.message || "Gagal menyimpan media", "error");
+      }
+    } catch {
+      showToast("Gagal menyimpan media", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleActive = async (item: BotMediaItem) => {
+    const updated = { ...item, isActive: !item.isActive };
+    setMediaList(prev => prev.map(m => m.id === item.id ? updated : m));
+    try {
+      await fetch("/api/bot-media", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated)
+      });
+      showToast(`Media "${item.title}" ${updated.isActive ? "diaktifkan" : "dinonaktifkan"}`, "success");
+    } catch {
+      showToast("Gagal memperbarui status media", "error");
+      loadMedia();
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const res = await fetch(`/api/bot-media?id=${deleteTarget.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.status) {
+        showToast("Media berhasil dihapus", "success");
+        setMediaList(prev => prev.filter(m => m.id !== deleteTarget.id));
+      } else {
+        showToast(data.message || "Gagal menghapus media", "error");
+      }
+    } catch {
+      showToast("Gagal menghapus media", "error");
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleTest = (kw?: string) => {
+    const query = (kw ?? testKeyword).trim().toLowerCase();
+    setHasTested(true);
+    if (!query) {
+      setTestResult(null);
+      return;
+    }
+    const matched = mediaList.find(item =>
+      item.isActive && item.triggers.some(tr => {
+        const cleanTr = tr.trim().toLowerCase();
+        return query.includes(cleanTr) || query === cleanTr;
+      })
+    );
+    setTestResult(matched || null);
+  };
+
+  const filtered = mediaList.filter(item => {
+    const matchSearch = item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.triggers.some(t => t.toLowerCase().includes(search.toLowerCase()));
+    const matchType = filterType === "all" ? true : item.type === filterType;
+    return matchSearch && matchType;
+  });
+
+  return (
+    <div className={styles.sectionWrap}>
+      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* MODAL TAMBAH / EDIT MEDIA */}
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(null)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
+            <div className={styles.formModalHeader}>
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <i className={formType === "video" ? "bx bx-video" : "bx bx-image"} style={{ color: "var(--cv-orange)" }} />
+                {showModal === "add" ? "Tambah Media Bot LINE" : "Edit Media Bot LINE"}
+              </h3>
+              <button className={styles.closeX} onClick={() => setShowModal(null)}><i className="bx bx-x" /></button>
+            </div>
+
+            <form onSubmit={handleSaveMedia}>
+              <div className={styles.formBody} style={{ maxHeight: "70vh", overflowY: "auto", display: "grid", gap: 16 }}>
+                {/* PILIHAN TIPE MEDIA */}
+                <div className={styles.field}>
+                  <label>Tipe Media</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setFormType("video")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        padding: "12px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        border: formType === "video" ? "2px solid var(--cv-orange)" : "1px solid var(--adm-border)",
+                        background: formType === "video" ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "var(--adm-surface)",
+                        color: formType === "video" ? "var(--cv-orange)" : "var(--adm-text)",
+                        fontWeight: 700,
+                        fontSize: "0.9rem"
+                      }}
+                    >
+                      <i className="bx bxs-video" style={{ fontSize: "1.2rem" }} /> Video (MP4 / WebM)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormType("image")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        padding: "12px",
+                        borderRadius: 8,
+                        cursor: "pointer",
+                        border: formType === "image" ? "2px solid var(--cv-orange)" : "1px solid var(--adm-border)",
+                        background: formType === "image" ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "var(--adm-surface)",
+                        color: formType === "image" ? "var(--cv-orange)" : "var(--adm-text)",
+                        fontWeight: 700,
+                        fontSize: "0.9rem"
+                      }}
+                    >
+                      <i className="bx bxs-image" style={{ fontSize: "1.2rem" }} /> Foto / Gambar
+                    </button>
+                  </div>
+                </div>
+
+                {/* JUDUL MEDIA */}
+                <div className={styles.field}>
+                  <label>Judul / Label Media</label>
+                  <input
+                    type="text"
+                    value={formTitle}
+                    onChange={e => setFormTitle(e.target.value)}
+                    placeholder="Contoh: Video Reaksi Waduh / Foto Jikoline"
+                    required
+                    style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px" }}
+                  />
+                </div>
+
+                {/* TRIGGERS */}
+                <div className={styles.field}>
+                  <label style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>Kata Kunci Pemicu (Triggers)</span>
+                    <span style={{ fontSize: "0.75rem", opacity: 0.6 }}>Pisahkan dengan koma (,)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formTriggers}
+                    onChange={e => setFormTriggers(e.target.value)}
+                    placeholder="Contoh: waduh, kaget, astaga"
+                    required
+                    style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px" }}
+                  />
+                  <p style={{ fontSize: "0.75rem", opacity: 0.7, margin: "6px 0 0" }}>
+                    Jika ada anggota LINE yang mengetik kata-kata ini (baik di chat pribadi maupun grup), bot akan membalas dengan media ini.
+                  </p>
+                </div>
+
+                {/* UPLOAD FILE ATAU URL */}
+                <div className={styles.field}>
+                  <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>{formType === "video" ? "File Video atau URL Video (MP4)" : "File Foto atau URL Foto"}</span>
+                    {uploadingMedia && <span style={{ fontSize: "0.75rem", color: "var(--cv-orange)" }}><i className="bx bx-loader-alt bx-spin" /> Mengunggah berkas...</span>}
+                  </label>
+
+                  <div style={{ display: "grid", gap: 10, marginTop: 4 }}>
+                    {/* Upload button container */}
+                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                      <label style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 14px",
+                        borderRadius: 6,
+                        background: "var(--cv-ink-2)",
+                        border: "1px solid var(--cv-orange)",
+                        color: "var(--cv-orange)",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        fontSize: "0.85rem"
+                      }}>
+                        <i className="bx bx-upload" /> Unggah Dari Komputer
+                        <input
+                          type="file"
+                          accept={formType === "video" ? "video/*" : "image/*"}
+                          style={{ display: "none" }}
+                          onChange={e => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file, "media");
+                          }}
+                        />
+                      </label>
+                      <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>atau tempel URL langsung di bawah:</span>
+                    </div>
+
+                    <input
+                      type="url"
+                      value={formMediaUrl}
+                      onChange={e => setFormMediaUrl(e.target.value)}
+                      placeholder={formType === "video" ? "https://cavallery.id/uploads/.../video.mp4" : "https://cavallery.id/uploads/.../foto.jpg"}
+                      required
+                      style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "10px 14px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+
+                  {/* PREVIEW MEDIA */}
+                  {formMediaUrl && (
+                    <div style={{ marginTop: 10, padding: 10, background: "var(--cv-ink-2)", borderRadius: 8, border: "1px solid var(--cv-line)" }}>
+                      <span style={{ fontSize: "0.75rem", opacity: 0.7, display: "block", marginBottom: 6 }}>Pratinjau Media:</span>
+                      {formType === "video" ? (
+                        <video
+                          src={formMediaUrl}
+                          controls
+                          style={{ maxHeight: 200, width: "100%", borderRadius: 6, background: "#000" }}
+                        />
+                      ) : (
+                        <img
+                          src={formMediaUrl}
+                          alt="Preview"
+                          style={{ maxHeight: 180, maxWidth: "100%", borderRadius: 6, objectFit: "contain" }}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* KHUSUS VIDEO: PREVIEW THUMBNAIL IMAGE */}
+                {formType === "video" && (
+                  <div className={styles.field}>
+                    <label style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span>Thumbnail Preview Gambar (Wajib untuk LINE Video)</span>
+                      {uploadingPreview && <span style={{ fontSize: "0.75rem", color: "var(--cv-orange)" }}><i className="bx bx-loader-alt bx-spin" /> Mengunggah thumbnail...</span>}
+                    </label>
+
+                    <div style={{ display: "grid", gap: 8, marginTop: 4 }}>
+                      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                        <label style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 12px",
+                          borderRadius: 6,
+                          background: "var(--cv-ink-2)",
+                          border: "1px solid var(--adm-border)",
+                          color: "var(--adm-text)",
+                          cursor: "pointer",
+                          fontSize: "0.82rem"
+                        }}>
+                          <i className="bx bx-image-add" /> Unggah Thumbnail
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(file, "preview");
+                            }}
+                          />
+                        </label>
+                        <span style={{ fontSize: "0.78rem", opacity: 0.6 }}>atau biarkan default / isi URL gambar:</span>
+                      </div>
+
+                      <input
+                        type="url"
+                        value={formPreviewUrl}
+                        onChange={e => setFormPreviewUrl(e.target.value)}
+                        placeholder="https://images.jkt48connect.com/cavallery/.../thumb.jpg"
+                        style={{ width: "100%", background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px", fontSize: "0.85rem" }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* STATUS AKTIF */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+                  <input
+                    type="checkbox"
+                    id="mediaActiveCheck"
+                    checked={formIsActive}
+                    onChange={e => setFormIsActive(e.target.checked)}
+                    style={{ width: 18, height: 18, accentColor: "var(--cv-orange)", cursor: "pointer" }}
+                  />
+                  <label htmlFor="mediaActiveCheck" style={{ cursor: "pointer", fontWeight: 600 }}>
+                    Aktifkan media ini untuk merespon pengguna di LINE
+                  </label>
+                </div>
+              </div>
+
+              <div className={styles.formFooter}>
+                <button type="button" className={styles.btnGhost} onClick={() => setShowModal(null)}>Batal</button>
+                <button type="submit" className={styles.btnPrimary} disabled={saving || uploadingMedia || uploadingPreview}>
+                  {saving ? <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</> : <><i className="bx bx-save" /> {showModal === "add" ? "Tambahkan Media" : "Simpan Perubahan"}</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE MODAL */}
+      {deleteTarget && (
+        <div className={styles.modalOverlay} onClick={() => setDeleteTarget(null)}>
+          <div className={styles.formModal} onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
+            <div className={styles.formModalHeader}>
+              <h3 style={{ color: "#ef4444", display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="bx bx-trash" /> Hapus Media Bot LINE?
+              </h3>
+              <button className={styles.closeX} onClick={() => setDeleteTarget(null)}><i className="bx bx-x" /></button>
+            </div>
+            <div className={styles.formBody}>
+              <p style={{ margin: 0, lineHeight: 1.5 }}>
+                Apakah kamu yakin ingin menghapus respon media <strong>&quot;{deleteTarget.title}&quot;</strong>?
+                Bot LINE tidak akan lagi merespon kata kunci: <em>{deleteTarget.triggers.join(", ")}</em>.
+              </p>
+            </div>
+            <div className={styles.formFooter}>
+              <button type="button" className={styles.btnGhost} onClick={() => setDeleteTarget(null)}>Batal</button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                style={{ background: "#ef4444", borderColor: "#ef4444" }}
+                onClick={confirmDelete}
+              >
+                <i className="bx bx-trash" /> Ya, Hapus Media
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HEADER UTAMA */}
+      <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <h2 className={styles.sectionTitle} style={{ display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+            <i className="bx bx-video-recording" style={{ color: "var(--cv-orange)" }} /> Media Bot LINE (Video & Foto)
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: "0.85rem", opacity: 0.7 }}>
+            Kelola kiriman video dan gambar otomatis saat user mengirim kata kunci tertentu di LINE.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {onNavigate && (
+            <button
+              type="button"
+              className={styles.btnGhost}
+              onClick={() => onNavigate("bot")}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.85rem", padding: "8px 14px" }}
+            >
+              <i className="bx bx-bot" style={{ color: "#22c55e" }} /> Aturan Teks & AI
+            </button>
+          )}
+          <button className={styles.btnPrimary} onClick={openAdd} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <i className="bx bx-plus" /> Tambah Video / Foto
+          </button>
+        </div>
+      </div>
+
+      {/* KEYWORD PLAYGROUND / TEST CONSOLE */}
+      <div style={{ background: "var(--adm-surface)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: 8, padding: 18, marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <h4 style={{ margin: 0, fontSize: "0.95rem", color: "var(--cv-text)", display: "flex", alignItems: "center", gap: 6 }}>
+            <i className="bx bx-search-alt" style={{ color: "#f59e0b" }} /> Uji Coba Kata Kunci Media Bot
+          </h4>
+          <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>Simulasi pesan user LINE</span>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+          <input
+            type="text"
+            value={testKeyword}
+            onChange={e => setTestKeyword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleTest()}
+            placeholder="Ketik kata kunci untuk uji coba, misal: waduh / hbd / niterine / gas..."
+            style={{ flex: 1, background: "var(--cv-ink-1)", color: "var(--cv-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px", fontSize: "0.88rem" }}
+          />
+          <button
+            type="button"
+            className={styles.btnPrimary}
+            onClick={() => handleTest()}
+            style={{ background: "#f59e0b", borderColor: "#f59e0b", color: "#000" }}
+          >
+            <i className="bx bx-play" /> Tes Respon
+          </button>
+        </div>
+
+        {/* Quick chip tests */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          <span style={{ fontSize: "0.75rem", opacity: 0.7, alignSelf: "center", marginRight: 4 }}>Contoh Cepat:</span>
+          {["waduh", "hbd", "niterine", "ngasal", "diesvenerine", "gas"].map((kw, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => { setTestKeyword(kw); handleTest(kw); }}
+              style={{
+                background: "color-mix(in srgb, var(--cv-bone) 5%, transparent)",
+                border: "1px solid var(--cv-line)",
+                borderRadius: 14,
+                padding: "3px 10px",
+                fontSize: "0.75rem",
+                color: "var(--cv-text-dim)",
+                cursor: "pointer"
+              }}
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
+
+        {hasTested && (
+          <div style={{
+            marginTop: 12,
+            padding: 12,
+            background: "var(--cv-ink-1)",
+            border: `1px solid ${testResult ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.4)"}`,
+            borderRadius: 6
+          }}>
+            {testResult ? (
+              <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ width: 60, height: 60, borderRadius: 6, overflow: "hidden", background: "#000", flexShrink: 0 }}>
+                  <img
+                    src={testResult.previewUrl || testResult.mediaUrl}
+                    alt={testResult.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <span style={{ color: "#22c55e", fontWeight: 700, fontSize: "0.85rem" }}>
+                      <i className="bx bx-check-circle" /> Cocok dengan: {testResult.title}
+                    </span>
+                    <span style={{
+                      fontSize: "0.68rem",
+                      fontWeight: 800,
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      textTransform: "uppercase",
+                      background: testResult.type === "video" ? "rgba(239, 68, 68, 0.2)" : "rgba(59, 130, 246, 0.2)",
+                      color: testResult.type === "video" ? "#ef4444" : "#3b82f6"
+                    }}>
+                      {testResult.type}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: "0.78rem", opacity: 0.7 }}>
+                    Triggers: {testResult.triggers.join(", ")}
+                  </p>
+                </div>
+                <a
+                  href={testResult.mediaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.btnGhost}
+                  style={{ fontSize: "0.78rem", padding: "4px 8px" }}
+                >
+                  <i className="bx bx-external-link" /> Buka Media
+                </a>
+              </div>
+            ) : (
+              <div style={{ color: "#ef4444", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: 6 }}>
+                <i className="bx bx-info-circle" /> Tidak ada respon media yang cocok dengan kata kunci &quot;{testKeyword}&quot;. (Bot akan beralih ke aturan teks atau AI SimiSimi).
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* FILTER & PENCARIAN */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flex: 1, minWidth: 240 }}>
+          <input
+            type="text"
+            placeholder="Cari berdasarkan judul atau trigger..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ width: "100%", maxWidth: 360, background: "var(--adm-surface)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 6, padding: "8px 12px" }}
+          />
+        </div>
+
+        <div style={{ display: "flex", gap: 6 }}>
+          {[
+            { id: "all", label: "Semua Media" },
+            { id: "video", label: "🎬 Video" },
+            { id: "image", label: "🖼️ Foto" }
+          ].map(f => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFilterType(f.id as any)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 20,
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                border: filterType === f.id ? "1px solid var(--cv-orange)" : "1px solid var(--adm-border)",
+                background: filterType === f.id ? "color-mix(in srgb, var(--cv-orange) 14%, transparent)" : "var(--adm-surface)",
+                color: filterType === f.id ? "var(--cv-orange)" : "var(--adm-muted)"
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* GRID KARTU MEDIA */}
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--adm-muted)" }}>
+          <i className="bx bx-loader-alt bx-spin" style={{ fontSize: "2rem", marginBottom: 8, display: "block" }} />
+          Memuat daftar media bot LINE...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "50px 20px", background: "var(--adm-surface)", borderRadius: 8, border: "1px solid var(--adm-border)" }}>
+          <i className="bx bx-film" style={{ fontSize: "2.5rem", color: "var(--adm-muted)", marginBottom: 10, display: "block" }} />
+          <p style={{ margin: 0, fontWeight: 600 }}>Tidak ada media bot yang ditemukan</p>
+          <p style={{ margin: "4px 0 16px", fontSize: "0.85rem", opacity: 0.7 }}>Tambahkan video atau foto baru untuk bot LINE kamu.</p>
+          <button className={styles.btnPrimary} onClick={openAdd}><i className="bx bx-plus" /> Tambah Media Baru</button>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+          {filtered.map(item => (
+            <div
+              key={item.id}
+              style={{
+                background: "var(--adm-surface)",
+                border: "1px solid var(--adm-border)",
+                borderRadius: 8,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                transition: "border-color 0.2s"
+              }}
+            >
+              {/* Media Preview Box */}
+              <div style={{ position: "relative", height: 180, background: "#0a0a0c", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {item.type === "video" ? (
+                  <>
+                    <img
+                      src={item.previewUrl || "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg"}
+                      alt={item.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }}
+                    />
+                    <div style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(0,0,0,0.3)"
+                    }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.7)",
+                        border: "2px solid #fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: "1.4rem"
+                      }}>
+                        <i className="bx bx-play" style={{ marginLeft: 3 }} />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={item.mediaUrl}
+                    alt={item.title}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                )}
+
+                {/* Badge Type */}
+                <span style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  padding: "3px 8px",
+                  borderRadius: 4,
+                  fontSize: "0.72rem",
+                  fontWeight: 800,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  background: item.type === "video" ? "rgba(220, 38, 38, 0.9)" : "rgba(37, 99, 235, 0.9)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4
+                }}>
+                  <i className={item.type === "video" ? "bx bx-video" : "bx bx-image"} />
+                  {item.type}
+                </span>
+
+                {/* Status Badge */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleActive(item)}
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    padding: "3px 8px",
+                    borderRadius: 20,
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    border: "none",
+                    background: item.isActive ? "rgba(34, 197, 94, 0.9)" : "rgba(100, 116, 139, 0.9)",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4
+                  }}
+                  title="Klik untuk ubah status aktif"
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />
+                  {item.isActive ? "Aktif" : "Nonaktif"}
+                </button>
+              </div>
+
+              {/* Media Card Details */}
+              <div style={{ padding: 14, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div>
+                  <h4 style={{ margin: "0 0 8px", fontSize: "0.98rem", color: "var(--cv-text)" }}>
+                    {item.title}
+                  </h4>
+
+                  {/* Triggers Tags */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 }}>
+                    {item.triggers.map((tr, ti) => (
+                      <span
+                        key={ti}
+                        style={{
+                          background: "var(--cv-ink-1)",
+                          border: "1px solid var(--adm-border)",
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          fontSize: "0.75rem",
+                          color: "var(--cv-orange)",
+                          fontWeight: 600
+                        }}
+                      >
+                        {tr}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card Actions */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid var(--cv-line)" }}>
+                  <a
+                    href={item.mediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.btnGhost}
+                    style={{ fontSize: "0.78rem", padding: "4px 8px" }}
+                    title="Buka URL Berkas"
+                  >
+                    <i className="bx bx-link-external" /> Lihat Media
+                  </a>
+
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      type="button"
+                      className={styles.btnGhost}
+                      style={{ padding: "4px 8px", fontSize: "0.85rem" }}
+                      onClick={() => openEdit(item)}
+                      title="Edit Media"
+                    >
+                      <i className="bx bx-edit" /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        padding: "4px 8px",
+                        fontSize: "0.85rem",
+                        background: "rgba(239, 68, 68, 0.1)",
+                        color: "#ef4444",
+                        border: "none",
+                        borderRadius: 6,
+                        cursor: "pointer"
+                      }}
+                      onClick={() => setDeleteTarget(item)}
+                      title="Hapus Media"
+                    >
+                      <i className="bx bx-trash" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -7644,6 +8510,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
       { key: "media",       path: mediaApi("/media") },
       { key: "journal",     path: "/api/journal"     },
       { key: "bot",         path: "/api/bot-config"  },
+      { key: "botmedia",    path: "/api/bot-media"   },
       { key: "tickets",     path: "/api/tickets"     },
       { key: "calendar",    path: "/api/calendar"    },
       { key: "updates",     path: "/api/updates"     },
@@ -7699,6 +8566,7 @@ function DashboardHome({ onNav }: { onNav: (s: Section) => void }) {
         { key: "tickets", icon: "bx-receipt", label: "Tickets", color: "var(--cv-orange)", desc: "Kritik & Saran Fans" },
         { key: "anggotakota", icon: "bx-map", label: "Anggota Kota", color: "var(--cv-orange)", desc: "Sebaran Domisili" },
         { key: "bot", icon: "bx-bot", label: "Bot LINE", color: "#22c55e", desc: "Webhook & Trigger" },
+        { key: "botmedia", icon: "bx-video-recording", label: "Media Bot LINE", color: "#f59e0b", desc: "Respon Video & Foto" },
       ],
     },
     {
@@ -10459,7 +11327,8 @@ const navGroups: NavGroup[] = [
       { key: "esport",      icon: "bx-trophy",       label: "Esport"      },
       { key: "journal",     icon: "bx-book-open",    label: "MemoRine"    },
       { key: "discord",     icon: "bxl-discord-alt", label: "Discord"     },
-      { key: "bot",         icon: "bx-bot",          label: "Bot"         },
+      { key: "bot",         icon: "bx-bot",          label: "Bot LINE"    },
+      { key: "botmedia",    icon: "bx-video-recording", label: "Media Bot LINE" },
       { key: "merch",       icon: "bx-store",        label: "Merchandise" },
       { key: "tickets",     icon: "bx-receipt",      label: "Tickets"     },
       { key: "calendar",    icon: "bx-calendar",     label: "Calendar"    },
@@ -10689,7 +11558,8 @@ export default function AdminPage() {
             : active === "media"      ? <MediaManager />
             : active === "discord"    ? <DiscordManager />
             : active === "journal"    ? <JournalManager />
-            : active === "bot"        ? <BotManager />
+            : active === "bot"        ? <BotManager onNavigate={navigate} />
+            : active === "botmedia"   ? <BotMediaManager onNavigate={navigate} />
             : active === "tickets"    ? <TicketsManager />
             : active === "calendar"   ? <CalendarManager />
             : active === "updates"    ? <UpdatesManager />

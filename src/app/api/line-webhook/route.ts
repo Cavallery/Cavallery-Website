@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { readBotConfig } from "../bot-config/route";
+import { readBotMedia } from "../bot-media/route";
 import { getAIOrSimiSimiReply } from "@/lib/botConversation";
 
 declare global {
@@ -149,32 +150,16 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "info discord" ||
     text === "discord pengumuman";
 
-  // Deteksi perintah media khusus
-  const isHbdCommand =
-    text === "hbd" ||
-    text === "!hbd" ||
-    text === "/hbd" ||
-    text === "#hbd" ||
-    text.includes("hbd") ||
-    text.includes("selamat ulang tahun") ||
-    text.includes("happy birthday") ||
-    text.includes("ultah") ||
-    text.includes("met ultah");
-
-  const isWaduhCommand = text.includes("waduh");
-  const isNiterineCommand =
-    text.includes("niterine") ||
-    text.includes("nite rine") ||
-    text.includes("night erine");
-  const isNgasalCommand = text.includes("ngasal");
-  const isDiesvenerineCommand =
-    text.includes("happy diesvenerine") ||
-    text.includes("diesvenerine") ||
-    text.includes("dies ven erine");
-  const isImageTriggerCommand =
-    text.includes("gas") ||
-    text.includes("jiko oline") ||
-    text.includes("jikoline");
+  // Deteksi perintah media (video & foto) dinamis dari bot_media / dashboard admin
+  const botMediaList = readBotMedia().filter((m) => m.isActive !== false);
+  const matchedMedia = botMediaList.find((item) => {
+    return item.triggers.some((tr) => {
+      const cleanTr = tr.toLowerCase().trim();
+      if (!cleanTr) return false;
+      return text.includes(cleanTr) || text === cleanTr;
+    });
+  });
+  const isMediaCommand = Boolean(matchedMedia);
 
   const isHelpCommand =
     text === "help" ||
@@ -188,13 +173,8 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     isKasCommand ||
     isBayarKasCommand ||
     isPengumumanCommand ||
-    isHbdCommand ||
-    isHelpCommand ||
-    isWaduhCommand ||
-    isNiterineCommand ||
-    isNgasalCommand ||
-    isDiesvenerineCommand ||
-    isImageTriggerCommand;
+    isMediaCommand ||
+    isHelpCommand;
 
   // JIKA DI GRUP ATAU MULTI-USER ROOM:
   // Hanya balas jika ada kata kunci khusus (kas, video, gambar, help).
@@ -415,51 +395,32 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         "Kamu juga bisa bebas ngobrol santai seputar Erine atau kirim kata kunci spesial seperti 'waduh', 'niterine', 'ngasal', atau 'happy diesvenerine'!",
     };
   }
-  // 4. Perintah Video Ulang Tahun / HBD Erine
-  else if (isHbdCommand) {
-    messagePayload = {
-      type: "video",
-      originalContentUrl: "https://cavallery.id/uploads/cavallery/images/2026/10/1792059374525_1792059217614.mp4",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
+  // 4. Perintah Media Khusus Dinamis (Video & Foto Bot LINE dari Admin)
+  else if (matchedMedia) {
+    const formatUrl = (url: string) => {
+      if (!url) return "";
+      if (url.startsWith("http://") || url.startsWith("https://")) return url;
+      return `https://cavallery.id${url.startsWith("/") ? "" : "/"}${url}`;
     };
-  }
-  // 5. Perintah Video Khusus: waduh, niterine, ngasal, Happy DiesVenErine
-  else if (text.includes("waduh")) {
-    messagePayload = {
-      type: "video",
-      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/e081981a87a74168.mp4",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/9153cfedf5554c61.jpg",
-    };
-  } else if (text.includes("niterine") || text.includes("nite rine") || text.includes("night erine")) {
-    messagePayload = {
-      type: "video",
-      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/dc59a25de53f490b.mp4",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/3f23f73dd88f4364.jpg",
-    };
-  } else if (text.includes("ngasal")) {
-    messagePayload = {
-      type: "video",
-      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/978ce9ed7e85445f.mp4",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/3a037f2ce2e14a38.jpg",
-    };
-  } else if (
-    text.includes("happy diesvenerine") ||
-    text.includes("diesvenerine") ||
-    text.includes("dies ven erine")
-  ) {
-    messagePayload = {
-      type: "video",
-      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/a5dfa966ca6c4636.mp4",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
-    };
-  }
-  // 5. Perintah Gambar Khusus: gas, jiko oline
-  else if (text.includes("gas") || text.includes("jiko oline") || text.includes("jikoline")) {
-    messagePayload = {
-      type: "image",
-      originalContentUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
-      previewImageUrl: "https://images.jkt48connect.com/cavallery/images/2026/09/23372e78c36f45ca.jpg",
-    };
+
+    const mediaUrl = formatUrl(matchedMedia.mediaUrl);
+    const previewUrl = formatUrl(matchedMedia.previewUrl || matchedMedia.mediaUrl);
+
+    if (matchedMedia.type === "video") {
+      messagePayload = {
+        type: "video",
+        originalContentUrl: mediaUrl,
+        previewImageUrl:
+          previewUrl ||
+          "https://images.jkt48connect.com/cavallery/images/2026/09/4dc2029f5e314054.jpg",
+      };
+    } else {
+      messagePayload = {
+        type: "image",
+        originalContentUrl: mediaUrl,
+        previewImageUrl: previewUrl || mediaUrl,
+      };
+    }
   }
   // 6. Komunikasi 2 Arah Pintar ala SimiSimi & Gemini AI (Hanya di Chat Pribadi)
   else {
