@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import styles from "./page.module.css";
 import type { BotMediaItem } from "@/app/api/bot-media/route";
+import LineChatManager from "@/components/admin/LineChatManager";
 
 const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 
@@ -20,7 +21,7 @@ type Section =
   | "dashboard" | "recruitment" | "esport"    | "news"     | "timeline" | "gallery"
   | "setlists"  | "stats"       | "youtube"  | "funfacts"
   | "kabesha"   | "media"       | "discord"  | "journal"
-  | "bot"       | "botmedia"    | "tickets"  | "calendar" | "updates" 
+  | "bot"       | "botmedia"    | "linechat"   | "tickets"  | "calendar" | "updates" 
   | "vcschedule"| "abouterine"  | "anggotakota" | "merch" | "invitations" | "fanart" | "twoshot" | "dengerine"
   | "users"     | "activitylogs"| "loginlogs"   | "visitorlocations";
 
@@ -11330,6 +11331,7 @@ const navGroups: NavGroup[] = [
       { key: "discord",     icon: "bxl-discord-alt", label: "Discord"     },
       { key: "bot",         icon: "bx-bot",          label: "Bot LINE"    },
       { key: "botmedia",    icon: "bx-video-recording", label: "Media Bot LINE" },
+      { key: "linechat",    icon: "bx-chat",           label: "Live Chat LINE" },
       { key: "merch",       icon: "bx-store",        label: "Merchandise" },
       { key: "tickets",     icon: "bx-receipt",      label: "Tickets"     },
       { key: "calendar",    icon: "bx-calendar",     label: "Calendar"    },
@@ -11561,6 +11563,7 @@ export default function AdminPage() {
             : active === "journal"    ? <JournalManager />
             : active === "bot"        ? <BotManager onNavigate={navigate} />
             : active === "botmedia"   ? <BotMediaManager onNavigate={navigate} />
+            : active === "linechat"   ? <LineChatManager />
             : active === "tickets"    ? <TicketsManager />
             : active === "calendar"   ? <CalendarManager />
             : active === "updates"    ? <UpdatesManager />
