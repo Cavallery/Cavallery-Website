@@ -6,7 +6,7 @@ import { query } from "@/lib/mysql";
 
 let _tableEnsured = false;
 
-/** Pastikan tabel line_contacts & line_chat_messages ada */
+/** Pastikan tabel line_contacts & line_chat_messages ada beserta kolom reply token */
 async function ensureTables() {
   if (_tableEnsured) return;
   try {
@@ -19,12 +19,16 @@ async function ensureTables() {
         picture_url TEXT DEFAULT NULL,
         source_type ENUM('user','group','room') NOT NULL DEFAULT 'user',
         last_message_at TIMESTAMP NULL,
+        latest_reply_token VARCHAR(64) DEFAULT NULL,
+        latest_reply_token_at TIMESTAMP NULL DEFAULT NULL,
         is_blocked TINYINT(1) NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_line_user_group (line_user_id, line_group_id)
+        KEY idx_user (line_user_id),
+        KEY idx_group (line_group_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
     await query(`
       CREATE TABLE IF NOT EXISTS line_chat_messages (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,6 +47,18 @@ async function ensureTables() {
         KEY idx_created (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
+
+    // Pastikan kolom reply token ada jika tabel dibuat dari versi sebelumnya
+    try {
+      const colCheck = await query<any[]>(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'line_contacts' AND COLUMN_NAME = 'latest_reply_token' LIMIT 1`
+      );
+      if (!colCheck || colCheck.length === 0) {
+        await query(`ALTER TABLE line_contacts ADD COLUMN latest_reply_token VARCHAR(64) DEFAULT NULL`);
+        await query(`ALTER TABLE line_contacts ADD COLUMN latest_reply_token_at TIMESTAMP NULL DEFAULT NULL`);
+      }
+    } catch {}
+
     _tableEnsured = true;
   } catch {
     _tableEnsured = true;
@@ -57,6 +73,8 @@ export interface LineContact {
   picture_url: string | null;
   source_type: "user" | "group" | "room";
   last_message_at: string | null;
+  latest_reply_token?: string | null;
+  latest_reply_token_at?: string | null;
   is_blocked: number;
   created_at: string;
   unread_count?: number;
@@ -77,39 +95,122 @@ export interface LineChatMessage {
   created_at: string;
 }
 
+// Cache sederhana untuk summary grup LINE agar tidak membebani rate limit LINE API
+const _groupSummaryCache = new Map<string, { groupName: string; pictureUrl?: string; time: number }>();
+
 /**
- * Upsert kontak LINE (buat baru jika belum ada, update jika sudah)
+ * Ambil informasi nama & foto grup LINE via API
+ */
+export async function getLineGroupSummary(
+  groupId: string
+): Promise<{ groupName: string; pictureUrl?: string } | null> {
+  const cached = _groupSummaryCache.get(groupId);
+  if (cached && Date.now() - cached.time < 3600000) {
+    return cached;
+  }
+
+  const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
+  const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
+  if (!channelAccessToken) return null;
+
+  try {
+    const res = await fetch(`https://api.line.me/v2/bot/group/${groupId}/summary`, {
+      headers: { Authorization: `Bearer ${channelAccessToken}` },
+      signal: AbortSignal.timeout(4000),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const result = {
+        groupName: data.groupName || "Grup LINE",
+        pictureUrl: data.pictureUrl,
+      };
+      _groupSummaryCache.set(groupId, { ...result, time: Date.now() });
+      return result;
+    }
+  } catch {}
+  return null;
+}
+
+/**
+ * Upsert kontak LINE (Grup dijadikan 1 kontak induk agar semua obrolan anggota tampil dalam 1 layar)
  */
 export async function upsertContact(
   lineUserId: string,
   lineGroupId: string | null,
   displayName: string | null,
   pictureUrl: string | null,
-  sourceType: "user" | "group" | "room"
+  sourceType: "user" | "group" | "room",
+  replyToken?: string | null
 ): Promise<number> {
   await ensureTables();
 
-  const groupVal = lineGroupId || null;
+  const isGroup = (sourceType === "group" || sourceType === "room") && Boolean(lineGroupId);
 
-  // Cek apakah sudah ada
+  // Jika pesan dari GRUP: satukan seluruh chat ke dalam 1 kontak grup
+  if (isGroup && lineGroupId) {
+    const existingGroup = await query<any[]>(
+      `SELECT id, display_name, picture_url FROM line_contacts WHERE line_group_id = ? AND source_type = 'group' ORDER BY id ASC LIMIT 1`,
+      [lineGroupId]
+    );
+
+    if (existingGroup && existingGroup.length > 0) {
+      const contactId = existingGroup[0].id;
+      if (replyToken) {
+        await query(
+          `UPDATE line_contacts SET last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW() WHERE id = ?`,
+          [replyToken, contactId]
+        );
+      } else {
+        await query(`UPDATE line_contacts SET last_message_at = NOW() WHERE id = ?`, [contactId]);
+      }
+      return contactId;
+    }
+
+    // Ambil info nama & foto profil grup dari LINE API
+    let groupName = "Grup LINE";
+    let groupPic: string | null = null;
+    try {
+      const summary = await getLineGroupSummary(lineGroupId);
+      if (summary) {
+        groupName = summary.groupName;
+        groupPic = summary.pictureUrl || null;
+      }
+    } catch {}
+
+    const res = await query<any>(
+      `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at) VALUES (?, ?, ?, ?, 'group', NOW(), ?, ?)`,
+      [lineGroupId, lineGroupId, groupName, groupPic, replyToken || null, replyToken ? new Date() : null]
+    );
+    return res?.insertId || 0;
+  }
+
+  // Jika pesan PERSONAL (1-on-1 user)
   const existing = await query<any[]>(
-    `SELECT id FROM line_contacts WHERE line_user_id = ? AND (line_group_id = ? OR (line_group_id IS NULL AND ? IS NULL)) LIMIT 1`,
-    [lineUserId, groupVal, groupVal]
+    `SELECT id FROM line_contacts WHERE line_user_id = ? AND line_group_id IS NULL LIMIT 1`,
+    [lineUserId]
   );
 
   if (existing && existing.length > 0) {
-    // Update display name & picture jika berubah
-    await query(
-      `UPDATE line_contacts SET display_name = COALESCE(?, display_name), picture_url = COALESCE(?, picture_url), last_message_at = NOW() WHERE id = ?`,
-      [displayName, pictureUrl, existing[0].id]
-    );
-    return existing[0].id;
+    const contactId = existing[0].id;
+    if (replyToken) {
+      await query(
+        `UPDATE line_contacts SET display_name = COALESCE(?, display_name), picture_url = COALESCE(?, picture_url), last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW() WHERE id = ?`,
+        [displayName, pictureUrl, replyToken, contactId]
+      );
+    } else {
+      await query(
+        `UPDATE line_contacts SET display_name = COALESCE(?, display_name), picture_url = COALESCE(?, picture_url), last_message_at = NOW() WHERE id = ?`,
+        [displayName, pictureUrl, contactId]
+      );
+    }
+    return contactId;
   }
 
-  // Insert baru
+  // Insert kontak personal baru
   const res = await query<any>(
-    `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at) VALUES (?, ?, ?, ?, ?, NOW())`,
-    [lineUserId, groupVal, displayName, pictureUrl, sourceType]
+    `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at) VALUES (?, NULL, ?, ?, 'user', NOW(), ?, ?)`,
+    [lineUserId, displayName, pictureUrl, replyToken || null, replyToken ? new Date() : null]
   );
 
   return res?.insertId || 0;
@@ -149,8 +250,15 @@ export async function saveOutgoingMessage(
     `INSERT INTO line_chat_messages (contact_id, line_user_id, line_group_id, message_text, message_type, direction, sent_by_admin) VALUES (?, ?, ?, ?, 'text', 'out', ?)`,
     [contactId, lineUserId, lineGroupId || null, messageText, adminUsername]
   );
-  // Update last_message_at
   await query(`UPDATE line_contacts SET last_message_at = NOW() WHERE id = ?`, [contactId]);
+}
+
+/**
+ * Hapus / bersihkan reply token setelah dipakai agar tidak dikirim ulang
+ */
+export async function clearContactReplyToken(contactId: number): Promise<void> {
+  await ensureTables();
+  await query(`UPDATE line_contacts SET latest_reply_token = NULL, latest_reply_token_at = NULL WHERE id = ?`, [contactId]);
 }
 
 /**
@@ -214,12 +322,63 @@ export async function getContactById(id: number): Promise<LineContact | null> {
 }
 
 /**
- * Kirim pesan ke LINE user/group via Push Message API
+ * Kirim balasan via LINE Reply Message API (GRATIS & TIDAK MENGURANGI KUOTA BULANAN)
+ */
+export async function sendLineReplyMessage(
+  replyToken: string,
+  messageText: string
+): Promise<{ ok: boolean; error?: string }> {
+  const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
+  const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
+
+  if (!channelAccessToken) {
+    return { ok: false, error: "LINE Channel Access Token belum dikonfigurasi" };
+  }
+
+  try {
+    const response = await fetch("https://api.line.me/v2/bot/message/reply", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${channelAccessToken}`,
+      },
+      body: JSON.stringify({
+        replyToken,
+        messages: [{ type: "text", text: messageText }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.warn("[LINE Reply Warning]:", response.status, errText);
+      return { ok: false, error: `Reply error ${response.status}: ${errText}` };
+    }
+
+    return { ok: true };
+  } catch (err: any) {
+    console.error("[LINE Reply Error]:", err);
+    return { ok: false, error: err?.message || "Gagal reply pesan" };
+  }
+}
+
+/**
+ * Kirim pesan ke LINE user/group (otomatis coba Reply Token dulu jika tersedia, lalu fallback ke Push)
  */
 export async function sendLineMessage(
   to: string,
-  messageText: string
-): Promise<{ ok: boolean; error?: string }> {
+  messageText: string,
+  replyToken?: string | null
+): Promise<{ ok: boolean; error?: string; mode?: "reply" | "push" }> {
+  // 1. Coba kirim via REPLY API jika ada replyToken valid (Gratis 100% tanpa batas kuota)
+  if (replyToken) {
+    const replyRes = await sendLineReplyMessage(replyToken, messageText);
+    if (replyRes.ok) {
+      return { ok: true, mode: "reply" };
+    }
+    console.log("[LINE] ReplyToken kadaluwarsa/tidak valid, mencoba Push Message API...");
+  }
+
+  // 2. Fallback ke PUSH Message API
   const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
   const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
 
@@ -243,10 +402,19 @@ export async function sendLineMessage(
     if (!response.ok) {
       const errText = await response.text();
       console.error("[LINE Push Error]:", response.status, errText);
+
+      if (response.status === 429) {
+        return {
+          ok: false,
+          error:
+            "LINE API Error 429: Batas kuota pesan bulanan LINE (500 push) telah tercapai untuk grup ini (180+ anggota). Silakan tunggu anggota grup mengirim pesan di LINE, lalu langsung balas dalam waktu 1 menit agar pesan terkirim GRATIS via Reply Token tanpa memotong kuota.",
+        };
+      }
+
       return { ok: false, error: `LINE API error: ${response.status}` };
     }
 
-    return { ok: true };
+    return { ok: true, mode: "push" };
   } catch (err: any) {
     console.error("[LINE Push Error]:", err);
     return { ok: false, error: err?.message || "Gagal mengirim pesan" };
@@ -254,12 +422,20 @@ export async function sendLineMessage(
 }
 
 /**
- * Ambil profil LINE user via API
+ * Ambil profil LINE user via API (dengan cache singkat)
  */
+const _userProfileCache = new Map<string, { displayName: string; pictureUrl?: string; time: number }>();
+
 export async function getLineProfile(
   userId: string,
   groupId?: string | null
 ): Promise<{ displayName: string; pictureUrl?: string } | null> {
+  const cacheKey = `${groupId || "user"}_${userId}`;
+  const cached = _userProfileCache.get(cacheKey);
+  if (cached && Date.now() - cached.time < 3600000) {
+    return cached;
+  }
+
   const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
   const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
   if (!channelAccessToken) return null;
@@ -279,7 +455,9 @@ export async function getLineProfile(
 
     if (res.ok) {
       const data = await res.json();
-      return { displayName: data.displayName, pictureUrl: data.pictureUrl };
+      const result = { displayName: data.displayName, pictureUrl: data.pictureUrl };
+      _userProfileCache.set(cacheKey, { ...result, time: Date.now() });
+      return result;
     }
   } catch {}
   return null;
@@ -320,4 +498,3 @@ export async function deleteContact(contactId: number): Promise<boolean> {
   const res = await query(`DELETE FROM line_contacts WHERE id = ?`, [contactId]);
   return Boolean(res);
 }
-

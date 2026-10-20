@@ -117,12 +117,19 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
           pictureUrl = profile.pictureUrl || null;
         }
 
+        const rawReplyToken = event.replyToken || "";
+        const isRealReplyToken =
+          rawReplyToken &&
+          !rawReplyToken.startsWith("00000000") &&
+          !rawReplyToken.startsWith("ffffffff");
+
         const contactId = await upsertContact(
           lineUserId,
           lineGroupId,
           displayName,
           pictureUrl,
-          sourceType as any
+          sourceType as any,
+          isRealReplyToken ? rawReplyToken : null
         );
 
         const msgText = event.message?.text || `[${event.message?.type || "media"}]`;

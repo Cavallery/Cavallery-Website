@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { getContactById, sendLineMessage, saveOutgoingMessage } from "@/lib/lineChat";
+import { getContactById, sendLineMessage, saveOutgoingMessage, clearContactReplyToken } from "@/lib/lineChat";
 
 // POST: Admin mengirim pesan chat ke pengguna/grup LINE
 export async function POST(req: NextRequest) {
@@ -31,13 +31,27 @@ export async function POST(req: NextRequest) {
     // Tentukan target pengiriman (grup jika ada, atau user)
     const targetRecipient = contact.line_group_id || contact.line_user_id;
 
-    // Kirim via LINE Push Message API
-    const sendResult = await sendLineMessage(targetRecipient, messageText.trim());
+    // Cek apakah ada reply token yang masih berlaku (< 55 detik sejak pesan diterima)
+    let usableReplyToken: string | null = null;
+    if (contact.latest_reply_token && contact.latest_reply_token_at) {
+      const tokenAgeMs = Date.now() - new Date(contact.latest_reply_token_at).getTime();
+      if (tokenAgeMs < 55000) {
+        usableReplyToken = contact.latest_reply_token;
+      }
+    }
+
+    // Kirim pesan (otomatis prioritaskan Reply Token jika aktif, atau fallback Push)
+    const sendResult = await sendLineMessage(targetRecipient, messageText.trim(), usableReplyToken);
     if (!sendResult.ok) {
       return NextResponse.json(
         { status: false, message: sendResult.error || "Gagal mengirim pesan ke LINE" },
-        { status: 502 }
+        { status: 400 }
       );
+    }
+
+    // Jika berhasil terkirim via reply, kosongkan token agar tidak dipakai ulang
+    if (usableReplyToken || sendResult.mode === "reply") {
+      await clearContactReplyToken(contact.id);
     }
 
     // Simpan ke database sebagai pesan keluar (direction = 'out')
@@ -49,9 +63,14 @@ export async function POST(req: NextRequest) {
       admin.username || "Admin"
     );
 
+    const modeMsg = sendResult.mode === "reply"
+      ? "Pesan berhasil dibalas GRATIS via Reply Token!"
+      : "Pesan berhasil dikirim via Push!";
+
     return NextResponse.json({
       status: true,
-      message: "Pesan berhasil dikirim ke pengguna/grup LINE!",
+      message: modeMsg,
+      mode: sendResult.mode,
     });
   } catch (error: any) {
     console.error("POST /api/admin/line-chat/send error:", error);
