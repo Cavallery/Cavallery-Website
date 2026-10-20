@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   output: "standalone",
+  experimental: {
+    cpus: 1,
+  },
   async rewrites() {
     return [
       {
