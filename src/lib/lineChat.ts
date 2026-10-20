@@ -75,6 +75,8 @@ export interface LineContact {
   last_message_at: string | null;
   latest_reply_token?: string | null;
   latest_reply_token_at?: string | null;
+  latest_reply_token_epoch?: number | string | null;
+  has_reply_token?: boolean;
   is_blocked: number;
   created_at: string;
   unread_count?: number;
@@ -158,8 +160,8 @@ export async function upsertContact(
       const contactId = existingGroup[0].id;
       if (replyToken) {
         await query(
-          `UPDATE line_contacts SET last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW() WHERE id = ?`,
-          [replyToken, contactId]
+          `UPDATE line_contacts SET last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW(), latest_reply_token_epoch = ? WHERE id = ?`,
+          [replyToken, Date.now(), contactId]
         );
       } else {
         await query(`UPDATE line_contacts SET last_message_at = NOW() WHERE id = ?`, [contactId]);
@@ -179,8 +181,8 @@ export async function upsertContact(
     } catch {}
 
     const res = await query<any>(
-      `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at) VALUES (?, ?, ?, ?, 'group', NOW(), ?, ?)`,
-      [lineGroupId, lineGroupId, groupName, groupPic, replyToken || null, replyToken ? new Date() : null]
+      `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at, latest_reply_token_epoch) VALUES (?, ?, ?, ?, 'group', NOW(), ?, ?, ?)`,
+      [lineGroupId, lineGroupId, groupName, groupPic, replyToken || null, replyToken ? new Date() : null, replyToken ? Date.now() : null]
     );
     return res?.insertId || 0;
   }
@@ -195,8 +197,8 @@ export async function upsertContact(
     const contactId = existing[0].id;
     if (replyToken) {
       await query(
-        `UPDATE line_contacts SET display_name = COALESCE(?, display_name), picture_url = COALESCE(?, picture_url), last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW() WHERE id = ?`,
-        [displayName, pictureUrl, replyToken, contactId]
+        `UPDATE line_contacts SET display_name = COALESCE(?, display_name), picture_url = COALESCE(?, picture_url), last_message_at = NOW(), latest_reply_token = ?, latest_reply_token_at = NOW(), latest_reply_token_epoch = ? WHERE id = ?`,
+        [displayName, pictureUrl, replyToken, Date.now(), contactId]
       );
     } else {
       await query(
@@ -209,8 +211,8 @@ export async function upsertContact(
 
   // Insert kontak personal baru
   const res = await query<any>(
-    `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at) VALUES (?, NULL, ?, ?, 'user', NOW(), ?, ?)`,
-    [lineUserId, displayName, pictureUrl, replyToken || null, replyToken ? new Date() : null]
+    `INSERT INTO line_contacts (line_user_id, line_group_id, display_name, picture_url, source_type, last_message_at, latest_reply_token, latest_reply_token_at, latest_reply_token_epoch) VALUES (?, NULL, ?, ?, 'user', NOW(), ?, ?, ?)`,
+    [lineUserId, displayName, pictureUrl, replyToken || null, replyToken ? new Date() : null, replyToken ? Date.now() : null]
   );
 
   return res?.insertId || 0;
@@ -258,7 +260,7 @@ export async function saveOutgoingMessage(
  */
 export async function clearContactReplyToken(contactId: number): Promise<void> {
   await ensureTables();
-  await query(`UPDATE line_contacts SET latest_reply_token = NULL, latest_reply_token_at = NULL WHERE id = ?`, [contactId]);
+  await query(`UPDATE line_contacts SET latest_reply_token = NULL, latest_reply_token_at = NULL, latest_reply_token_epoch = NULL WHERE id = ?`, [contactId]);
 }
 
 /**

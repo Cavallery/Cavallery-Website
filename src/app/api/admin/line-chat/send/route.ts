@@ -31,11 +31,17 @@ export async function POST(req: NextRequest) {
     // Tentukan target pengiriman (grup jika ada, atau user)
     const targetRecipient = contact.line_group_id || contact.line_user_id;
 
-    // Cek apakah ada reply token yang masih berlaku (< 55 detik sejak pesan diterima)
+    // Prioritaskan Reply Token jika ada (Gratis 100% dan tidak memakan kuota bulanan)
     let usableReplyToken: string | null = null;
-    if (contact.latest_reply_token && contact.latest_reply_token_at) {
-      const tokenAgeMs = Date.now() - new Date(contact.latest_reply_token_at).getTime();
-      if (tokenAgeMs < 55000) {
+    if (contact.latest_reply_token) {
+      if (contact.latest_reply_token_epoch) {
+        const tokenAgeMs = Date.now() - Number(contact.latest_reply_token_epoch);
+        // Reply token LINE valid ~1 menit, beri toleransi hingga 65 detik
+        if (tokenAgeMs < 65000) {
+          usableReplyToken = contact.latest_reply_token;
+        }
+      } else {
+        // Jika epoch belum terekam, tetap coba gunakan tokennya
         usableReplyToken = contact.latest_reply_token;
       }
     }

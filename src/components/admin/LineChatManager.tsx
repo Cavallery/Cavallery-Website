@@ -104,11 +104,14 @@ export default function LineChatManager() {
     setLoadingMessages(false);
   };
 
-  // Cek apakah reply token masih segar (< 55 detik)
+  // Cek apakah reply token masih segar (< 65 detik)
   const isReplyTokenFresh = Boolean(
     activeContact?.latest_reply_token &&
-      activeContact?.latest_reply_token_at &&
-      Date.now() - new Date(activeContact.latest_reply_token_at).getTime() < 55000
+      (
+        (activeContact?.latest_reply_token_epoch &&
+          Date.now() - Number(activeContact.latest_reply_token_epoch) < 65000) ||
+        (!activeContact?.latest_reply_token_epoch && Boolean(activeContact?.latest_reply_token))
+      )
   );
 
   // Kirim pesan dari admin
