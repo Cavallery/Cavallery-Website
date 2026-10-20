@@ -75,11 +75,14 @@ export default function LineChatManager() {
   useEffect(() => {
     fetchContacts();
     const interval = setInterval(() => {
-      fetchContacts();
-      if (activeContact) {
-        fetchMessages(activeContact.id, false);
+      // Hanya polling jika tab browser sedang aktif dibuka untuk menghemat resource
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        fetchContacts();
+        if (activeContact) {
+          fetchMessages(activeContact.id, false);
+        }
       }
-    }, 5000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [activeContact, search]);
 
