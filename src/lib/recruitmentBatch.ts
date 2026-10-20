@@ -24,9 +24,14 @@ export async function ensureBatchTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
-    // Tambahkan kolom batch_id ke anggota jika belum ada
+    // Tambahkan kolom batch_id ke anggota jika belum ada (cek dulu via INFORMATION_SCHEMA)
     try {
-      await query(`ALTER TABLE anggota ADD COLUMN batch_id INT DEFAULT NULL`);
+      const colCheck = await query<any[]>(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'anggota' AND COLUMN_NAME = 'batch_id' LIMIT 1`
+      );
+      if (!colCheck || colCheck.length === 0) {
+        await query(`ALTER TABLE anggota ADD COLUMN batch_id INT DEFAULT NULL`);
+      }
     } catch {}
 
     // Cek apakah tabel recruitment_batches masih kosong, jika ya buatkan seed batch 1-8
