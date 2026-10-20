@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { readBotConfig } from "../bot-config/route";
 import { readBotMedia } from "../bot-media/route";
 import { getAIOrSimiSimiReply } from "@/lib/botConversation";
+import { upsertContact, saveIncomingMessage, getLineProfile } from "@/lib/lineChat";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -97,7 +98,50 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleLineEvent(event: any, channelAccessToken: string) {
-  if (!event || event.type !== "message" || event.message?.type !== "text") {
+  if (!event) return;
+
+  const sourceType = event.source?.type || "user";
+  const lineUserId = event.source?.userId || "";
+  const lineGroupId = event.source?.groupId || event.source?.roomId || null;
+
+  // Catat kontak & pesan masuk ke MySQL untuk Chat Admin
+  if (event.type === "message" && lineUserId) {
+    (async () => {
+      try {
+        let displayName: string | null = null;
+        let pictureUrl: string | null = null;
+
+        const profile = await getLineProfile(lineUserId, lineGroupId);
+        if (profile) {
+          displayName = profile.displayName;
+          pictureUrl = profile.pictureUrl || null;
+        }
+
+        const contactId = await upsertContact(
+          lineUserId,
+          lineGroupId,
+          displayName,
+          pictureUrl,
+          sourceType as any
+        );
+
+        const msgText = event.message?.text || `[${event.message?.type || "media"}]`;
+        await saveIncomingMessage(
+          contactId,
+          lineUserId,
+          lineGroupId,
+          displayName,
+          msgText,
+          event.message?.type || "text",
+          event.message?.id || null
+        );
+      } catch (err) {
+        console.error("[LINE Chat Log Error]:", err);
+      }
+    })();
+  }
+
+  if (event.type !== "message" || event.message?.type !== "text") {
     return;
   }
 

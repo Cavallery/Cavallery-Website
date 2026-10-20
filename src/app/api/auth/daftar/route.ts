@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/mysql";
 import { getSetting } from "@/lib/settings";
 import { appendKontributorRow } from "@/lib/googleSheets";
-
 import { ensurePinColumn, generateNextNoAnggota } from "@/lib/membership";
+import { getActiveOpenBatch } from "@/lib/recruitmentBatch";
 
 export async function POST(req: NextRequest) {
   try {
@@ -87,11 +87,15 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Ambil batch yang saat ini terbuka jika ada
+      const activeBatch = await getActiveOpenBatch();
+      const batchId = activeBatch ? activeBatch.id : null;
+
       // Insert new anggota with specified noAnggota as 'pending'
       await query(
         `INSERT INTO anggota 
-         (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'Anggota')`,
+         (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, batch_id) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'Anggota', ?)`,
         [
           cleanNoAnggota,
           namaLengkap.trim(),
@@ -103,6 +107,7 @@ export async function POST(req: NextRequest) {
           domisili.trim(),
           kontakPlatform,
           kontakId.trim(),
+          batchId,
         ]
       );
 

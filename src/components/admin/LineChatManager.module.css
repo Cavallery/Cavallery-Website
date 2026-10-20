@@ -1,0 +1,338 @@
+.chatContainer {
+  display: flex;
+  height: calc(100vh - 120px);
+  min-height: 580px;
+  background: var(--cv-ink-2, #181414);
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR KONTAK ── */
+.contactSidebar {
+  width: 320px;
+  border-right: 1px solid var(--cv-line-strong, #3a2e28);
+  display: flex;
+  flex-direction: column;
+  background: var(--cv-ink, #0f0c0b);
+}
+
+.searchBox {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cv-line-strong, #3a2e28);
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--cv-ink-2, #181414);
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  color: var(--cv-text, #f5efe8);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  outline: none;
+}
+.searchInput:focus {
+  border-color: var(--cv-orange, #e05e2b);
+}
+
+.contactList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--cv-line-strong, #3a2e28) 40%, transparent);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.contactItem:hover {
+  background: color-mix(in srgb, var(--cv-orange, #e05e2b) 8%, transparent);
+}
+.contactActive {
+  background: color-mix(in srgb, var(--cv-orange, #e05e2b) 16%, transparent) !important;
+  border-left: 3px solid var(--cv-orange, #e05e2b);
+}
+
+.contactAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #332722;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.contactAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contactInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.contactNameRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.contactName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--cv-text, #f5efe8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contactTime {
+  font-size: 0.7rem;
+  color: var(--cv-text-mute, #a89a90);
+  white-space: nowrap;
+}
+
+.contactLastMsg {
+  font-size: 0.78rem;
+  color: var(--cv-text-mute, #a89a90);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badgeGroup {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #2b4059;
+  color: #7bb5e8;
+  font-weight: 700;
+}
+
+.badgeUnread {
+  background: var(--cv-orange, #e05e2b);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+  margin-left: auto;
+}
+
+/* ── MAIN CHAT AREA ── */
+.chatArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--cv-ink-2, #181414);
+}
+
+.chatHeader {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--cv-line-strong, #3a2e28);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cv-ink, #0f0c0b);
+}
+
+.chatHeaderInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--cv-text, #f5efe8);
+}
+
+.headerSubtitle {
+  font-size: 0.75rem;
+  color: var(--cv-text-mute, #a89a90);
+}
+
+.messageHistory {
+  flex: 1;
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msgBubble {
+  max-width: 68%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  word-break: break-word;
+  position: relative;
+}
+
+.msgIn {
+  align-self: flex-start;
+  background: #231c19;
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  color: var(--cv-text, #f5efe8);
+  border-bottom-left-radius: 2px;
+}
+
+.msgOut {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #c44e1c, var(--cv-orange, #e05e2b));
+  color: #ffffff;
+  border-bottom-right-radius: 2px;
+}
+
+.msgSenderName {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f7a87e;
+  margin-bottom: 4px;
+}
+
+.msgMeta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+
+.msgInputArea {
+  padding: 14px 18px;
+  border-top: 1px solid var(--cv-line-strong, #3a2e28);
+  background: var(--cv-ink, #0f0c0b);
+  display: flex;
+  gap: 10px;
+}
+
+.msgInput {
+  flex: 1;
+  background: var(--cv-ink-2, #181414);
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  color: var(--cv-text, #f5efe8);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  outline: none;
+  resize: none;
+}
+.msgInput:focus {
+  border-color: var(--cv-orange, #e05e2b);
+}
+
+.btnSend {
+  background: var(--cv-orange, #e05e2b);
+  color: #ffffff;
+  border: none;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s ease;
+}
+.btnSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── DELETE ACTIONS ── */
+.btnDeleteMsg {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.45;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.btnDeleteMsg:hover {
+  opacity: 1;
+  color: #ff6b6b;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnActionClear {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ff6b6b;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+.btnActionClear:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.btnActionDeleteContact {
+  background: transparent;
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  color: var(--cv-text-mute, #a89a90);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+.btnActionDeleteContact:hover {
+  border-color: #ef4444;
+  color: #ff6b6b;
+}
+
+.emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--cv-text-mute, #a89a90);
+  gap: 10px;
+  text-align: center;
+  padding: 20px;
+}

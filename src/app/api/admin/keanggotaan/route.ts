@@ -3,6 +3,7 @@ import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota, ensurePinColumn } from "@/lib/membership";
 import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
+import { ensureBatchTables } from "@/lib/recruitmentBatch";
 
 let _badgeColEnsured = false;
 async function ensureBadgeColumn() {
@@ -38,6 +39,11 @@ function formatAnggotaRow(r: any) {
     jabatan: r.jabatan || "Anggota",
     divisi: r.divisi || null,
     badge: r.badge || "squire",
+    batchId: r.batch_id || null,
+    batch_id: r.batch_id || null,
+    batchName: r.batch_name || null,
+    batch_name: r.batch_name || null,
+    batchYear: r.batch_year || null,
     fotoProfil: r.foto_profil || null,
     foto_profil: r.foto_profil || null,
     anggotaSejak: r.anggota_sejak,
@@ -55,25 +61,55 @@ export async function GET(req: NextRequest) {
 
     await ensureBadgeColumn();
     await ensurePinColumn();
+    await ensureBatchTables();
 
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.trim().toLowerCase() || "";
+    const batchFilter = searchParams.get("batchId") || "";
 
     // 1. Antrean Pendaftar (Pending)
-    const antreanRaw = (await query<any[]>(
-      "SELECT * FROM anggota WHERE status = 'pending' ORDER BY id ASC"
-    )) || [];
+    let antreanSql = `
+      SELECT a.*, b.name as batch_name, b.year as batch_year 
+      FROM anggota a
+      LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+      WHERE a.status = 'pending'
+    `;
+    const antreanParams: any[] = [];
+    if (batchFilter && batchFilter !== "semua") {
+      if (batchFilter === "none") {
+        antreanSql += " AND a.batch_id IS NULL";
+      } else {
+        antreanSql += " AND a.batch_id = ?";
+        antreanParams.push(Number(batchFilter));
+      }
+    }
+    antreanSql += " ORDER BY a.id ASC";
+    const antreanRaw = (await query<any[]>(antreanSql, antreanParams)) || [];
 
     // 2. Direktori Anggota Resmi (Aktif / Nonaktif / Admin)
-    let direktoriSql = "SELECT * FROM anggota WHERE status != 'pending'";
+    let direktoriSql = `
+      SELECT a.*, b.name as batch_name, b.year as batch_year 
+      FROM anggota a
+      LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+      WHERE a.status != 'pending'
+    `;
     const params: any[] = [];
 
+    if (batchFilter && batchFilter !== "semua") {
+      if (batchFilter === "none") {
+        direktoriSql += " AND a.batch_id IS NULL";
+      } else {
+        direktoriSql += " AND a.batch_id = ?";
+        params.push(Number(batchFilter));
+      }
+    }
+
     if (search) {
-      direktoriSql += " AND (LOWER(nama_lengkap) LIKE ? OR LOWER(no_anggota) LIKE ? OR LOWER(domisili) LIKE ? OR LOWER(id_line) LIKE ?)";
+      direktoriSql += " AND (LOWER(a.nama_lengkap) LIKE ? OR LOWER(a.no_anggota) LIKE ? OR LOWER(a.domisili) LIKE ? OR LOWER(a.id_line) LIKE ?)";
       const s = `%${search}%`;
       params.push(s, s, s, s);
     }
-    direktoriSql += " ORDER BY CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END, no_anggota ASC, id ASC";
+    direktoriSql += " ORDER BY CASE WHEN a.no_anggota IS NULL OR a.no_anggota = '' OR a.no_anggota = '-' THEN 1 ELSE 0 END, a.no_anggota ASC, a.id ASC";
 
     const direktoriRaw = (await query<any[]>(direktoriSql, params)) || [];
 
@@ -370,6 +406,7 @@ export async function PUT(req: NextRequest) {
       jabatan,
       divisi,
       badge,
+      batchId,
       fotoProfil,
       anggotaSejak,
     } = body;
@@ -393,7 +430,7 @@ export async function PUT(req: NextRequest) {
 
     let updateRes = await query(
       `UPDATE anggota 
-       SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, foto_profil = ?, anggota_sejak = ? 
+       SET no_anggota = ?, nama_lengkap = ?, id_line = ?, pin = ?, display_line = ?, discord = ?, gender = ?, domisili = ?, kontak_platform = ?, kontak_id = ?, status = ?, jabatan = ?, divisi = ?, badge = ?, batch_id = ?, foto_profil = ?, anggota_sejak = ? 
        WHERE id = ?`,
       [
         cleanNoAnggota,
@@ -410,6 +447,7 @@ export async function PUT(req: NextRequest) {
         jabatan || "Anggota",
         divisi?.trim() || null,
         badge || "squire",
+        batchId !== undefined ? (batchId ? Number(batchId) : null) : null,
         fotoProfil !== undefined ? (fotoProfil?.trim() || null) : null,
         joinDate,
         id,

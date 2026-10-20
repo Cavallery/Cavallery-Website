@@ -33,6 +33,13 @@ export default function AdminKeanggotaanPage() {
   const [filterStatus, setFilterStatus] = useState<"semua" | "aktif" | "nonaktif">("semua");
   const [filterJabatan, setFilterJabatan] = useState<"semua" | "anggota" | "admin">("semua");
   const [filterGender, setFilterGender] = useState<"semua" | "perempuan" | "laki">("semua");
+  const [batches, setBatches] = useState<any[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<string>("semua");
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [newBatchName, setNewBatchName] = useState("");
+  const [newBatchYear, setNewBatchYear] = useState(new Date().getFullYear());
+  const [newBatchDesc, setNewBatchDesc] = useState("");
+  const [batchActionLoading, setBatchActionLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -154,9 +161,75 @@ export default function AdminKeanggotaanPage() {
     }
   };
 
+  const fetchBatches = async () => {
+    try {
+      const res = await fetch("/api/admin/recruitment-batches");
+      const json = await res.json();
+      if (json.status && json.batches) {
+        setBatches(json.batches);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleCreateBatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBatchName.trim()) return;
+    setBatchActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/recruitment-batches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newBatchName,
+          year: newBatchYear,
+          description: newBatchDesc,
+          status: "open",
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        setShowBatchModal(false);
+        setNewBatchName("");
+        setNewBatchDesc("");
+        await fetchBatches();
+        await fetchData();
+      } else {
+        alert(json.message || "Gagal membuat batch");
+      }
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan");
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const handleToggleBatchStatus = async (batchId: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "open" ? "closed" : "open";
+      const res = await fetch("/api/admin/recruitment-batches", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: batchId, status: newStatus }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg("Status batch berhasil diperbarui!");
+        await fetchBatches();
+      }
+    } catch (err: any) {
+      alert(err.message || "Gagal memperbarui status batch");
+    }
+  };
+
   const fetchData = async () => {
     try {
-      const url = search ? `/api/admin/keanggotaan?search=${encodeURIComponent(search)}` : "/api/admin/keanggotaan";
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (selectedBatch !== "semua") params.append("batchId", selectedBatch);
+      const url = `/api/admin/keanggotaan?${params.toString()}`;
       const res = await fetch(url);
       if (res.status === 401) {
         window.location.href = "/internal/dashboard-admin-xv7r2q";
@@ -330,6 +403,7 @@ export default function AdminKeanggotaanPage() {
           >
             <i className="bx bx-user-plus" /> Tambah Anggota Manual
           </button>
+          <button type="button" className={styles.btnCreate} onClick={() => setShowBatchModal(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg, #2563eb, #1d4ed8)", marginLeft: 10 }}><i className="bx bx-layer-plus" /> Kelola & Buka Batch</button>
         </div>
 
         {/* Global Feedback Message */}
@@ -512,6 +586,75 @@ export default function AdminKeanggotaanPage() {
                 {direktoriList.length} Total
               </span>
             </h2>
+
+            {/* Filter Batch Tabs */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", width: "100%", marginTop: 8, paddingBottom: 10, borderBottom: "1px dashed var(--border)" }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--fg-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+                <i className="bx bx-filter-alt" /> Filter Batch:
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedBatch("semua")}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  border: selectedBatch === "semua" ? "2px solid var(--primary)" : "1px solid var(--border)",
+                  background: selectedBatch === "semua" ? "var(--primary)" : "transparent",
+                  color: selectedBatch === "semua" ? "#fff" : "var(--fg-muted)",
+                }}
+              >
+                Semua Batch
+              </button>
+              {batches.map((b) => {
+                const isSel = selectedBatch === String(b.id);
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedBatch(String(b.id))}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: 20,
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      border: isSel ? "2px solid var(--cv-orange)" : "1px solid var(--border)",
+                      background: isSel ? "var(--cv-orange)" : "transparent",
+                      color: isSel ? "#fff" : "var(--fg-muted)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <span>{b.name} ({b.year})</span>
+                    {b.status === "open" && (
+                      <span style={{ background: "#10b981", color: "#fff", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 8 }}>
+                        OPEN
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setSelectedBatch("none")}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: 20,
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  border: selectedBatch === "none" ? "2px solid #888" : "1px solid var(--border)",
+                  background: selectedBatch === "none" ? "#888" : "transparent",
+                  color: selectedBatch === "none" ? "#fff" : "var(--fg-muted)",
+                }}
+              >
+                Tanpa Batch / Arsip Lama
+              </button>
+            </div>
 
             {/* Filter & Search Bar */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 10 }}>
@@ -1550,6 +1693,146 @@ export default function AdminKeanggotaanPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      
+      {/* ── MODAL KELOLA & BUKA BATCH BARU ── */}
+      {showBatchModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowBatchModal(false)}>
+          <div
+            className={styles.modalContent}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 640 }}
+          >
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <i className="bx bx-layer" style={{ color: "var(--cv-orange)" }} />
+                Kelola Periode Rekrutmen Batch
+              </h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={() => setShowBatchModal(false)}
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            {/* Form Buat Batch Baru */}
+            <form onSubmit={handleCreateBatch} style={{ padding: "16px 0", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 12, color: "var(--primary)" }}>
+                Buka Rekrutmen Batch Baru (cth: Batch 9)
+              </div>
+              <div className={styles.modalRow}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Nama Batch *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Contoh: Batch 9"
+                    className={styles.modalInput}
+                    value={newBatchName}
+                    onChange={(e) => setNewBatchName(e.target.value)}
+                  />
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tahun *</label>
+                  <input
+                    type="number"
+                    required
+                    className={styles.modalInput}
+                    value={newBatchYear}
+                    onChange={(e) => setNewBatchYear(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className={styles.modalField} style={{ marginTop: 10 }}>
+                <label className={styles.modalLabel}>Keterangan / Catatan Batch</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Rekrutmen Resmi Musim Gugur 2026"
+                  className={styles.modalInput}
+                  value={newBatchDesc}
+                  onChange={(e) => setNewBatchDesc(e.target.value)}
+                />
+              </div>
+              <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
+                <button type="submit" disabled={batchActionLoading} className={styles.btnCreate}>
+                  {batchActionLoading ? (
+                    <><i className="bx bx-loader-alt bx-spin" /> Memproses...</>
+                  ) : (
+                    <><i className="bx bx-check" /> Buka Batch Baru Sekarang</>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* Daftar Batch Yang Sudah Ada */}
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 10, color: "var(--fg-muted)" }}>
+                Daftar Seluruh Batch & Status:
+              </div>
+              <div style={{ maxHeight: 260, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                {batches.map((b) => {
+                  const isOpen = b.status === "open";
+                  return (
+                    <div
+                      key={b.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 14px",
+                        borderRadius: 10,
+                        border: "1px solid var(--border)",
+                        background: isOpen ? "rgba(16, 185, 129, 0.08)" : "var(--surface)",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--primary)" }}>
+                          {b.name} ({b.year})
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>
+                          {b.description || "Tanpa keterangan"} • {b.total_members || 0} Anggota Resmi
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            padding: "3px 10px",
+                            borderRadius: 12,
+                            background: isOpen ? "#10b981" : "rgba(156, 163, 175, 0.2)",
+                            color: isOpen ? "#fff" : "var(--fg-muted)",
+                          }}
+                        >
+                          {isOpen ? "BUKA" : "DITUTUP"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleBatchStatus(b.id, b.status)}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            border: "1px solid var(--border)",
+                            background: "transparent",
+                            color: "var(--primary)",
+                          }}
+                        >
+                          {isOpen ? "Tutup" : "Buka"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       )}
