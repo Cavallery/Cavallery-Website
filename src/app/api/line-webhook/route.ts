@@ -159,7 +159,6 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
   let messagePayload: any = null;
 
   // Cek apakah pesan berasal dari grup atau multi-user room
-  const sourceType = event.source?.type || "user";
   const isGroupOrRoom = sourceType === "group" || sourceType === "room";
 
   // Deteksi perintah resmi kas
