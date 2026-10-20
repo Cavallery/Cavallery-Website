@@ -37,11 +37,11 @@ function getPool(): mysql.Pool {
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "u410588002_Cavallery",
     waitForConnections: true,
-    connectionLimit: 25, // Naikkan batas koneksi untuk menampung traffic ramai
-    queueLimit: 50,      // Batasi antrean agar memori tidak bocor
-    connectTimeout: 3000,
+    connectionLimit: 5,  // Shared hosting Hostinger hanya sanggup sedikit koneksi
+    queueLimit: 20,      // Batasi antrean agar memori tidak bocor
+    connectTimeout: 10000, // 10 detik – shared hosting butuh waktu lebih lama
     enableKeepAlive: true,
-    keepAliveInitialDelay: 10000,
+    keepAliveInitialDelay: 30000,
     charset: "utf8mb4",
     ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   });
@@ -54,12 +54,12 @@ function getPool(): mysql.Pool {
 export async function query<T = any>(sql: string, params: any[] = []): Promise<T | null> {
   if (!isMySqlConfigured()) return null;
 
-  // HARD TIMEOUT 3000ms (3 Detik)
-  // Mencegah server Node.js gantung menunggu database lambat yang memicu 504 Bad Gateway
+  // HARD TIMEOUT 8000ms (8 Detik)
+  // Memberi cukup waktu untuk query di shared hosting Hostinger
   const timeoutPromise = new Promise<null>((_, reject) => {
     const timer = setTimeout(() => {
-      reject(new Error("MySQL query timeout (exceeded 3000ms limit)"));
-    }, 3000);
+      reject(new Error("MySQL query timeout (exceeded 8000ms limit)"));
+    }, 8000);
     // Unref timer agar tidak menahan proses Node.js
     if (typeof timer.unref === "function") timer.unref();
   });

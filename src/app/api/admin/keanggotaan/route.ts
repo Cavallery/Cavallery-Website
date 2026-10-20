@@ -9,7 +9,12 @@ let _badgeColEnsured = false;
 async function ensureBadgeColumn() {
   if (_badgeColEnsured) return;
   try {
-    await query("ALTER TABLE anggota ADD COLUMN badge VARCHAR(50) NOT NULL DEFAULT 'squire'");
+    const colCheck = await query<any[]>(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'anggota' AND COLUMN_NAME = 'badge' LIMIT 1`
+    );
+    if (!colCheck || colCheck.length === 0) {
+      await query("ALTER TABLE anggota ADD COLUMN badge VARCHAR(50) NOT NULL DEFAULT 'squire'");
+    }
     _badgeColEnsured = true;
   } catch {
     _badgeColEnsured = true;
