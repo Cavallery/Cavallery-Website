@@ -35,11 +35,8 @@ export default function AdminKeanggotaanPage() {
   const [filterGender, setFilterGender] = useState<"semua" | "perempuan" | "laki">("semua");
   const [batches, setBatches] = useState<any[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<string>("semua");
-  const [showBatchModal, setShowBatchModal] = useState(false);
-  const [newBatchName, setNewBatchName] = useState("");
-  const [newBatchYear, setNewBatchYear] = useState(new Date().getFullYear());
-  const [newBatchDesc, setNewBatchDesc] = useState("");
-  const [batchActionLoading, setBatchActionLoading] = useState(false);
+  const [exportFilter, setExportFilter] = useState<"all" | "aktif" | "nonaktif">("all");
+  const [exporting, setExporting] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -173,54 +170,27 @@ export default function AdminKeanggotaanPage() {
     }
   };
 
-  const handleCreateBatch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newBatchName.trim()) return;
-    setBatchActionLoading(true);
+  const handleExportAnggota = async () => {
+    setExporting(true);
     try {
-      const res = await fetch("/api/admin/recruitment-batches", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newBatchName,
-          year: newBatchYear,
-          description: newBatchDesc,
-          status: "open",
-        }),
-      });
-      const json = await res.json();
-      if (json.status) {
-        setMsg(json.message);
-        setShowBatchModal(false);
-        setNewBatchName("");
-        setNewBatchDesc("");
-        await fetchBatches();
-        await fetchData();
-      } else {
-        alert(json.message || "Gagal membuat batch");
-      }
+      const res = await fetch(`/api/admin/keanggotaan/export?filter=${exportFilter}&t=${Date.now()}`);
+      if (!res.ok) throw new Error("Gagal mengunduh data anggota");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+      const label = exportFilter === "all" ? "Semua" : exportFilter === "aktif" ? "Aktif" : "NonAktif";
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Data_Anggota_Cavallery_${label}_${today}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setMsg("Data anggota berhasil diexport ke Excel (.csv)!");
     } catch (err: any) {
-      alert(err.message || "Terjadi kesalahan");
+      alert(err.message || "Gagal mengunduh data anggota");
     } finally {
-      setBatchActionLoading(false);
-    }
-  };
-
-  const handleToggleBatchStatus = async (batchId: number, currentStatus: string) => {
-    try {
-      const newStatus = currentStatus === "open" ? "closed" : "open";
-      const res = await fetch("/api/admin/recruitment-batches", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: batchId, status: newStatus }),
-      });
-      const json = await res.json();
-      if (json.status) {
-        setMsg("Status batch berhasil diperbarui!");
-        await fetchBatches();
-      }
-    } catch (err: any) {
-      alert(err.message || "Gagal memperbarui status batch");
+      setExporting(false);
     }
   };
 
@@ -394,7 +364,51 @@ export default function AdminKeanggotaanPage() {
         />
 
         {/* Action Bar */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+          {/* Download Excel Anggota */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "4px 8px" }}>
+              <i className="bx bx-filter" style={{ color: "var(--cv-orange)" }} />
+              <select
+                value={exportFilter}
+                onChange={(e) => setExportFilter(e.target.value as any)}
+                style={{
+                  background: "transparent",
+                  color: "var(--fg)",
+                  border: "none",
+                  outline: "none",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="all">Semua Anggota</option>
+                <option value="aktif">Anggota Aktif</option>
+                <option value="nonaktif">Non Aktif</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              className={styles.btnCreate}
+              onClick={handleExportAnggota}
+              disabled={exporting}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "linear-gradient(135deg, #0f9d58, #0b7a3e)",
+                cursor: exporting ? "not-allowed" : "pointer",
+              }}
+              title="Download Seluruh Data Anggota ke Excel (.csv)"
+            >
+              {exporting ? (
+                <><i className="bx bx-loader-alt bx-spin" /> Mengunduh...</>
+              ) : (
+                <><i className="bx bx-spreadsheet" /> Unduh Excel (.csv)</>
+              )}
+            </button>
+          </div>
+
           <button
             type="button"
             className={styles.btnCreate}
@@ -403,7 +417,6 @@ export default function AdminKeanggotaanPage() {
           >
             <i className="bx bx-user-plus" /> Tambah Anggota Manual
           </button>
-          <button type="button" className={styles.btnCreate} onClick={() => setShowBatchModal(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg, #2563eb, #1d4ed8)", marginLeft: 10 }}><i className="bx bx-layer-plus" /> Kelola & Buka Batch</button>
         </div>
 
         {/* Global Feedback Message */}
@@ -1698,145 +1711,6 @@ export default function AdminKeanggotaanPage() {
       )}
 
       
-      {/* ── MODAL KELOLA & BUKA BATCH BARU ── */}
-      {showBatchModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowBatchModal(false)}>
-          <div
-            className={styles.modalContent}
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 640 }}
-          >
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>
-                <i className="bx bx-layer" style={{ color: "var(--cv-orange)" }} />
-                Kelola Periode Rekrutmen Batch
-              </h3>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={() => setShowBatchModal(false)}
-              >
-                <i className="bx bx-x" />
-              </button>
-            </div>
-
-            {/* Form Buat Batch Baru */}
-            <form onSubmit={handleCreateBatch} style={{ padding: "16px 0", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 12, color: "var(--primary)" }}>
-                Buka Rekrutmen Batch Baru (cth: Batch 9)
-              </div>
-              <div className={styles.modalRow}>
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Nama Batch *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: Batch 9"
-                    className={styles.modalInput}
-                    value={newBatchName}
-                    onChange={(e) => setNewBatchName(e.target.value)}
-                  />
-                </div>
-                <div className={styles.modalField}>
-                  <label className={styles.modalLabel}>Tahun *</label>
-                  <input
-                    type="number"
-                    required
-                    className={styles.modalInput}
-                    value={newBatchYear}
-                    onChange={(e) => setNewBatchYear(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-              <div className={styles.modalField} style={{ marginTop: 10 }}>
-                <label className={styles.modalLabel}>Keterangan / Catatan Batch</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Rekrutmen Resmi Musim Gugur 2026"
-                  className={styles.modalInput}
-                  value={newBatchDesc}
-                  onChange={(e) => setNewBatchDesc(e.target.value)}
-                />
-              </div>
-              <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
-                <button type="submit" disabled={batchActionLoading} className={styles.btnCreate}>
-                  {batchActionLoading ? (
-                    <><i className="bx bx-loader-alt bx-spin" /> Memproses...</>
-                  ) : (
-                    <><i className="bx bx-check" /> Buka Batch Baru Sekarang</>
-                  )}
-                </button>
-              </div>
-            </form>
-
-            {/* Daftar Batch Yang Sudah Ada */}
-            <div style={{ marginTop: 16 }}>
-              <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 10, color: "var(--fg-muted)" }}>
-                Daftar Seluruh Batch & Status:
-              </div>
-              <div style={{ maxHeight: 260, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
-                {batches.map((b) => {
-                  const isOpen = b.status === "open";
-                  return (
-                    <div
-                      key={b.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid var(--border)",
-                        background: isOpen ? "rgba(16, 185, 129, 0.08)" : "var(--surface)",
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--primary)" }}>
-                          {b.name} ({b.year})
-                        </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)" }}>
-                          {b.description || "Tanpa keterangan"} • {b.total_members || 0} Anggota Resmi
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span
-                          style={{
-                            fontSize: "0.75rem",
-                            fontWeight: 800,
-                            padding: "3px 10px",
-                            borderRadius: 12,
-                            background: isOpen ? "#10b981" : "rgba(156, 163, 175, 0.2)",
-                            color: isOpen ? "#fff" : "var(--fg-muted)",
-                          }}
-                        >
-                          {isOpen ? "BUKA" : "DITUTUP"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleBatchStatus(b.id, b.status)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            border: "1px solid var(--border)",
-                            background: "transparent",
-                            color: "var(--primary)",
-                          }}
-                        >
-                          {isOpen ? "Tutup" : "Buka"}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── MODAL PANDUAN 5 BADGE & CARA NAIK TINGKAT ── */}
       {showBadgeGuideModal && (
         <div className={styles.modalOverlay} onClick={() => setShowBadgeGuideModal(false)}>
