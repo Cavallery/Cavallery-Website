@@ -69,6 +69,16 @@ export async function POST(req: NextRequest) {
       }
     });
 
+    // 2b. Otomatis urutkan anggota berdasarkan Abjad Nama Lengkap (A - Z) agar nomor anggota urut rapi
+    members.sort((a: ImportMemberItem, b: ImportMemberItem) => {
+      if (a.noAnggota && b.noAnggota) {
+        return (a.noAnggota || "").localeCompare(b.noAnggota || "", "id", { numeric: true });
+      }
+      if (a.noAnggota) return -1;
+      if (b.noAnggota) return 1;
+      return (a.nama || "").trim().localeCompare((b.nama || "").trim(), "id", { sensitivity: "base" });
+    });
+
     const results: any[] = [];
     const errors: string[] = [];
 
