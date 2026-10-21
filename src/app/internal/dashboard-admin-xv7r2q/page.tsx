@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import styles from "./page.module.css";
 import type { BotMediaItem } from "@/app/api/bot-media/route";
 import LineChatManager from "@/components/admin/LineChatManager";
-import ImportBatchModal from "@/components/admin/ImportBatchModal";
 
 const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 
@@ -6542,7 +6541,6 @@ function RecruitmentManager() {
   // Batch Recruitment Management
   const [batches, setBatches] = useState<any[]>([]);
   const [showBatchModal, setShowBatchModal] = useState(false);
-  const [showImportBatchModal, setShowImportBatchModal] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchYear, setNewBatchYear] = useState(new Date().getFullYear());
   const [newBatchDesc, setNewBatchDesc] = useState("");
@@ -6899,15 +6897,6 @@ function RecruitmentManager() {
             title="Kelola & Buka Batch Rekrutmen"
           >
             <i className="bx bx-layer-plus" /> Kelola Batch
-          </button>
-          <button
-            type="button"
-            className={styles.exportBtnExcel}
-            onClick={() => setShowImportBatchModal(true)}
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}
-            title="Import Anggota Batch dari Spreadsheet"
-          >
-            <i className="bx bx-import" /> Import Anggota Batch
           </button>
           <a
             href="https://docs.google.com/spreadsheets/d/18Kc517nLygbNNWN4OYHR5N8MfSbYzW1CzLr17zHH-kA/edit?gid=900522075#gid=900522075"
@@ -7389,17 +7378,6 @@ function RecruitmentManager() {
           </div>
         </div>
       )}
-
-      <ImportBatchModal
-        isOpen={showImportBatchModal}
-        onClose={() => setShowImportBatchModal(false)}
-        onSuccess={() => {
-          showToast("Anggota batch berhasil di-import!", "success");
-          fetchBatches();
-          loadData();
-        }}
-        defaultBatchName="Batch 9"
-      />
 
       {/* ── MODAL KELOLA & BUKA BATCH BARU ── */}
       {showBatchModal && (
