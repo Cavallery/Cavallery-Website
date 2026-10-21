@@ -234,6 +234,7 @@ export async function POST(req: NextRequest) {
         kontakId: kontakId?.trim() || idLine.trim(),
         status: "aktif",
         jabatan: jabatanBaru || "Anggota",
+        batch: body.batch || "-",
         anggotaSejak: now,
         createdAt: now,
       }).catch((err) => console.error("Realtime push anggota manual ke Sheets error:", err));
@@ -248,7 +249,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Parameter id dan action wajib dikirim" }, { status: 400 });
     }
 
-    const rows = await query<any[]>("SELECT * FROM anggota WHERE id = ? LIMIT 1", [id]);
+    const rows = await query<any[]>(
+      `SELECT a.*, b.name AS batch_name 
+       FROM anggota a 
+       LEFT JOIN recruitment_batches b ON a.batch_id = b.id 
+       WHERE a.id = ? LIMIT 1`,
+      [id]
+    );
     const anggota = rows && rows.length > 0 ? rows[0] : null;
 
     if (!anggota) {
@@ -271,6 +278,7 @@ export async function POST(req: NextRequest) {
       );
 
       // Fire-and-forget push ke Google Sheets Tab "Anggota"
+      const batchLabel = anggota.batch_name || (anggota.batch_id ? `Batch ${anggota.batch_id}` : "-");
       appendAnggotaRow({
         noAnggota,
         namaLengkap: anggota.nama_lengkap,
@@ -283,6 +291,7 @@ export async function POST(req: NextRequest) {
         kontakId: anggota.kontak_id,
         status: "aktif",
         jabatan: anggota.jabatan || "Anggota",
+        batch: batchLabel,
         anggotaSejak: now,
         createdAt: now,
       }).catch((err) => console.error("Background Google Sheet Anggota error:", err));
