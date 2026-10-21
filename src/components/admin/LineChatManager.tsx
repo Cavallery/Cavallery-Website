@@ -13,6 +13,8 @@ interface LineContact {
   last_message_at: string | null;
   latest_reply_token?: string | null;
   latest_reply_token_at?: string | null;
+  latest_reply_token_epoch?: number | string | null;
+  has_reply_token?: boolean;
   unread_count?: number;
   last_message?: string;
 }
@@ -24,15 +26,40 @@ interface LineMessage {
   line_group_id: string | null;
   display_name: string | null;
   message_text: string;
+  message_type: string;
+  media_url?: string | null;
+  quoted_message_id?: number | null;
+  quoted_text?: string | null;
+  quoted_sender?: string | null;
   direction: "in" | "out";
   sent_by_admin: string | null;
   created_at: string;
+}
+
+interface GroupMember {
+  line_user_id: string;
+  display_name: string;
+}
+
+interface MentionItem {
+  index: number;
+  length: number;
+  userId?: string;
+  type?: "user" | "all";
+}
+
+interface ReplyingTo {
+  id: number;
+  displayName: string;
+  text: string;
+  lineUserId: string;
 }
 
 export default function LineChatManager() {
   const [contacts, setContacts] = useState<LineContact[]>([]);
   const [activeContact, setActiveContact] = useState<LineContact | null>(null);
   const [messages, setMessages] = useState<LineMessage[]>([]);
+  const [members, setMembers] = useState<GroupMember[]>([]);
   const [inputText, setInputText] = useState("");
   const [search, setSearch] = useState("");
   const [loadingContacts, setLoadingContacts] = useState(true);
@@ -40,7 +67,29 @@ export default function LineChatManager() {
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
 
+  // Fitur Reply / Kutipan
+  const [replyingTo, setReplyingTo] = useState<ReplyingTo | null>(null);
+
+  // Fitur Upload Media (Gambar / Video)
+  const [selectedMedia, setSelectedMedia] = useState<{
+    file: File;
+    previewUrl: string;
+    type: "image" | "video";
+  } | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
+  // Fitur Mention @user
+  const [mentionListVisible, setMentionListVisible] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [cursorPos, setCursorPos] = useState(0);
+  const [trackedMentions, setTrackedMentions] = useState<
+    Array<{ name: string; userId?: string; isAll?: boolean }>
+  >([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Ambil daftar kontak
   const fetchContacts = async () => {
@@ -49,7 +98,6 @@ export default function LineChatManager() {
       const data = await res.json();
       if (data.status) {
         setContacts(data.contacts || []);
-        // Update activeContact jika ada perubahan token
         if (activeContact) {
           const updatedActive = (data.contacts || []).find((c: LineContact) => c.id === activeContact.id);
           if (updatedActive) {
@@ -64,13 +112,16 @@ export default function LineChatManager() {
     }
   };
 
-  // Ambil riwayat chat kontak aktif
+  // Ambil riwayat chat dan anggota grup
   const fetchMessages = async (contactId: number, autoScroll = true) => {
     try {
       const res = await fetch(`/api/admin/line-chat?contactId=${contactId}`);
       const data = await res.json();
       if (data.status) {
         setMessages(data.messages || []);
+        if (data.members) {
+          setMembers(data.members || []);
+        }
         if (autoScroll) {
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,7 +136,6 @@ export default function LineChatManager() {
   useEffect(() => {
     fetchContacts();
     const interval = setInterval(() => {
-      // Polling setiap 8 detik jika tab browser sedang aktif dibuka
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         fetchContacts();
         if (activeContact) {
@@ -100,6 +150,8 @@ export default function LineChatManager() {
     setActiveContact(contact);
     setLoadingMessages(true);
     setFeedback(null);
+    setReplyingTo(null);
+    setSelectedMedia(null);
     await fetchMessages(contact.id, true);
     setLoadingMessages(false);
   };
@@ -107,23 +159,165 @@ export default function LineChatManager() {
   // Cek apakah reply token masih segar (< 65 detik)
   const isReplyTokenFresh = Boolean(
     activeContact?.latest_reply_token &&
-      (
-        (activeContact?.latest_reply_token_epoch &&
-          Date.now() - Number(activeContact.latest_reply_token_epoch) < 65000) ||
-        (!activeContact?.latest_reply_token_epoch && Boolean(activeContact?.latest_reply_token))
-      )
+      ((activeContact?.latest_reply_token_epoch &&
+        Date.now() - Number(activeContact.latest_reply_token_epoch) < 65000) ||
+        (!activeContact?.latest_reply_token_epoch && Boolean(activeContact?.latest_reply_token)))
   );
 
-  // Kirim pesan dari admin
+  // Tangani ketikan input teks (mendeteksi @ untuk mention)
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    const pos = e.target.selectionStart || 0;
+    setInputText(val);
+    setCursorPos(pos);
+
+    // Cek apakah kursor berada setelah kata yang diawali '@'
+    const textBeforeCursor = val.slice(0, pos);
+    const lastWord = textBeforeCursor.split(/\s+/).pop() || "";
+
+    if (lastWord.startsWith("@")) {
+      setMentionQuery(lastWord.slice(1).toLowerCase());
+      setMentionListVisible(true);
+    } else {
+      setMentionListVisible(false);
+    }
+  };
+
+  // Pilih anggota untuk di-mention
+  const insertMention = (target: { name: string; userId?: string; isAll?: boolean }) => {
+    const textBeforeCursor = inputText.slice(0, cursorPos);
+    const textAfterCursor = inputText.slice(cursorPos);
+    const words = textBeforeCursor.split(/\s+/);
+    words.pop(); // Hapus kata partial '@...'
+    const newPrefix = words.length > 0 ? words.join(" ") + " " : "";
+    const mentionTag = `@${target.name} `;
+    const newText = newPrefix + mentionTag + textAfterCursor;
+
+    setInputText(newText);
+    setTrackedMentions((prev) => [...prev, target]);
+    setMentionListVisible(false);
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const nextPos = (newPrefix + mentionTag).length;
+        textareaRef.current.setSelectionRange(nextPos, nextPos);
+      }
+    }, 50);
+  };
+
+  // Tangani pemilihan file media (Gambar / Video)
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const mime = file.type || "";
+    const isVid = mime.startsWith("video/") || /\.(mp4|webm|mov)$/i.test(file.name);
+    const isImg = mime.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif)$/i.test(file.name);
+
+    if (!isVid && !isImg) {
+      alert("Hanya format file gambar (JPG, PNG, WebP) atau video (MP4) yang didukung.");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setSelectedMedia({
+      file,
+      previewUrl,
+      type: isVid ? "video" : "image",
+    });
+
+    // Reset value input file agar file yang sama bisa dipilih lagi jika perlu
+    e.target.value = "";
+  };
+
+  // Kirim pesan dari admin (teks, kutipan, mention, atau gambar/video)
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!activeContact || !inputText.trim() || sending) return;
+    if (!activeContact || sending || (!inputText.trim() && !selectedMedia)) return;
 
     setSending(true);
     setFeedback(null);
-    const textToSend = inputText.trim();
-    setInputText("");
 
+    let uploadedMediaUrl: string | null = null;
+    let uploadedMediaType: "image" | "video" = "image";
+
+    // 1. Jika ada lampiran media, unggah terlebih dahulu
+    if (selectedMedia) {
+      setUploadingMedia(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedMedia.file);
+
+        const uploadRes = await fetch("/api/admin/line-chat/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const uploadData = await uploadRes.json();
+
+        if (!uploadData.status) {
+          setFeedback({
+            text: uploadData.message || "Gagal mengunggah file media",
+            type: "error",
+          });
+          setSending(false);
+          setUploadingMedia(false);
+          return;
+        }
+
+        uploadedMediaUrl = uploadData.url;
+        uploadedMediaType = uploadData.mediaType;
+      } catch (err) {
+        console.error("Upload media error:", err);
+        setFeedback({
+          text: "Gagal mengunggah media ke server",
+          type: "error",
+        });
+        setSending(false);
+        setUploadingMedia(false);
+        return;
+      } finally {
+        setUploadingMedia(false);
+      }
+    }
+
+    // 2. Susun daftar mention LINE
+    const textToSend = inputText.trim();
+    const finalMentions: MentionItem[] = [];
+
+    if (textToSend) {
+      // Cari posisi @All
+      const allRegex = /@All\b/gi;
+      let mMatch;
+      while ((mMatch = allRegex.exec(textToSend)) !== null) {
+        finalMentions.push({
+          index: mMatch.index,
+          length: mMatch[0].length,
+          type: "all",
+        });
+      }
+
+      // Cari posisi nama member yang di-mention
+      for (const tm of trackedMentions) {
+        if (tm.isAll) continue;
+        const tag = `@${tm.name}`;
+        let startIdx = 0;
+        while ((startIdx = textToSend.indexOf(tag, startIdx)) !== -1) {
+          // Hindari duplikat index yang sama
+          if (!finalMentions.some((fm) => fm.index === startIdx)) {
+            finalMentions.push({
+              index: startIdx,
+              length: tag.length,
+              userId: tm.userId,
+              type: "user",
+            });
+          }
+          startIdx += tag.length;
+        }
+      }
+    }
+
+    // 3. Kirim ke API backend
     try {
       const res = await fetch("/api/admin/line-chat/send", {
         method: "POST",
@@ -131,14 +325,25 @@ export default function LineChatManager() {
         body: JSON.stringify({
           contactId: activeContact.id,
           messageText: textToSend,
+          mediaUrl: uploadedMediaUrl,
+          mediaType: uploadedMediaUrl ? uploadedMediaType : undefined,
+          mentions: finalMentions.length > 0 ? finalMentions : undefined,
+          quotedMessageId: replyingTo?.id || null,
+          quotedText: replyingTo?.text || null,
+          quotedSender: replyingTo?.displayName || null,
         }),
       });
+
       const data = await res.json();
       if (data.status) {
         setFeedback({
           text: data.message || "Pesan terkirim!",
           type: "success",
         });
+        setInputText("");
+        setReplyingTo(null);
+        setSelectedMedia(null);
+        setTrackedMentions([]);
         await fetchMessages(activeContact.id, true);
         fetchContacts();
       } else {
@@ -146,7 +351,6 @@ export default function LineChatManager() {
           text: data.message || "Gagal mengirim pesan ke LINE",
           type: "error",
         });
-        setInputText(textToSend); // Kembalikan teks jika gagal
       }
     } catch (err) {
       console.error("Send message error:", err);
@@ -154,7 +358,6 @@ export default function LineChatManager() {
         text: "Terjadi kesalahan jaringan saat mengirim pesan",
         type: "error",
       });
-      setInputText(textToSend);
     } finally {
       setSending(false);
     }
@@ -235,6 +438,27 @@ export default function LineChatManager() {
     } catch {
       return "";
     }
+  };
+
+  // Filter daftar mention berdasarkan teks yang sedang diketik
+  const filteredMembers = members.filter((m) =>
+    m.display_name.toLowerCase().includes(mentionQuery)
+  );
+
+  // Render teks pesan dengan highlight tag @mention
+  const renderMessageContent = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(@[a-zA-Z0-9_.\u{1F300}-\u{1F9FF}]+)/u);
+    return parts.map((part, i) => {
+      if (part.startsWith("@")) {
+        return (
+          <span key={i} className={styles.mentionTag}>
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
   };
 
   return (
@@ -357,7 +581,7 @@ export default function LineChatManager() {
                   </div>
                   <div className={styles.headerSubtitle}>
                     {activeContact.source_type === "group"
-                      ? `ID Grup: ${activeContact.line_group_id}`
+                      ? `ID Grup: ${activeContact.line_group_id} • ${members.length} Anggota Aktif`
                       : `User ID: ${activeContact.line_user_id}`}
                   </div>
                 </div>
@@ -408,12 +632,69 @@ export default function LineChatManager() {
                           {m.display_name || "Anggota LINE"}
                         </div>
                       )}
-                      <div style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
-                        {m.message_text}
-                      </div>
+
+                      {/* Tampilan Kutipan Pesan jika membalas pesan tertentu */}
+                      {m.quoted_text && (
+                        <div className={styles.msgQuoteBox}>
+                          <div className={styles.msgQuoteSender}>
+                            <i className="bx bx-reply" style={{ marginRight: 3 }} />
+                            {m.quoted_sender || "Pesan"}
+                          </div>
+                          <div className={styles.msgQuoteText}>{m.quoted_text}</div>
+                        </div>
+                      )}
+
+                      {/* Tampilan Media Gambar */}
+                      {m.media_url && (m.message_type === "image" || /\.(jpg|jpeg|png|webp|gif)$/i.test(m.media_url)) && (
+                        <img
+                          src={m.media_url}
+                          alt="Lampiran Foto"
+                          className={styles.msgMediaImage}
+                          onClick={() => setLightboxImg(m.media_url || null)}
+                          title="Klik untuk memperbesar gambar"
+                        />
+                      )}
+
+                      {/* Tampilan Media Video */}
+                      {m.media_url && (m.message_type === "video" || /\.(mp4|webm|mov)$/i.test(m.media_url)) && (
+                        <video
+                          src={m.media_url}
+                          controls
+                          className={styles.msgMediaVideo}
+                        />
+                      )}
+
+                      {/* Teks Pesan */}
+                      {m.message_text && !m.message_text.startsWith("[Gambar]") && !m.message_text.startsWith("[Video]") && (
+                        <div style={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+                          {renderMessageContent(m.message_text)}
+                        </div>
+                      )}
+
+                      {/* Metadata Pesan & Tombol Aksi */}
                       <div className={styles.msgMeta}>
                         <span>{formatTime(m.created_at)}</span>
                         {isOut && <i className="bx bx-check-double" title="Terkirim oleh Admin" />}
+
+                        {/* Tombol Balas / Kutip Pesan */}
+                        <button
+                          type="button"
+                          className={styles.btnReplyMsg}
+                          onClick={() => {
+                            setReplyingTo({
+                              id: m.id,
+                              displayName: m.display_name || (isOut ? "Admin" : "Anggota"),
+                              text: m.message_text || "[Media]",
+                              lineUserId: m.line_user_id,
+                            });
+                            textareaRef.current?.focus();
+                          }}
+                          title="Balas dan kutip pesan ini"
+                        >
+                          <i className="bx bx-reply" />
+                        </button>
+
+                        {/* Tombol Hapus Pesan */}
                         <button
                           type="button"
                           className={styles.btnDeleteMsg}
@@ -470,45 +751,158 @@ export default function LineChatManager() {
               </div>
             )}
 
-            {/* Input Pesan & Info Kuota */}
-            <div style={{ padding: "8px 16px 2px", background: "var(--cv-ink-2, #181414)" }}>
-              <div style={{ fontSize: "0.72rem", color: "#9ca3af" }}>
-                💡 <strong>Tips Balas Bebas Kuota:</strong> Balas dalam waktu <strong>1 menit</strong> setelah anggota chat di LINE agar pesan terkirim <strong>GRATIS via Reply API</strong> tanpa memotong limit kuota bulanan.
+            {/* Bar Kutipan Pesan (Reply Banner) */}
+            {replyingTo && (
+              <div className={styles.replyBanner}>
+                <div className={styles.replyBannerContent}>
+                  <div className={styles.replyBannerTitle}>
+                    <i className="bx bx-reply" /> Membalas @{replyingTo.displayName}
+                  </div>
+                  <div className={styles.replyBannerText}>{replyingTo.text}</div>
+                </div>
+                <button
+                  type="button"
+                  className={styles.btnCancelReply}
+                  onClick={() => setReplyingTo(null)}
+                  title="Batalkan kutipan"
+                >
+                  ✕
+                </button>
               </div>
-            </div>
+            )}
 
-            <form onSubmit={handleSendMessage} className={styles.msgInputArea}>
-              <textarea
-                rows={1}
-                className={styles.msgInput}
-                placeholder={
-                  isReplyTokenFresh
-                    ? "Ketik balasan gratis (Reply Token Aktif)..."
-                    : "Ketik pesan untuk dikirim ke grup/user..."
-                }
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
+            {/* Tray Preview Lampiran Media (Foto / Video) */}
+            {selectedMedia && (
+              <div className={styles.mediaPreviewTray}>
+                <div className={styles.mediaPreviewThumb}>
+                  {selectedMedia.type === "image" ? (
+                    <img src={selectedMedia.previewUrl} alt="Preview" />
+                  ) : (
+                    <video src={selectedMedia.previewUrl} />
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0, fontSize: "0.82rem" }}>
+                  <div style={{ fontWeight: 700, color: "var(--cv-text)" }}>
+                    {selectedMedia.type === "image" ? "📷 Foto siap dikirim" : "🎥 Video siap dikirim"}
+                  </div>
+                  <div style={{ color: "var(--cv-text-mute)", fontSize: "0.75rem" }}>
+                    {selectedMedia.file.name} ({(selectedMedia.file.size / (1024 * 1024)).toFixed(2)} MB)
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className={styles.btnCancelReply}
+                  onClick={() => setSelectedMedia(null)}
+                  title="Batalkan lampiran"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Input Pesan, Attachment Button & Autocomplete @Mention */}
+            <div style={{ position: "relative" }}>
+              {/* Dropdown Autocomplete @Mention */}
+              {mentionListVisible && (
+                <div className={styles.mentionDropdown}>
+                  <div
+                    className={styles.mentionItem}
+                    onClick={() => insertMention({ name: "All", isAll: true })}
+                  >
+                    <i className="bx bx-broadcast" style={{ color: "#38bdf8", fontSize: "1.1rem" }} />
+                    <span className={`${styles.mentionItemName} ${styles.mentionItemAll}`}>
+                      @All (Tag Seluruh Anggota Grup)
+                    </span>
+                  </div>
+                  {filteredMembers.map((member) => (
+                    <div
+                      key={member.line_user_id}
+                      className={styles.mentionItem}
+                      onClick={() =>
+                        insertMention({
+                          name: member.display_name,
+                          userId: member.line_user_id,
+                        })
+                      }
+                    >
+                      <i className="bx bx-user" style={{ color: "#a89a90" }} />
+                      <span className={styles.mentionItemName}>@{member.display_name}</span>
+                    </div>
+                  ))}
+                  {filteredMembers.length === 0 && (
+                    <div style={{ padding: "8px 14px", color: "#888", fontSize: "0.8rem" }}>
+                      Tidak ditemukan anggota yang cocok.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tips Kuota */}
+              <div style={{ padding: "6px 18px 2px", background: "var(--cv-ink, #0f0c0b)" }}>
+                <div style={{ fontSize: "0.72rem", color: "#9ca3af" }}>
+                  💡 <strong>Ketik @</strong> untuk tag anggota • Klik tombol 📎 untuk kirim Foto/Video • Balas saat ada chat (< 1 mnt) untuk kirim <strong>Bebas Kuota</strong>.
+                </div>
+              </div>
+
+              {/* Form Input Chat */}
+              <form onSubmit={handleSendMessage} className={styles.msgInputArea}>
+                {/* Input file tersembunyi */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                  onChange={handleFileSelect}
+                />
+
+                {/* Tombol Lampiran Media */}
+                <button
+                  type="button"
+                  className={styles.btnAttach}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Lampirkan Gambar atau Video"
+                >
+                  <i className="bx bx-paperclip" />
+                </button>
+
+                {/* Textarea Input */}
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  className={styles.msgInput}
+                  placeholder={
+                    selectedMedia
+                      ? "Tambahkan keterangan (opsional)..."
+                      : isReplyTokenFresh
+                      ? "Ketik balasan gratis (ketik @ untuk tag)..."
+                      : "Ketik pesan (ketik @ untuk tag)..."
                   }
-                }}
-              />
-              <button
-                type="submit"
-                disabled={sending || !inputText.trim()}
-                className={styles.btnSend}
-              >
-                {sending ? (
-                  <i className="bx bx-loader-alt bx-spin" />
-                ) : (
-                  <>
-                    <i className="bx bxs-paper-plane" /> Kirim
-                  </>
-                )}
-              </button>
-            </form>
+                  value={inputText}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+
+                {/* Tombol Kirim */}
+                <button
+                  type="submit"
+                  disabled={sending || uploadingMedia || (!inputText.trim() && !selectedMedia)}
+                  className={styles.btnSend}
+                >
+                  {sending || uploadingMedia ? (
+                    <i className="bx bx-loader-alt bx-spin" />
+                  ) : (
+                    <>
+                      <i className="bx bxs-paper-plane" /> Kirim
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </>
         ) : (
           <div className={styles.emptyState}>
@@ -517,11 +911,27 @@ export default function LineChatManager() {
               LINE Bot Live Chat
             </div>
             <p style={{ maxWidth: 360, fontSize: "0.85rem", lineHeight: 1.5 }}>
-              Pilih salah satu kontak atau grup dari daftar di sebelah kiri untuk melihat percakapan dan membalas langsung dari dashboard admin.
+              Pilih salah satu kontak atau grup dari daftar di sebelah kiri untuk melihat obrolan, mengutip pesan, mention anggota, dan mengirim foto/video langsung ke LINE.
             </p>
           </div>
         )}
       </div>
+
+      {/* ── LIGHTBOX GAMBAR FULLSCREEN ── */}
+      {lightboxImg && (
+        <div className={styles.lightboxBackdrop} onClick={() => setLightboxImg(null)}>
+          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className={styles.lightboxClose}
+              onClick={() => setLightboxImg(null)}
+            >
+              ✕
+            </button>
+            <img src={lightboxImg} alt="Preview Foto" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

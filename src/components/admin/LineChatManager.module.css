@@ -336,3 +336,239 @@
   text-align: center;
   padding: 20px;
 }
+
+/* ── KUTIPAN / REPLY MESSAGE ── */
+.btnReplyMsg {
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.45;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.btnReplyMsg:hover {
+  opacity: 1;
+  color: var(--cv-orange, #e05e2b);
+  background: rgba(224, 94, 43, 0.15);
+}
+
+.msgQuoteBox {
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid var(--cv-orange, #e05e2b);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+}
+.msgQuoteSender {
+  font-weight: 700;
+  color: #f7a87e;
+  margin-bottom: 2px;
+}
+.msgQuoteText {
+  color: var(--cv-text-mute, #a89a90);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.replyBanner {
+  background: var(--cv-ink-2, #181414);
+  border-top: 1px solid var(--cv-line-strong, #3a2e28);
+  border-left: 3px solid var(--cv-orange, #e05e2b);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.replyBannerContent {
+  font-size: 0.78rem;
+  min-width: 0;
+  overflow: hidden;
+}
+.replyBannerTitle {
+  font-weight: 700;
+  color: var(--cv-orange, #e05e2b);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.replyBannerText {
+  color: var(--cv-text-mute, #a89a90);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 480px;
+}
+.btnCancelReply {
+  background: none;
+  border: none;
+  color: var(--cv-text-mute, #a89a90);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.btnCancelReply:hover {
+  color: #ff6b6b;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* ── LAMPIRAN MEDIA (GAMBAR & VIDEO) ── */
+.btnAttach {
+  background: var(--cv-ink-2, #181414);
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  color: var(--cv-text-mute, #a89a90);
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.btnAttach:hover {
+  border-color: var(--cv-orange, #e05e2b);
+  color: var(--cv-orange, #e05e2b);
+  background: color-mix(in srgb, var(--cv-orange, #e05e2b) 10%, transparent);
+}
+
+.mediaPreviewTray {
+  background: var(--cv-ink-2, #181414);
+  border-top: 1px solid var(--cv-line-strong, #3a2e28);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mediaPreviewThumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mediaPreviewThumb img,
+.mediaPreviewThumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.msgMediaImage {
+  max-width: 280px;
+  max-height: 240px;
+  border-radius: 8px;
+  cursor: pointer;
+  object-fit: cover;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+  transition: transform 0.15s ease;
+}
+.msgMediaImage:hover {
+  transform: scale(1.02);
+}
+
+.msgMediaVideo {
+  max-width: 320px;
+  max-height: 260px;
+  border-radius: 8px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  display: block;
+  background: #000;
+}
+
+/* ── AUTOCOMPLETE @MENTION ── */
+.mentionDropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 18px;
+  right: 18px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--cv-ink, #0f0c0b);
+  border: 1px solid var(--cv-line-strong, #3a2e28);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+.mentionItem {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--cv-line-strong, #3a2e28) 40%, transparent);
+  transition: background 0.15s ease;
+}
+.mentionItem:hover {
+  background: color-mix(in srgb, var(--cv-orange, #e05e2b) 15%, transparent);
+}
+.mentionItemName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cv-text, #f5efe8);
+}
+.mentionItemAll {
+  color: #38bdf8;
+  font-weight: 700;
+}
+.mentionTag {
+  color: #38bdf8;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+/* ── LIGHTBOX MODAL ── */
+.lightboxBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.lightboxContent {
+  max-width: 90vw;
+  max-height: 90vh;
+  position: relative;
+}
+.lightboxContent img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.lightboxClose {
+  position: absolute;
+  top: -36px;
+  right: 0;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}

@@ -5,6 +5,7 @@ import {
   getMessages,
   markContactRead,
   getContactById,
+  getGroupMembers,
   deleteMessage,
   clearContactMessages,
   deleteContact,
@@ -34,7 +35,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ status: false, message: "Kontak tidak ditemukan" }, { status: 404 });
       }
 
-      const messages = await getMessages(cId, 100);
+      const [messages, members] = await Promise.all([
+        getMessages(cId, 100),
+        getGroupMembers(cId),
+      ]);
       // Tandai sudah dibaca
       await markContactRead(cId);
 
@@ -42,6 +46,7 @@ export async function GET(req: NextRequest) {
         status: true,
         contact,
         messages,
+        members,
       });
     }
 
