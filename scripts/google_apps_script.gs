@@ -130,7 +130,7 @@ function handleSyncAll(ss, data) {
     var sheet = getOrCreateSheet(ss, "Anggota");
     sheet.clear();
     var headers = [
-      ["No. Anggota", "Nama Lengkap", "ID LINE", "Display LINE", "Discord", "Gender", "Domisili", "Kontak", "Status", "Jabatan", "Anggota Sejak", "Terdaftar Pada"]
+      ["No. Anggota", "Nama Lengkap", "ID LINE", "Display LINE", "Discord", "Gender", "Domisili", "Kontak", "Status", "Jabatan", "Batch", "Anggota Sejak", "Terdaftar Pada"]
     ];
     sheet.getRange(1, 1, 1, headers[0].length).setValues(headers)
       .setFontWeight("bold").setBackground("#c9a84c").setFontColor("#ffffff");

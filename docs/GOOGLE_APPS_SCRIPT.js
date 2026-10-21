@@ -32,7 +32,7 @@ function doPost(e) {
       if (data.anggotaRows && data.anggotaRows.length > 0) {
         syncTab(ss, "Anggota", [
           "Nomor Anggota", "Nama Lengkap", "ID Line", "Display Name Line", "Discord",
-          "Jenis Kelamin", "Domisili", "Kontak", "Status", "Jabatan", "Anggota Sejak", "Terdaftar Pada"
+          "Jenis Kelamin", "Domisili", "Kontak", "Status", "Jabatan", "Batch", "Anggota Sejak", "Terdaftar Pada"
         ], data.anggotaRows);
       }
 
@@ -152,7 +152,7 @@ function doPost(e) {
     if (action === "append_anggota") {
       var sheet = getOrCreateSheet(ss, "Anggota", [
         "Nomor Anggota", "Nama Lengkap", "ID Line", "Display Name Line", "Discord",
-        "Jenis Kelamin", "Domisili", "Kontak", "Status", "Jabatan", "Anggota Sejak", "Terdaftar Pada"
+        "Jenis Kelamin", "Domisili", "Kontak", "Status", "Jabatan", "Batch", "Anggota Sejak", "Terdaftar Pada"
       ]);
       sheet.appendRow(data.row);
       return jsonResponse({ status: true, message: "Anggota berhasil ditambahkan" });

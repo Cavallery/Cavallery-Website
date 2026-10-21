@@ -42,13 +42,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: false, message: "Akses ditolak" }, { status: 401 });
     }
 
-    // 1. Ambil Semua Anggota Terdaftar (Aktif & Nonaktif)
+    // 1. Ambil Semua Anggota Terdaftar (Aktif & Nonaktif) dengan Data Batch
     const rawAnggotaList = (await query<any[]>(`
-      SELECT * FROM anggota 
-      WHERE status != 'pending' 
+      SELECT a.*, b.name AS batch_name, b.year AS batch_year 
+      FROM anggota a
+      LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+      WHERE a.status != 'pending' 
       ORDER BY 
-        CASE WHEN no_anggota IS NULL OR no_anggota = '' OR no_anggota = '-' THEN 1 ELSE 0 END,
-        id ASC
+        CASE WHEN a.no_anggota IS NULL OR a.no_anggota = '' OR a.no_anggota = '-' THEN 1 ELSE 0 END,
+        a.id ASC
     `)) || [];
 
     // Natural Numeric Sort (0001, 0002, 0003, ...)
@@ -88,6 +90,12 @@ export async function POST(req: NextRequest) {
           ? `Admin Fanbase (${a.divisi})`
           : a.jabatan || "Anggota";
 
+      const batchText = a.batch_name
+        ? `${a.batch_name} (${a.batch_year || ""})`.trim()
+        : a.batch_id
+        ? `Batch ${a.batch_id}`
+        : "-";
+
       return [
         a.no_anggota || "-",
         a.nama_lengkap,
@@ -99,6 +107,7 @@ export async function POST(req: NextRequest) {
         `${a.kontak_platform || "Kontak"}: ${a.kontak_id || a.id_line}`,
         a.status || "aktif",
         fullJabatan,
+        batchText,
         formattedSejak,
         formattedDate,
       ];
