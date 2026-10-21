@@ -1,12 +1,13 @@
 // ============================================================
 // CAVALLERY LINE CHAT HELPER
 // Menyimpan dan mengambil pesan chat LINE dari MySQL
+// Mendukung Reply Token, Kirim Gambar/Video, Tag/Mention & Kutip Pesan
 // ============================================================
 import { query } from "@/lib/mysql";
 
 let _tableEnsured = false;
 
-/** Pastikan tabel line_contacts & line_chat_messages ada beserta kolom reply token */
+/** Pastikan tabel line_contacts & line_chat_messages ada beserta kolom reply token & media */
 async function ensureTables() {
   if (_tableEnsured) return;
   try {
@@ -21,6 +22,7 @@ async function ensureTables() {
         last_message_at TIMESTAMP NULL,
         latest_reply_token VARCHAR(64) DEFAULT NULL,
         latest_reply_token_at TIMESTAMP NULL DEFAULT NULL,
+        latest_reply_token_epoch BIGINT DEFAULT NULL,
         is_blocked TINYINT(1) NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -40,6 +42,10 @@ async function ensureTables() {
         message_type VARCHAR(20) NOT NULL DEFAULT 'text',
         direction ENUM('in','out') NOT NULL DEFAULT 'in',
         line_message_id VARCHAR(64) DEFAULT NULL,
+        media_url TEXT DEFAULT NULL,
+        quoted_message_id INT DEFAULT NULL,
+        quoted_text TEXT DEFAULT NULL,
+        quoted_sender VARCHAR(255) DEFAULT NULL,
         sent_by_admin VARCHAR(100) DEFAULT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         KEY idx_contact (contact_id),
@@ -48,14 +54,13 @@ async function ensureTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `);
 
-    // Pastikan kolom reply token ada jika tabel dibuat dari versi sebelumnya
+    // Pastikan kolom-kolom baru tersedia
     try {
-      const colCheck = await query<any[]>(
-        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'line_contacts' AND COLUMN_NAME = 'latest_reply_token' LIMIT 1`
+      const cols = await query<any[]>(
+        `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'line_contacts' AND COLUMN_NAME = 'latest_reply_token_epoch' LIMIT 1`
       );
-      if (!colCheck || colCheck.length === 0) {
-        await query(`ALTER TABLE line_contacts ADD COLUMN latest_reply_token VARCHAR(64) DEFAULT NULL`);
-        await query(`ALTER TABLE line_contacts ADD COLUMN latest_reply_token_at TIMESTAMP NULL DEFAULT NULL`);
+      if (!cols || cols.length === 0) {
+        await query(`ALTER TABLE line_contacts ADD COLUMN latest_reply_token_epoch BIGINT DEFAULT NULL`);
       }
     } catch {}
 
@@ -91,6 +96,10 @@ export interface LineChatMessage {
   display_name: string | null;
   message_text: string;
   message_type: string;
+  media_url?: string | null;
+  quoted_message_id?: number | null;
+  quoted_text?: string | null;
+  quoted_sender?: string | null;
   direction: "in" | "out";
   line_message_id: string | null;
   sent_by_admin: string | null;
@@ -228,29 +237,49 @@ export async function saveIncomingMessage(
   displayName: string | null,
   messageText: string,
   messageType: string,
-  lineMessageId: string | null
+  lineMessageId: string | null,
+  mediaUrl?: string | null
 ): Promise<void> {
   await ensureTables();
   await query(
-    `INSERT INTO line_chat_messages (contact_id, line_user_id, line_group_id, display_name, message_text, message_type, direction, line_message_id) VALUES (?, ?, ?, ?, ?, ?, 'in', ?)`,
-    [contactId, lineUserId, lineGroupId || null, displayName, messageText, messageType, lineMessageId]
+    `INSERT INTO line_chat_messages (contact_id, line_user_id, line_group_id, display_name, message_text, message_type, direction, line_message_id, media_url) VALUES (?, ?, ?, ?, ?, ?, 'in', ?, ?)`,
+    [contactId, lineUserId, lineGroupId || null, displayName, messageText, messageType, lineMessageId, mediaUrl || null]
   );
 }
 
 /**
- * Simpan pesan keluar (dari admin)
+ * Simpan pesan keluar (dari admin) dengan dukungan media dan kutipan
  */
 export async function saveOutgoingMessage(
   contactId: number,
   lineUserId: string,
   lineGroupId: string | null,
   messageText: string,
-  adminUsername: string
+  adminUsername: string,
+  options?: {
+    mediaUrl?: string | null;
+    messageType?: string;
+    quotedMessageId?: number | null;
+    quotedText?: string | null;
+    quotedSender?: string | null;
+  }
 ): Promise<void> {
   await ensureTables();
+  const mType = options?.messageType || (options?.mediaUrl ? "image" : "text");
   await query(
-    `INSERT INTO line_chat_messages (contact_id, line_user_id, line_group_id, message_text, message_type, direction, sent_by_admin) VALUES (?, ?, ?, ?, 'text', 'out', ?)`,
-    [contactId, lineUserId, lineGroupId || null, messageText, adminUsername]
+    `INSERT INTO line_chat_messages (contact_id, line_user_id, line_group_id, message_text, message_type, direction, sent_by_admin, media_url, quoted_message_id, quoted_text, quoted_sender) VALUES (?, ?, ?, ?, ?, 'out', ?, ?, ?, ?, ?)`,
+    [
+      contactId,
+      lineUserId,
+      lineGroupId || null,
+      messageText,
+      mType,
+      adminUsername,
+      options?.mediaUrl || null,
+      options?.quotedMessageId || null,
+      options?.quotedText || null,
+      options?.quotedSender || null,
+    ]
   );
   await query(`UPDATE line_contacts SET last_message_at = NOW() WHERE id = ?`, [contactId]);
 }
@@ -260,7 +289,29 @@ export async function saveOutgoingMessage(
  */
 export async function clearContactReplyToken(contactId: number): Promise<void> {
   await ensureTables();
-  await query(`UPDATE line_contacts SET latest_reply_token = NULL, latest_reply_token_at = NULL, latest_reply_token_epoch = NULL WHERE id = ?`, [contactId]);
+  await query(
+    `UPDATE line_contacts SET latest_reply_token = NULL, latest_reply_token_at = NULL, latest_reply_token_epoch = NULL WHERE id = ?`,
+    [contactId]
+  );
+}
+
+/**
+ * Ambil daftar anggota grup yang pernah berbicara untuk autocomplete @mention
+ */
+export async function getGroupMembers(
+  contactId: number
+): Promise<Array<{ line_user_id: string; display_name: string }>> {
+  await ensureTables();
+  const sql = `
+    SELECT line_user_id, MAX(display_name) AS display_name
+    FROM line_chat_messages
+    WHERE contact_id = ? AND direction = 'in' AND line_user_id IS NOT NULL AND line_user_id != ''
+    GROUP BY line_user_id
+    ORDER BY MAX(created_at) DESC
+    LIMIT 100
+  `;
+  const rows = await query<any[]>(sql, [contactId]);
+  return rows || [];
 }
 
 /**
@@ -324,11 +375,11 @@ export async function getContactById(id: number): Promise<LineContact | null> {
 }
 
 /**
- * Kirim balasan via LINE Reply Message API (GRATIS & TIDAK MENGURANGI KUOTA BULANAN)
+ * Kirim balasan array messages via LINE Reply Message API (GRATIS & TIDAK MENGURANGI KUOTA BULANAN)
  */
 export async function sendLineReplyMessage(
   replyToken: string,
-  messageText: string
+  messages: any[]
 ): Promise<{ ok: boolean; error?: string }> {
   const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
   const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
@@ -346,7 +397,7 @@ export async function sendLineReplyMessage(
       },
       body: JSON.stringify({
         replyToken,
-        messages: [{ type: "text", text: messageText }],
+        messages: messages.slice(0, 5), // Maksimal 5 pesan per request LINE
       }),
     });
 
@@ -364,23 +415,88 @@ export async function sendLineReplyMessage(
 }
 
 /**
- * Kirim pesan ke LINE user/group (otomatis coba Reply Token dulu jika tersedia, lalu fallback ke Push)
+ * Kirim pesan chat LINE tingkat lanjut (Mendukung teks, kutipan, mention @user, dan foto/video)
  */
-export async function sendLineMessage(
+export async function sendLineChatMessage(
   to: string,
-  messageText: string,
+  payload: {
+    messageText?: string;
+    mediaUrl?: string | null;
+    mediaType?: "image" | "video";
+    previewUrl?: string | null;
+    mentions?: Array<{ index: number; length: number; userId?: string; type?: "user" | "all" }>;
+    quotedText?: string | null;
+    quotedSender?: string | null;
+  },
   replyToken?: string | null
 ): Promise<{ ok: boolean; error?: string; mode?: "reply" | "push" }> {
-  // 1. Coba kirim via REPLY API jika ada replyToken valid (Gratis 100% tanpa batas kuota)
+  const lineMessages: any[] = [];
+
+  // 1. Lampiran Media (Gambar atau Video)
+  if (payload.mediaUrl) {
+    if (payload.mediaType === "video") {
+      lineMessages.push({
+        type: "video",
+        originalContentUrl: payload.mediaUrl,
+        previewImageUrl: payload.previewUrl || payload.mediaUrl,
+      });
+    } else {
+      lineMessages.push({
+        type: "image",
+        originalContentUrl: payload.mediaUrl,
+        previewImageUrl: payload.previewUrl || payload.mediaUrl,
+      });
+    }
+  }
+
+  // 2. Teks Pesan (dengan Kutipan & Mention jika ada)
+  if (payload.messageText || payload.quotedText) {
+    let fullText = "";
+    let mentionees = payload.mentions ? [...payload.mentions] : [];
+
+    if (payload.quotedText) {
+      const cleanQuote = payload.quotedText.replace(/\n/g, " ").slice(0, 80);
+      const quoteHeader = `> [Balas @${payload.quotedSender || "Pesan"}]: "${cleanQuote}${payload.quotedText.length > 80 ? "..." : ""}"\n\n`;
+      const offset = quoteHeader.length;
+      mentionees = mentionees.map((m) => ({ ...m, index: m.index + offset }));
+      fullText = quoteHeader + (payload.messageText || "");
+    } else {
+      fullText = payload.messageText || "";
+    }
+
+    const textMsg: any = {
+      type: "text",
+      text: fullText,
+    };
+
+    if (mentionees.length > 0) {
+      textMsg.mention = {
+        mentionees: mentionees.map((m) => {
+          if (m.type === "all") {
+            return { index: m.index, length: m.length, type: "all" };
+          }
+          return { index: m.index, length: m.length, userId: m.userId };
+        }),
+      };
+    }
+
+    lineMessages.push(textMsg);
+  }
+
+  if (lineMessages.length === 0) {
+    return { ok: false, error: "Pesan atau media tidak boleh kosong" };
+  }
+
+  // A. Coba kirim via REPLY API terlebih dahulu (Gratis & Bebas Kuota / 429)
   if (replyToken) {
-    const replyRes = await sendLineReplyMessage(replyToken, messageText);
+    const replyRes = await sendLineReplyMessage(replyToken, lineMessages);
     if (replyRes.ok) {
       return { ok: true, mode: "reply" };
     }
     console.log("[LINE] ReplyToken kadaluwarsa/tidak valid, mencoba Push Message API...");
   }
 
-  // 2. Fallback ke PUSH Message API
+  // B. Fallback ke PUSH Message API
   const rawToken = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
   const channelAccessToken = rawToken.trim().replace(/^["']|["']$/g, "");
 
@@ -397,7 +513,7 @@ export async function sendLineMessage(
       },
       body: JSON.stringify({
         to,
-        messages: [{ type: "text", text: messageText }],
+        messages: lineMessages.slice(0, 5),
       }),
     });
 
@@ -421,6 +537,17 @@ export async function sendLineMessage(
     console.error("[LINE Push Error]:", err);
     return { ok: false, error: err?.message || "Gagal mengirim pesan" };
   }
+}
+
+/**
+ * Backward compatibility: sendLineMessage sederhana
+ */
+export async function sendLineMessage(
+  to: string,
+  messageText: string,
+  replyToken?: string | null
+): Promise<{ ok: boolean; error?: string; mode?: "reply" | "push" }> {
+  return sendLineChatMessage(to, { messageText }, replyToken);
 }
 
 /**

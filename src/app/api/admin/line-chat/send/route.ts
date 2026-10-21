@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
-import { getContactById, sendLineMessage, saveOutgoingMessage, clearContactReplyToken } from "@/lib/lineChat";
+import {
+  getContactById,
+  sendLineChatMessage,
+  saveOutgoingMessage,
+  clearContactReplyToken,
+} from "@/lib/lineChat";
 
-// POST: Admin mengirim pesan chat ke pengguna/grup LINE
+// POST: Admin mengirim pesan chat (teks, kutipan, mention @user, dan foto/video) ke pengguna/grup LINE
 export async function POST(req: NextRequest) {
   try {
     const admin = getAdminSessionFromReq(req);
@@ -11,11 +16,21 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { contactId, messageText } = body;
+    const {
+      contactId,
+      messageText,
+      mediaUrl,
+      mediaType,
+      previewUrl,
+      mentions,
+      quotedMessageId,
+      quotedText,
+      quotedSender,
+    } = body;
 
-    if (!contactId || !messageText || !messageText.trim()) {
+    if (!contactId || (!messageText?.trim() && !mediaUrl)) {
       return NextResponse.json(
-        { status: false, message: "contactId dan messageText wajib diisi" },
+        { status: false, message: "Pesan atau lampiran media wajib diisi" },
         { status: 400 }
       );
     }
@@ -41,13 +56,25 @@ export async function POST(req: NextRequest) {
           usableReplyToken = contact.latest_reply_token;
         }
       } else {
-        // Jika epoch belum terekam, tetap coba gunakan tokennya
         usableReplyToken = contact.latest_reply_token;
       }
     }
 
-    // Kirim pesan (otomatis prioritaskan Reply Token jika aktif, atau fallback Push)
-    const sendResult = await sendLineMessage(targetRecipient, messageText.trim(), usableReplyToken);
+    // Kirim pesan kaya (teks, media, mention, quote) ke LINE API
+    const sendResult = await sendLineChatMessage(
+      targetRecipient,
+      {
+        messageText: messageText?.trim() || "",
+        mediaUrl: mediaUrl || null,
+        mediaType: mediaType || (mediaUrl ? "image" : undefined),
+        previewUrl: previewUrl || mediaUrl || null,
+        mentions: Array.isArray(mentions) ? mentions : undefined,
+        quotedText: quotedText || null,
+        quotedSender: quotedSender || null,
+      },
+      usableReplyToken
+    );
+
     if (!sendResult.ok) {
       return NextResponse.json(
         { status: false, message: sendResult.error || "Gagal mengirim pesan ke LINE" },
@@ -65,13 +92,21 @@ export async function POST(req: NextRequest) {
       contact.id,
       contact.line_user_id,
       contact.line_group_id,
-      messageText.trim(),
-      admin.username || "Admin"
+      messageText?.trim() || (mediaUrl ? `[${mediaType === "video" ? "Video" : "Gambar"}]` : ""),
+      admin.username || "Admin",
+      {
+        mediaUrl: mediaUrl || null,
+        messageType: mediaType || (mediaUrl ? "image" : "text"),
+        quotedMessageId: quotedMessageId ? Number(quotedMessageId) : null,
+        quotedText: quotedText || null,
+        quotedSender: quotedSender || null,
+      }
     );
 
-    const modeMsg = sendResult.mode === "reply"
-      ? "Pesan berhasil dibalas GRATIS via Reply Token!"
-      : "Pesan berhasil dikirim via Push!";
+    const modeMsg =
+      sendResult.mode === "reply"
+        ? "Pesan berhasil dibalas GRATIS via Reply Token!"
+        : "Pesan berhasil dikirim via Push!";
 
     return NextResponse.json({
       status: true,

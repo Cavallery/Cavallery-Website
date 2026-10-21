@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { readBotConfig } from "../bot-config/route";
 import { readBotMedia } from "../bot-media/route";
 import { getAIOrSimiSimiReply } from "@/lib/botConversation";
 import { upsertContact, saveIncomingMessage, getLineProfile } from "@/lib/lineChat";
+import { saveFileToDb } from "@/lib/mysqlStorage";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -132,15 +135,51 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
           isRealReplyToken ? rawReplyToken : null
         );
 
-        const msgText = event.message?.text || `[${event.message?.type || "media"}]`;
+        let mediaUrl: string | null = null;
+        const msgType = event.message?.type || "text";
+
+        // Jika anggota mengirim gambar atau video, unduh dan simpan agar tampil di dashboard admin
+        if ((msgType === "image" || msgType === "video") && event.message?.id && channelAccessToken) {
+          try {
+            const mediaRes = await fetch(
+              `https://api-data.line.me/v2/bot/message/${event.message.id}/content`,
+              {
+                headers: { Authorization: `Bearer ${channelAccessToken}` },
+                signal: AbortSignal.timeout(6000),
+              }
+            );
+            if (mediaRes.ok) {
+              const ext = msgType === "video" ? "mp4" : "jpg";
+              const filename = `line-in-${Date.now()}-${event.message.id}.${ext}`;
+              const buf = Buffer.from(await mediaRes.arrayBuffer());
+              const uploadsDir = path.join(process.cwd(), "public", "uploads", "line-chat");
+              try {
+                if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+                fs.writeFileSync(path.join(uploadsDir, filename), buf);
+              } catch {}
+              saveFileToDb({
+                buffer: buf,
+                filename,
+                folder: "line-chat",
+                mimeType: msgType === "video" ? "video/mp4" : "image/jpeg",
+              }).catch(() => {});
+              mediaUrl = `/uploads/line-chat/${filename}`;
+            }
+          } catch (mediaErr) {
+            console.warn("[LINE Media In Error]:", mediaErr);
+          }
+        }
+
+        const msgText = event.message?.text || (mediaUrl ? `[${msgType === "video" ? "Video" : "Gambar"}]` : `[${msgType}]`);
         await saveIncomingMessage(
           contactId,
           lineUserId,
           lineGroupId,
           displayName,
           msgText,
-          event.message?.type || "text",
-          event.message?.id || null
+          msgType,
+          event.message?.id || null,
+          mediaUrl
         );
       } catch (err) {
         console.error("[LINE Chat Log Error]:", err);
