@@ -202,9 +202,11 @@ export async function POST(req: NextRequest) {
           displayLine,
           gender,
           domisili,
-          kontak: `${kontakPlatform}: ${kontakId}`,
+          kontakPlatform,
+          kontakId,
           status: "aktif",
           jabatan: "Anggota",
+          batch: targetBatchName,
         }).catch(() => {});
       } catch {}
 
