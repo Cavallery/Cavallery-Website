@@ -47,19 +47,19 @@
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 800;
-  color: var(--cv-on-orange);
-  background: var(--cv-orange);
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   border: none;
   padding: 9px 20px;
   border-radius: var(--cv-radius-pill);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--cv-orange) 35%, transparent);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 .btnCreate:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--cv-orange) 45%, transparent);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5);
 }
 
 .pageTitle {
@@ -150,15 +150,15 @@
   height: 38px;
   min-width: 38px;
   border-radius: 50%;
-  background: var(--cv-orange);
-  color: var(--cv-on-orange);
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.95rem;
   overflow: hidden;
-  border: 1.5px solid var(--border-gold);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
 }
 
 .avatarCellImg {
@@ -178,16 +178,16 @@
   height: 70px;
   min-width: 70px;
   border-radius: 50%;
-  background: var(--cv-orange);
-  color: var(--cv-on-orange);
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
   font-weight: 900;
   overflow: hidden;
-  border: 2px solid var(--border-gold);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--cv-orange) 20%, transparent);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .avatarPreviewImg {
@@ -237,9 +237,9 @@
 .countBadge {
   font-size: 0.78rem;
   font-weight: 800;
-  background: color-mix(in srgb, var(--cv-orange) 12%, transparent);
-  color: var(--cv-orange);
-  border: 1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent);
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
   padding: 2px 10px;
   border-radius: var(--cv-radius-pill);
 }
@@ -490,9 +490,9 @@
 .selectStatusPending {
   padding: 4px 10px;
   border-radius: var(--cv-radius-pill);
-  background: color-mix(in srgb, var(--cv-orange) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cv-orange) 40%, transparent);
-  color: var(--cv-orange);
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
   font-weight: 700;
   font-size: 0.75rem;
   outline: none;
@@ -540,16 +540,16 @@
 }
 
 .statusPending {
-  background: color-mix(in srgb, var(--cv-orange) 12%, transparent);
-  color: var(--cv-orange);
-  border: 1px solid color-mix(in srgb, var(--cv-orange) 30%, transparent);
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 /* ── Badge Jabatan / Role ── */
 .badgeAdmin {
-  background: color-mix(in srgb, var(--cv-orange) 25%, transparent);
-  color: var(--primary);
-  border: 1.5px solid var(--border-gold);
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1.5px solid rgba(99, 102, 241, 0.35);
   font-size: 0.75rem;
   font-weight: 800;
   padding: 3px 10px;
@@ -777,7 +777,7 @@
 }
 
 .matrixTable th {
-  background: color-mix(in srgb, var(--cv-orange) 12%, transparent);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--fg);
   padding: 8px 6px;
   font-weight: 800;
@@ -792,15 +792,15 @@
 }
 
 .matrixCellPaid {
-  background: color-mix(in srgb, var(--cv-orange) 18%, transparent) !important;
-  color: var(--cv-orange);
+  background: rgba(16, 185, 129, 0.16) !important;
+  color: #10b981 !important;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .matrixCellPaid:hover {
-  background: color-mix(in srgb, var(--cv-orange) 30%, transparent) !important;
+  background: rgba(16, 185, 129, 0.28) !important;
 }
 
 .matrixCellUnpaid {
@@ -811,12 +811,12 @@
 }
 
 .matrixCellUnpaid:hover {
-  background: color-mix(in srgb, var(--cv-orange) 8%, transparent);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 :global([data-theme="dark"]) .matrixCellPaid {
-  background: color-mix(in srgb, var(--cv-orange) 28%, transparent) !important;
-  color: var(--cv-orange-hi);
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #34d399 !important;
 }
 
 /* ─── KAS MATRIX STICKY & RESPONSIVE COLUMNS ─── */
