@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const filter = (searchParams.get("filter") || "all").toLowerCase();
 
-    // 1. Query anggota
+    // 1. Query anggota realtime langsung dari database
     let sql = `
       SELECT a.*, b.name as batch_name, b.year as batch_year
       FROM anggota a
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
     const members = (await query<any[]>(sql, params)) || [];
 
-    // 2. Query riwayat pembayaran kas terakhir tiap anggota dari iuran_kas_bulanan
+    // 2. Query riwayat pembayaran kas terakhir tiap anggota dari iuran_kas_bulanan (realtime)
     const latestPayments = (await query<any[]>(`
       SELECT 
         no_anggota,
@@ -82,14 +82,13 @@ export async function GET(req: NextRequest) {
       console.error("Error fetching debts tracker in export:", e);
     }
 
-    // 4. Susun Header & Baris CSV
+    // 4. Susun Header & Baris CSV (Presisi sesuai struktur tabel direktori keanggotaan)
     const headers = [
       "No",
       "No Anggota",
       "Nama Lengkap",
       "ID Line",
       "Display Line",
-      "Discord",
       "Gender",
       "Domisili",
       "Kontak Platform",
@@ -102,7 +101,6 @@ export async function GET(req: NextRequest) {
       "Terakhir Bayar Kas",
       "Sisa Tagihan Kas",
       "Anggota Sejak",
-      "Tanggal Daftar",
     ];
 
     const rows = members.map((m, idx) => {
@@ -134,26 +132,33 @@ export async function GET(req: NextRequest) {
         debtText = "Nonaktif";
       }
 
+      let tglSejak = "-";
+      const rawDate = m.anggota_sejak || m.created_at;
+      if (rawDate) {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          tglSejak = d.toLocaleDateString("id-ID");
+        }
+      }
+
       return [
         idx + 1,
         escapeCsvField(m.no_anggota || "-"),
         escapeCsvField(m.nama_lengkap || "-"),
         escapeCsvField(m.id_line || "-"),
         escapeCsvField(m.display_line || "-"),
-        escapeCsvField(m.discord || "-"),
         escapeCsvField(m.gender || "-"),
         escapeCsvField(m.domisili || "-"),
         escapeCsvField(m.kontak_platform || "-"),
         escapeCsvField(m.kontak_id || "-"),
-        escapeCsvField(m.status === "aktif" ? "Aktif" : m.status === "nonaktif" ? "Non Aktif" : m.status),
+        escapeCsvField(m.status === "aktif" ? "Aktif" : m.status === "nonaktif" ? "Non Aktif" : m.status || "-"),
         escapeCsvField(m.jabatan || "Anggota"),
         escapeCsvField(m.divisi || "-"),
         escapeCsvField(m.badge || "-"),
         escapeCsvField(m.batch_name ? `${m.batch_name} (${m.batch_year || ""})`.trim() : "-"),
         escapeCsvField(lastPayText),
         escapeCsvField(debtText),
-        escapeCsvField(m.anggota_sejak ? new Date(m.anggota_sejak).toLocaleDateString("id-ID") : "-"),
-        escapeCsvField(m.created_at ? new Date(m.created_at).toLocaleDateString("id-ID") : "-"),
+        escapeCsvField(tglSejak),
       ];
     });
 
