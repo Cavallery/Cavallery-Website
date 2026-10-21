@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import ThemeToggle from "@/components/ThemeToggle";
 import AdminSubNav from "@/components/admin/AdminSubNav";
+import ImportBatchModal from "@/components/admin/ImportBatchModal";
 import { BADGE_OPTIONS, getMemberBadge, MEMBER_BADGES } from "@/lib/badges";
 
 const JABATAN_OPTIONS = [
@@ -37,6 +38,7 @@ export default function AdminKeanggotaanPage() {
   const [selectedBatch, setSelectedBatch] = useState<string>("semua");
   const [exportFilter, setExportFilter] = useState<"all" | "aktif" | "nonaktif">("all");
   const [exporting, setExporting] = useState(false);
+  const [showImportBatchModal, setShowImportBatchModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
 
@@ -409,14 +411,25 @@ export default function AdminKeanggotaanPage() {
             </button>
           </div>
 
-          <button
-            type="button"
-            className={styles.btnCreate}
-            onClick={() => setShowCreateModal(true)}
-            style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-          >
-            <i className="bx bx-user-plus" /> Tambah Anggota Manual
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              className={styles.btnCreate}
+              onClick={() => setShowImportBatchModal(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "linear-gradient(135deg, #10b981, #059669)" }}
+              title="Import Anggota Batch dari Spreadsheet"
+            >
+              <i className="bx bx-import" /> Import Anggota Batch
+            </button>
+            <button
+              type="button"
+              className={styles.btnCreate}
+              onClick={() => setShowCreateModal(true)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              <i className="bx bx-user-plus" /> Tambah Anggota Manual
+            </button>
+          </div>
         </div>
 
         {/* Global Feedback Message */}
@@ -1711,6 +1724,17 @@ export default function AdminKeanggotaanPage() {
       )}
 
       
+      <ImportBatchModal
+        isOpen={showImportBatchModal}
+        onClose={() => setShowImportBatchModal(false)}
+        onSuccess={() => {
+          setMsg("Anggota batch berhasil di-import!");
+          fetchData();
+          fetchBatches();
+        }}
+        defaultBatchName="Batch 9"
+      />
+
       {/* ── MODAL PANDUAN 5 BADGE & CARA NAIK TINGKAT ── */}
       {showBadgeGuideModal && (
         <div className={styles.modalOverlay} onClick={() => setShowBadgeGuideModal(false)}>
