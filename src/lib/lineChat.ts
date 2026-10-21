@@ -449,20 +449,10 @@ export async function sendLineChatMessage(
     }
   }
 
-  // 2. Teks Pesan (dengan Kutipan & Mention jika ada)
-  if (payload.messageText || payload.quotedText) {
-    let fullText = "";
-    let mentionees = payload.mentions ? [...payload.mentions] : [];
-
-    if (payload.quotedText) {
-      const cleanQuote = payload.quotedText.replace(/\n/g, " ").slice(0, 80);
-      const quoteHeader = `> [Balas @${payload.quotedSender || "Pesan"}]: "${cleanQuote}${payload.quotedText.length > 80 ? "..." : ""}"\n\n`;
-      const offset = quoteHeader.length;
-      mentionees = mentionees.map((m) => ({ ...m, index: m.index + offset }));
-      fullText = quoteHeader + (payload.messageText || "");
-    } else {
-      fullText = payload.messageText || "";
-    }
+  // 2. Teks Pesan (dengan Mention jika ada, tanpa prefix kutipan bot yang kaku)
+  if (payload.messageText && payload.messageText.trim()) {
+    const fullText = payload.messageText.trim();
+    const mentionees = payload.mentions ? [...payload.mentions] : [];
 
     const textMsg: any = {
       type: "text",

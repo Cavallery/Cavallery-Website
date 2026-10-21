@@ -6538,6 +6538,14 @@ function RecruitmentManager() {
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
+  // Batch Recruitment Management
+  const [batches, setBatches] = useState<any[]>([]);
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [newBatchName, setNewBatchName] = useState("");
+  const [newBatchYear, setNewBatchYear] = useState(new Date().getFullYear());
+  const [newBatchDesc, setNewBatchDesc] = useState("");
+  const [batchActionLoading, setBatchActionLoading] = useState(false);
+
   const showToast = (msg: string, type: "success" | "error") => setToast({ msg, type });
 
   const loadData = useCallback(async () => {
@@ -6564,6 +6572,7 @@ function RecruitmentManager() {
 
   useEffect(() => {
     loadData();
+    fetchBatches();
   }, [loadData]);
 
   const toggleRoleStatus = async (roleId: string, currentStatus: boolean | number) => {
@@ -6629,6 +6638,69 @@ function RecruitmentManager() {
     } finally {
       setConfirmDelete(null);
       if (detailModal?.id === confirmDelete?.id) setDetailModal(null);
+    }
+  };
+
+  // ─── BATCH RECRUITMENT MANAGEMENT ───────────────────────────
+  const fetchBatches = async () => {
+    try {
+      const res = await fetch("/api/admin/recruitment-batches?t=" + Date.now());
+      const json = await res.json();
+      if (json.status && json.batches) {
+        setBatches(json.batches);
+      }
+    } catch {}
+  };
+
+  const handleCreateBatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBatchName.trim()) return;
+    setBatchActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/recruitment-batches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newBatchName,
+          year: newBatchYear,
+          description: newBatchDesc,
+          status: "open",
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Batch baru berhasil dibuka!", "success");
+        setShowBatchModal(false);
+        setNewBatchName("");
+        setNewBatchDesc("");
+        await fetchBatches();
+      } else {
+        showToast(json.message || "Gagal membuat batch", "error");
+      }
+    } catch {
+      showToast("Gagal membuat batch baru", "error");
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const handleToggleBatchStatus = async (batchId: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "open" ? "closed" : "open";
+      const res = await fetch("/api/admin/recruitment-batches", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: batchId, status: newStatus }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        showToast("Status batch berhasil diperbarui!", "success");
+        await fetchBatches();
+      } else {
+        showToast(json.message || "Gagal memperbarui status batch", "error");
+      }
+    } catch (err: any) {
+      showToast(err.message || "Gagal memperbarui status batch", "error");
     }
   };
 
@@ -6817,6 +6889,15 @@ function RecruitmentManager() {
         </div>
 
         <div className={styles.exportBtnGroup}>
+          <button
+            type="button"
+            className={styles.exportBtnExcel}
+            onClick={() => setShowBatchModal(true)}
+            style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            title="Kelola & Buka Batch Rekrutmen"
+          >
+            <i className="bx bx-layer-plus" /> Kelola Batch
+          </button>
           <a
             href="https://docs.google.com/spreadsheets/d/18Kc517nLygbNNWN4OYHR5N8MfSbYzW1CzLr17zHH-kA/edit?gid=900522075#gid=900522075"
             target="_blank"
@@ -7293,6 +7374,147 @@ function RecruitmentManager() {
               <button type="button" className={styles.btnGhost} onClick={() => setDetailModal(null)}>
                 Tutup
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL KELOLA & BUKA BATCH BARU ── */}
+      {showBatchModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowBatchModal(false)}>
+          <div
+            className={styles.formModal}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 640 }}
+          >
+            <div className={styles.formModalHeader}>
+              <h3>
+                <i className="bx bx-layer" style={{ color: "var(--gold)" }} />
+                {" "}Kelola Periode Rekrutmen Batch
+              </h3>
+              <button
+                type="button"
+                className={styles.closeX}
+                onClick={() => setShowBatchModal(false)}
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <div className={styles.formBody}>
+              {/* Form Buat Batch Baru */}
+              <form onSubmit={handleCreateBatch} style={{ padding: "16px 0", borderBottom: "1px solid var(--adm-border)" }}>
+                <div style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: 12, color: "var(--gold)" }}>
+                  Buka Rekrutmen Batch Baru (cth: Batch 9)
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: "0.78rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>Nama Batch *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Batch 9"
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                      value={newBatchName}
+                      onChange={(e) => setNewBatchName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.78rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>Tahun *</label>
+                    <input
+                      type="number"
+                      required
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                      value={newBatchYear}
+                      onChange={(e) => setNewBatchYear(Number(e.target.value))}
+                    />
+                  </div>
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ fontSize: "0.78rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>Keterangan / Catatan Batch</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Rekrutmen Resmi Musim Gugur 2026"
+                    style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    value={newBatchDesc}
+                    onChange={(e) => setNewBatchDesc(e.target.value)}
+                  />
+                </div>
+                <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
+                  <button type="submit" disabled={batchActionLoading} className={styles.actionBtnEdit} style={{ padding: "8px 16px", fontWeight: 700 }}>
+                    {batchActionLoading ? (
+                      <><i className="bx bx-loader-alt bx-spin" /> Memproses...</>
+                    ) : (
+                      <><i className="bx bx-check" /> Buka Batch Baru Sekarang</>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Daftar Batch Yang Sudah Ada */}
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontSize: "0.9rem", fontWeight: 800, marginBottom: 10, color: "var(--adm-muted)" }}>
+                  Daftar Seluruh Batch &amp; Status:
+                </div>
+                <div style={{ maxHeight: 260, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                  {batches.map((b) => {
+                    const isOpen = b.status === "open";
+                    return (
+                      <div
+                        key={b.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 14px",
+                          borderRadius: 10,
+                          border: "1px solid var(--adm-border)",
+                          background: isOpen ? "rgba(16, 185, 129, 0.08)" : "var(--adm-surface)",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: "0.9rem", color: "var(--gold)" }}>
+                            {b.name} ({b.year})
+                          </div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--adm-muted)" }}>
+                            {b.description || "Tanpa keterangan"} &#8226; {b.total_members || 0} Anggota Resmi
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 800,
+                              padding: "3px 10px",
+                              borderRadius: 12,
+                              background: isOpen ? "#10b981" : "rgba(156, 163, 175, 0.2)",
+                              color: isOpen ? "#fff" : "var(--adm-muted)",
+                            }}
+                          >
+                            {isOpen ? "BUKA" : "DITUTUP"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleBatchStatus(b.id, b.status)}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              border: "1px solid var(--adm-border)",
+                              background: "transparent",
+                              color: "var(--gold)",
+                            }}
+                          >
+                            {isOpen ? "Tutup" : "Buka"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
