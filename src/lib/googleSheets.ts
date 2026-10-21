@@ -120,6 +120,7 @@ export async function appendAnggotaRow(data: {
   kontakId: string;
   status: string;
   jabatan?: string;
+  batch?: string | null;
   anggotaSejak?: string | Date | null;
   createdAt?: string | Date;
 }) {
@@ -147,6 +148,7 @@ export async function appendAnggotaRow(data: {
     `${data.kontakPlatform}: ${data.kontakId}`,
     data.status,
     data.jabatan || "Anggota",
+    data.batch || "-",
     formattedSejak,
     formattedDate,
   ];
