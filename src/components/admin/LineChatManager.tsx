@@ -645,20 +645,32 @@ export default function LineChatManager() {
                       )}
 
                       {/* Tampilan Media Gambar */}
-                      {m.media_url && (m.message_type === "image" || /\.(jpg|jpeg|png|webp|gif)$/i.test(m.media_url)) && (
+                      {(m.media_url || (m.message_type === "image" && m.line_message_id)) && (
                         <img
-                          src={m.media_url}
+                          src={
+                            m.media_url ||
+                            `/api/admin/line-chat/media-proxy?messageId=${m.line_message_id}`
+                          }
                           alt="Lampiran Foto"
                           className={styles.msgMediaImage}
-                          onClick={() => setLightboxImg(m.media_url || null)}
+                          onClick={() =>
+                            setLightboxImg(
+                              m.media_url ||
+                                `/api/admin/line-chat/media-proxy?messageId=${m.line_message_id}`
+                            )
+                          }
                           title="Klik untuk memperbesar gambar"
+                          loading="lazy"
                         />
                       )}
 
                       {/* Tampilan Media Video */}
-                      {m.media_url && (m.message_type === "video" || /\.(mp4|webm|mov)$/i.test(m.media_url)) && (
+                      {(m.media_url || (m.message_type === "video" && m.line_message_id)) && (
                         <video
-                          src={m.media_url}
+                          src={
+                            m.media_url ||
+                            `/api/admin/line-chat/media-proxy?messageId=${m.line_message_id}`
+                          }
                           controls
                           className={styles.msgMediaVideo}
                         />
@@ -840,7 +852,7 @@ export default function LineChatManager() {
               {/* Tips Kuota */}
               <div style={{ padding: "6px 18px 2px", background: "var(--cv-ink, #0f0c0b)" }}>
                 <div style={{ fontSize: "0.72rem", color: "#9ca3af" }}>
-                  💡 <strong>Ketik @</strong> untuk tag anggota • Klik tombol 📎 untuk kirim Foto/Video • Balas saat ada chat (< 1 mnt) untuk kirim <strong>Bebas Kuota</strong>.
+                  💡 <strong>Ketik @</strong> untuk tag anggota • Klik tombol 📎 untuk kirim Foto/Video • Balas saat ada chat (kurang dari 1 menit) untuk kirim <strong>Bebas Kuota</strong>.
                 </div>
               </div>
 
