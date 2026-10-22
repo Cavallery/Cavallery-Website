@@ -87,6 +87,29 @@ export default function LineChatManager() {
     Array<{ name: string; userId?: string; isAll?: boolean }>
   >([]);
 
+  // Fitur Emoji Picker
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState<"faces" | "gestures" | "hearts" | "symbols">("faces");
+
+  const EMOJI_CATEGORIES = {
+    faces: ["😀","😃","😄","😁","😆","😅","🤣","😂","🥹","☺️","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😋","😛","😜","🤪","😝","🤗","🤭","🤫","🤔","🫡","🤐","🤨","😐","😑","😶","🤤","😴","😷","🤒","🤕","🤢","🤮","🤧","🥵","🥶","🥴","😵","🤯","🥳","🥸","😎","🤓","🧐","😕","😟","🙁","😮","😯","😲","😳","🥺","😦","😧","😨","😰","😥","😢","😭","😱","😖","😣","😞","😓","😩","😫","🥱","😤","😡","😠","🤬"],
+    gestures: ["👍","👎","👏","🙌","🫶","🤝","👊","✊","🤛","🤜","🤞","✌️","🫰","🤟","🤘","🤙","👈","👉","👆","👇","☝️","👋","🤚","🖐️","✋","🖖","🫱","🫲","🫵","✍️","🤳","💅","💪","🙏"],
+    hearts: ["❤️","🧡","💛","💚","💙","🩵","💜","🤎","🖤","🩶","🤍","💔","❤️‍🔥","❤️‍🩹","❣️","💕","💞","💓","💗","💖","💘","💝","💟","💌"],
+    symbols: ["✨","⭐","🌟","💫","🔥","💥","🎉","🎊","🎁","🎂","🎈","🎀","🪄","🏆","🥇","🥈","🥉","👑","⚜️","🛡️","⚔️","🏰","🐴","🐎","🦄","🌸","🌺","🌷","🌹","🌻","🍀","☘️","🌿","☕","🍰","🍪","🍩","🍫","🍓","🍊","🍉","🍟","🍕","📢","📣","🔔","🎵","🎶","💬","💭","💯","🚀"]
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const pos = textareaRef.current ? textareaRef.current.selectionStart || 0 : inputText.length;
+    const newText = inputText.slice(0, pos) + emoji + inputText.slice(pos);
+    setInputText(newText);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(pos + emoji.length, pos + emoji.length);
+      }
+    }, 10);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -693,12 +716,26 @@ export default function LineChatManager() {
                           type="button"
                           className={styles.btnReplyMsg}
                           onClick={() => {
+                            const senderName = m.display_name || (isOut ? "Admin" : "Anggota");
                             setReplyingTo({
                               id: m.id,
-                              displayName: m.display_name || (isOut ? "Admin" : "Anggota"),
+                              displayName: senderName,
                               text: m.message_text || "[Media]",
                               lineUserId: m.line_user_id,
                             });
+                            // Otomatis masukkan @mention jika membalas chat anggota
+                            if (!isOut && m.display_name) {
+                              const tag = `@${m.display_name.trim()} `;
+                              if (!inputText.includes(tag)) {
+                                setInputText((prev) => tag + prev);
+                                if (m.line_user_id) {
+                                  setTrackedMentions((prev) => [
+                                    ...prev,
+                                    { name: m.display_name!.trim(), userId: m.line_user_id },
+                                  ]);
+                                }
+                              }
+                            }
                             textareaRef.current?.focus();
                           }}
                           title="Balas dan kutip pesan ini"
@@ -856,6 +893,106 @@ export default function LineChatManager() {
                 </div>
               </div>
 
+              {/* Popover Emoji Picker */}
+              {showEmojiPicker && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "calc(100% + 8px)",
+                    left: "14px",
+                    zIndex: 50,
+                    width: "320px",
+                    background: "var(--cv-ink-2, #1a1614)",
+                    border: "1px solid var(--cv-line, #332b26)",
+                    borderRadius: "14px",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      borderBottom: "1px solid var(--cv-line, #332b26)",
+                      background: "var(--cv-ink, #0f0c0b)",
+                    }}
+                  >
+                    {[
+                      { key: "faces", label: "😀 Wajah" },
+                      { key: "gestures", label: "👍 Tangan" },
+                      { key: "hearts", label: "❤️ Hati" },
+                      { key: "symbols", label: "🎉 Simbol" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setEmojiCategory(tab.key as any)}
+                        style={{
+                          flex: 1,
+                          padding: "8px 4px",
+                          background: emojiCategory === tab.key ? "var(--cv-ink-2, #1a1614)" : "transparent",
+                          border: "none",
+                          borderBottom: emojiCategory === tab.key ? "2px solid #38bdf8" : "2px solid transparent",
+                          color: emojiCategory === tab.key ? "#fff" : "var(--cv-text-mute, #9ca3af)",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(false)}
+                      style={{
+                        padding: "8px 10px",
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--cv-text-mute, #9ca3af)",
+                        cursor: "pointer",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "10px",
+                      overflowY: "auto",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(8, 1fr)",
+                      gap: "6px",
+                      maxHeight: "210px",
+                    }}
+                  >
+                    {EMOJI_CATEGORIES[emojiCategory].map((em, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => insertEmoji(em)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "1.25rem",
+                          cursor: "pointer",
+                          padding: "4px",
+                          borderRadius: "6px",
+                          transition: "all 0.15s",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Form Input Chat */}
               <form onSubmit={handleSendMessage} className={styles.msgInputArea}>
                 {/* Input file tersembunyi */}
@@ -875,6 +1012,17 @@ export default function LineChatManager() {
                   title="Lampirkan Gambar atau Video"
                 >
                   <i className="bx bx-paperclip" />
+                </button>
+
+                {/* Tombol Emoji */}
+                <button
+                  type="button"
+                  className={styles.btnAttach}
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  title="Pilih Emoji"
+                  style={{ color: showEmojiPicker ? "#38bdf8" : undefined }}
+                >
+                  <i className="bx bx-smile" />
                 </button>
 
                 {/* Textarea Input */}

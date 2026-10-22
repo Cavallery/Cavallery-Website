@@ -6538,6 +6538,25 @@ function RecruitmentManager() {
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
+  // CRUD Submissions State (Create & Update)
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingSubmission, setEditingSubmission] = useState<any | null>(null);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    role_id: "member",
+    full_name: "",
+    nickname: "",
+    city: "",
+    whatsapp: "",
+    line_id: "",
+    line_display_name: "",
+    gender: "Laki-laki",
+    division: "",
+    reason: "",
+    status: "pending",
+    notes: "",
+  });
+
   // Batch Recruitment Management
   const [batches, setBatches] = useState<any[]>([]);
   const [showBatchModal, setShowBatchModal] = useState(false);
@@ -6638,6 +6657,83 @@ function RecruitmentManager() {
     } finally {
       setConfirmDelete(null);
       if (detailModal?.id === confirmDelete?.id) setDetailModal(null);
+    }
+  };
+
+  // ─── CRUD PENDAFTAR REKRUTMEN (CREATE & UPDATE) ─────────────
+  const handleOpenCreate = () => {
+    setEditingSubmission(null);
+    setFormData({
+      role_id: "member",
+      full_name: "",
+      nickname: "",
+      city: "",
+      whatsapp: "",
+      line_id: "",
+      line_display_name: "",
+      gender: "Laki-laki",
+      division: "",
+      reason: "",
+      status: "pending",
+      notes: "",
+    });
+    setShowFormModal(true);
+  };
+
+  const handleOpenEdit = (sub: any) => {
+    setEditingSubmission(sub);
+    setFormData({
+      role_id: sub.role_id || "member",
+      full_name: sub.full_name || "",
+      nickname: sub.nickname || "",
+      city: sub.city || "",
+      whatsapp: sub.whatsapp || "",
+      line_id: sub.line_id || "",
+      line_display_name: sub.line_display_name || "",
+      gender: sub.gender || "Laki-laki",
+      division: sub.division || "",
+      reason: sub.reason || "",
+      status: sub.status || "pending",
+      notes: sub.notes || "",
+    });
+    setShowFormModal(true);
+  };
+
+  const handleSaveSubmission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.full_name.trim()) {
+      return showToast("Nama lengkap wajib diisi", "error");
+    }
+
+    setFormSubmitting(true);
+    try {
+      const isEdit = Boolean(editingSubmission);
+      const url = "/api/recruitment/submissions";
+      const method = isEdit ? "PATCH" : "POST";
+      const payload = isEdit ? { id: editingSubmission.id, ...formData } : formData;
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast(
+          isEdit ? "Data pendaftar berhasil diperbarui!" : "Pendaftar baru berhasil ditambahkan!",
+          "success"
+        );
+        setShowFormModal(false);
+        setEditingSubmission(null);
+        await loadData();
+      } else {
+        showToast(json.message || "Gagal menyimpan data", "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    } finally {
+      setFormSubmitting(false);
     }
   };
 
@@ -6892,6 +6988,15 @@ function RecruitmentManager() {
           <button
             type="button"
             className={styles.exportBtnExcel}
+            onClick={handleOpenCreate}
+            style={{ background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}
+            title="Tambah Pendaftar Rekrutmen Baru Secara Manual"
+          >
+            <i className="bx bx-user-plus" /> Tambah Pendaftar
+          </button>
+          <button
+            type="button"
+            className={styles.exportBtnExcel}
             onClick={() => setShowBatchModal(true)}
             style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}
             title="Kelola & Buka Batch Rekrutmen"
@@ -7127,6 +7232,14 @@ function RecruitmentManager() {
                         style={{ padding: "4px 8px", fontSize: "0.8rem" }}
                       >
                         <i className="bx bx-show" /> Detail
+                      </button>
+                      <button
+                        className={styles.actionBtnEdit}
+                        onClick={() => handleOpenEdit(s)}
+                        title="Edit Data Pendaftar"
+                        style={{ padding: "4px 8px", fontSize: "0.8rem", background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa", borderColor: "rgba(59, 130, 246, 0.4)" }}
+                      >
+                        <i className="bx bx-edit" /> Edit
                       </button>
                       <button
                         className={styles.actionBtnDel}
@@ -7370,11 +7483,247 @@ function RecruitmentManager() {
                 </select>
               </div>
             </div>
-            <div className={styles.formFooter}>
+            <div className={styles.formFooter} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <button
+                type="button"
+                className={styles.actionBtnEdit}
+                onClick={() => {
+                  const s = detailModal;
+                  setDetailModal(null);
+                  handleOpenEdit(s);
+                }}
+                style={{ padding: "8px 16px", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(59, 130, 246, 0.15)", color: "#60a5fa", borderColor: "rgba(59, 130, 246, 0.4)" }}
+              >
+                <i className="bx bx-edit" /> Edit Data Pendaftar
+              </button>
               <button type="button" className={styles.btnGhost} onClick={() => setDetailModal(null)}>
                 Tutup
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL CREATE / EDIT PENDAFTAR (METODE CRUD) ── */}
+      {showFormModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowFormModal(false)}>
+          <div
+            className={styles.formModal}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 620, maxHeight: "90vh", display: "flex", flexDirection: "column" }}
+          >
+            <div className={styles.formModalHeader}>
+              <h3>
+                <i className={`bx ${editingSubmission ? "bx-edit" : "bx-user-plus"}`} style={{ color: "var(--gold)" }} />
+                {" "}{editingSubmission ? `Edit Pendaftar: ${editingSubmission.full_name}` : "Tambah Pendaftar Baru Manual"}
+              </h3>
+              <button type="button" className={styles.closeX} onClick={() => setShowFormModal(false)}>
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSubmission} style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+              <div className={styles.formBody} style={{ overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+                
+                {/* Baris 1: Peran & Status */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Posisi / Peran *
+                    </label>
+                    <select
+                      value={formData.role_id}
+                      onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    >
+                      <option value="member">Join Member</option>
+                      <option value="admin">Join Admin</option>
+                      <option value="volunteer">Join Volunteer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Status Seleksi *
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    >
+                      <option value="pending">Pending (Menunggu)</option>
+                      <option value="approved">Diterima (Approved)</option>
+                      <option value="rejected">Ditolak (Rejected)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Baris 2: Nama Lengkap & Panggilan */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Nama Lengkap *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Muhammad Farhan"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Nama Panggilan
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Farhan"
+                      value={formData.nickname}
+                      onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Baris 3: Gender & Domisili */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Jenis Kelamin
+                    </label>
+                    <select
+                      value={formData.gender}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    >
+                      <option value="Laki-laki">Laki-laki</option>
+                      <option value="Perempuan">Perempuan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Kota / Domisili
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Jakarta Selatan"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Baris 4: Kontak WhatsApp & LINE ID */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      No. WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="08123456789"
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      ID LINE
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="id_line_pendaftar"
+                      value={formData.line_id}
+                      onChange={(e) => setFormData({ ...formData, line_id: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Baris 5: Display LINE & Minat Divisi */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Display Name LINE
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Nama di LINE"
+                      value={formData.line_display_name}
+                      onChange={(e) => setFormData({ ...formData, line_display_name: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                      Pilihan Divisi / Minat
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Divisi Humas / Media"
+                      value={formData.division}
+                      onChange={(e) => setFormData({ ...formData, division: e.target.value })}
+                      style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Alasan / Motivasi */}
+                <div>
+                  <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                    Alasan / Motivasi Mendaftar
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Alasan ingin bergabung..."
+                    value={formData.reason}
+                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                    style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem", resize: "vertical" }}
+                  />
+                </div>
+
+                {/* Catatan Admin Internal */}
+                <div>
+                  <label style={{ fontSize: "0.8rem", color: "var(--adm-muted)", display: "block", marginBottom: 4 }}>
+                    Catatan Internal Admin (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Catatan hasil wawancara, dsb..."
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    style={{ width: "100%", background: "var(--adm-bg)", color: "var(--adm-text)", border: "1px solid var(--adm-border)", borderRadius: 8, padding: "8px 12px", fontSize: "0.88rem" }}
+                  />
+                </div>
+
+              </div>
+
+              <div className={styles.formFooter} style={{ padding: "14px 20px", display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <button
+                  type="button"
+                  className={styles.btnGhost}
+                  onClick={() => setShowFormModal(false)}
+                  disabled={formSubmitting}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={formSubmitting}
+                  className={styles.actionBtnEdit}
+                  style={{ padding: "9px 20px", fontWeight: 700, background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  {formSubmitting ? (
+                    <><i className="bx bx-loader-alt bx-spin" /> Menyimpan...</>
+                  ) : (
+                    <><i className="bx bx-check" /> {editingSubmission ? "Perbarui Data" : "Simpan Pendaftar"}</>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

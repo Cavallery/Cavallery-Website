@@ -185,3 +185,23 @@ export async function deleteBatch(id: number): Promise<boolean> {
   const res = await query(`DELETE FROM recruitment_batches WHERE id = ?`, [id]);
   return Boolean(res);
 }
+
+/** Ambil batch berdasarkan nama (case-insensitive) */
+export async function getBatchByName(name: string): Promise<RecruitmentBatch | null> {
+  await ensureBatchTables();
+  const rows = await query<RecruitmentBatch[]>(
+    `SELECT * FROM recruitment_batches WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 1`,
+    [name.trim()]
+  );
+  return rows && rows.length > 0 ? rows[0] : null;
+}
+
+/** Ambil batch berdasarkan ID */
+export async function getBatchById(id: number): Promise<RecruitmentBatch | null> {
+  await ensureBatchTables();
+  const rows = await query<RecruitmentBatch[]>(
+    `SELECT * FROM recruitment_batches WHERE id = ? LIMIT 1`,
+    [id]
+  );
+  return rows && rows.length > 0 ? rows[0] : null;
+}
