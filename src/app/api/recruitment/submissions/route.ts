@@ -48,23 +48,104 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      role_id,
+      full_name,
+      nickname,
+      city,
+      whatsapp,
+      line_id,
+      line_display_name,
+      gender,
+      division,
+      reason,
+      status = "pending",
+      notes,
+    } = body;
+
+    if (!full_name || !full_name.trim()) {
+      return NextResponse.json({ success: false, message: "Nama lengkap wajib diisi" }, { status: 400 });
+    }
+
+    if (isMySqlConfigured()) {
+      const res: any = await query(
+        `INSERT INTO \`recruitment_submissions\` 
+          (\`role_id\`, \`full_name\`, \`nickname\`, \`city\`, \`whatsapp\`, \`line_id\`, \`line_display_name\`, \`gender\`, \`division\`, \`reason\`, \`status\`, \`notes\`, \`created_at\`)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [
+          role_id || "member",
+          full_name.trim(),
+          nickname?.trim() || null,
+          city?.trim() || "-",
+          whatsapp?.trim() || "-",
+          line_id?.trim() || null,
+          line_display_name?.trim() || null,
+          gender?.trim() || "-",
+          division?.trim() || null,
+          reason?.trim() || null,
+          status || "pending",
+          notes?.trim() || null,
+        ]
+      );
+      return NextResponse.json({ success: true, message: "Pendaftar baru berhasil ditambahkan!", id: res?.insertId }, { headers: noCacheHeaders });
+    }
+
+    return NextResponse.json({ success: true, message: "Data tersimpan" }, { headers: noCacheHeaders });
+  } catch (err: any) {
+    console.error("Recruitment POST error:", err);
+    return NextResponse.json({ success: false, message: err?.message || "Gagal menambahkan pendaftar" }, { status: 500, headers: noCacheHeaders });
+  }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, status, notes } = body;
+    const {
+      id,
+      role_id,
+      full_name,
+      nickname,
+      city,
+      whatsapp,
+      line_id,
+      line_display_name,
+      gender,
+      division,
+      reason,
+      status,
+      notes,
+    } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, message: "ID is required" }, { status: 400 });
     }
 
     if (isMySqlConfigured()) {
-      if (status !== undefined) {
-        await query("UPDATE `recruitment_submissions` SET `status`=? WHERE `id`=?", [status, id]);
+      const fields: string[] = [];
+      const params: any[] = [];
+
+      if (role_id !== undefined) { fields.push("`role_id` = ?"); params.push(role_id); }
+      if (full_name !== undefined) { fields.push("`full_name` = ?"); params.push(full_name.trim()); }
+      if (nickname !== undefined) { fields.push("`nickname` = ?"); params.push(nickname ? nickname.trim() : null); }
+      if (city !== undefined) { fields.push("`city` = ?"); params.push(city.trim()); }
+      if (whatsapp !== undefined) { fields.push("`whatsapp` = ?"); params.push(whatsapp.trim()); }
+      if (line_id !== undefined) { fields.push("`line_id` = ?"); params.push(line_id ? line_id.trim() : null); }
+      if (line_display_name !== undefined) { fields.push("`line_display_name` = ?"); params.push(line_display_name ? line_display_name.trim() : null); }
+      if (gender !== undefined) { fields.push("`gender` = ?"); params.push(gender); }
+      if (division !== undefined) { fields.push("`division` = ?"); params.push(division ? division.trim() : null); }
+      if (reason !== undefined) { fields.push("`reason` = ?"); params.push(reason ? reason.trim() : null); }
+      if (status !== undefined) { fields.push("`status` = ?"); params.push(status); }
+      if (notes !== undefined) { fields.push("`notes` = ?"); params.push(notes ? notes.trim() : null); }
+
+      if (fields.length > 0) {
+        params.push(id);
+        await query(`UPDATE \`recruitment_submissions\` SET ${fields.join(", ")} WHERE \`id\` = ?`, params);
       }
-      if (notes !== undefined) {
-        await query("UPDATE `recruitment_submissions` SET `notes`=? WHERE `id`=?", [notes, id]);
-      }
-      return NextResponse.json({ success: true, message: "Status pendaftar berhasil diperbarui" }, { headers: noCacheHeaders });
+
+      return NextResponse.json({ success: true, message: "Data pendaftar berhasil diperbarui" }, { headers: noCacheHeaders });
     }
 
     return NextResponse.json({ success: true }, { headers: noCacheHeaders });
