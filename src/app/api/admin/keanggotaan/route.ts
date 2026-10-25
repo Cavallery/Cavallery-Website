@@ -245,6 +245,75 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ── BULK / MULTI-SELEKSI ACTIONS (STATUS & DELETE) ──
+    if (action === "bulk_update_status") {
+      const { ids, status: newStatus } = body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return NextResponse.json({ status: false, message: "Daftar ID anggota tidak boleh kosong" }, { status: 400 });
+      }
+      if (!newStatus || !["aktif", "nonaktif", "pending"].includes(newStatus)) {
+        return NextResponse.json({ status: false, message: "Status yang dipilih tidak valid" }, { status: 400 });
+      }
+
+      const placeholders = ids.map(() => "?").join(",");
+      await query(`UPDATE anggota SET status = ? WHERE id IN (${placeholders})`, [newStatus, ...ids]);
+
+      // Ambil no_anggota untuk sinkronisasi Google Sheets (non-blocking)
+      try {
+        const affected = await query<any[]>(`SELECT no_anggota FROM anggota WHERE id IN (${placeholders})`, ids);
+        (affected || []).forEach((row) => {
+          if (row.no_anggota && row.no_anggota !== "-") {
+            updateAnggotaStatusInSheet(row.no_anggota, newStatus).catch(() => {});
+          }
+        });
+      } catch {}
+
+      return NextResponse.json({
+        status: true,
+        message: `Berhasil mengubah status ${ids.length} anggota menjadi "${newStatus}"!`,
+        totalUpdated: ids.length,
+      });
+    }
+
+    if (action === "bulk_delete") {
+      const { ids } = body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return NextResponse.json({ status: false, message: "Daftar ID anggota tidak boleh kosong" }, { status: 400 });
+      }
+
+      const placeholders = ids.map(() => "?").join(",");
+      const angRows = await query<any[]>(`SELECT id, no_anggota FROM anggota WHERE id IN (${placeholders})`, ids);
+      const noAnggotaList = (angRows || [])
+        .map((r) => r.no_anggota)
+        .filter((no) => no && no !== "-");
+
+      // Cascade delete relasi agar bersih
+      await query(`DELETE FROM konfirmasi_kas WHERE anggota_id IN (${placeholders})`, ids);
+      await query(`DELETE FROM kupon_anggota WHERE anggota_id IN (${placeholders})`, ids);
+      await query(`DELETE FROM war_tiket_peserta WHERE anggota_id IN (${placeholders})`, ids);
+
+      if (noAnggotaList.length > 0) {
+        const noPlaceholders = noAnggotaList.map(() => "?").join(",");
+        await query(
+          `DELETE FROM iuran_kas_bulanan WHERE anggota_id IN (${placeholders}) OR no_anggota IN (${noPlaceholders})`,
+          [...ids, ...noAnggotaList]
+        );
+        noAnggotaList.forEach((no) => {
+          deleteAnggotaRow(no).catch(() => {});
+        });
+      } else {
+        await query(`DELETE FROM iuran_kas_bulanan WHERE anggota_id IN (${placeholders})`, ids);
+      }
+
+      await query(`DELETE FROM anggota WHERE id IN (${placeholders})`, ids);
+
+      return NextResponse.json({
+        status: true,
+        message: `Berhasil menghapus ${ids.length} anggota secara permanen dari database & riwayatnya!`,
+        totalDeleted: ids.length,
+      });
+    }
+
     if (!id || !action) {
       return NextResponse.json({ status: false, message: "Parameter id dan action wajib dikirim" }, { status: 400 });
     }
