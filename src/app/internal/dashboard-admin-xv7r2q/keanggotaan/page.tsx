@@ -64,6 +64,11 @@ export default function AdminKeanggotaanPage() {
   const [regDonaturOpen, setRegDonaturOpen] = useState(true);
   const [settingLoading, setSettingLoading] = useState(false);
 
+  // Bulk / Multi-Selection State
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
   // Form Create State
   const [newNoAnggota, setNewNoAnggota] = useState("");
   const [newNamaLengkap, setNewNamaLengkap] = useState("");
@@ -346,12 +351,86 @@ export default function AdminKeanggotaanPage() {
       const json = await res.json();
       if (json.status) {
         setMsg(json.message);
+        setSelectedIds((prev) => prev.filter((item) => item !== id));
         fetchData();
       } else {
         alert(json.message || "Gagal menghapus anggota");
       }
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan");
+    }
+  };
+
+  // ─── BULK / MULTI-SELEKSI HANDLERS ─────────────────────────
+  const toggleSelectMember = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllFiltered = (filteredItems: any[]) => {
+    const currentIds = filteredItems.map((item) => item.id);
+    const allSelected = currentIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !currentIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...currentIds])));
+    }
+  };
+
+  const handleBulkUpdateStatus = async (targetStatus: "aktif" | "nonaktif") => {
+    if (selectedIds.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/admin/keanggotaan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "bulk_update_status",
+          ids: selectedIds,
+          status: targetStatus,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        setSelectedIds([]);
+        fetchData();
+      } else {
+        alert(json.message || "Gagal memperbarui status anggota terpilih");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Terjadi kesalahan jaringan");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/admin/keanggotaan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "bulk_delete",
+          ids: selectedIds,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        setSelectedIds([]);
+        setShowBulkDeleteModal(false);
+        fetchData();
+      } else {
+        alert(json.message || "Gagal menghapus anggota terpilih");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Terjadi kesalahan jaringan");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -835,9 +914,136 @@ export default function AdminKeanggotaanPage() {
                 <span><i className="bx bx-male" style={{ color: "var(--cv-orange-hi)" }} /> <strong style={{ color: "var(--cv-orange-hi)" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
                 <span><i className="bx bx-shield" style={{ color: "var(--primary)" }} /> <strong style={{ color: "var(--primary)" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>
               </div>
+
+              {/* Bulk Action Toolbar */}
+              {selectedIds.length > 0 && (
+                <div
+                  style={{
+                    padding: "10px 16px",
+                    marginBottom: 12,
+                    background: "linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(30, 64, 175, 0.25))",
+                    border: "1px solid rgba(59, 130, 246, 0.4)",
+                    borderRadius: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span
+                      style={{
+                        background: "#2563eb",
+                        color: "#fff",
+                        fontSize: "0.8rem",
+                        fontWeight: 800,
+                        padding: "3px 10px",
+                        borderRadius: 20,
+                      }}
+                    >
+                      {selectedIds.length} Terpilih
+                    </span>
+                    <span style={{ fontSize: "0.85rem", color: "var(--fg)", fontWeight: 600 }}>
+                      Aksi massal untuk anggota terpilih:
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      disabled={bulkLoading}
+                      onClick={() => handleBulkUpdateStatus("aktif")}
+                      style={{
+                        background: "#10b981",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                      title="Ubah status semua anggota terpilih menjadi Aktif"
+                    >
+                      <i className="bx bx-check-circle" /> Aktifkan Terpilih
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkLoading}
+                      onClick={() => handleBulkUpdateStatus("nonaktif")}
+                      style={{
+                        background: "#f59e0b",
+                        color: "#000",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                      title="Ubah status semua anggota terpilih menjadi Nonaktif"
+                    >
+                      <i className="bx bx-pause-circle" /> Nonaktifkan Terpilih
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkLoading}
+                      onClick={() => setShowBulkDeleteModal(true)}
+                      style={{
+                        background: "#ef4444",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                      title="Hapus data semua anggota terpilih dari database"
+                    >
+                      <i className="bx bx-trash" /> Hapus Terpilih
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkLoading}
+                      onClick={() => setSelectedIds([])}
+                      style={{
+                        background: "transparent",
+                        color: "var(--fg-muted)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 6,
+                        padding: "6px 10px",
+                        fontSize: "0.8rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Batal Pilih
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th style={{ width: 44, textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        title="Pilih Semua yang Ditampilkan"
+                        checked={filtered.length > 0 && filtered.every((a) => selectedIds.includes(a.id))}
+                        onChange={() => toggleSelectAllFiltered(filtered)}
+                        style={{ cursor: "pointer", width: 16, height: 16, accentColor: "#2563eb" }}
+                      />
+                    </th>
                     <th>Foto</th>
                     <th>No. Anggota</th>
                     <th>Nama Lengkap</th>
@@ -891,7 +1097,21 @@ export default function AdminKeanggotaanPage() {
                     const avatarUrl = a.fotoProfil || a.foto_profil;
 
                     return (
-                      <tr key={a.id}>
+                      <tr
+                        key={a.id}
+                        style={{
+                          background: selectedIds.includes(a.id) ? "rgba(37, 99, 235, 0.08)" : undefined,
+                          transition: "background 0.15s ease",
+                        }}
+                      >
+                        <td style={{ textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(a.id)}
+                            onChange={() => toggleSelectMember(a.id)}
+                            style={{ cursor: "pointer", width: 16, height: 16, accentColor: "#2563eb" }}
+                          />
+                        </td>
                         <td>
                           <div className={styles.avatarCell}>
                             {avatarUrl ? (
@@ -1962,6 +2182,96 @@ export default function AdminKeanggotaanPage() {
               >
                 Tutup Panduan
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL KONFIRMASI HAPUS MASSAL ── */}
+      {showBulkDeleteModal && (
+        <div className={styles.modalOverlay} onClick={() => !bulkLoading && setShowBulkDeleteModal(false)}>
+          <div
+            className={styles.formModal}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 480 }}
+          >
+            <div className={styles.formModalHeader} style={{ borderBottomColor: "rgba(239, 68, 68, 0.3)" }}>
+              <h3 style={{ color: "#ef4444", display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="bx bx-error-circle" /> Konfirmasi Hapus Massal
+              </h3>
+              <button
+                type="button"
+                className={styles.closeX}
+                disabled={bulkLoading}
+                onClick={() => setShowBulkDeleteModal(false)}
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+            <div className={styles.formBody} style={{ padding: "16px 20px" }}>
+              <p style={{ margin: "0 0 12px", fontSize: "0.92rem", lineHeight: 1.5, color: "var(--fg)" }}>
+                Anda akan menghapus secara permanen <strong>{selectedIds.length}</strong> anggota yang dipilih.
+              </p>
+              <div
+                style={{
+                  background: "rgba(239, 68, 68, 0.1)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: "0.82rem",
+                  color: "#ef4444",
+                  marginBottom: 16,
+                  lineHeight: 1.4,
+                }}
+              >
+                <i className="bx bx-info-circle" /> Tindakan ini akan menghapus data profil anggota, riwayat konfirmasi kas, kupon, dan mencatat penghapusan ke spreadsheet terkait. Tindakan ini tidak dapat dibatalkan.
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => setShowBulkDeleteModal(false)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    background: "var(--surface)",
+                    color: "var(--fg)",
+                    border: "1px solid var(--border)",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={handleBulkDelete}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: 8,
+                    background: "#ef4444",
+                    color: "#fff",
+                    border: "none",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  {bulkLoading ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menghapus...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-trash" /> Ya, Hapus {selectedIds.length} Anggota
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
