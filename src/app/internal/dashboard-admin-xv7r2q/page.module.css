@@ -95,7 +95,7 @@
 }
 .navItem i { font-size: 1.1rem; }
 .navItem:hover { background: var(--cv-ink-2); color: var(--cv-text); }
-.navActive { background: var(--cv-orange-soft) !important; color: var(--cv-orange) !important; box-shadow: inset 2px 0 0 var(--cv-orange); }
+.navActive { background: rgba(59, 130, 246, 0.12) !important; color: #60a5fa !important; box-shadow: inset 3px 0 0 #3b82f6; font-weight: 700; }
 
 .logoutBtn {
   display: flex;
@@ -387,17 +387,17 @@
   align-items: center;
   gap: 6px;
   padding: 0.5rem 1rem;
-  background: var(--cv-orange);
-  color: var(--cv-on-orange);
-  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: 1px solid rgba(59, 130, 246, 0.4);
   border-radius: var(--cv-radius-sm);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
   white-space: nowrap;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
-.btnPrimary:hover    { background: var(--cv-orange-hi); }
+.btnPrimary:hover    { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btnGhost {

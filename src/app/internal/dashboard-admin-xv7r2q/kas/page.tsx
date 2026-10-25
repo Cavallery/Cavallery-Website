@@ -1369,7 +1369,7 @@ export default function AdminKasPage() {
               type="button"
               onClick={() => setShowPengeluaranModal(true)}
               className={styles.btnCreate}
-              style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)", display: "inline-flex", alignItems: "center", gap: 6 }}
+              style={{ background: "#e11d48", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className="bx bx-receipt" /> + Catat Pengeluaran Kas
             </button>
@@ -1378,7 +1378,7 @@ export default function AdminKasPage() {
               type="button"
               onClick={() => setShowKuponModal(true)}
               className={styles.btnCreate}
-              style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)", display: "inline-flex", alignItems: "center", gap: 6 }}
+              style={{ background: "#7c3aed", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className="bx bx-gift" /> + Bagikan Kupon Kas
             </button>
@@ -1388,7 +1388,7 @@ export default function AdminKasPage() {
               onClick={handleExportToSheets}
               disabled={exportingToSheets}
               className={styles.btnCreate}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              style={{ background: "#2563eb", color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               <i className={`bx ${exportingToSheets ? "bx-loader-alt bx-spin" : "bx-cloud-upload"}`} />
               {exportingToSheets ? "Menyinkronkan..." : "Kirim Semua Tab ke Spreadsheet"}
@@ -1452,15 +1452,15 @@ export default function AdminKasPage() {
 
             {/* 2. Pemasukan Eksternal (External Income) */}
             <div style={{
-              background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)",
-              border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+              background: "rgba(6, 182, 212, 0.08)",
+              border: "1.5px solid rgba(6, 182, 212, 0.3)",
               borderRadius: 14,
               padding: "16px 18px",
             }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--cv-orange)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#06b6d4", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                 <i className="bx bx-log-in-circle" /> Pemasukan Eksternal
               </div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "var(--cv-orange)", marginTop: 4 }}>
+              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#06b6d4", marginTop: 4 }}>
                 {formatRupiah(activeEksternal)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
@@ -1470,15 +1470,15 @@ export default function AdminKasPage() {
 
             {/* 3. Total Pengeluaran */}
             <div style={{
-              background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)",
-              border: "1.5px solid color-mix(in srgb, var(--cv-orange) 30%, transparent)",
+              background: "rgba(244, 63, 94, 0.08)",
+              border: "1.5px solid rgba(244, 63, 94, 0.3)",
               borderRadius: 14,
               padding: "16px 18px",
             }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--cv-orange)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#f43f5e", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                 <i className="bx bx-trending-down" /> Total Pengeluaran Kas
               </div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "var(--cv-orange)", marginTop: 4 }}>
+              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: "#f43f5e", marginTop: 4 }}>
                 {formatRupiah(activePengeluaran)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
@@ -1488,15 +1488,15 @@ export default function AdminKasPage() {
 
             {/* 4. Saldo Kas Saat Ini (Otomatis) */}
             <div style={{
-              background: activeSaldoKas >= 0 ? "color-mix(in srgb, var(--cv-orange) 10%, transparent)" : "rgba(239, 68, 68, 0.1)",
-              border: activeSaldoKas >= 0 ? "1.5px solid var(--border-gold)" : "1.5px solid #ef4444",
+              background: activeSaldoKas >= 0 ? "rgba(59, 130, 246, 0.08)" : "rgba(239, 68, 68, 0.1)",
+              border: activeSaldoKas >= 0 ? "1.5px solid rgba(59, 130, 246, 0.3)" : "1.5px solid #ef4444",
               borderRadius: 14,
               padding: "16px 18px",
             }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--gold)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: activeSaldoKas >= 0 ? "#3b82f6" : "#ef4444", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                 <i className="bx bx-wallet-alt" /> Saldo Kas Saat Ini
               </div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: activeSaldoKas >= 0 ? "var(--primary)" : "#ef4444", marginTop: 4 }}>
+              <div style={{ fontSize: "1.6rem", fontWeight: 900, color: activeSaldoKas >= 0 ? "#3b82f6" : "#ef4444", marginTop: 4 }}>
                 {formatRupiah(activeSaldoKas)}
               </div>
               <div style={{ fontSize: "0.75rem", color: "var(--fg-muted)", marginTop: 2 }}>
@@ -1560,8 +1560,8 @@ export default function AdminKasPage() {
                         padding: "6px 16px",
                         borderRadius: 8,
                         border: "none",
-                        background: matrixYear === y ? "var(--gold)" : "transparent",
-                        color: matrixYear === y ? "var(--cv-on-orange)" : "var(--fg-muted)",
+                        background: matrixYear === y ? "#2563eb" : "transparent",
+                        color: matrixYear === y ? "#ffffff" : "var(--fg-muted)",
                         fontWeight: matrixYear === y ? 900 : 600,
                         fontSize: "0.85rem",
                         cursor: "pointer",
@@ -1674,15 +1674,15 @@ export default function AdminKasPage() {
                 <table className={styles.matrixTable}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                     <tr>
-                      <th className={styles.colStickyNo} style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>No.</th>
-                      <th className={styles.colStickyNoAnggota} style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>Nomor Anggota</th>
-                      <th className={styles.colStickyNama} style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>Nama</th>
-                      <th style={{ minWidth: 100, background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>Kas</th>
-                      <th style={{ width: 75, background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>Bulan Mulai</th>
+                      <th className={styles.colStickyNo} style={{ background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>No.</th>
+                      <th className={styles.colStickyNoAnggota} style={{ background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>Nomor Anggota</th>
+                      <th className={styles.colStickyNama} style={{ background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>Nama</th>
+                      <th style={{ minWidth: 100, background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>Kas</th>
+                      <th style={{ width: 75, background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>Bulan Mulai</th>
                       {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                        <th key={m} style={{ minWidth: 46, background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}>
+                        <th key={m} style={{ minWidth: 46, background: "var(--cv-ink-1, #161311)", color: "var(--fg)", borderBottom: "2px solid rgba(59, 130, 246, 0.5)" }}>
                           <div style={{ fontWeight: 800 }}>{MONTH_NAMES[m - 1]}</div>
-                          <div style={{ fontSize: "0.65rem", fontWeight: 400, opacity: 0.9 }}>
+                          <div style={{ fontSize: "0.65rem", fontWeight: 400, color: "#38bdf8" }}>
                             {formatRupiah(matrixData.monthlyTotals?.[m] || 0).replace("Rp ", "")}
                           </div>
                         </th>
@@ -2012,14 +2012,14 @@ export default function AdminKasPage() {
             <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
               <div>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-log-in-circle" style={{ color: "var(--cv-orange)" }} />
+                  <i className="bx bx-log-in-circle" style={{ color: "#10b981" }} />
                   Laporan Pemasukan Kas Eksternal Fanbase
-                  <span className={styles.countBadge} style={{ background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--cv-orange)" }}>
+                  <span className={styles.countBadge} style={{ background: "rgba(16, 185, 129, 0.15)", color: "#10b981" }}>
                     {pemasukanList.length} Transaksi
                   </span>
                 </h2>
                 <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  Total pemasukan eksternal tercatat: <strong style={{ color: "var(--cv-orange)" }}>{formatRupiah(totalPemasukanEksternal)}</strong>
+                  Total pemasukan eksternal tercatat: <strong style={{ color: "#10b981" }}>{formatRupiah(totalPemasukanEksternal)}</strong>
                 </div>
               </div>
 
@@ -2027,7 +2027,7 @@ export default function AdminKasPage() {
                 type="button"
                 onClick={() => setShowPemasukanModal(true)}
                 className={styles.btnCreate}
-                style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}
+                style={{ background: "#059669", color: "#fff" }}
               >
                 <i className="bx bx-plus" /> + Catat Pemasukan Baru
               </button>
@@ -2093,7 +2093,7 @@ export default function AdminKasPage() {
                           <td>#{p.id}</td>
                           <td>{new Date(p.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
                           <td>
-                            <span style={{ padding: "3px 8px", borderRadius: 4, background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--cv-orange)", fontSize: "0.75rem", fontWeight: 700 }}>
+                            <span style={{ padding: "3px 8px", borderRadius: 4, background: "rgba(16, 185, 129, 0.12)", color: "#10b981", fontSize: "0.75rem", fontWeight: 700 }}>
                               {p.kategori}
                             </span>
                           </td>
@@ -2101,7 +2101,7 @@ export default function AdminKasPage() {
                             <div style={{ fontWeight: 700 }}>{p.sumber}</div>
                             {p.catatan && <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{p.catatan}</div>}
                           </td>
-                          <td style={{ fontWeight: 800, color: "var(--cv-orange)" }}>{formatRupiah(p.nominal)}</td>
+                          <td style={{ fontWeight: 800, color: "#10b981" }}>{formatRupiah(p.nominal)}</td>
                           <td>{p.pj_nama}</td>
                           <td>
                             {(() => {
@@ -2125,7 +2125,7 @@ export default function AdminKasPage() {
                                 type="button"
                                 onClick={() => handleOpenEditPemasukan(p)}
                                 className={styles.backBtn}
-                                style={{ padding: "5px 9px", fontSize: "0.85rem", color: "var(--cv-orange)", borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                                style={{ padding: "5px 9px", fontSize: "0.85rem", color: "#60a5fa", borderColor: "rgba(59, 130, 246, 0.4)", display: "inline-flex", alignItems: "center", gap: 4 }}
                                 title="Edit Pemasukan"
                               >
                                 <i className="bx bx-edit-alt" /> Edit
@@ -2157,14 +2157,14 @@ export default function AdminKasPage() {
             <div className={styles.sectionHeader} style={{ flexWrap: "wrap", gap: 12 }}>
               <div>
                 <h2 className={styles.sectionTitle}>
-                  <i className="bx bx-receipt" style={{ color: "var(--cv-orange)" }} />
+                  <i className="bx bx-receipt" style={{ color: "#f43f5e" }} />
                   Laporan Operasional &amp; Pengeluaran Kas Fanbase
-                  <span className={styles.countBadge} style={{ background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)", color: "var(--cv-orange)" }}>
+                  <span className={styles.countBadge} style={{ background: "rgba(244, 63, 94, 0.15)", color: "#f43f5e" }}>
                     {pengeluaranList.length} Transaksi
                   </span>
                 </h2>
                 <div style={{ fontSize: "0.82rem", color: "var(--fg-muted)", marginTop: 2 }}>
-                  Total pengeluaran tercatat tahun {matrixYear}: <strong style={{ color: "var(--cv-orange)" }}>{formatRupiah(totalPengeluaran)}</strong>
+                  Total pengeluaran tercatat tahun {matrixYear}: <strong style={{ color: "#f43f5e" }}>{formatRupiah(totalPengeluaran)}</strong>
                 </div>
               </div>
 
@@ -2172,7 +2172,7 @@ export default function AdminKasPage() {
                 type="button"
                 onClick={() => setShowPengeluaranModal(true)}
                 className={styles.btnCreate}
-                style={{ background: "var(--cv-orange)", color: "var(--cv-on-orange)" }}
+                style={{ background: "#e11d48", color: "#fff" }}
               >
                 <i className="bx bx-plus" /> + Catat Pengeluaran Baru
               </button>
@@ -2214,7 +2214,7 @@ export default function AdminKasPage() {
                           <div style={{ fontWeight: 700 }}>{p.keperluan}</div>
                           {p.catatan && <div style={{ fontSize: "0.72rem", color: "var(--fg-muted)" }}>{p.catatan}</div>}
                         </td>
-                        <td style={{ fontWeight: 800, color: "var(--cv-orange)" }}>{formatRupiah(p.nominal)}</td>
+                        <td style={{ fontWeight: 800, color: "#f43f5e" }}>{formatRupiah(p.nominal)}</td>
                         <td>{p.pj_nama}</td>
                         <td>
                           {(() => {
@@ -2246,9 +2246,9 @@ export default function AdminKasPage() {
                                 style={{
                                   fontSize: "0.72rem",
                                   padding: "3px 8px",
-                                  background: "color-mix(in srgb, var(--cv-orange) 15%, transparent)",
-                                  color: "var(--gold)",
-                                  borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)",
+                                  background: "rgba(59, 130, 246, 0.12)",
+                                  color: "#60a5fa",
+                                  borderColor: "rgba(59, 130, 246, 0.35)",
                                   fontWeight: 700,
                                 }}
                                 title="Klik untuk melihat semua foto nota"
@@ -2264,7 +2264,7 @@ export default function AdminKasPage() {
                               type="button"
                               onClick={() => handleOpenEditPengeluaran(p)}
                               className={styles.backBtn}
-                              style={{ padding: "5px 9px", fontSize: "0.85rem", color: "var(--cv-orange)", borderColor: "color-mix(in srgb, var(--cv-orange) 40%, transparent)", display: "inline-flex", alignItems: "center", gap: 4 }}
+                              style={{ padding: "5px 9px", fontSize: "0.85rem", color: "#60a5fa", borderColor: "rgba(59, 130, 246, 0.4)", display: "inline-flex", alignItems: "center", gap: 4 }}
                               title="Edit Pengeluaran & Nota"
                             >
                               <i className="bx bx-edit-alt" /> Edit

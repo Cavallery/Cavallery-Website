@@ -337,9 +337,9 @@
 .btnActionEdit {
   padding: 6px 12px;
   border-radius: var(--cv-radius-sm);
-  border: 1px solid var(--border-gold);
-  background: var(--gold-dim);
-  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
   font-weight: 700;
   font-size: 0.78rem;
   cursor: pointer;
@@ -350,8 +350,9 @@
 }
 
 .btnActionEdit:hover {
-  background: var(--gold);
-  color: var(--cv-on-orange);
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
 }
 
 .btnActionDeactivate {
@@ -417,9 +418,9 @@
 .selectJabatanAdmin {
   padding: 5px 10px;
   border-radius: var(--cv-radius-pill);
-  background: color-mix(in srgb, var(--cv-orange) 20%, transparent);
-  border: 1.5px solid var(--border-gold);
-  color: var(--primary);
+  background: rgba(99, 102, 241, 0.15);
+  border: 1.5px solid rgba(99, 102, 241, 0.4);
+  color: #818cf8;
   font-family: var(--sans);
   font-weight: 800;
   font-size: 0.78rem;
@@ -430,9 +431,9 @@
 .selectDivisiAdmin {
   padding: 4px 8px;
   border-radius: var(--cv-radius-sm);
-  background: color-mix(in srgb, var(--cv-orange) 12%, transparent);
-  border: 1px solid var(--border-gold);
-  color: var(--primary);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
   font-family: var(--sans);
   font-weight: 700;
   font-size: 0.72rem;
@@ -727,15 +728,15 @@
 }
 
 :global([data-theme="dark"]) .selectJabatanAdmin {
-  background: color-mix(in srgb, var(--cv-orange) 25%, transparent);
-  border-color: color-mix(in srgb, var(--cv-orange) 60%, transparent);
-  color: var(--cv-orange);
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #818cf8;
 }
 
 :global([data-theme="dark"]) .selectDivisiAdmin {
-  background: color-mix(in srgb, var(--cv-orange) 20%, transparent);
-  border-color: color-mix(in srgb, var(--cv-orange) 50%, transparent);
-  color: var(--cv-orange);
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #60a5fa;
 }
 
 :global([data-theme="dark"]) .selectJabatanMember {

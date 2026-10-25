@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionFromReq } from "@/lib/auth";
 import { generateNextNoAnggota, ensurePinColumn } from "@/lib/membership";
-import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet } from "@/lib/googleSheets";
+import { appendAnggotaRow, deleteAnggotaRow, updateAnggotaJabatanInSheet, updateAnggotaStatusInSheet, appendKasRow } from "@/lib/googleSheets";
 import { query } from "@/lib/mysql";
 import { ensureBatchTables } from "@/lib/recruitmentBatch";
+import { syncKasToMatrix, MONTH_NAMES_ID } from "@/lib/kasMatrix";
 
 let _badgeColEnsured = false;
 async function ensureBadgeColumn() {
@@ -311,6 +312,91 @@ export async function POST(req: NextRequest) {
         status: true,
         message: `Berhasil menghapus ${ids.length} anggota secara permanen dari database & riwayatnya!`,
         totalDeleted: ids.length,
+      });
+    }
+
+    // ── BAYAR KAS BULANAN (15k - 180k / 1 - 12 BULAN) DENGAN AUTO CEKLIS MATRIKS ──
+    if (action === "bayar_kas") {
+      const { ids, bulanCount, nominal: reqNominal, tahun: reqTahun, startBulan: reqStartBulan, autoAktifkan = true } = body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return NextResponse.json({ status: false, message: "Daftar anggota wajib dipilih" }, { status: 400 });
+      }
+
+      const count = Math.max(1, Math.min(12, Number(bulanCount) || 1));
+      const nominal = Number(reqNominal) || count * 15000;
+      const tahun = Number(reqTahun) || new Date().getFullYear();
+      const startBulan = Math.max(1, Math.min(12, Number(reqStartBulan) || new Date().getMonth() + 1));
+
+      const startMonthName = MONTH_NAMES_ID[startBulan - 1] || "Januari";
+      let endBulan = startBulan + count - 1;
+      let endTahun = tahun;
+      while (endBulan > 12) {
+        endBulan -= 12;
+        endTahun += 1;
+      }
+      const endMonthName = MONTH_NAMES_ID[endBulan - 1];
+      const periode = count === 1 
+        ? `${startMonthName} ${tahun}` 
+        : `${startMonthName} ${tahun} - ${endMonthName} ${endTahun} (${count} Bulan)`;
+
+      const placeholders = ids.map(() => "?").join(",");
+      const members = await query<any[]>(
+        `SELECT id, no_anggota, nama_lengkap, id_line, status FROM anggota WHERE id IN (${placeholders})`,
+        ids
+      );
+
+      if (!members || members.length === 0) {
+        return NextResponse.json({ status: false, message: "Anggota tidak ditemukan" }, { status: 404 });
+      }
+
+      for (const m of members) {
+        // 1. Simpan ke konfirmasi_kas dengan status diverifikasi
+        const res = await query<any>(
+          `INSERT INTO konfirmasi_kas (anggota_id, periode, nominal, bukti_bayar_url, status, verified_at, verified_by) 
+           VALUES (?, ?, ?, '', 'diverifikasi', NOW(), ?)`,
+          [m.id, periode, nominal, admin.nama || "Admin"]
+        );
+        const insertedId = res?.insertId || Date.now();
+
+        // 2. Jika autoAktifkan aktif dan anggota nonaktif/pending, otomatis aktifkan
+        if (autoAktifkan && m.status !== "aktif") {
+          await query("UPDATE anggota SET status = 'aktif' WHERE id = ?", [m.id]);
+          if (m.no_anggota && m.no_anggota !== "-") {
+            updateAnggotaStatusInSheet(m.no_anggota, "aktif").catch(() => {});
+          }
+        }
+
+        // 3. Realtime kirim ke sheet kas
+        if (m.no_anggota && m.no_anggota !== "-") {
+          appendKasRow({
+            id: insertedId,
+            noAnggota: m.no_anggota,
+            namaAnggota: m.nama_lengkap,
+            idLine: m.id_line,
+            periode,
+            nominal,
+            status: "diverifikasi",
+            buktiBayarUrl: "",
+            createdAt: new Date(),
+          }).catch((err) => console.error("Realtime push kas to sheets error:", err));
+        }
+
+        // 4. Auto sync matriks kas bulanan & push checkmark ke tab matriks spreadsheet (cth: "Kas 2026")
+        await syncKasToMatrix({
+          konfirmasiKasId: insertedId,
+          anggotaId: m.id,
+          noAnggota: m.no_anggota || "-",
+          periode,
+          nominal,
+          status: "diverifikasi",
+          verifiedBy: admin.nama || "Admin",
+        });
+      }
+
+      return NextResponse.json({
+        status: true,
+        message: `Berhasil mencatat kas ${periode} (Rp ${nominal.toLocaleString("id-ID")}) untuk ${members.length} anggota! Matriks kas bulanan dan spreadsheet otomatis dicentang lunas.`,
+        totalProcessed: members.length,
       });
     }
 
