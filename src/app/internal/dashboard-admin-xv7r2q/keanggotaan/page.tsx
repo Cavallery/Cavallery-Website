@@ -26,6 +26,26 @@ const DIVISI_OPTIONS = [
   "Divisi Humas",
 ];
 
+const KAS_DROPDOWN_OPTIONS = [
+  { bulan: 1, nominal: 15000, label: "1 Bulan — Rp 15.000" },
+  { bulan: 2, nominal: 30000, label: "2 Bulan — Rp 30.000" },
+  { bulan: 3, nominal: 45000, label: "3 Bulan — Rp 45.000" },
+  { bulan: 4, nominal: 60000, label: "4 Bulan — Rp 60.000" },
+  { bulan: 5, nominal: 75000, label: "5 Bulan — Rp 75.000" },
+  { bulan: 6, nominal: 90000, label: "6 Bulan — Rp 90.000 (Setengah Tahun)" },
+  { bulan: 7, nominal: 105000, label: "7 Bulan — Rp 105.000" },
+  { bulan: 8, nominal: 120000, label: "8 Bulan — Rp 120.000" },
+  { bulan: 9, nominal: 135000, label: "9 Bulan — Rp 135.000" },
+  { bulan: 10, nominal: 150000, label: "10 Bulan — Rp 150.000" },
+  { bulan: 11, nominal: 165000, label: "11 Bulan — Rp 165.000" },
+  { bulan: 12, nominal: 180000, label: "12 Bulan — Rp 180.000 (1 Tahun Penuh)" },
+];
+
+const MONTH_NAMES_LIST = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
 export default function AdminKeanggotaanPage() {
   const [pendingList, setPendingList] = useState<any[]>([]);
   const [direktoriList, setDirektoriList] = useState<any[]>([]);
@@ -68,6 +88,15 @@ export default function AdminKeanggotaanPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+  // Bayar Kas Dropdown & Matriks State (15k - 180k)
+  const [showBayarKasModal, setShowBayarKasModal] = useState(false);
+  const [bayarKasTargets, setBayarKasTargets] = useState<any[]>([]);
+  const [bayarKasBulanCount, setBayarKasBulanCount] = useState<number>(1);
+  const [bayarKasTahun, setBayarKasTahun] = useState<number>(new Date().getFullYear());
+  const [bayarKasStartBulan, setBayarKasStartBulan] = useState<number>(new Date().getMonth() + 1);
+  const [bayarKasAutoAktifkan, setBayarKasAutoAktifkan] = useState<boolean>(true);
+  const [bayarKasSubmitting, setBayarKasSubmitting] = useState<boolean>(false);
 
   // Form Create State
   const [newNoAnggota, setNewNoAnggota] = useState("");
@@ -403,6 +432,65 @@ export default function AdminKeanggotaanPage() {
       alert(e?.message || "Terjadi kesalahan jaringan");
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  // ─── BAYAR KAS (15k - 180k / 1 - 12 BULAN) HANDLERS ───────
+  const handleOpenBayarKasSingle = (member: any) => {
+    setBayarKasTargets([member]);
+    setBayarKasBulanCount(1);
+    setBayarKasTahun(new Date().getFullYear());
+    setBayarKasStartBulan(new Date().getMonth() + 1);
+    setBayarKasAutoAktifkan(true);
+    setShowBayarKasModal(true);
+  };
+
+  const handleOpenBayarKasBulk = () => {
+    const selectedMembers = direktoriList.filter((m) => selectedIds.includes(m.id));
+    if (selectedMembers.length === 0) return;
+    setBayarKasTargets(selectedMembers);
+    setBayarKasBulanCount(1);
+    setBayarKasTahun(new Date().getFullYear());
+    setBayarKasStartBulan(new Date().getMonth() + 1);
+    setBayarKasAutoAktifkan(true);
+    setShowBayarKasModal(true);
+  };
+
+  const handleSubmitBayarKas = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (bayarKasTargets.length === 0) return;
+
+    const opt = KAS_DROPDOWN_OPTIONS.find((o) => o.bulan === bayarKasBulanCount) || KAS_DROPDOWN_OPTIONS[0];
+    const targetIds = bayarKasTargets.map((m) => m.id);
+
+    setBayarKasSubmitting(true);
+    try {
+      const res = await fetch("/api/admin/keanggotaan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "bayar_kas",
+          ids: targetIds,
+          bulanCount: opt.bulan,
+          nominal: opt.nominal,
+          tahun: Number(bayarKasTahun),
+          startBulan: Number(bayarKasStartBulan),
+          autoAktifkan: bayarKasAutoAktifkan,
+        }),
+      });
+      const json = await res.json();
+      if (json.status) {
+        setMsg(json.message);
+        setShowBayarKasModal(false);
+        setSelectedIds([]);
+        fetchData();
+      } else {
+        alert(json.message || "Gagal mencatat pembayaran kas");
+      }
+    } catch (err: any) {
+      alert(err?.message || "Terjadi kesalahan jaringan");
+    } finally {
+      setBayarKasSubmitting(false);
     }
   };
 
@@ -906,13 +994,13 @@ export default function AdminKeanggotaanPage() {
             const totalNominal = filtered.length;
             return (
             <div className={styles.tableWrap}>
-              <div style={{ padding: "8px 14px", marginBottom: 10, background: "color-mix(in srgb, var(--cv-orange) 8%, transparent)", borderRadius: 10, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ padding: "8px 14px", marginBottom: 10, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, fontSize: "0.82rem", color: "var(--fg-muted)", display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <span><i className="bx bx-user-check" style={{ color: "#10b981" }} /> <strong style={{ color: "var(--fg)" }}>{totalNominal}</strong> anggota ditampilkan</span>
                 <span><i className="bx bx-check-circle" style={{ color: "#10b981" }} /> <strong style={{ color: "#10b981" }}>{filtered.filter(a => a.status === "aktif").length}</strong> aktif</span>
                 <span><i className="bx bx-x-circle" style={{ color: "#ef4444" }} /> <strong style={{ color: "#ef4444" }}>{filtered.filter(a => a.status === "nonaktif").length}</strong> nonaktif</span>
-                <span><i className="bx bx-female" style={{ color: "var(--cv-orange-hi)" }} /> <strong style={{ color: "var(--cv-orange-hi)" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
-                <span><i className="bx bx-male" style={{ color: "var(--cv-orange-hi)" }} /> <strong style={{ color: "var(--cv-orange-hi)" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
-                <span><i className="bx bx-shield" style={{ color: "var(--primary)" }} /> <strong style={{ color: "var(--primary)" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>
+                <span><i className="bx bx-female" style={{ color: "#ec4899" }} /> <strong style={{ color: "#ec4899" }}>{filtered.filter(a => a.gender === "Perempuan").length}</strong> perempuan</span>
+                <span><i className="bx bx-male" style={{ color: "#38bdf8" }} /> <strong style={{ color: "#38bdf8" }}>{filtered.filter(a => a.gender === "Laki-laki").length}</strong> laki-laki</span>
+                <span><i className="bx bx-shield" style={{ color: "#818cf8" }} /> <strong style={{ color: "#818cf8" }}>{filtered.filter(a => (a.jabatan || "Anggota") !== "Anggota").length}</strong> admin fanbase</span>
               </div>
 
               {/* Bulk Action Toolbar */}
@@ -990,6 +1078,27 @@ export default function AdminKeanggotaanPage() {
                       title="Ubah status semua anggota terpilih menjadi Nonaktif"
                     >
                       <i className="bx bx-pause-circle" /> Nonaktifkan Terpilih
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkLoading}
+                      onClick={handleOpenBayarKasBulk}
+                      style={{
+                        background: "#059669",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "6px 12px",
+                        fontSize: "0.8rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                      title="Catat bayar kas untuk semua anggota terpilih sekaligus (15k - 180k)"
+                    >
+                      <i className="bx bx-wallet" /> Bayar Kas ({selectedIds.length})
                     </button>
                     <button
                       type="button"
@@ -1127,8 +1236,13 @@ export default function AdminKeanggotaanPage() {
                         <td className={styles.nameCol}>
                           {namaLengkap}
                           {a.gender === "Perempuan" && (
-                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "color-mix(in srgb, var(--cv-orange) 18%, transparent)", color: "var(--cv-orange-hi)", fontWeight: 700, verticalAlign: "middle" }}>
+                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "rgba(236, 72, 153, 0.15)", color: "#ec4899", fontWeight: 700, verticalAlign: "middle" }}>
                               <i className="bx bx-female" /> P
+                            </span>
+                          )}
+                          {a.gender === "Laki-laki" && (
+                            <span style={{ marginLeft: 5, fontSize: "0.7rem", padding: "1px 6px", borderRadius: 50, background: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", fontWeight: 700, verticalAlign: "middle" }}>
+                              <i className="bx bx-male" /> L
                             </span>
                           )}
                         </td>
@@ -1345,6 +1459,29 @@ export default function AdminKeanggotaanPage() {
                         </td>
                         <td>
                           <div className={styles.actionButtonGroup}>
+                            {/* Tombol Bayar Kas 15k-180k */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenBayarKasSingle(a)}
+                              style={{
+                                background: "rgba(16, 185, 129, 0.12)",
+                                color: "#10b981",
+                                border: "1px solid rgba(16, 185, 129, 0.35)",
+                                borderRadius: 6,
+                                padding: "6px 10px",
+                                fontSize: "0.78rem",
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                whiteSpace: "nowrap",
+                              }}
+                              title="Pilih bayar kas (15k - 180k) & auto ceklis matriks"
+                            >
+                              <i className="bx bx-wallet" /> Bayar Kas
+                            </button>
+
                             {/* Tombol Edit */}
                             <button
                               type="button"
@@ -2273,6 +2410,255 @@ export default function AdminKeanggotaanPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL BAYAR KAS (15k - 180k / 1 - 12 BULAN) ── */}
+      {showBayarKasModal && (
+        <div className={styles.modalOverlay} onClick={() => !bayarKasSubmitting && setShowBayarKasModal(false)}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className={styles.modalHeader} style={{ borderBottom: "1px solid rgba(16, 185, 129, 0.25)" }}>
+              <h3 className={styles.modalTitle} style={{ color: "#10b981", display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="bx bx-wallet" style={{ fontSize: "1.3rem" }} /> Bayar Kas Anggota (Auto Ceklis Matriks)
+              </h3>
+              <button
+                type="button"
+                className={styles.modalClose}
+                disabled={bayarKasSubmitting}
+                onClick={() => setShowBayarKasModal(false)}
+              >
+                <i className="bx bx-x" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitBayarKas} className={styles.modalForm}>
+              {/* Target Anggota */}
+              <div
+                style={{
+                  background: "color-mix(in srgb, var(--cv-ink) 50%, transparent)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontSize: "0.85rem",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ color: "var(--fg-muted)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
+                  Sasaran Pembayaran Kas ({bayarKasTargets.length} Anggota):
+                </div>
+                <div style={{ fontWeight: 700, color: "var(--fg)", maxHeight: 60, overflowY: "auto" }}>
+                  {bayarKasTargets.length === 1 ? (
+                    <span>
+                      {bayarKasTargets[0].namaLengkap || bayarKasTargets[0].nama_lengkap} (
+                      <span style={{ color: "var(--cv-orange-hi)" }}>
+                        {bayarKasTargets[0].noAnggota || bayarKasTargets[0].no_anggota || "-"}
+                      </span>
+                      )
+                    </span>
+                  ) : (
+                    <span>
+                      {bayarKasTargets.slice(0, 3).map((t) => t.namaLengkap || t.nama_lengkap).join(", ")}
+                      {bayarKasTargets.length > 3 && ` dan ${bayarKasTargets.length - 3} anggota lainnya`}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Dropdown Pilihan Bayar Kas 15k - 180k (1 - 12 Bulan) */}
+              <div className={styles.modalField} style={{ marginBottom: 14 }}>
+                <label className={styles.modalLabel} style={{ fontWeight: 700, color: "var(--fg)" }}>
+                  Pilih Paket Bayar Kas (15k - 180k):
+                </label>
+                <select
+                  className={styles.modalSelect}
+                  value={bayarKasBulanCount}
+                  onChange={(e) => setBayarKasBulanCount(Number(e.target.value))}
+                  style={{
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    borderColor: "rgba(16, 185, 129, 0.4)",
+                    background: "color-mix(in srgb, var(--surface) 90%, #10b981)",
+                  }}
+                >
+                  {KAS_DROPDOWN_OPTIONS.map((opt) => (
+                    <option key={opt.bulan} value={opt.bulan}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Preset Cepat */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                  {[1, 3, 6, 12].map((m) => {
+                    const presetOpt = KAS_DROPDOWN_OPTIONS.find((o) => o.bulan === m);
+                    if (!presetOpt) return null;
+                    const isSelected = bayarKasBulanCount === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setBayarKasBulanCount(m)}
+                        style={{
+                          fontSize: "0.75rem",
+                          padding: "4px 8px",
+                          borderRadius: 6,
+                          border: isSelected ? "1px solid #10b981" : "1px solid var(--border)",
+                          background: isSelected ? "rgba(16, 185, 129, 0.2)" : "transparent",
+                          color: isSelected ? "#10b981" : "var(--fg-muted)",
+                          cursor: "pointer",
+                          fontWeight: isSelected ? 700 : 500,
+                        }}
+                      >
+                        {m === 1 ? "1 Bulan (15k)" : m === 12 ? "12 Bulan / 1 Thn (180k)" : `${m} Bulan (${presetOpt.nominal / 1000}k)`}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pilihan Tahun & Mulai Bulan */}
+              <div className={styles.modalRow} style={{ marginBottom: 14 }}>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Tahun Kas</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={bayarKasTahun}
+                    onChange={(e) => setBayarKasTahun(Number(e.target.value))}
+                  >
+                    {[2024, 2025, 2026, 2027, 2028, 2029].map((y) => (
+                      <option key={y} value={y}>
+                        Tahun {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={styles.modalField}>
+                  <label className={styles.modalLabel}>Mulai Bulan</label>
+                  <select
+                    className={styles.modalSelect}
+                    value={bayarKasStartBulan}
+                    onChange={(e) => setBayarKasStartBulan(Number(e.target.value))}
+                  >
+                    {MONTH_NAMES_LIST.map((mName, idx) => (
+                      <option key={mName} value={idx + 1}>
+                        {mName} (Bulan {idx + 1})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Preview Ringkasan Periode & Auto Ceklis */}
+              {(() => {
+                const opt = KAS_DROPDOWN_OPTIONS.find((o) => o.bulan === bayarKasBulanCount) || KAS_DROPDOWN_OPTIONS[0];
+                const startM = MONTH_NAMES_LIST[bayarKasStartBulan - 1] || "Januari";
+                let endB = bayarKasStartBulan + bayarKasBulanCount - 1;
+                let endY = bayarKasTahun;
+                while (endB > 12) {
+                  endB -= 12;
+                  endY += 1;
+                }
+                const endM = MONTH_NAMES_LIST[endB - 1];
+                const periodeLabel = bayarKasBulanCount === 1
+                  ? `${startM} ${bayarKasTahun}`
+                  : `${startM} ${bayarKasTahun} s/d ${endM} ${endY}`;
+                const totalBayar = opt.nominal * bayarKasTargets.length;
+
+                return (
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.12))",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      borderRadius: 10,
+                      padding: "12px 14px",
+                      fontSize: "0.83rem",
+                      color: "var(--fg)",
+                      marginBottom: 16,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ color: "var(--fg-muted)" }}>Periode yang otomatis dicentang:</span>
+                      <strong style={{ color: "#10b981" }}>{periodeLabel} ({bayarKasBulanCount} Bulan)</strong>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ color: "var(--fg-muted)" }}>Total Nominal:</span>
+                      <strong style={{ color: "var(--fg)", fontSize: "0.95rem" }}>
+                        Rp {totalBayar.toLocaleString("id-ID")}
+                        {bayarKasTargets.length > 1 && (
+                          <span style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--fg-muted)", marginLeft: 6 }}>
+                            (@ Rp {opt.nominal.toLocaleString("id-ID")})
+                          </span>
+                        )}
+                      </strong>
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "#10b981", display: "flex", alignItems: "center", gap: 5, borderTop: "1px dashed rgba(16, 185, 129, 0.25)", paddingTop: 6 }}>
+                      <i className="bx bx-check-double" style={{ fontSize: "1rem" }} />
+                      <span>Matriks kas bulanan dan Google Spreadsheet otomatis tercentang lunas realtime!</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Opsi Otomatis Aktifkan Anggota */}
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: "0.82rem",
+                  color: "var(--fg)",
+                  cursor: "pointer",
+                  marginBottom: 16,
+                  userSelect: "none",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={bayarKasAutoAktifkan}
+                  onChange={(e) => setBayarKasAutoAktifkan(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: "#10b981", cursor: "pointer" }}
+                />
+                <span>Otomatis ubah status anggota menjadi <strong>Aktif</strong> jika sebelumnya nonaktif/pending</span>
+              </label>
+
+              {/* Modal Actions */}
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  disabled={bayarKasSubmitting}
+                  onClick={() => setShowBayarKasModal(false)}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={bayarKasSubmitting}
+                  className={styles.btnCreate}
+                  style={{
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    border: "none",
+                    color: "#fff",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  {bayarKasSubmitting ? (
+                    <>
+                      <i className="bx bx-loader-alt bx-spin" /> Menyimpan & Ceklis...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bx bx-check-double" /> Simpan & Ceklis Otomatis
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

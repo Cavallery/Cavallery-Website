@@ -10,17 +10,20 @@ interface AdminSubNavProps {
 }
 
 const NAV_ITEMS = [
-  { key: "dashboard", href: "/internal/dashboard-admin-xv7r2q", label: "Dashboard Utama", icon: "bx-grid-alt" },
-  { key: "keanggotaan", href: "/internal/dashboard-admin-xv7r2q/keanggotaan", label: "Keanggotaan", icon: "bx-user-check" },
-  { key: "gathering", href: "/internal/dashboard-admin-xv7r2q/gathering", label: "Presensi Gathering", icon: "bx-qr-scan" },
-  { key: "kas", href: "/internal/dashboard-admin-xv7r2q/kas", label: "Verifikasi Kas", icon: "bx-wallet" },
-  { key: "donasi", href: "/internal/dashboard-admin-xv7r2q/donasi", label: "Donasi", icon: "bx-donate-heart" },
-  { key: "kontributor", href: "/internal/dashboard-admin-xv7r2q/kontributor", label: "Kontributor", icon: "bx-heart-circle" },
-  { key: "master-data", href: "/internal/dashboard-admin-xv7r2q/master-data", label: "Master Data", icon: "bx-slider-alt" },
-  { key: "struktur", href: "/internal/dashboard-admin-xv7r2q/struktur", label: "Struktur Admin", icon: "bx-sitemap" },
+  { key: "dashboard", href: "/internal/dashboard-admin-xv7r2q", label: "Dashboard Utama", icon: "bx-grid-alt", color: "#3b82f6" },
+  { key: "keanggotaan", href: "/internal/dashboard-admin-xv7r2q/keanggotaan", label: "Keanggotaan", icon: "bx-user-check", color: "#6366f1" },
+  { key: "gathering", href: "/internal/dashboard-admin-xv7r2q/gathering", label: "Presensi Gathering", icon: "bx-qr-scan", color: "#a855f7" },
+  { key: "kas", href: "/internal/dashboard-admin-xv7r2q/kas", label: "Verifikasi Kas", icon: "bx-wallet", color: "#10b981" },
+  { key: "donasi", href: "/internal/dashboard-admin-xv7r2q/donasi", label: "Donasi", icon: "bx-donate-heart", color: "#06b6d4" },
+  { key: "kontributor", href: "/internal/dashboard-admin-xv7r2q/kontributor", label: "Kontributor", icon: "bx-heart-circle", color: "#ec4899" },
+  { key: "master-data", href: "/internal/dashboard-admin-xv7r2q/master-data", label: "Master Data", icon: "bx-slider-alt", color: "#f59e0b" },
+  { key: "struktur", href: "/internal/dashboard-admin-xv7r2q/struktur", label: "Struktur Admin", icon: "bx-sitemap", color: "#0284c7" },
 ];
 
 export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavProps) {
+  const currentNav = NAV_ITEMS.find((n) => n.key === activeKey);
+  const activeColor = currentNav?.color || "#3b82f6";
+
   return (
     <div
       style={{
@@ -54,7 +57,7 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                 margin: 0,
               }}
             >
-              <i className="bx bxs-shield-alt-2" style={{ color: "var(--gold)" }} />
+              <i className="bx bxs-shield-alt-2" style={{ color: activeColor }} />
               {title}
             </h1>
           )}
@@ -117,16 +120,16 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                 whiteSpace: "nowrap",
                 transition: "all 0.15s ease",
                 background: isActive
-                  ? "var(--cv-orange-soft)"
+                  ? `color-mix(in srgb, ${item.color} 16%, transparent)`
                   : "color-mix(in srgb, var(--cv-bone) 4%, transparent)",
-                color: isActive ? "var(--cv-orange)" : "var(--fg-dim)",
+                color: isActive ? item.color : "var(--fg-dim)",
                 border: isActive
-                  ? "1px solid var(--cv-orange-line)"
+                  ? `1px solid color-mix(in srgb, ${item.color} 45%, transparent)`
                   : "1px solid var(--cv-line)",
                 boxShadow: "none",
               }}
             >
-              <i className={`bx ${item.icon}`} style={{ fontSize: "1rem" }} />
+              <i className={`bx ${item.icon}`} style={{ fontSize: "1rem", color: isActive ? item.color : undefined }} />
               <span>{item.label}</span>
               {isActive && (
                 <span
@@ -134,7 +137,7 @@ export default function AdminSubNav({ activeKey, title, subtitle }: AdminSubNavP
                     width: 6,
                     height: 6,
                     borderRadius: "50%",
-                    background: "var(--gold)",
+                    background: item.color,
                     display: "inline-block",
                   }}
                 />
