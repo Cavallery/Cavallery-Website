@@ -11841,6 +11841,7 @@ const navGroups: NavGroup[] = [
     label: "Keanggotaan & Keuangan",
     icon: "bx-wallet",
     items: [
+      { key: "adminanggotacava" as any, icon: "bx-id-card",      label: "Data Anggota CAVA" },
       { key: "keanggotaan" as any,      icon: "bx-user-check",   label: "Keanggotaan" },
       { key: "adminkontributor" as any, icon: "bx-heart-circle", label: "Kontributor" },
       { key: "adminkas" as any,         icon: "bx-wallet",       label: "Verifikasi Kas" },
@@ -11962,6 +11963,10 @@ export default function AdminPage() {
       return;
     }
 
+    if ((section as string) === "adminanggotacava") {
+      window.location.href = "/internal/dashboard-admin-xv7r2q/anggota";
+      return;
+    }
     if ((section as string) === "keanggotaan") {
       window.location.href = "/internal/dashboard-admin-xv7r2q/keanggotaan";
       return;
