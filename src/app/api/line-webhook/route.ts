@@ -224,6 +224,31 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     text === "bayar iuran" ||
     text === "iuran kas";
 
+  // Deteksi perintah nomor anggota
+  const isDirectCavaNo = /^cava[-\s]?\d{1,4}$/i.test(text);
+  const isNomorAnggotaCommand =
+    text === "nomor anggota" ||
+    text === "!nomoranggota" ||
+    text === "/nomoranggota" ||
+    text === "#nomoranggota" ||
+    text === "no anggota" ||
+    text === "!noanggota" ||
+    text === "/noanggota" ||
+    text === "#noanggota" ||
+    text === "nomor" ||
+    text === "!nomor" ||
+    text === "/nomor" ||
+    text === "cek nomor" ||
+    text === "cek no" ||
+    text === "cek nomor anggota" ||
+    text === "cek no anggota" ||
+    text === "daftar anggota" ||
+    text === "direktori anggota" ||
+    text === "anggota" ||
+    text === "!anggota" ||
+    text === "/anggota" ||
+    isDirectCavaNo;
+
   // Deteksi perintah pengumuman discord
   const isPengumumanCommand =
     text === "pengumuman" ||
@@ -262,6 +287,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
     isKasCommand ||
     isBayarKasCommand ||
     isPengumumanCommand ||
+    isNomorAnggotaCommand ||
     isMediaCommand ||
     isHelpCommand;
 
@@ -471,13 +497,91 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
       },
     };
   }
-  // 4. Perintah bantuan / menu
+  // 4. Perintah: nomor anggota / no anggota / cava-xxxx
+  else if (isNomorAnggotaCommand) {
+    let queryParam = "";
+    if (isDirectCavaNo) {
+      const numMatch = text.match(/\d+/);
+      if (numMatch) {
+        const padded = String(parseInt(numMatch[0], 10)).padStart(4, "0");
+        queryParam = `?q=CAVA-${padded}`;
+      } else {
+        queryParam = `?q=${encodeURIComponent(text.toUpperCase())}`;
+      }
+    }
+
+    messagePayload = {
+      type: "flex",
+      altText:
+        "Direktori Nomor Anggota Cavallery\n\nCek nomor anggota kamu:\nhttps://cavallery.id/nomor-anggota" + queryParam,
+      contents: {
+        type: "bubble",
+        size: "kilo",
+        header: {
+          type: "box",
+          layout: "vertical",
+          backgroundColor: "#1E1035",
+          paddingAll: "lg",
+          contents: [
+            {
+              type: "text",
+              text: "Cavallery Directory",
+              weight: "bold",
+              color: "#C084FC",
+              size: "sm",
+            },
+            {
+              type: "text",
+              text: "Direktori Nomor Anggota",
+              weight: "bold",
+              color: "#FFFFFF",
+              size: "lg",
+              margin: "xs",
+            },
+          ],
+        },
+        body: {
+          type: "box",
+          layout: "vertical",
+          spacing: "md",
+          contents: [
+            {
+              type: "text",
+              text: "Cari nomor anggota resmi Cavallery Fanbase (Batch 1 – 9). Cek status keanggotaan aktif dan salin nomor dengan mudah melalui web:",
+              wrap: true,
+              size: "sm",
+              color: "#A1A1AA",
+            },
+          ],
+        },
+        footer: {
+          type: "box",
+          layout: "vertical",
+          spacing: "sm",
+          contents: [
+            {
+              type: "button",
+              style: "primary",
+              color: "#8B5CF6",
+              action: {
+                type: "uri",
+                label: "Buka Halaman Anggota",
+                uri: `https://cavallery.id/nomor-anggota${queryParam}`,
+              },
+            },
+          ],
+        },
+      },
+    };
+  }
+  // 5. Perintah bantuan / menu
   else if (isHelpCommand) {
     messagePayload = {
       type: "text",
       text:
         "Halo! Aku bot resmi Cavallery Fanbase. 🕊️\n\n" +
         "Berikut perintah yang bisa kamu gunakan:\n" +
+        "• nomor anggota : Menampilkan direktori pencarian nomor anggota resmi (Batch 1 - 9)\n" +
         "• kas : Menampilkan transparansi laporan kas internal\n" +
         "• bayar kas : Menampilkan link pembayaran kas\n" +
         "• pengumuman / discord : Menampilkan arsip pengumuman resmi Discord\n\n" +
