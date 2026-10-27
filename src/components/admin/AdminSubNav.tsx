@@ -11,7 +11,7 @@ interface AdminSubNavProps {
 
 const NAV_ITEMS = [
   { key: "dashboard", href: "/internal/dashboard-admin-xv7r2q", label: "Dashboard Utama", icon: "bx-grid-alt", color: "#3b82f6" },
-  { key: "anggota", href: "/internal/dashboard-admin-xv7r2q/anggota", label: "Data Anggota CAVA", icon: "bx-id-card", color: "#8b5cf6" },
+  { key: "anggota", href: "/internal/dashboard-admin-xv7r2q/anggota", label: "Data Anggota CAVA", icon: "bx-id-card", color: "#ea580c" },
   { key: "keanggotaan", href: "/internal/dashboard-admin-xv7r2q/keanggotaan", label: "Keanggotaan", icon: "bx-user-check", color: "#6366f1" },
   { key: "gathering", href: "/internal/dashboard-admin-xv7r2q/gathering", label: "Presensi Gathering", icon: "bx-qr-scan", color: "#a855f7" },
   { key: "kas", href: "/internal/dashboard-admin-xv7r2q/kas", label: "Verifikasi Kas", icon: "bx-wallet", color: "#10b981" },

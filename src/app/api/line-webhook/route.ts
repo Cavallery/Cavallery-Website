@@ -520,14 +520,14 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
         header: {
           type: "box",
           layout: "vertical",
-          backgroundColor: "#1E1035",
+          backgroundColor: "#0F172A",
           paddingAll: "lg",
           contents: [
             {
               type: "text",
               text: "Cavallery Directory",
               weight: "bold",
-              color: "#C084FC",
+              color: "#F97316",
               size: "sm",
             },
             {
@@ -562,7 +562,7 @@ async function handleLineEvent(event: any, channelAccessToken: string) {
             {
               type: "button",
               style: "primary",
-              color: "#8B5CF6",
+              color: "#EA580C",
               action: {
                 type: "uri",
                 label: "Buka Halaman Anggota",

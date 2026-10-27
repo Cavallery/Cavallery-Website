@@ -47,9 +47,37 @@ function mapDbRowToRecord(row: any): AnggotaRecord {
   };
 }
 
+let tableEnsured = false;
+async function ensureAnggotaTableExists(): Promise<void> {
+  if (tableEnsured || !isMySqlConfigured()) return;
+  try {
+    await query(`CREATE TABLE IF NOT EXISTS \`anggota_cava\` (
+      \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+      \`batch\` VARCHAR(50) NOT NULL,
+      \`batch_number\` INT NOT NULL DEFAULT 1,
+      \`no_anggota\` VARCHAR(50) NOT NULL UNIQUE,
+      \`nama\` VARCHAR(191) NOT NULL,
+      \`id_line\` VARCHAR(191) DEFAULT '-',
+      \`domisili\` VARCHAR(191) DEFAULT '-',
+      \`display_name\` VARCHAR(191) DEFAULT '-',
+      \`status\` ENUM('Aktif', 'Keluar') NOT NULL DEFAULT 'Aktif',
+      \`role\` VARCHAR(50) NOT NULL DEFAULT 'Anggota',
+      \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX \`idx_batch\` (\`batch_number\`),
+      INDEX \`idx_no_anggota\` (\`no_anggota\`),
+      INDEX \`idx_status\` (\`status\`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+    tableEnsured = true;
+  } catch (e: any) {
+    console.warn("[AnggotaService] Error ensuring anggota_cava table:", e?.message);
+  }
+}
+
 export async function fetchAllAnggota(): Promise<AnggotaRecord[]> {
   if (isMySqlConfigured()) {
     try {
+      await ensureAnggotaTableExists();
       const rows = await query<any[]>(
         "SELECT * FROM anggota_cava ORDER BY batch_number ASC, id ASC"
       );
@@ -125,21 +153,16 @@ export async function getFilteredAnggota(options: AnggotaFilterOptions = {}): Pr
   }
 
   if (options.role && options.role !== "all") {
-    filtered = filtered.filter((a) => a.role.toLowerCase() === options.role?.toLowerCase());
+    filtered = filtered.filter((a) => a.role.toLowerCase() === options.role!.toLowerCase());
   }
 
   if (options.search && options.search.trim().length > 0) {
     filtered = filtered.filter((a) => matchesSearchQuery(a, options.search!));
   }
 
-  const total = filtered.length;
-  if (options.offset !== undefined && options.limit !== undefined) {
-    filtered = filtered.slice(options.offset, options.offset + options.limit);
-  }
-
   return {
     data: filtered,
-    total,
+    total: filtered.length,
     stats,
   };
 }
@@ -189,19 +212,25 @@ export async function addAnggota(data: Omit<AnggotaRecord, "id">): Promise<Anggo
     id: nextId,
     noAnggota: formattedNo,
     batchNumber: data.batchNumber || parseInt(String(data.batch).replace(/[^\d]/g, ""), 10) || 1,
+    idLine: data.idLine || "-",
+    domisili: data.domisili || "-",
+    displayName: data.displayName || formattedNo,
     tunggakanKas: data.tunggakanKas || "-",
     nominalKas: data.nominalKas || "-",
     nominalKasNumber: data.nominalKasNumber || 0,
     terakhirBayar: data.terakhirBayar || "-",
+    status: data.status === "Keluar" ? "Keluar" : "Aktif",
+    role: data.role === "Admin" ? "Admin" : data.role === "Keluar" ? "Keluar" : "Anggota",
   };
 
-  // 1. Save to local JSON first
-  const updatedList = [...all, newRecord];
+  // 1. Simpan ke local cache & JSON
+  const updatedList = [...all.filter((a) => a.noAnggota !== formattedNo), newRecord];
   saveAllMembers(updatedList);
 
-  // 2. Sync to MySQL if configured
+  // 2. Sync ke MySQL jika tersedia
   if (isMySqlConfigured()) {
     try {
+      await ensureAnggotaTableExists();
       await query(
         `INSERT INTO anggota_cava 
         (batch, batch_number, no_anggota, nama, id_line, domisili, display_name, status, role)
@@ -237,7 +266,10 @@ export async function addAnggota(data: Omit<AnggotaRecord, "id">): Promise<Anggo
 
 export async function updateAnggota(idOrNo: number | string, patch: Partial<AnggotaRecord>): Promise<AnggotaRecord | null> {
   const all = await fetchAllAnggota();
-  const index = all.findIndex((a) => a.id === idOrNo || a.noAnggota === idOrNo);
+  const numId = Number(idOrNo);
+  const index = all.findIndex(
+    (a) => (!isNaN(numId) && a.id === numId) || a.noAnggota === idOrNo || a.legacyNoAnggota === idOrNo
+  );
   if (index === -1) return null;
 
   const current = all[index];
@@ -258,6 +290,7 @@ export async function updateAnggota(idOrNo: number | string, patch: Partial<Angg
   // MySQL Sync
   if (isMySqlConfigured()) {
     try {
+      await ensureAnggotaTableExists();
       await query(
         `UPDATE anggota_cava SET
           batch = ?,
@@ -294,7 +327,10 @@ export async function updateAnggota(idOrNo: number | string, patch: Partial<Angg
 
 export async function deleteAnggota(idOrNo: number | string): Promise<boolean> {
   const all = await fetchAllAnggota();
-  const target = all.find((a) => a.id === idOrNo || a.noAnggota === idOrNo);
+  const numId = Number(idOrNo);
+  const target = all.find(
+    (a) => (!isNaN(numId) && a.id === numId) || a.noAnggota === idOrNo || a.legacyNoAnggota === idOrNo
+  );
   if (!target) return false;
 
   const updated = all.filter((a) => a.id !== target.id && a.noAnggota !== target.noAnggota);
@@ -302,6 +338,7 @@ export async function deleteAnggota(idOrNo: number | string): Promise<boolean> {
 
   if (isMySqlConfigured()) {
     try {
+      await ensureAnggotaTableExists();
       await query("DELETE FROM anggota_cava WHERE id = ? OR no_anggota = ?", [target.id, target.noAnggota]);
     } catch (e: any) {
       console.error("[AnggotaService] MySQL delete error:", e?.message);
@@ -342,4 +379,49 @@ export function generateCsvData(members: AnggotaRecord[]): string {
   ]);
 
   return [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+}
+
+export function generateSqlScript(members: AnggotaRecord[]): string {
+  const escapeSql = (str: string) => String(str ?? "").replace(/'/g, "''").replace(/\\/g, "\\\\");
+
+  const lines = [
+    `-- ============================================================`,
+    `-- CAVALLERY FANBASE: DATA RESMI ANGGOTA (BATCH 1 - 9)`,
+    `-- Database: Hostinger MySQL / u410588002_Cavallery`,
+    `-- Total Data: ${members.length} Anggota (CAVA-0000 s/d CAVA-0650)`,
+    `-- Exported At: ${new Date().toISOString()}`,
+    `-- ============================================================`,
+    ``,
+    `CREATE TABLE IF NOT EXISTS \`anggota_cava\` (`,
+    `  \`id\` INT AUTO_INCREMENT PRIMARY KEY,`,
+    `  \`batch\` VARCHAR(50) NOT NULL,`,
+    `  \`batch_number\` INT NOT NULL DEFAULT 1,`,
+    `  \`no_anggota\` VARCHAR(50) NOT NULL UNIQUE,`,
+    `  \`nama\` VARCHAR(191) NOT NULL,`,
+    `  \`id_line\` VARCHAR(191) DEFAULT '-',`,
+    `  \`domisili\` VARCHAR(191) DEFAULT '-',`,
+    `  \`display_name\` VARCHAR(191) DEFAULT '-',`,
+    `  \`status\` ENUM('Aktif', 'Keluar') NOT NULL DEFAULT 'Aktif',`,
+    `  \`role\` VARCHAR(50) NOT NULL DEFAULT 'Anggota',`,
+    `  \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,`,
+    `  \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`,
+    `  INDEX \`idx_batch\` (\`batch_number\`),`,
+    `  INDEX \`idx_no_anggota\` (\`no_anggota\`),`,
+    `  INDEX \`idx_status\` (\`status\`)`,
+    `) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+    ``,
+    `-- ============================================================`,
+    `-- INSERT / UPDATE ANGGOTA REALTIME`,
+    `-- ============================================================`,
+    `INSERT INTO \`anggota_cava\` `,
+    `(\`batch\`, \`batch_number\`, \`no_anggota\`, \`nama\`, \`id_line\`, \`domisili\`, \`display_name\`, \`status\`, \`role\`)`,
+    `VALUES`,
+  ];
+
+  const valuesArr = members.map((m) => {
+    return `('${escapeSql(m.batch)}', ${m.batchNumber}, '${escapeSql(m.noAnggota)}', '${escapeSql(m.nama)}', '${escapeSql(m.idLine)}', '${escapeSql(m.domisili)}', '${escapeSql(m.displayName)}', '${escapeSql(m.status)}', '${escapeSql(m.role)}')`;
+  });
+
+  lines.push(valuesArr.join(",\n") + ";");
+  return lines.join("\n");
 }
