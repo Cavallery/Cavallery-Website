@@ -48,8 +48,8 @@ interface NodePoint extends Pt {
 const LINE = 0.7; // arrival line, fraction of the viewport height
 
 /**
- * Generator alur meliuk & melingkar (Catmull-Rom & loop-the-loop Bezier):
- * Menghubungkan setiap node dengan kurva meliuk (S-curve meanders) dan loop melingkar
+ * Generator alur meliuk & melingkar (Catmull-Rom & 360° Loop-the-loop Bezier):
+ * Menghubungkan setiap milestone node dengan kurva meliuk (S-curve meanders) dan loop melingkar
  * 360 derajat di antara milestone cards, menciptakan pengalaman visual berjalan yang hidup.
  */
 function buildKnightPath(nodes: NodePoint[], upTo = nodes.length - 1): string {
@@ -73,56 +73,73 @@ function buildKnightPath(nodes: NodePoint[], upTo = nodes.length - 1): string {
     const xMid = (p1.x + p2.x) / 2;
     const yMid = p1.y + dy * 0.5;
 
-    // Deteksi desktop vs mobile
-    const isDesktop = (p1.laneRight - p1.laneLeft) > 600;
+    const laneWidth = Math.max(320, p1.laneRight - p1.laneLeft);
+    const isDesktop = laneWidth > 550;
+    const isYearTransition = p1.year !== p2.year;
 
-    // Setiap segmen ke-2 (atau ke-3) yang memiliki jarak vertikal cukup, buat loop melingkar 360°
-    const isLoopSegment = (i % 3 === 1) && (dy >= 80);
+    // Loop melingkar 360° pada segmen berkala dengan jarak cukup, dalam tahun yang sama
+    const isLoopSegment = !isYearTransition && (i % 3 === 1) && (dy >= 95);
 
     if (isLoopSegment) {
-      // ── ALUR MELINGKAR (Loop-the-loop Circle) ──
+      // ── ALUR MELINGKAR 360° (Loop-the-loop Circle) ──
       const loopSign = (Math.floor(i / 3) % 2 === 0) ? 1 : -1;
-      const R = Math.min(isDesktop ? 28 : 16, Math.max(12, dy * 0.12));
-      const xc = xMid + loopSign * (R + (isDesktop ? 12 : 6));
+      const R = Math.min(isDesktop ? 32 : 18, Math.max(14, dy * 0.12));
+      const k = 0.55228475 * R; // Konstanta aproksimasi lingkaran Bezier
+
+      // Batasi titik pusat loop agar tetap aman di dalam batas lane
+      const rawXc = xMid + loopSign * (R + (isDesktop ? 16 : 8));
+      const xc = Math.max(p1.laneLeft + R + 20, Math.min(p1.laneRight - R - 20, rawXc));
       const yc = yMid;
 
-      // 1. Kurva masuk dari p1 ke puncak loop (xc, yc - R)
-      const inCp1x = p1.x + loopSign * (isDesktop ? 18 : 8);
-      const inCp1y = p1.y + dy * 0.2;
-      const inCp2x = xc - loopSign * R * 0.7;
-      const inCp2y = yc - R * 1.15;
+      // 1. Masuk dari p1 ke puncak loop (xc, yc - R)
+      const inCp1x = p1.x + loopSign * (isDesktop ? 22 : 10);
+      const inCp1y = p1.y + dy * 0.22;
+      const inCp2x = xc - loopSign * k;
+      const inCp2y = yc - R;
       d += ` C ${inCp1x.toFixed(1)} ${inCp1y.toFixed(1)} ${inCp2x.toFixed(1)} ${inCp2y.toFixed(1)} ${xc.toFixed(1)} ${(yc - R).toFixed(1)}`;
 
-      // 2. Lingkaran luar loop (memutar ke bawah)
-      const outCp1x = xc + loopSign * R * 1.4;
-      const outCp1y = yc - R * 0.6;
-      const outCp2x = xc + loopSign * R * 1.4;
-      const outCp2y = yc + R * 0.6;
-      d += ` C ${outCp1x.toFixed(1)} ${outCp1y.toFixed(1)} ${outCp2x.toFixed(1)} ${outCp2y.toFixed(1)} ${xc.toFixed(1)} ${(yc + R).toFixed(1)}`;
+      // 2. Putaran kuadran luar (atas -> sisi luar)
+      const c1x = xc + loopSign * k;
+      const c1y = yc - R;
+      const c2x = xc + loopSign * R;
+      const c2y = yc - k;
+      const pRightX = xc + loopSign * R;
+      const pRightY = yc;
+      d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${pRightX.toFixed(1)} ${pRightY.toFixed(1)}`;
 
-      // 3. Lingkaran dalam loop (menyilang kembali ke atas loop)
-      const backCp1x = xc - loopSign * R * 1.35;
-      const backCp1y = yc + R * 0.6;
-      const backCp2x = xc - loopSign * R * 1.35;
-      const backCp2y = yc - R * 0.5;
-      const exitCrossX = xc + loopSign * 4;
-      const exitCrossY = yc - R * 0.25;
-      d += ` C ${backCp1x.toFixed(1)} ${backCp1y.toFixed(1)} ${backCp2x.toFixed(1)} ${backCp2y.toFixed(1)} ${exitCrossX.toFixed(1)} ${exitCrossY.toFixed(1)}`;
+      // 3. Putaran kuadran bawah (sisi luar -> bawah)
+      const c3x = xc + loopSign * R;
+      const c3y = yc + k;
+      const c4x = xc + loopSign * k;
+      const c4y = yc + R;
+      const pBottomX = xc;
+      const pBottomY = yc + R;
+      d += ` C ${c3x.toFixed(1)} ${c3y.toFixed(1)} ${c4x.toFixed(1)} ${c4y.toFixed(1)} ${pBottomX.toFixed(1)} ${pBottomY.toFixed(1)}`;
 
-      // 4. Kurva keluar dari loop menuju p2
-      const outCp3x = xc + loopSign * R * 0.8;
-      const outCp3y = yc + R * 0.6;
-      const outCp4x = p2.x - loopSign * (isDesktop ? 18 : 8);
-      const outCp4y = p2.y - dy * 0.2;
-      d += ` C ${outCp3x.toFixed(1)} ${outCp3y.toFixed(1)} ${outCp4x.toFixed(1)} ${outCp4y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      // 4. Putaran kuadran dalam (bawah -> sisi dalam)
+      const c5x = xc - loopSign * k;
+      const c5y = yc + R;
+      const c6x = xc - loopSign * R;
+      const c6y = yc + k;
+      const pLeftX = xc - loopSign * R;
+      const pLeftY = yc;
+      d += ` C ${c5x.toFixed(1)} ${c5y.toFixed(1)} ${c6x.toFixed(1)} ${c6y.toFixed(1)} ${pLeftX.toFixed(1)} ${pLeftY.toFixed(1)}`;
+
+      // 5. Keluar dari putaran loop menyilang anggun menuju p2
+      const outCp1x = xc - loopSign * R;
+      const outCp1y = yc - k;
+      const outCp2x = p2.x - loopSign * (isDesktop ? 20 : 10);
+      const outCp2y = p2.y - dy * 0.25;
+      d += ` C ${outCp1x.toFixed(1)} ${outCp1y.toFixed(1)} ${outCp2x.toFixed(1)} ${outCp2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
     } else {
       // ── ALUR MELIUK (Meandering S-Curve sweep) ──
       const swingSign = (i % 2 === 0) ? 1 : -1;
-      const swingAmp = Math.min(isDesktop ? 52 : 20, Math.max(12, dy * 0.22));
-      const xPeak = xMid + swingSign * swingAmp;
+      const swingAmp = Math.min(isDesktop ? 56 : 22, Math.max(14, dy * 0.22));
+      const rawXPeak = xMid + swingSign * swingAmp;
+      const xPeak = Math.max(p1.laneLeft + 25, Math.min(p1.laneRight - 25, rawXPeak));
 
       // Paruh pertama: p1 ke titik puncak liukan
-      const cp1x = p1.x + swingSign * swingAmp * 0.4;
+      const cp1x = p1.x + swingSign * swingAmp * 0.45;
       const cp1y = p1.y + dy * 0.25;
       const cp2x = xPeak;
       const cp2y = yMid - dy * 0.12;
@@ -131,7 +148,7 @@ function buildKnightPath(nodes: NodePoint[], upTo = nodes.length - 1): string {
       // Paruh kedua: dari titik puncak liukan menuju p2
       const cp3x = xPeak;
       const cp3y = yMid + dy * 0.12;
-      const cp4x = p2.x + swingSign * swingAmp * 0.2;
+      const cp4x = p2.x + swingSign * swingAmp * 0.25;
       const cp4y = p2.y - dy * 0.25;
       d += ` C ${cp3x.toFixed(1)} ${cp3y.toFixed(1)} ${cp4x.toFixed(1)} ${cp4y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
     }
@@ -174,7 +191,7 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
       // Year rail ------------------------------------------------------------
       let activeYear = "";
       const showYear = (year: string, dir: 1 | -1) => {
-        if (year === activeYear) return;
+        if (!year || year === activeYear) return;
         const prev = yearEls.find((e) => e.dataset.kpYear === activeYear);
         const next = yearEls.find((e) => e.dataset.kpYear === year);
         activeYear = year;
@@ -183,10 +200,16 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
           yearEls.forEach((e) => gsap.set(e, { autoAlpha: e === next ? 1 : 0, yPercent: 0 }));
           return;
         }
-        if (prev) gsap.to(prev, { yPercent: -60 * dir, autoAlpha: 0, duration: 0.45, ease: "power2.in", overwrite: true });
-        if (next) gsap.fromTo(next, { yPercent: 60 * dir, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.6, delay: 0.1, ease: "power3.out", overwrite: true });
+        if (prev && prev !== next) {
+          gsap.to(prev, { yPercent: -60 * dir, autoAlpha: 0, duration: 0.45, ease: "power2.in", overwrite: true });
+        }
+        if (next) {
+          gsap.fromTo(next, { yPercent: 60 * dir, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 0.6, delay: 0.08, ease: "power3.out", overwrite: true });
+        }
       };
-      yearEls.forEach((e, i) => gsap.set(e, { autoAlpha: i === 0 ? 1 : 0 }));
+
+      // Inisialisasi awal tahun: hanya tahun pertama yang terlihat
+      yearEls.forEach((e, i) => gsap.set(e, { autoAlpha: i === 0 ? 1 : 0, yPercent: 0 }));
       if (yearEls[0]) {
         activeYear = yearEls[0].dataset.kpYear || "";
         setEra(Number(activeYear) >= fireFromYear);
@@ -266,6 +289,7 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         const rect = root.getBoundingClientRect();
         const W = Math.round(rect.width);
         const H = Math.round(root.scrollHeight);
+        if (W <= 0 || H <= 0) return;
         lastWidth = W;
         lastHeight = H;
 
@@ -411,25 +435,33 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
             },
           },
         });
-        // One tween pair per segment, timed by vertical distance.
+
+        // Segmen tween berkelanjutan untuk garis berjalan & pergerakan avatar knight
         for (let i = 0; i < nodes.length - 1; i++) {
           const dur = Math.max(1, nodes[i + 1].y - nodes[i].y);
           const at = nodes[i].y - y0;
-          tl.fromTo(
+          tl.to(
             dashTargets,
-            { strokeDashoffset: total * (1 - fractions[i]) },
-            { strokeDashoffset: total * (1 - fractions[i + 1]), duration: dur, immediateRender: i === 0 },
+            { strokeDashoffset: total * (1 - fractions[i + 1]), duration: dur, ease: "none" },
             at
           );
-          tl.to(knight, { motionPath: motion(fractions[i], fractions[i + 1]), duration: dur }, at);
+          tl.to(knight, { motionPath: motion(fractions[i], fractions[i + 1]), duration: dur, ease: "none" }, at);
         }
+
         master = tl.scrollTrigger || null;
         updateNodes(master ? master.progress : 0, false, 1);
       });
 
       build();
 
-      // Refresh on image loads so true node positions are measured after card expansion
+      // Refresh ekstra untuk memastikan DOM & font sudah ter-render sempurna
+      const timerA = setTimeout(build, 250);
+      const timerB = setTimeout(() => {
+        build();
+        ScrollTrigger.refresh();
+      }, 700);
+
+      // Refresh saat gambar selesai dimuat agar posisi node akurat
       const handleImageDone = () => {
         build();
         ScrollTrigger.refresh();
@@ -459,6 +491,8 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
 
       return () => {
         if (timer) clearTimeout(timer);
+        clearTimeout(timerA);
+        clearTimeout(timerB);
         ro.disconnect();
         offImages();
         imgs.forEach((img) => img.removeEventListener("load", handleImageDone));

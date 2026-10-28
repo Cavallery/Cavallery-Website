@@ -189,6 +189,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.railYear:first-child {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .railRank {
