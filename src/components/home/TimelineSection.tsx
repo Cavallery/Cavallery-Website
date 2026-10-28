@@ -231,8 +231,8 @@ export default function TimelineSection({ initialData }: { initialData?: Timelin
             </defs>
             <path className={styles.pathBase} data-kp-base d="" />
             <path className={styles.pathGlow} d="" data-kp-glow stroke="url(#kp-trail)" />
-            <path className={styles.pathLit} d="" stroke="url(#kp-trail)" />
-            <path className={styles.pathFlow} d="" stroke="url(#kp-flow)" mask="url(#kp-travelled)" />
+            <path className={styles.pathLit} data-kp-lit d="" stroke="url(#kp-trail)" />
+            <path className={styles.pathFlow} data-kp-flow d="" stroke="url(#kp-flow)" mask="url(#kp-travelled)" />
           </svg>
 
           <div className={styles.knight} data-kp-knight aria-hidden="true">
