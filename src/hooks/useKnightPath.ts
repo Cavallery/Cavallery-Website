@@ -7,12 +7,12 @@ import { gsap, ScrollTrigger, useGSAP, MQ, refreshOnImages } from "@/lib/gsap";
  *
  * DOM contract (all inside `container`, which must be position:relative):
  *   svg[data-kp-svg]                      absolute, top/left 0
- *     path[data-kp-base]                  dashed "untravelled" path
+ *     path[data-kp-base]                  dashed "untravelled" path (amber/orange)
  *     path[data-kp-lit]                   travelled path (stroke = gradient)
  *     mask[data-kp-mask] > path[data-kp-maskpath]   reveals the fire flow
  *     path[data-kp-flow]                  flowing embers (fire era only)
  *     linearGradient[data-kp-grad] / [data-kp-flowgrad]  (userSpaceOnUse)
- *   [data-kp-knight]                      the ♞ (absolute, top/left 0)
+ *   [data-kp-knight]                      the ♞ avatar (absolute, top/left 0)
  *   [data-kp-ember]                       pooled ember / spark particles
  *   [data-kp-item]                        one milestone row
  *     [data-kp-node][data-year]         node marker (NOT inside the card)
@@ -21,12 +21,8 @@ import { gsap, ScrollTrigger, useGSAP, MQ, refreshOnImages } from "@/lib/gsap";
  *       [data-kp-photo] img / [data-kp-text] > *
  *   [data-kp-year-rail] [data-kp-year]    sticky "rank" labels per year
  *
- * The path is a smooth Catmull-Rom spline that meanders across the whole
- * field ([data-kp-field]) between nodes — wide sweeps of varied amplitude
- * and an occasional loop, passing behind the cards. The master timeline is split per segment with a
- * duration equal to the segment's *vertical* distance, so the knight reaches
- * each node exactly when that node crosses the arrival line on screen.
- * One master ScrollTrigger; no React state; transforms/opacity/dashoffset only.
+ * Jalur meliuk & melingkar (meandering S-curves & loop-the-loops) yang menyusuri
+ * seluruh timeline secara dinamis dan mulus.
  */
 
 interface Options {
@@ -52,27 +48,95 @@ interface NodePoint extends Pt {
 const LINE = 0.7; // arrival line, fraction of the viewport height
 
 /**
- * Clean, smooth S-curve through milestone nodes.
- * Strictly monotonic vertically, strictly bounded horizontally within node positions.
- * Never loops, never overshoots, passes exactly through every milestone node.
+ * Generator alur meliuk & melingkar (Catmull-Rom & loop-the-loop Bezier):
+ * Menghubungkan setiap node dengan kurva meliuk (S-curve meanders) dan loop melingkar
+ * 360 derajat di antara milestone cards, menciptakan pengalaman visual berjalan yang hidup.
  */
-function buildSmoothPath(pts: Pt[], upTo = pts.length - 1): string {
-  if (!pts.length) return "";
-  if (pts.length === 1 || upTo === 0) {
-    return `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)} l 0 1`;
+function buildKnightPath(nodes: NodePoint[], upTo = nodes.length - 1): string {
+  if (!nodes || nodes.length === 0) return "";
+  if (nodes.length === 1 || upTo === 0) {
+    return `M ${nodes[0].x.toFixed(1)} ${nodes[0].y.toFixed(1)} l 0 1`;
   }
-  const maxIdx = Math.min(upTo, pts.length - 1);
-  let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  const maxIdx = Math.min(upTo, nodes.length - 1);
+  let d = `M ${nodes[0].x.toFixed(1)} ${nodes[0].y.toFixed(1)}`;
+
   for (let i = 0; i < maxIdx; i++) {
-    const p1 = pts[i];
-    const p2 = pts[i + 1];
+    const p1 = nodes[i];
+    const p2 = nodes[i + 1];
     const dy = p2.y - p1.y;
-    const c1x = p1.x;
-    const c1y = p1.y + dy * 0.5;
-    const c2x = p2.x;
-    const c2y = p2.y - dy * 0.5;
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+
+    if (dy <= 15) {
+      d += ` L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      continue;
+    }
+
+    const xMid = (p1.x + p2.x) / 2;
+    const yMid = p1.y + dy * 0.5;
+
+    // Deteksi desktop vs mobile
+    const isDesktop = (p1.laneRight - p1.laneLeft) > 600;
+
+    // Setiap segmen ke-2 (atau ke-3) yang memiliki jarak vertikal cukup, buat loop melingkar 360°
+    const isLoopSegment = (i % 3 === 1) && (dy >= 80);
+
+    if (isLoopSegment) {
+      // ── ALUR MELINGKAR (Loop-the-loop Circle) ──
+      const loopSign = (Math.floor(i / 3) % 2 === 0) ? 1 : -1;
+      const R = Math.min(isDesktop ? 28 : 16, Math.max(12, dy * 0.12));
+      const xc = xMid + loopSign * (R + (isDesktop ? 12 : 6));
+      const yc = yMid;
+
+      // 1. Kurva masuk dari p1 ke puncak loop (xc, yc - R)
+      const inCp1x = p1.x + loopSign * (isDesktop ? 18 : 8);
+      const inCp1y = p1.y + dy * 0.2;
+      const inCp2x = xc - loopSign * R * 0.7;
+      const inCp2y = yc - R * 1.15;
+      d += ` C ${inCp1x.toFixed(1)} ${inCp1y.toFixed(1)} ${inCp2x.toFixed(1)} ${inCp2y.toFixed(1)} ${xc.toFixed(1)} ${(yc - R).toFixed(1)}`;
+
+      // 2. Lingkaran luar loop (memutar ke bawah)
+      const outCp1x = xc + loopSign * R * 1.4;
+      const outCp1y = yc - R * 0.6;
+      const outCp2x = xc + loopSign * R * 1.4;
+      const outCp2y = yc + R * 0.6;
+      d += ` C ${outCp1x.toFixed(1)} ${outCp1y.toFixed(1)} ${outCp2x.toFixed(1)} ${outCp2y.toFixed(1)} ${xc.toFixed(1)} ${(yc + R).toFixed(1)}`;
+
+      // 3. Lingkaran dalam loop (menyilang kembali ke atas loop)
+      const backCp1x = xc - loopSign * R * 1.35;
+      const backCp1y = yc + R * 0.6;
+      const backCp2x = xc - loopSign * R * 1.35;
+      const backCp2y = yc - R * 0.5;
+      const exitCrossX = xc + loopSign * 4;
+      const exitCrossY = yc - R * 0.25;
+      d += ` C ${backCp1x.toFixed(1)} ${backCp1y.toFixed(1)} ${backCp2x.toFixed(1)} ${backCp2y.toFixed(1)} ${exitCrossX.toFixed(1)} ${exitCrossY.toFixed(1)}`;
+
+      // 4. Kurva keluar dari loop menuju p2
+      const outCp3x = xc + loopSign * R * 0.8;
+      const outCp3y = yc + R * 0.6;
+      const outCp4x = p2.x - loopSign * (isDesktop ? 18 : 8);
+      const outCp4y = p2.y - dy * 0.2;
+      d += ` C ${outCp3x.toFixed(1)} ${outCp3y.toFixed(1)} ${outCp4x.toFixed(1)} ${outCp4y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    } else {
+      // ── ALUR MELIUK (Meandering S-Curve sweep) ──
+      const swingSign = (i % 2 === 0) ? 1 : -1;
+      const swingAmp = Math.min(isDesktop ? 52 : 20, Math.max(12, dy * 0.22));
+      const xPeak = xMid + swingSign * swingAmp;
+
+      // Paruh pertama: p1 ke titik puncak liukan
+      const cp1x = p1.x + swingSign * swingAmp * 0.4;
+      const cp1y = p1.y + dy * 0.25;
+      const cp2x = xPeak;
+      const cp2y = yMid - dy * 0.12;
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)} ${cp2x.toFixed(1)} ${cp2y.toFixed(1)} ${xPeak.toFixed(1)} ${yMid.toFixed(1)}`;
+
+      // Paruh kedua: dari titik puncak liukan menuju p2
+      const cp3x = xPeak;
+      const cp3y = yMid + dy * 0.12;
+      const cp4x = p2.x + swingSign * swingAmp * 0.2;
+      const cp4y = p2.y - dy * 0.25;
+      d += ` C ${cp3x.toFixed(1)} ${cp3y.toFixed(1)} ${cp4x.toFixed(1)} ${cp4y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
   }
+
   return d;
 }
 
@@ -224,9 +288,6 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         });
         if (nodes.length < 1) return;
 
-        // Clean path directly connecting milestone nodes
-        const pts: Pt[] = nodes.map((n) => ({ x: n.x, y: n.y }));
-
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
         svg.setAttribute("width", String(W));
         svg.setAttribute("height", String(H));
@@ -237,18 +298,18 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
           mask.setAttribute("height", String(H));
         }
 
-        // Cumulative path length at every node.
+        // Cumulative path length at every node using buildKnightPath
         const fractions: number[] = [];
         const lens: number[] = [];
-        for (let i = 0; i < pts.length; i++) {
+        for (let i = 0; i < nodes.length; i++) {
           if (i === 0) {
             lens.push(0);
           } else {
-            base.setAttribute("d", buildSmoothPath(pts, i));
+            base.setAttribute("d", buildKnightPath(nodes, i));
             lens.push(base.getTotalLength());
           }
         }
-        const d = buildSmoothPath(pts);
+        const d = buildKnightPath(nodes);
         [base, glow, lit, maskPath, flow].forEach((p) => p?.setAttribute("d", d));
         total = Math.max(1, lit.getTotalLength());
         lens.forEach((l) => fractions.push(l / total));
@@ -367,6 +428,18 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
       });
 
       build();
+
+      // Refresh on image loads so true node positions are measured after card expansion
+      const handleImageDone = () => {
+        build();
+        ScrollTrigger.refresh();
+      };
+      const imgs = Array.from(root.querySelectorAll("img"));
+      imgs.forEach((img) => {
+        if (!img.complete) {
+          img.addEventListener("load", handleImageDone, { once: true });
+        }
+      });
       const offImages = refreshOnImages(root);
 
       // Recompute on resize (debounced) --------------------------------------
@@ -388,6 +461,7 @@ export function useKnightPath({ container, fireFromYear = 2025, dependencies = [
         if (timer) clearTimeout(timer);
         ro.disconnect();
         offImages();
+        imgs.forEach((img) => img.removeEventListener("load", handleImageDone));
         tl?.kill();
         master?.kill();
         flowTween?.kill();
