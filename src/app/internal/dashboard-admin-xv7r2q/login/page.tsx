@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import AdminPassionBackground from "@/components/admin/AdminPassionBackground";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -39,6 +40,9 @@ export default function AdminLoginPage() {
 
   return (
     <div className={styles.page}>
+      {/* Background Passion Fire & Embers */}
+      <AdminPassionBackground />
+
       <div className={styles.card}>
         <div className={styles.logoWrap}>
           <img
@@ -48,8 +52,12 @@ export default function AdminLoginPage() {
           />
         </div>
 
+        <div className={styles.shieldBadge}>
+          <i className="bx bxs-shield-alt-2" /> CAVALLERY PORTAL
+        </div>
+
         <h1 className={styles.title}>Admin Cavallery</h1>
-        <p className={styles.subtitle}>Masuk untuk mengelola keanggotaan & sistem website</p>
+        <p className={styles.subtitle}>Gerbang Terproteksi &bull; Akses Terbatas</p>
 
         <form onSubmit={handleLogin} className={styles.form}>
           {errorMsg && (
@@ -67,6 +75,8 @@ export default function AdminLoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
+              disabled={loading}
             />
           </div>
 
@@ -79,13 +89,15 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
+              disabled={loading}
             />
           </div>
 
           <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? (
               <>
-                <i className="bx bx-loader-alt bx-spin" /> Memeriksa...
+                <i className="bx bx-loader-alt bx-spin" /> Memeriksa Akses...
               </>
             ) : (
               <>
@@ -94,6 +106,10 @@ export default function AdminLoginPage() {
             )}
           </button>
         </form>
+
+        <div className={styles.cardFooter}>
+          <span>Team Passion &bull; Cavallery Administration</span>
+        </div>
       </div>
     </div>
   );

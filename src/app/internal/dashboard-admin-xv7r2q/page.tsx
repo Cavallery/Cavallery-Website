@@ -1,9 +1,10 @@
 
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Component, ErrorInfo, ReactNode } from "react";
 import styles from "./page.module.css";
 import type { BotMediaItem } from "@/app/api/bot-media/route";
 import LineChatManager from "@/components/admin/LineChatManager";
+import AdminPassionBackground from "@/components/admin/AdminPassionBackground";
 
 const api = (path: string) => (path.startsWith("/api") ? path : `/api${path}`);
 
@@ -90,6 +91,97 @@ function preparePayload(section: string, data: Record<string, any>): Record<stri
 // ─── ADMIN WRAPPER ───────────────────────────────────────────
 function AdminPortal({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
+}
+
+// ─── ERROR BOUNDARY ──────────────────────────────────────────
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  moduleName?: string;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class AdminErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Dashboard Module Error Caught:", error, errorInfo);
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          padding: "3rem 1.5rem",
+          maxWidth: 580,
+          margin: "3rem auto",
+          textAlign: "center",
+          background: "rgba(22, 17, 15, 0.92)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(239, 68, 68, 0.4)",
+          borderRadius: 18,
+          boxShadow: "0 16px 50px rgba(0,0,0,0.6), 0 0 30px rgba(239,68,68,0.15)"
+        }}>
+          <div style={{
+            width: 58,
+            height: 58,
+            borderRadius: "50%",
+            background: "rgba(239, 68, 68, 0.15)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+            color: "#ef4444",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "1.8rem",
+            margin: "0 auto 16px"
+          }}>
+            <i className="bx bx-error" />
+          </div>
+          <h3 style={{ margin: "0 0 8px", color: "#fff", fontSize: "1.2rem", fontWeight: 700 }}>
+            Modul {this.props.moduleName || "Halaman"} Mengalami Kendala
+          </h3>
+          <p style={{ margin: "0 0 20px", color: "var(--cv-text-mute, #a89a90)", fontSize: "0.88rem", lineHeight: 1.5 }}>
+            {this.state.error?.message || "Terjadi kendala sementara saat memuat data modul. Silakan coba klik tombol di bawah untuk memuat ulang modul."}
+          </p>
+          <button
+            type="button"
+            onClick={this.handleRetry}
+            style={{
+              padding: "10px 24px",
+              borderRadius: 24,
+              border: "none",
+              background: "linear-gradient(135deg, var(--cv-orange, #ff6b1a), var(--cv-orange-hi, #ff8f4d))",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: "0.88rem",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow: "0 6px 20px rgba(255, 107, 26, 0.35)"
+            }}
+          >
+            <i className="bx bx-refresh" /> Coba Lagi
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 // ─── AUTH HOOK (PENGGANTI sessionStorage — server-side verified) ──────────────
@@ -206,8 +298,16 @@ function LoginPage({ onLogin }: { onLogin: (userData: any) => void }) {
     <AdminPortal>
       <div className={styles.adminRoot}>
         <div className={styles.loginWrap}>
+          {/* Background Passion Fire & Embers */}
+          <AdminPassionBackground />
+
           <div className={styles.loginCard}>
-            <div className={styles.loginLogo}><i className="bx bxs-shield-alt-2" /></div>
+            <div className={styles.loginLogo}>
+              <i className="bx bxs-shield-alt-2" />
+            </div>
+            <div className={styles.loginShieldBadge}>
+              <i className="bx bxs-shield-alt-2" /> CAVALLERY PORTAL
+            </div>
             <h1 className={styles.loginTitle}>Cavallery Admin</h1>
             <p className={styles.loginSub}>Gerbang Terproteksi &bull; Akses Terbatas</p>
 
@@ -249,13 +349,17 @@ function LoginPage({ onLogin }: { onLogin: (userData: any) => void }) {
               />
             </div>
 
-            <button className={styles.loginBtn} onClick={submit} disabled={loading} style={{ marginTop: "12px" }}>
+            <button className={styles.loginBtn} onClick={submit} disabled={loading} style={{ marginTop: "14px" }}>
               {loading ? (
-                <><i className="bx bx-loader-alt bx-spin" /> Masuk...</>
+                <><i className="bx bx-loader-alt bx-spin" /> Memeriksa Akses...</>
               ) : (
                 <><i className="bx bx-log-in" /> Masuk Dashboard</>
               )}
             </button>
+
+            <div className={styles.loginCardFooter}>
+              <span>Team Passion &bull; Cavallery Administration</span>
+            </div>
           </div>
         </div>
       </div>
@@ -12139,7 +12243,7 @@ export default function AdminPage() {
             : active === "journal"    ? <JournalManager />
             : active === "bot"        ? <BotManager onNavigate={navigate} />
             : active === "botmedia"   ? <BotMediaManager onNavigate={navigate} />
-            : active === "linechat"   ? <LineChatManager />
+            : active === "linechat"   ? <AdminErrorBoundary moduleName="Live Chat LINE"><LineChatManager /></AdminErrorBoundary>
             : active === "tickets"    ? <TicketsManager />
             : active === "calendar"   ? <CalendarManager />
             : active === "updates"    ? <UpdatesManager />
