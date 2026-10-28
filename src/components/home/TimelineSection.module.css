@@ -41,14 +41,14 @@
 
 .pathBase {
   fill: none;
-  stroke: color-mix(in srgb, var(--cv-bone) 22%, transparent);
-  stroke-width: 1.5;
+  stroke: rgba(255, 143, 77, 0.35);
+  stroke-width: 2;
   stroke-dasharray: 3 8;
 }
 
 .pathLit {
   fill: none;
-  stroke-width: 3.5;
+  stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
