@@ -1,10 +1,17 @@
 import { query, isMySqlConfigured } from "./mysql";
 import {
   getAllMembers,
-  saveAllMembers,
   formatNoAnggota4Digit,
+  getBatchFromNumber,
   AnggotaRecord,
+  DOMISILI_MAP,
 } from "./anggotaParser";
+import {
+  appendAnggotaRow,
+  updateAnggotaStatusInSheet,
+  updateAnggotaJabatanInSheet,
+  deleteAnggotaRow,
+} from "./googleSheets";
 
 export interface AnggotaFilterOptions {
   search?: string;
@@ -24,72 +31,92 @@ export interface PublicMemberItem {
   status: "Aktif" | "Keluar";
 }
 
-// Convert MySQL row (snake_case) to AnggotaRecord (camelCase)
-function mapDbRowToRecord(row: any): AnggotaRecord {
+// ── Daftar admin resmi fanbase (nomor anggota) ──
+const KNOWN_ADMIN_NUMBERS = new Set([0, 1, 7, 18, 21, 23, 31, 38]);
+
+/**
+ * Map baris dari tabel `anggota` (keanggotaan) ke format AnggotaRecord
+ * yang dipakai halaman Data Anggota CAVA.
+ *
+ * Kolom tabel `anggota`:
+ *   id, no_anggota, nama_lengkap, id_line, display_line, domisili,
+ *   gender, status ('aktif'|'nonaktif'|'pending'), jabatan ('Anggota'|'Admin Fanbase'),
+ *   batch_id, batch_name, batch_year, ...
+ */
+function mapMainDbRowToRecord(row: any): AnggotaRecord {
+  const rawNo = String(row.no_anggota || "").trim();
+  const noAnggota = rawNo ? formatNoAnggota4Digit(rawNo) : "-";
+
+  // Ekstrak angka dari no_anggota untuk batch detection
+  const numMatch = rawNo.match(/(\d+)$/);
+  const num = numMatch ? parseInt(numMatch[1], 10) : 0;
+  const { batch: autoBatch, batchNumber: autoBatchNum } = getBatchFromNumber(num);
+
+  // Status mapping: anggota table uses 'aktif'/'nonaktif'/'pending'
+  const rawStatus = String(row.status || "aktif").toLowerCase();
+  const status: "Aktif" | "Keluar" =
+    rawStatus === "aktif" ? "Aktif" : "Keluar";
+
+  // Role mapping: jabatan 'Admin Fanbase' → 'Admin'
+  const jabatan = String(row.jabatan || "Anggota").trim();
+  let role: "Admin" | "Anggota" | "Keluar" = "Anggota";
+  if (jabatan.toLowerCase().includes("admin") || KNOWN_ADMIN_NUMBERS.has(num)) {
+    role = "Admin";
+  } else if (status === "Keluar") {
+    role = "Keluar";
+  }
+
+  const displayName =
+    row.display_line ||
+    `CAVA ${String(num).padStart(3, "0")} ${row.nama_lengkap || ""}`.trim();
+
+  const domisili = row.domisili && row.domisili !== "-"
+    ? row.domisili
+    : (DOMISILI_MAP[noAnggota] || "-");
+
   return {
     id: Number(row.id),
-    batch: String(row.batch || `Batch ${row.batch_number || 1}`),
-    batchNumber: Number(row.batch_number || 1),
-    noAnggota: formatNoAnggota4Digit(row.no_anggota || ""),
-    legacyNoAnggota: String(row.no_anggota || ""),
-    nama: String(row.nama || ""),
+    batch: autoBatch,
+    batchNumber: autoBatchNum,
+    noAnggota,
+    legacyNoAnggota: rawNo,
+    nama: String(row.nama_lengkap || ""),
     idLine: String(row.id_line || "-"),
-    domisili: String(row.domisili || "-"),
-    displayName: String(row.display_name || "-"),
-    tunggakanKas: String(row.tunggakan_kas || "-"),
-    nominalKas: String(row.nominal_kas || "-"),
-    nominalKasNumber: Number(
-      String(row.nominal_kas || "").replace(/[^\d]/g, "") || 0
-    ),
-    terakhirBayar: String(row.terakhir_bayar || "-"),
-    status: row.status === "Keluar" ? "Keluar" : "Aktif",
-    role: row.role === "Admin" ? "Admin" : row.role === "Keluar" ? "Keluar" : "Anggota",
+    domisili,
+    displayName,
+    tunggakanKas: "-",
+    nominalKas: "-",
+    nominalKasNumber: 0,
+    terakhirBayar: "-",
+    status,
+    role,
   };
 }
 
-let tableEnsured = false;
-async function ensureAnggotaTableExists(): Promise<void> {
-  if (tableEnsured || !isMySqlConfigured()) return;
-  try {
-    await query(`CREATE TABLE IF NOT EXISTS \`anggota_cava\` (
-      \`id\` INT AUTO_INCREMENT PRIMARY KEY,
-      \`batch\` VARCHAR(50) NOT NULL,
-      \`batch_number\` INT NOT NULL DEFAULT 1,
-      \`no_anggota\` VARCHAR(50) NOT NULL UNIQUE,
-      \`nama\` VARCHAR(191) NOT NULL,
-      \`id_line\` VARCHAR(191) DEFAULT '-',
-      \`domisili\` VARCHAR(191) DEFAULT '-',
-      \`display_name\` VARCHAR(191) DEFAULT '-',
-      \`status\` ENUM('Aktif', 'Keluar') NOT NULL DEFAULT 'Aktif',
-      \`role\` VARCHAR(50) NOT NULL DEFAULT 'Anggota',
-      \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      INDEX \`idx_batch\` (\`batch_number\`),
-      INDEX \`idx_no_anggota\` (\`no_anggota\`),
-      INDEX \`idx_status\` (\`status\`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
-    tableEnsured = true;
-  } catch (e: any) {
-    console.warn("[AnggotaService] Error ensuring anggota_cava table:", e?.message);
-  }
-}
-
+/**
+ * Fetch semua anggota dari tabel utama `anggota` (source of truth, sama dengan keanggotaan).
+ * Fallback ke local TSV/JSON hanya jika MySQL tidak tersedia.
+ */
 export async function fetchAllAnggota(): Promise<AnggotaRecord[]> {
   if (isMySqlConfigured()) {
     try {
-      await ensureAnggotaTableExists();
+      // Baca dari tabel `anggota` — SAMA dengan yang dipakai halaman keanggotaan
       const rows = await query<any[]>(
-        "SELECT * FROM anggota_cava ORDER BY batch_number ASC, id ASC"
+        `SELECT a.*, b.name as batch_name, b.year as batch_year
+         FROM anggota a
+         LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+         WHERE a.status != 'pending'
+         ORDER BY a.no_anggota ASC, a.id ASC`
       );
       if (rows && Array.isArray(rows) && rows.length > 0) {
-        return rows.map(mapDbRowToRecord);
+        return rows.map(mapMainDbRowToRecord);
       }
     } catch (e: any) {
-      console.warn("[AnggotaService] MySQL fetch failed, falling back to local:", e?.message);
+      console.warn("[AnggotaService] MySQL fetch from `anggota` failed, falling back to local:", e?.message);
     }
   }
 
-  // Fallback to local JSON / parsed file
+  // Fallback to local JSON / parsed TSV (read-only, hanya untuk development)
   return getAllMembers();
 }
 
@@ -190,162 +217,371 @@ export async function getPublicMemberList(options: {
     filtered = filtered.filter((a) => matchesSearchQuery(a, options.search!));
   }
 
-  // Strictly 3 main columns: batch, noAnggota, nama (plus status)
   return filtered.map((a) => ({
     id: a.id,
     batch: a.batch,
     batchNumber: a.batchNumber,
-    noAnggota: a.noAnggota, // Format 4 digit: CAVA-0001
+    noAnggota: a.noAnggota,
     nama: a.nama,
     status: a.status,
   }));
 }
 
+/**
+ * Tambah anggota baru — insert ke tabel `anggota` (tabel utama keanggotaan).
+ * Ini memastikan data selaras antara halaman keanggotaan dan halaman anggota CAVA.
+ */
 export async function addAnggota(data: Omit<AnggotaRecord, "id">): Promise<AnggotaRecord> {
-  const all = await fetchAllAnggota();
-  const nextId = all.length > 0 ? Math.max(...all.map((a) => a.id)) + 1 : 1;
-
   const formattedNo = formatNoAnggota4Digit(data.noAnggota);
 
-  const newRecord: AnggotaRecord = {
+  // Map status: 'Aktif' → 'aktif', 'Keluar' → 'nonaktif'
+  const dbStatus = data.status === "Keluar" ? "nonaktif" : "aktif";
+
+  // Map role → jabatan: 'Admin' → 'Admin Fanbase', else 'Anggota'
+  const dbJabatan = data.role === "Admin" ? "Admin Fanbase" : "Anggota";
+
+  const displayName = data.displayName || formattedNo;
+  const domisili = data.domisili || "-";
+  const idLine = data.idLine || "-";
+  const now = new Date();
+
+  const numMatch = formattedNo.match(/(\d+)$/);
+  const num = numMatch ? parseInt(numMatch[1], 10) : 0;
+  const { batch: autoBatch, batchNumber: autoBatchNum } = getBatchFromNumber(num);
+  const targetBatchNum = data.batchNumber || autoBatchNum || 1;
+  const targetBatchName = data.batch || autoBatch || `Batch ${targetBatchNum}`;
+
+  if (isMySqlConfigured()) {
+    try {
+      // 1. Dapatkan batch_id jika tabel recruitment_batches tersedia
+      let batchId: number | null = null;
+      try {
+        const bRows = await query<any[]>(
+          "SELECT id FROM recruitment_batches WHERE name = ? OR name LIKE ? ORDER BY id ASC LIMIT 1",
+          [`Batch ${targetBatchNum}`, `%Batch ${targetBatchNum}%`]
+        );
+        if (bRows && bRows.length > 0) {
+          batchId = bRows[0].id;
+        }
+      } catch {}
+
+      // 2. Periksa apakah sudah ada anggota dengan no_anggota yang sama
+      const existing = await query<any[]>(
+        "SELECT id FROM anggota WHERE no_anggota = ? OR no_anggota = ? LIMIT 1",
+        [formattedNo, data.noAnggota]
+      );
+
+      if (existing && existing.length > 0) {
+        const existId = existing[0].id;
+        await query(
+          `UPDATE anggota SET
+             nama_lengkap = ?,
+             id_line = ?,
+             display_line = ?,
+             domisili = ?,
+             status = ?,
+             jabatan = ?
+             ${batchId ? ", batch_id = ?" : ""}
+           WHERE id = ?`,
+          batchId
+            ? [data.nama.trim(), idLine, displayName, domisili, dbStatus, dbJabatan, batchId, existId]
+            : [data.nama.trim(), idLine, displayName, domisili, dbStatus, dbJabatan, existId]
+        );
+      } else {
+        // Coba insert dengan semua field tabel anggota (termasuk gender, kontak_platform, badge, batch_id)
+        let insertedOk = false;
+        try {
+          const res = await query(
+            `INSERT INTO anggota 
+             (no_anggota, nama_lengkap, id_line, pin, display_line, discord, gender, domisili, kontak_platform, kontak_id, status, jabatan, divisi, badge, batch_id, foto_profil, anggota_sejak) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              formattedNo,
+              data.nama.trim(),
+              idLine,
+              null,
+              displayName,
+              null,
+              "Laki-laki",
+              domisili,
+              "LINE",
+              idLine,
+              dbStatus,
+              dbJabatan,
+              null,
+              "squire",
+              batchId,
+              null,
+              now,
+            ]
+          );
+          if (res) insertedOk = true;
+        } catch {}
+
+        if (!insertedOk) {
+          // Fallback tanpa badge/divisi/discord jika kolom belum ada
+          try {
+            const res2 = await query(
+              `INSERT INTO anggota 
+               (no_anggota, nama_lengkap, id_line, display_line, gender, domisili, kontak_platform, kontak_id, status, jabatan, batch_id, anggota_sejak) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                formattedNo,
+                data.nama.trim(),
+                idLine,
+                displayName,
+                "Laki-laki",
+                domisili,
+                "LINE",
+                idLine,
+                dbStatus,
+                dbJabatan,
+                batchId,
+                now,
+              ]
+            );
+            if (res2) insertedOk = true;
+          } catch {}
+        }
+
+        if (!insertedOk) {
+          // Fallback minimal
+          await query(
+            `INSERT INTO anggota 
+             (no_anggota, nama_lengkap, id_line, display_line, domisili, status, jabatan, anggota_sejak) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              formattedNo,
+              data.nama.trim(),
+              idLine,
+              displayName,
+              domisili,
+              dbStatus,
+              dbJabatan,
+              now,
+            ]
+          );
+        }
+      }
+
+      // Sync non-blocking ke Google Sheets
+      try {
+        appendAnggotaRow({
+          noAnggota: formattedNo,
+          namaLengkap: data.nama.trim(),
+          idLine: idLine,
+          displayLine: displayName,
+          discord: "-",
+          gender: "Laki-laki",
+          domisili: domisili,
+          kontakPlatform: "LINE",
+          kontakId: idLine,
+          status: dbStatus,
+          jabatan: dbJabatan,
+          batch: targetBatchName,
+          anggotaSejak: now,
+          createdAt: now,
+        }).catch(() => {});
+      } catch {}
+
+      // Ambil record yang baru diinsert / update
+      const inserted = await query<any[]>(
+        `SELECT a.*, b.name as batch_name, b.year as batch_year
+         FROM anggota a
+         LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+         WHERE a.no_anggota = ? OR a.no_anggota = ?
+         ORDER BY a.id DESC LIMIT 1`,
+        [formattedNo, data.noAnggota]
+      );
+
+      if (inserted && inserted.length > 0) {
+        return mapMainDbRowToRecord(inserted[0]);
+      }
+    } catch (e: any) {
+      console.error("[AnggotaService] MySQL insert to `anggota` error:", e?.message);
+      throw new Error("Gagal menyimpan data anggota ke database: " + (e?.message || "Unknown error"));
+    }
+  }
+
+  // Fallback jika MySQL tidak configured (local dev only)
+  return {
     ...data,
-    id: nextId,
+    id: Date.now(),
+    batch: targetBatchName,
+    batchNumber: targetBatchNum,
     noAnggota: formattedNo,
-    batchNumber: data.batchNumber || parseInt(String(data.batch).replace(/[^\d]/g, ""), 10) || 1,
-    idLine: data.idLine || "-",
-    domisili: data.domisili || "-",
-    displayName: data.displayName || formattedNo,
-    tunggakanKas: data.tunggakanKas || "-",
-    nominalKas: data.nominalKas || "-",
-    nominalKasNumber: data.nominalKasNumber || 0,
-    terakhirBayar: data.terakhirBayar || "-",
+    idLine,
+    domisili,
+    displayName,
+    tunggakanKas: "-",
+    nominalKas: "-",
+    nominalKasNumber: 0,
+    terakhirBayar: "-",
     status: data.status === "Keluar" ? "Keluar" : "Aktif",
     role: data.role === "Admin" ? "Admin" : data.role === "Keluar" ? "Keluar" : "Anggota",
   };
-
-  // 1. Simpan ke local cache & JSON
-  const updatedList = [...all.filter((a) => a.noAnggota !== formattedNo), newRecord];
-  saveAllMembers(updatedList);
-
-  // 2. Sync ke MySQL jika tersedia
-  if (isMySqlConfigured()) {
-    try {
-      await ensureAnggotaTableExists();
-      await query(
-        `INSERT INTO anggota_cava 
-        (batch, batch_number, no_anggota, nama, id_line, domisili, display_name, status, role)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        batch = VALUES(batch),
-        batch_number = VALUES(batch_number),
-        nama = VALUES(nama),
-        id_line = VALUES(id_line),
-        domisili = VALUES(domisili),
-        display_name = VALUES(display_name),
-        status = VALUES(status),
-        role = VALUES(role)`,
-        [
-          newRecord.batch,
-          newRecord.batchNumber,
-          newRecord.noAnggota,
-          newRecord.nama,
-          newRecord.idLine,
-          newRecord.domisili,
-          newRecord.displayName,
-          newRecord.status,
-          newRecord.role,
-        ]
-      );
-    } catch (e: any) {
-      console.error("[AnggotaService] MySQL insert error:", e?.message);
-    }
-  }
-
-  return newRecord;
 }
 
+/**
+ * Update data anggota — update di tabel `anggota`.
+ */
 export async function updateAnggota(idOrNo: number | string, patch: Partial<AnggotaRecord>): Promise<AnggotaRecord | null> {
-  const all = await fetchAllAnggota();
-  const numId = Number(idOrNo);
-  const index = all.findIndex(
-    (a) => (!isNaN(numId) && a.id === numId) || a.noAnggota === idOrNo || a.legacyNoAnggota === idOrNo
-  );
-  if (index === -1) return null;
-
-  const current = all[index];
-  const formattedNo = patch.noAnggota ? formatNoAnggota4Digit(patch.noAnggota) : current.noAnggota;
-
-  const updated: AnggotaRecord = {
-    ...current,
-    ...patch,
-    noAnggota: formattedNo,
-  };
-  if (patch.batch && !patch.batchNumber) {
-    updated.batchNumber = parseInt(String(patch.batch).replace(/[^\d]/g, ""), 10) || current.batchNumber;
+  if (!isMySqlConfigured()) {
+    console.warn("[AnggotaService] MySQL not configured, cannot update.");
+    return null;
   }
 
-  all[index] = updated;
-  saveAllMembers(all);
+  // Cari record existing
+  const numId = Number(idOrNo);
+  let existing: any[] | null = null;
 
-  // MySQL Sync
-  if (isMySqlConfigured()) {
-    try {
-      await ensureAnggotaTableExists();
-      await query(
-        `UPDATE anggota_cava SET
-          batch = ?,
-          batch_number = ?,
-          no_anggota = ?,
-          nama = ?,
-          id_line = ?,
-          domisili = ?,
-          display_name = ?,
-          status = ?,
-          role = ?
-        WHERE id = ? OR no_anggota = ?`,
-        [
-          updated.batch,
-          updated.batchNumber,
-          updated.noAnggota,
-          updated.nama,
-          updated.idLine,
-          updated.domisili,
-          updated.displayName,
-          updated.status,
-          updated.role,
-          updated.id,
-          current.noAnggota,
-        ]
-      );
-    } catch (e: any) {
-      console.error("[AnggotaService] MySQL update error:", e?.message);
+  if (!isNaN(numId) && numId > 0) {
+    existing = await query<any[]>("SELECT * FROM anggota WHERE id = ? LIMIT 1", [numId]);
+  }
+  if ((!existing || existing.length === 0) && typeof idOrNo === "string") {
+    const formatted = formatNoAnggota4Digit(idOrNo);
+    existing = await query<any[]>("SELECT * FROM anggota WHERE no_anggota = ? OR no_anggota = ? LIMIT 1", [idOrNo, formatted]);
+  }
+
+  if (!existing || existing.length === 0) return null;
+
+  const current = existing[0];
+  const currentId = current.id;
+  const targetNo = current.no_anggota || (patch.noAnggota ? formatNoAnggota4Digit(patch.noAnggota) : "");
+
+  // Build update fields
+  const updates: string[] = [];
+  const params: any[] = [];
+
+  if (patch.nama !== undefined) {
+    updates.push("nama_lengkap = ?");
+    params.push(patch.nama.trim());
+  }
+  if (patch.noAnggota !== undefined) {
+    updates.push("no_anggota = ?");
+    params.push(formatNoAnggota4Digit(patch.noAnggota));
+  }
+  if (patch.idLine !== undefined) {
+    updates.push("id_line = ?");
+    params.push(patch.idLine || "-");
+  }
+  if (patch.domisili !== undefined) {
+    updates.push("domisili = ?");
+    params.push(patch.domisili || "-");
+  }
+  if (patch.displayName !== undefined) {
+    updates.push("display_line = ?");
+    params.push(patch.displayName || "-");
+  }
+  if (patch.status !== undefined) {
+    const newStatus = patch.status === "Keluar" ? "nonaktif" : "aktif";
+    updates.push("status = ?");
+    params.push(newStatus);
+    if (targetNo) {
+      updateAnggotaStatusInSheet(targetNo, newStatus).catch(() => {});
     }
   }
+  if (patch.role !== undefined) {
+    const newJabatan = patch.role === "Admin" ? "Admin Fanbase" : "Anggota";
+    updates.push("jabatan = ?");
+    params.push(newJabatan);
+    if (targetNo) {
+      updateAnggotaJabatanInSheet(targetNo, newJabatan).catch(() => {});
+    }
+  }
+  if (patch.batchNumber !== undefined) {
+    try {
+      const bRows = await query<any[]>(
+        "SELECT id FROM recruitment_batches WHERE name = ? OR name LIKE ? ORDER BY id ASC LIMIT 1",
+        [`Batch ${patch.batchNumber}`, `%Batch ${patch.batchNumber}%`]
+      );
+      if (bRows && bRows.length > 0) {
+        updates.push("batch_id = ?");
+        params.push(bRows[0].id);
+      }
+    } catch {}
+  }
 
-  return updated;
+  if (updates.length === 0) {
+    return mapMainDbRowToRecord(current);
+  }
+
+  params.push(currentId);
+
+  try {
+    await query(
+      `UPDATE anggota SET ${updates.join(", ")} WHERE id = ?`,
+      params
+    );
+
+    const updated = await query<any[]>(
+      `SELECT a.*, b.name as batch_name, b.year as batch_year
+       FROM anggota a
+       LEFT JOIN recruitment_batches b ON a.batch_id = b.id
+       WHERE a.id = ? LIMIT 1`,
+      [currentId]
+    );
+    if (updated && updated.length > 0) {
+      return mapMainDbRowToRecord(updated[0]);
+    }
+  } catch (e: any) {
+    console.error("[AnggotaService] MySQL update error:", e?.message);
+    throw new Error("Gagal memperbarui data: " + (e?.message || "Unknown"));
+  }
+
+  return null;
 }
 
+/**
+ * Hapus anggota — hapus dari tabel `anggota`.
+ */
 export async function deleteAnggota(idOrNo: number | string): Promise<boolean> {
-  const all = await fetchAllAnggota();
-  const numId = Number(idOrNo);
-  const target = all.find(
-    (a) => (!isNaN(numId) && a.id === numId) || a.noAnggota === idOrNo || a.legacyNoAnggota === idOrNo
-  );
-  if (!target) return false;
-
-  const updated = all.filter((a) => a.id !== target.id && a.noAnggota !== target.noAnggota);
-  saveAllMembers(updated);
-
-  if (isMySqlConfigured()) {
-    try {
-      await ensureAnggotaTableExists();
-      await query("DELETE FROM anggota_cava WHERE id = ? OR no_anggota = ?", [target.id, target.noAnggota]);
-    } catch (e: any) {
-      console.error("[AnggotaService] MySQL delete error:", e?.message);
-    }
+  if (!isMySqlConfigured()) {
+    console.warn("[AnggotaService] MySQL not configured, cannot delete.");
+    return false;
   }
 
-  return true;
+  const numId = Number(idOrNo);
+
+  try {
+    let targetId = 0;
+    let targetNo = "";
+
+    if (!isNaN(numId) && numId > 0) {
+      const found = await query<any[]>("SELECT id, no_anggota FROM anggota WHERE id = ? LIMIT 1", [numId]);
+      if (found && found.length > 0) {
+        targetId = found[0].id;
+        targetNo = found[0].no_anggota;
+      }
+    } else if (typeof idOrNo === "string") {
+      const formatted = formatNoAnggota4Digit(idOrNo);
+      const found = await query<any[]>(
+        "SELECT id, no_anggota FROM anggota WHERE no_anggota = ? OR no_anggota = ? LIMIT 1",
+        [idOrNo, formatted]
+      );
+      if (found && found.length > 0) {
+        targetId = found[0].id;
+        targetNo = found[0].no_anggota;
+      }
+    }
+
+    if (!targetId) return false;
+
+    // Bersihkan relasi foreign key terlebih dahulu
+    await query("DELETE FROM konfirmasi_kas WHERE anggota_id = ?", [targetId]);
+    await query("DELETE FROM kupon_anggota WHERE anggota_id = ?", [targetId]);
+    await query("DELETE FROM war_tiket_peserta WHERE anggota_id = ?", [targetId]);
+    if (targetNo) {
+      await query("DELETE FROM iuran_kas_bulanan WHERE anggota_id = ? OR no_anggota = ?", [targetId, targetNo]);
+      deleteAnggotaRow(targetNo).catch(() => {});
+    }
+
+    const result = await query("DELETE FROM anggota WHERE id = ?", [targetId]);
+    return result !== null;
+  } catch (e: any) {
+    console.error("[AnggotaService] MySQL delete error:", e?.message);
+    return false;
+  }
 }
 
 export function generateCsvData(members: AnggotaRecord[]): string {
@@ -386,42 +622,16 @@ export function generateSqlScript(members: AnggotaRecord[]): string {
 
   const lines = [
     `-- ============================================================`,
-    `-- CAVALLERY FANBASE: DATA RESMI ANGGOTA (BATCH 1 - 9)`,
-    `-- Database: Hostinger MySQL / u410588002_Cavallery`,
-    `-- Total Data: ${members.length} Anggota (CAVA-0000 s/d CAVA-0650)`,
+    `-- CAVALLERY FANBASE: DATA ANGGOTA RESMI (REALTIME EXPORT)`,
+    `-- Total Data: ${members.length} Anggota`,
     `-- Exported At: ${new Date().toISOString()}`,
     `-- ============================================================`,
-    ``,
-    `CREATE TABLE IF NOT EXISTS \`anggota_cava\` (`,
-    `  \`id\` INT AUTO_INCREMENT PRIMARY KEY,`,
-    `  \`batch\` VARCHAR(50) NOT NULL,`,
-    `  \`batch_number\` INT NOT NULL DEFAULT 1,`,
-    `  \`no_anggota\` VARCHAR(50) NOT NULL UNIQUE,`,
-    `  \`nama\` VARCHAR(191) NOT NULL,`,
-    `  \`id_line\` VARCHAR(191) DEFAULT '-',`,
-    `  \`domisili\` VARCHAR(191) DEFAULT '-',`,
-    `  \`display_name\` VARCHAR(191) DEFAULT '-',`,
-    `  \`status\` ENUM('Aktif', 'Keluar') NOT NULL DEFAULT 'Aktif',`,
-    `  \`role\` VARCHAR(50) NOT NULL DEFAULT 'Anggota',`,
-    `  \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,`,
-    `  \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,`,
-    `  INDEX \`idx_batch\` (\`batch_number\`),`,
-    `  INDEX \`idx_no_anggota\` (\`no_anggota\`),`,
-    `  INDEX \`idx_status\` (\`status\`)`,
-    `) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
-    ``,
-    `-- ============================================================`,
-    `-- INSERT / UPDATE ANGGOTA REALTIME`,
-    `-- ============================================================`,
-    `INSERT INTO \`anggota_cava\` `,
-    `(\`batch\`, \`batch_number\`, \`no_anggota\`, \`nama\`, \`id_line\`, \`domisili\`, \`display_name\`, \`status\`, \`role\`)`,
-    `VALUES`,
   ];
 
   const valuesArr = members.map((m) => {
-    return `('${escapeSql(m.batch)}', ${m.batchNumber}, '${escapeSql(m.noAnggota)}', '${escapeSql(m.nama)}', '${escapeSql(m.idLine)}', '${escapeSql(m.domisili)}', '${escapeSql(m.displayName)}', '${escapeSql(m.status)}', '${escapeSql(m.role)}')`;
+    return `-- ${m.noAnggota}: ${m.nama} (${m.status}, ${m.role}, ${m.domisili})`;
   });
 
-  lines.push(valuesArr.join(",\n") + ";");
+  lines.push("", "-- Daftar Anggota:", ...valuesArr);
   return lines.join("\n");
 }
