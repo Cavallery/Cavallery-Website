@@ -79,8 +79,15 @@ function groupByYear(events: TimelineEvent[]) {
   });
 }
 
-export default function TimelineSection() {
-  const [timelineData, setTimelineData] = useState<TimelineData>(buildDefaultTimelineData);
+export default function TimelineSection({ initialData }: { initialData?: TimelineData }) {
+  // Jika initialData diberikan dari Server Component, pakai langsung agar tidak perlu refresh
+  const [timelineData, setTimelineData] = useState<TimelineData>(() => {
+    if (initialData && Array.isArray(initialData.events) && initialData.events.length > 0) {
+      return initialData;
+    }
+    return buildDefaultTimelineData();
+  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ image: "", date: "", title: "", desc: "" });
   const [mounted, setMounted] = useState(false);
@@ -118,7 +125,10 @@ export default function TimelineSection() {
   useEffect(() => {
     const loadTimeline = async () => {
       try {
-        const res = await fetch("/api/timeline", { signal: AbortSignal.timeout(2000) });
+        const res = await fetch("/api/timeline", {
+          cache: "no-store",
+          signal: AbortSignal.timeout(8000), // Timeout 8 detik aman untuk shared hosting MySQL
+        });
         if (res.ok) {
           const json = await res.json();
           if (json?.status && json.data?.events?.length > 0) {
@@ -131,7 +141,7 @@ export default function TimelineSection() {
           }
         }
       } catch {
-        // Tetap menggunakan data bawaan awal (langsung tampil 0ms tanpa loading)
+        // Tetap menggunakan data awal yang sudah dirender server
       }
     };
 
@@ -221,8 +231,8 @@ export default function TimelineSection() {
             </defs>
             <path className={styles.pathBase} data-kp-base d="" />
             <path className={styles.pathGlow} d="" data-kp-glow stroke="url(#kp-trail)" />
-            <path className={styles.pathLit} data-kp-lit d="" stroke="url(#kp-trail)" />
-            <path className={styles.pathFlow} data-kp-flow d="" stroke="url(#kp-flow)" mask="url(#kp-travelled)" />
+            <path className={styles.pathLit} d="" stroke="url(#kp-trail)" />
+            <path className={styles.pathFlow} d="" stroke="url(#kp-flow)" mask="url(#kp-travelled)" />
           </svg>
 
           <div className={styles.knight} data-kp-knight aria-hidden="true">

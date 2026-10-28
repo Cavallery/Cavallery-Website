@@ -1,85 +1,31 @@
 import { NextResponse } from "next/server";
+import { getTimelineData } from "@/lib/timelineService";
 import { query, isMySqlConfigured } from "@/lib/mysql";
-import { API_CACHE_HEADERS } from "@/lib/apiCache";
 import fs from "fs";
 import path from "path";
 
-function getLocalMilestones() {
-  try {
-    const filePath = path.join(process.cwd(), "src", "data", "milestone.json");
-    if (fs.existsSync(filePath)) {
-      const fileData = fs.readFileSync(filePath, "utf-8");
-      const list = JSON.parse(fileData);
-      if (Array.isArray(list) && list.length > 0) {
-        const yearsSet = new Set<string>();
-        list.forEach((item: any) => {
-          yearsSet.add(String(item.year || "2026"));
-        });
-        const years = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
-        return { years, events: list };
-      }
-    }
-  } catch (e) {
-    console.error("Failed to read local milestone.json:", e);
-  }
-  return null;
-}
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    if (isMySqlConfigured()) {
-      try {
-        const rows = await query<any[]>(
-          "SELECT * FROM `timeline` WHERE `is_active` = 1 ORDER BY `year` ASC, `sort_order` ASC, `id` ASC"
-        );
-        if (rows && rows.length > 0) {
-          const yearsSet = new Set<string>();
-          const events = rows.map((r) => {
-            const yr = String(r.year || "2026");
-            yearsSet.add(yr);
-            return {
-              id: String(r.id),
-              year: yr,
-              date_label: r.date_label || "",
-              event_date: r.event_date || r.date_label || "",
-              title: r.title || "",
-              description: r.description || "",
-              image_url: r.image_url || null,
-              handwriting_caption: r.handwriting_caption || r.date_label || "",
-              sort_order: r.sort_order || 0,
-              is_active: Boolean(r.is_active),
-            };
-          });
-          const years = Array.from(yearsSet).sort((a, b) => Number(a) - Number(b));
-          return NextResponse.json(
-            {
-              status: true,
-              success: true,
-              data: { years, events },
-            },
-            { headers: API_CACHE_HEADERS }
-          );
-        }
-      } catch (dbErr) {
-        console.warn("[Timeline] MySQL query error, falling back to local json:", dbErr);
+    const data = await getTimelineData();
+    return NextResponse.json(
+      {
+        status: true,
+        success: true,
+        data,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+        },
       }
-    }
-
-    // Ambil langsung dari milestone.json lokal (respon instan <5ms tanpa request gantung)
-    const local = getLocalMilestones();
-    if (local) {
-      return NextResponse.json({ status: true, success: true, data: local }, { headers: API_CACHE_HEADERS });
-    }
-
-    return NextResponse.json({ status: true, success: true, data: { years: [], events: [] } }, { headers: API_CACHE_HEADERS });
+    );
   } catch (error: any) {
-    const local = getLocalMilestones();
-    if (local) {
-      return NextResponse.json({ status: true, success: true, data: local }, { headers: API_CACHE_HEADERS });
-    }
     return NextResponse.json(
       { status: false, success: false, message: error.message, data: { years: [], events: [] } },
-      { status: 200, headers: API_CACHE_HEADERS }
+      { status: 200 }
     );
   }
 }
@@ -102,7 +48,8 @@ export async function POST(request: Request) {
         body.is_active !== undefined ? (body.is_active ? 1 : 0) : 1,
       ]
     );
-    // Sinkronisasi realtime ke src/data/milestone.json agar frontend langsung terupdate
+
+    // Sinkronisasi realtime ke src/data/milestone.json jika memungkinkan (dev environment)
     try {
       const filePath = path.join(process.cwd(), "src", "data", "milestone.json");
       let list: any[] = [];
@@ -123,7 +70,7 @@ export async function POST(request: Request) {
       });
       fs.writeFileSync(filePath, JSON.stringify(list, null, 2), "utf-8");
     } catch (e) {
-      console.warn("Gagal sinkronisasi file milestone.json:", e);
+      // Ignored in read-only production environments
     }
 
     return NextResponse.json({ status: true, success: true, id: result.insertId, message: "Timeline berhasil ditambahkan" });
