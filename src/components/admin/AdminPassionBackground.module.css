@@ -1,0 +1,179 @@
+/* ================================================================
+   ADMIN PASSION BACKGROUND — Full screen warm atmospheric fire
+   ================================================================ */
+
+.bgRoot {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  background-color: var(--cv-ink, #0c0908);
+}
+
+/* Subtle dot-grid pattern and warm vignette */
+.texture {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(rgba(255, 107, 26, 0.08) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(216, 103, 27, 0.12) 0%, transparent 60%);
+  background-size: 28px 28px, 100% 100%;
+  opacity: 0.85;
+}
+
+.radialGlowTop {
+  position: absolute;
+  top: -15vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70vw;
+  height: 50vh;
+  background: radial-gradient(circle, rgba(255, 107, 26, 0.1) 0%, rgba(216, 103, 27, 0.03) 45%, transparent 75%);
+  filter: blur(40px);
+}
+
+/* ── Ambient layer (Knight watermark + embers) ── */
+.ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.bigKnight {
+  position: absolute;
+  right: -6vmax;
+  bottom: -4vmax;
+  width: 52vmax;
+  height: 52vmax;
+  color: var(--cv-orange, #ff6b1a);
+  opacity: 0.055;
+  transform: rotate(-7deg);
+}
+
+.ember {
+  position: absolute;
+  left: var(--x);
+  bottom: -20px;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe2cc 0%, var(--cv-orange, #ff6b1a) 50%, transparent 75%);
+  opacity: 0;
+  animation: emberRise var(--d) linear var(--dl) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes emberRise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(var(--sway), -105vh, 0) scale(0.35);
+    opacity: 0;
+  }
+}
+
+/* ── Horizon layer (Bottom fire & glowing haze) ── */
+.horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 25vh;
+  min-height: 140px;
+}
+
+.haze,
+.hazeHot {
+  position: absolute;
+  inset: 0;
+}
+
+.haze {
+  background: radial-gradient(
+    110% 100% at 50% 100%,
+    rgba(216, 103, 27, 0.28) 0%,
+    rgba(255, 107, 26, 0.12) 45%,
+    transparent 78%
+  );
+}
+
+.hazeHot {
+  background: radial-gradient(
+    65% 75% at 50% 100%,
+    rgba(255, 146, 74, 0.18) 0%,
+    rgba(242, 106, 27, 0.08) 40%,
+    transparent 75%
+  );
+  opacity: 0.55;
+  animation: breathe 5s ease-in-out infinite alternate;
+}
+
+.flames {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8vh;
+  min-height: 48px;
+}
+
+.line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(217, 80, 11, 0.8) 18%,
+    var(--cv-orange, #ff6b1a) 50%,
+    var(--cv-orange-hi, #ff8f4d) 65%,
+    rgba(217, 80, 11, 0.8) 82%,
+    transparent 100%
+  );
+  opacity: 0.7;
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 0.95;
+  }
+}
+
+@media (max-width: 767px) {
+  .horizon {
+    height: 16vh;
+  }
+  .bigKnight {
+    width: 85vw;
+    height: 85vw;
+    right: -20vw;
+    bottom: 2vh;
+  }
+  .ember:nth-child(n + 12) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ember {
+    display: none;
+  }
+  .hazeHot {
+    animation: none;
+    opacity: 0.6;
+  }
+}

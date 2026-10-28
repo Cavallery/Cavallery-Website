@@ -28,6 +28,7 @@ interface LineMessage {
   message_text: string;
   message_type: string;
   media_url?: string | null;
+  line_message_id?: string | null;
   quoted_message_id?: number | null;
   quoted_text?: string | null;
   quoted_sender?: string | null;
@@ -113,18 +114,33 @@ export default function LineChatManager() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const activeContactRef = useRef<LineContact | null>(null);
+  activeContactRef.current = activeContact;
 
   // Ambil daftar kontak
   const fetchContacts = async () => {
     try {
       const res = await fetch(`/api/admin/line-chat${search ? `?search=${encodeURIComponent(search)}` : ""}`);
       const data = await res.json();
-      if (data.status) {
-        setContacts(data.contacts || []);
-        if (activeContact) {
-          const updatedActive = (data.contacts || []).find((c: LineContact) => c.id === activeContact.id);
+      if (data && data.status) {
+        const fetchedContacts: LineContact[] = Array.isArray(data.contacts) ? data.contacts : [];
+        setContacts(fetchedContacts);
+        if (activeContactRef.current) {
+          const updatedActive = fetchedContacts.find((c: LineContact) => c.id === activeContactRef.current?.id);
           if (updatedActive) {
-            setActiveContact(updatedActive);
+            setActiveContact((prev) => {
+              if (!prev) return updatedActive;
+              // Hanya perbarui jika data esensial berubah agar tidak memicu re-render berulang
+              if (
+                prev.latest_reply_token === updatedActive.latest_reply_token &&
+                prev.unread_count === updatedActive.unread_count &&
+                prev.last_message_at === updatedActive.last_message_at &&
+                prev.display_name === updatedActive.display_name
+              ) {
+                return prev;
+              }
+              return updatedActive;
+            });
           }
         }
       }
@@ -140,10 +156,10 @@ export default function LineChatManager() {
     try {
       const res = await fetch(`/api/admin/line-chat?contactId=${contactId}`);
       const data = await res.json();
-      if (data.status) {
-        setMessages(data.messages || []);
+      if (data && data.status) {
+        setMessages(Array.isArray(data.messages) ? data.messages : []);
         if (data.members) {
-          setMembers(data.members || []);
+          setMembers(Array.isArray(data.members) ? data.members : []);
         }
         if (autoScroll) {
           setTimeout(() => {
@@ -161,19 +177,24 @@ export default function LineChatManager() {
     const interval = setInterval(() => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         fetchContacts();
-        if (activeContact) {
-          fetchMessages(activeContact.id, false);
+        const currentContact = activeContactRef.current;
+        if (currentContact) {
+          fetchMessages(currentContact.id, false);
         }
       }
     }, 8000);
     return () => clearInterval(interval);
-  }, [activeContact, search]);
+  }, [search]);
 
   const selectContact = async (contact: LineContact) => {
     setActiveContact(contact);
+    activeContactRef.current = contact;
     setLoadingMessages(true);
     setFeedback(null);
     setReplyingTo(null);
+    if (selectedMedia?.previewUrl) {
+      URL.revokeObjectURL(selectedMedia.previewUrl);
+    }
     setSelectedMedia(null);
     await fetchMessages(contact.id, true);
     setLoadingMessages(false);
@@ -243,6 +264,9 @@ export default function LineChatManager() {
       return;
     }
 
+    if (selectedMedia?.previewUrl) {
+      URL.revokeObjectURL(selectedMedia.previewUrl);
+    }
     const previewUrl = URL.createObjectURL(file);
     setSelectedMedia({
       file,
@@ -464,8 +488,8 @@ export default function LineChatManager() {
   };
 
   // Filter daftar mention berdasarkan teks yang sedang diketik
-  const filteredMembers = members.filter((m) =>
-    m.display_name.toLowerCase().includes(mentionQuery)
+  const filteredMembers = (Array.isArray(members) ? members : []).filter((m) =>
+    (m.display_name || "").toLowerCase().includes(mentionQuery)
   );
 
   // Render teks pesan dengan highlight tag @mention
@@ -724,14 +748,15 @@ export default function LineChatManager() {
                               lineUserId: m.line_user_id,
                             });
                             // Otomatis masukkan @mention jika membalas chat anggota
-                            if (!isOut && m.display_name) {
-                              const tag = `@${m.display_name.trim()} `;
+                            if (!isOut && (m.display_name || m.line_user_id)) {
+                              const dName = (m.display_name || "Anggota").trim();
+                              const tag = `@${dName} `;
                               if (!inputText.includes(tag)) {
                                 setInputText((prev) => tag + prev);
                                 if (m.line_user_id) {
                                   setTrackedMentions((prev) => [
                                     ...prev,
-                                    { name: m.display_name!.trim(), userId: m.line_user_id },
+                                    { name: dName, userId: m.line_user_id },
                                   ]);
                                 }
                               }
@@ -841,7 +866,10 @@ export default function LineChatManager() {
                 <button
                   type="button"
                   className={styles.btnCancelReply}
-                  onClick={() => setSelectedMedia(null)}
+                  onClick={() => {
+                    if (selectedMedia?.previewUrl) URL.revokeObjectURL(selectedMedia.previewUrl);
+                    setSelectedMedia(null);
+                  }}
                   title="Batalkan lampiran"
                 >
                   ✕
