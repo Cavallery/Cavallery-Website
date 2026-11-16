@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import styles from "../page.module.css";
 import { query, isMySqlConfigured } from "@/lib/mysql";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface NewsDetail {
   id: string;
   slug: string;
@@ -18,10 +21,24 @@ interface NewsDetail {
 
 async function getNewsDetail(slug: string): Promise<NewsDetail | null> {
   try {
+    const cleanSlug = decodeURIComponent(slug).trim();
+    const hyphenSlug = cleanSlug.toLowerCase().replace(/[\s_]+/g, "-").replace(/-+/g, "-");
+    const spaceSlug = cleanSlug.replace(/[-_]+/g, " ");
+
     if (isMySqlConfigured()) {
       const rows = await query<any[]>(
-        "SELECT * FROM `news` WHERE `slug`=? OR `id`=? LIMIT 1",
-        [slug, slug]
+        `SELECT * FROM \`news\` 
+         WHERE \`slug\` = ? 
+            OR LOWER(\`slug\`) = LOWER(?) 
+            OR \`slug\` = ? 
+            OR LOWER(\`slug\`) = LOWER(?) 
+            OR REPLACE(LOWER(\`slug\`), '-', ' ') = LOWER(?)
+            OR REPLACE(LOWER(\`slug\`), ' ', '-') = LOWER(?)
+            OR REPLACE(LOWER(\`slug\`), '-', ' ') = LOWER(?)
+            OR \`id\` = ? 
+            OR LOWER(\`title\`) = LOWER(?) 
+         LIMIT 1`,
+        [cleanSlug, cleanSlug, hyphenSlug, hyphenSlug, cleanSlug, cleanSlug, spaceSlug, cleanSlug, cleanSlug]
       );
       if (rows && rows.length > 0) {
         const r = rows[0];
